@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Monitoring 4 Jam</title>
+    <meta name="description" content="Sistem monitoring posisi armada kendaraan per 4 jam J&T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR (DARK THEME) -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="monitoring.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">History</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-help-box">
+                    <div class="help-content">
+                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                        <div class="help-text-group">
+                            <span class="help-title">Butuh Bantuan?</span>
+                            <span class="help-sub">Hubungi Admin Sistem</span>
+                        </div>
+                    </div>
+                    <button class="btn-help-contact">Kontak Admin</button>
+                </div>
+            </aside>
+
+            <!-- MAIN MONITORING 4 JAM BODY -->
+            <main class="main-incoming-body">
+
+                <!-- Top Header Nav -->
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <div>
+                            <h2 class="inc-main-title" style="font-size: 22px;">Monitoring 4 Jam</h2>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Monitoring 4 Jam</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <span>22 Juli 2026</span>
+                            <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
+                        </div>
+                        <div class="inc-notif-bell">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="inc-bell-badge">5</span>
+                        </div>
+                        <div class="inc-user-chip">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name">Hamdan <span>v</span></span>
+                                <span class="inc-user-role">Operator</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Filter Grid Card -->
+                <div class="inc-filter-card">
+                    <div class="filter-inputs-grid" style="grid-template-columns: repeat(6, 1fr);">
+                        <div class="filter-group">
+                            <label>Tanggal</label>
+                            <input type="text" value="22/07/2026 📅">
+                        </div>
+                        <div class="filter-group">
+                            <label>Rute</label>
+                            <select>
+                                <option>Semua Rute</option>
+                                <option>JKT - PLG</option>
+                                <option>JKT - SRG</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TLC</label>
+                            <select>
+                                <option>Semua TLC</option>
+                                <option>JKT</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Vendor</label>
+                            <select>
+                                <option>Semua Vendor</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status Perjalanan</label>
+                            <select>
+                                <option>Semua Status</option>
+                                <option>ON PROGRESS</option>
+                                <option>SELESAI</option>
+                                <option>WAITING</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Cari Kode Tugas / Plat / Driver</label>
+                            <div class="search-input-wrap">
+                                <input type="text" placeholder="Ketik disini...">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-action-btns">
+                        <button class="btn-inc-reset">🔄 Reset</button>
+                        <button id="btn-add-monitoring" class="btn-inc-add" style="background-color: #E30613;">+ Input Perjalanan</button>
+                    </div>
+                </div>
+
+                <!-- Blue Info Banner -->
+                <div class="inc-info-banner" style="background-color: #EFF6FF; border: 1px solid #BFDBFE;">
+                    <div class="info-icon-circle" style="background-color: #3B82F6;">i</div>
+                    <div class="info-banner-text" style="color: #1E3A8A;">
+                        <strong>Cara Pengisian Monitoring 4 Jam</strong><br>
+                        Input posisi mobil setiap 4 jam sesuai perkembangan terakhir perjalanan.<br>
+                        <span style="font-size: 11px; color: #2563EB;">Slot waktu: 00:00-04:00, 04:00-08:00, 08:00-12:00, 12:00-16:00, 16:00-20:00, 20:00-24:00</span>
+                    </div>
+                </div>
+
+                <!-- Main Split Layout (Table + Right Side Cards) -->
+                <div class="inc-split-container">
+                    
+                    <!-- Table Section (Left) -->
+                    <div class="inc-table-card" style="flex: 1;">
+                        <div class="inc-table-header">
+                            <h3 class="inc-table-title">Daftar Monitoring 4 Jam</h3>
+                        </div>
+
+                        <div class="inc-table-scroll">
+                            <table class="inc-data-table monitoring-table">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" class="col-center">No</th>
+                                        <th rowspan="2">Kode Tugas</th>
+                                        <th rowspan="2">Rute</th>
+                                        <th rowspan="2">TLC</th>
+                                        <th rowspan="2">Plat Nomor</th>
+                                        <th rowspan="2">Driver</th>
+                                        <th colspan="6" class="col-center" style="background-color: #F1F5F9; color: #334155; font-weight: 800;">Posisi Perjalanan (Update per 4 Jam)</th>
+                                        <th rowspan="2" class="col-center">Update Terakhir</th>
+                                        <th rowspan="2" class="col-center">Status</th>
+                                        <th rowspan="2" class="col-center">Aksi</th>
+                                    </tr>
+                                    <tr style="background-color: #F8FAFC; text-align: center;">
+                                        <th class="col-center">00-04</th>
+                                        <th class="col-center">04-08</th>
+                                        <th class="col-center">08-12</th>
+                                        <th class="col-center">12-16</th>
+                                        <th class="col-center">16-20</th>
+                                        <th class="col-center">20-24</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="inc-row">
+                                        <td class="col-center">1</td>
+                                        <td><strong>DBGX2607220004</strong></td>
+                                        <td>JKT - PLG</td>
+                                        <td>JKT</td>
+                                        <td>B 9356 PKK</td>
+                                        <td>Yosep P.</td>
+                                        <td class="col-center"><span class="chip-pos green">🟢 Berangkat<br><span class="time-sub">02:10</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Cikampek<br><span class="time-sub">06:25</span></span></td>
+                                        <td class="col-center"><span class="chip-pos active-slot">Tol Cipali<br><span class="time-sub">09:45</span></span></td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>09:45</td>
+                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">2</td>
+                                        <td><strong>DBGX2607220002</strong></td>
+                                        <td>JKT - SRG</td>
+                                        <td>JKT</td>
+                                        <td>B 9134 PKK</td>
+                                        <td>Dian OS</td>
+                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">01:50</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Karawang<br><span class="time-sub">05:40</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Cirebon<br><span class="time-sub">09:15</span></span></td>
+                                        <td class="col-center"><span class="chip-pos active-slot">Brebes<br><span class="time-sub">12:50</span></span></td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>12:50</td>
+                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">3</td>
+                                        <td><strong>DBGX2607220003</strong></td>
+                                        <td>JKT - PKU</td>
+                                        <td>JKT</td>
+                                        <td>B 9562 PXW</td>
+                                        <td>Kohar H.</td>
+                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">02:00</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Cikampek<br><span class="time-sub">05:55</span></span></td>
+                                        <td class="col-center"><span class="chip-pos active-slot">Tol Cipali<br><span class="time-sub">09:30</span></span></td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>09:30</td>
+                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">4</td>
+                                        <td><strong>DBGX2607220001</strong></td>
+                                        <td>JKT - SUB</td>
+                                        <td>JKT</td>
+                                        <td>B 9041 SXX</td>
+                                        <td>Sandy A.</td>
+                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">01:40</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Cikampek<br><span class="time-sub">05:20</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Cirebon<br><span class="time-sub">09:00</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Semarang<br><span class="time-sub">13:10</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Tegal<br><span class="time-sub">16:40</span></span></td>
+                                        <td class="col-center"><span class="chip-pos green">Sampai<br><span class="time-sub">21:10</span></span></td>
+                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>21:10</td>
+                                        <td class="col-center"><span class="badge-status green-outline">SELESAI</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">5</td>
+                                        <td><strong>DBGX2607220005</strong></td>
+                                        <td>JKT - MDN</td>
+                                        <td>JKT</td>
+                                        <td>B 9011 SXX</td>
+                                        <td>Riky A.</td>
+                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">02:15</span></span></td>
+                                        <td class="col-center"><span class="chip-pos">Karawang<br><span class="time-sub">06:00</span></span></td>
+                                        <td class="col-center"><span class="chip-pos active-slot">Cirebon<br><span class="time-sub">09:35</span></span></td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>09:35</td>
+                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">6</td>
+                                        <td><strong>DBGX2607220006</strong></td>
+                                        <td>JKT - CKB</td>
+                                        <td>JKT</td>
+                                        <td>B 9904 TLX</td>
+                                        <td>Asep D.</td>
+                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">02:05</span></span></td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>02:05</td>
+                                        <td class="col-center"><span class="badge-status orange-outline">WAITING</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">7</td>
+                                        <td><strong>DBGX2607220007</strong></td>
+                                        <td>JKT - BDG</td>
+                                        <td>JKT</td>
+                                        <td>B 9472 KDA</td>
+                                        <td>Tedy R.</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center text-dim">-</td>
+                                        <td class="col-center"><span class="badge-status orange-outline">WAITING</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Table Footer Pagination -->
+                        <div class="inc-table-footer">
+                            <span style="font-size: 12px; color: #64748B;">Menampilkan 1 - 7 dari 45 data</span>
+                            <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
+                                <div class="inc-pagination">
+                                    <button class="p-btn">&lt;</button>
+                                    <button class="p-btn active">1</button>
+                                    <button class="p-btn">2</button>
+                                    <button class="p-btn">3</button>
+                                    <button class="p-btn">4</button>
+                                    <button class="p-btn">5</button>
+                                    <span class="page-dots">...</span>
+                                    <button class="p-btn">7</button>
+                                    <button class="p-btn">&gt;</button>
+                                </div>
+                                <div class="per-page-row" style="font-size: 12px; color: #64748B; display: flex; align-items: center; gap: 6px;">
+                                    <span>Tampilkan</span>
+                                    <select class="inc-per-page">
+                                        <option>10</option>
+                                        <option>25</option>
+                                    </select>
+                                    <span>data</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Panels (Cards Stack) -->
+                    <div class="inc-detail-card" style="width: 280px; min-width: 280px; gap: 14px;">
+                        
+                        <!-- Card 1: Ringkasan Hari Ini -->
+                        <div class="monitoring-summary-box">
+                            <h4 class="side-card-title">Ringkasan Hari Ini</h4>
+                            <div class="summary-items-list">
+                                <div class="summary-row">
+                                    <div class="summary-label-wrap">
+                                        <span class="icon-sq blue-sq">🗺️</span>
+                                        <span>Total Trip</span>
+                                    </div>
+                                    <strong style="font-size: 14px;">45</strong>
+                                </div>
+                                <div class="summary-row">
+                                    <div class="summary-label-wrap">
+                                        <span class="icon-sq green-sq">🟢</span>
+                                        <span>Selesai</span>
+                                    </div>
+                                    <strong style="color: #16A34A; font-size: 14px;">12</strong>
+                                </div>
+                                <div class="summary-row">
+                                    <div class="summary-label-wrap">
+                                        <span class="icon-sq blue-sq">🔵</span>
+                                        <span>On Progress</span>
+                                    </div>
+                                    <strong style="color: #2563EB; font-size: 14px;">28</strong>
+                                </div>
+                                <div class="summary-row">
+                                    <div class="summary-label-wrap">
+                                        <span class="icon-sq orange-sq">🕒</span>
+                                        <span>Waiting Update</span>
+                                    </div>
+                                    <strong style="color: #D97706; font-size: 14px;">5</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Legenda Posisi -->
+                        <div class="monitoring-legend-box">
+                            <h4 class="side-card-title">Legenda Posisi</h4>
+                            <div class="legend-items-list">
+                                <div class="legend-item">
+                                    <span class="leg-icon green">🟢</span>
+                                    <div>
+                                        <strong class="leg-title">Berangkat</strong>
+                                        <span class="leg-desc">Mobil berangkat dari titik awal</span>
+                                    </div>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="leg-icon blue">📍</span>
+                                    <div>
+                                        <strong class="leg-title">Transit/Posisi</strong>
+                                        <span class="leg-desc">Mobil berada di titik transit</span>
+                                    </div>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="leg-icon orange">📍</span>
+                                    <div>
+                                        <strong class="leg-title">Dalam Perjalanan</strong>
+                                        <span class="leg-desc">Mobil masih dalam perjalanan</span>
+                                    </div>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="leg-icon green">🚩</span>
+                                    <div>
+                                        <strong class="leg-title">Sampai</strong>
+                                        <span class="leg-desc">Mobil sampai di tujuan akhir</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Timeline Slot 4 Jam -->
+                        <div class="monitoring-timeline-box">
+                            <h4 class="side-card-title">Timeline Slot 4 Jam</h4>
+                            <div class="slot-timeline-list">
+                                <div class="slot-item">
+                                    <span class="slot-clock">🕒</span>
+                                    <span>00:00 - 04:00</span>
+                                </div>
+                                <div class="slot-item">
+                                    <span class="slot-clock">🕒</span>
+                                    <span>04:00 - 08:00</span>
+                                </div>
+                                <div class="slot-item active-slot-red">
+                                    <span class="slot-clock red">🕒</span>
+                                    <span>08:00 - 12:00</span>
+                                </div>
+                                <div class="slot-item">
+                                    <span class="slot-clock">🕒</span>
+                                    <span>12:00 - 16:00</span>
+                                </div>
+                                <div class="slot-item">
+                                    <span class="slot-clock">🕒</span>
+                                    <span>16:00 - 20:00</span>
+                                </div>
+                                <div class="slot-item">
+                                    <span class="slot-clock">🕒</span>
+                                    <span>20:00 - 24:00</span>
+                                </div>
+                            </div>
+                            <span style="font-size: 10.5px; color: #94A3B8; display: block; margin-top: 8px; text-align: center;">* Update setiap 4 jam sekali</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+
+        <footer class="app-page-footer">
+            <span>© 2026 J&T Express. All rights reserved.</span>
+            <span>Version 1.0.0</span>
+        </footer>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

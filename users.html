@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - User Management</title>
+    <meta name="description" content="Sistem manajemen pengguna dan hak akses operasional J&T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR (DARK THEME) -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">History</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Sidebar Footer Widget (Help Box) -->
+                <div class="sidebar-help-box">
+                    <div class="help-content">
+                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                        <div class="help-text-group">
+                            <span class="help-title">Butuh Bantuan?</span>
+                            <span class="help-sub">Hubungi Admin Sistem</span>
+                        </div>
+                    </div>
+                    <button class="btn-help-contact">Kontak Admin</button>
+                </div>
+            </aside>
+
+            <!-- MAIN USER MANAGEMENT BODY -->
+            <main class="main-incoming-body">
+
+                <!-- Top Header Nav -->
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <div>
+                            <h2 class="inc-main-title" style="font-size: 22px;">User Management</h2>
+                            <span class="inc-breadcrumb"><span style="color: #E30613;">Dashboard</span> / User Management</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <span>22 Juli 2026</span>
+                            <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
+                        </div>
+                        <div class="inc-notif-bell">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="inc-bell-badge">5</span>
+                        </div>
+                        <div class="inc-user-chip">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name">Hamdan <span>v</span></span>
+                                <span class="inc-user-role">Operator</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- 5 Summary KPI Cards -->
+                <div class="inc-kpi-grid">
+                    <!-- Card 1: TOTAL USER -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle red-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">TOTAL USER</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">42</span>
+                            </div>
+                            <span class="inc-kpi-sub" style="color: #64748B;">Semua Pengguna</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: ADMIN -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle blue-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">ADMIN</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">6</span>
+                            </div>
+                            <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: SUPERVISOR -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle orange-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">SUPERVISOR</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">12</span>
+                            </div>
+                            <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: OPERATOR -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle green-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">OPERATOR</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">24</span>
+                            </div>
+                            <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: NONAKTIF -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle purple-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">NONAKTIF</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">3</span>
+                            </div>
+                            <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Grid Card -->
+                <div class="inc-filter-card">
+                    <div class="filter-inputs-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr auto;">
+                        <div class="filter-group">
+                            <label>Cari User</label>
+                            <div class="search-input-wrap">
+                                <input type="text" placeholder="Cari nama, username, email...">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <label>Role</label>
+                            <select>
+                                <option>Semua Role</option>
+                                <option>Admin</option>
+                                <option>Supervisor</option>
+                                <option>Operator</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Cabang / TLC</label>
+                            <select>
+                                <option>Semua Cabang</option>
+                                <option>Head Office</option>
+                                <option>TLC Cikande</option>
+                                <option>TLC Serpong</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select>
+                                <option>Semua Status</option>
+                                <option>Aktif</option>
+                                <option>Nonaktif</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" style="justify-content: flex-end;">
+                            <button class="btn-inc-reset" style="padding: 9px 18px; margin-top: 18px;">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Split Container (User Table + Right User Detail Panel) -->
+                <div class="inc-split-container">
+                    
+                    <!-- User Table Card (Left) -->
+                    <div class="inc-table-card">
+                        <div class="inc-table-header">
+                            <h3 class="inc-table-title">Daftar Pengguna</h3>
+                            <button class="btn-inc-import">📥 Export Excel</button>
+                        </div>
+
+                        <div class="inc-table-scroll">
+                            <table class="inc-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Foto</th>
+                                        <th>Nama Lengkap</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Cabang / TLC</th>
+                                        <th>Status</th>
+                                        <th>Terakhir Login</th>
+                                        <th class="col-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="inc-row user-row active-selected">
+                                        <td class="col-center">1</td>
+                                        <td><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Hamdan</strong></td>
+                                        <td class="text-dim">hamdan.operator</td>
+                                        <td class="text-dim">hamdan@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-operator">Operator</span></td>
+                                        <td>TLC Cikande</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 10:15</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">2</td>
+                                        <td><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Rina Marlina</strong></td>
+                                        <td class="text-dim">rina.supervisor</td>
+                                        <td class="text-dim">rina@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-supervisor">Supervisor</span></td>
+                                        <td>TLC Serpong</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 09:48</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">3</td>
+                                        <td><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Dedi Setiawan</strong></td>
+                                        <td class="text-dim">dedi.admin</td>
+                                        <td class="text-dim">dedi@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-admin">Admin</span></td>
+                                        <td>Head Office</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 09:20</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">4</td>
+                                        <td><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Faris Ramadhan</strong></td>
+                                        <td class="text-dim">faris.operator</td>
+                                        <td class="text-dim">faris@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-operator">Operator</span></td>
+                                        <td>TLC Cilegon</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 08:55</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">5</td>
+                                        <td><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Siti Aisyah</strong></td>
+                                        <td class="text-dim">aisyah.operator</td>
+                                        <td class="text-dim">aisyah@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-operator">Operator</span></td>
+                                        <td>TLC Bekasi</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 08:30</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">6</td>
+                                        <td><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Agus Supriyono</strong></td>
+                                        <td class="text-dim">agus.supervisor</td>
+                                        <td class="text-dim">agus@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-supervisor">Supervisor</span></td>
+                                        <td>TLC Cikarang</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 07:58</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">7</td>
+                                        <td><img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Budi Santoso</strong></td>
+                                        <td class="text-dim">budi.operator</td>
+                                        <td class="text-dim">budi@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-operator">Operator</span></td>
+                                        <td>TLC Karawang</td>
+                                        <td><span class="status-dot-inactive">🔴 Nonaktif</span></td>
+                                        <td>18/07/2026 16:45</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="inc-row user-row">
+                                        <td class="col-center">8</td>
+                                        <td><img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
+                                        <td><strong>Mega Putri</strong></td>
+                                        <td class="text-dim">mega.admin</td>
+                                        <td class="text-dim">mega@jtexpress.co.id</td>
+                                        <td><span class="role-badge role-admin">Admin</span></td>
+                                        <td>Head Office</td>
+                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
+                                        <td>22/07/2026 07:30</td>
+                                        <td class="col-center">
+                                            <div class="user-actions-row">
+                                                <button class="btn-action-sm">✏️</button>
+                                                <button class="btn-action-sm">🔓</button>
+                                                <button class="btn-action-sm">⋮</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Table Footer Pagination -->
+                        <div class="inc-table-footer" style="align-items: center;">
+                            <span style="font-size: 12px; color: #64748B;">Menampilkan 1 - 8 dari 42 data</span>
+                            <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
+                                <div class="inc-pagination">
+                                    <button class="p-btn">&lt;</button>
+                                    <button class="p-btn active">1</button>
+                                    <button class="p-btn">2</button>
+                                    <button class="p-btn">3</button>
+                                    <button class="p-btn">4</button>
+                                    <button class="p-btn">5</button>
+                                    <span class="page-dots">...</span>
+                                    <button class="p-btn">6</button>
+                                    <button class="p-btn">&gt;</button>
+                                </div>
+                                <div class="per-page-row" style="font-size: 12px; color: #64748B; display: flex; align-items: center; gap: 6px;">
+                                    <span>Tampilkan</span>
+                                    <select class="inc-per-page">
+                                        <option>10</option>
+                                        <option>25</option>
+                                    </select>
+                                    <span>data</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Detail User Panel (EXACT MATCH SCREENSHOT) -->
+                    <div class="inc-detail-card">
+                        <div class="detail-card-header">
+                            <h3 class="detail-title">Detail User</h3>
+                        </div>
+
+                        <!-- User Hero Profile Box -->
+                        <div class="user-detail-profile-box">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-detail-avatar">
+                            <div class="user-detail-hero-meta">
+                                <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+                                    <span class="user-detail-name">Hamdan</span>
+                                    <span class="user-active-chip">Aktif</span>
+                                </div>
+                                <span class="user-detail-uname">hamdan.operator</span>
+                                <span class="user-detail-role">Operator</span>
+                            </div>
+                        </div>
+
+                        <!-- Meta Info Details List -->
+                        <div class="detail-info-list">
+                            <div class="info-item">
+                                <span class="info-label">✉️ Email</span>
+                                <span class="info-value font-bold">hamdan@jtexpress.co.id</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">📞 No. Telepon</span>
+                                <span class="info-value">0812-3456-7890</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">👤 Role</span>
+                                <span class="info-value">Operator</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🏢 Cabang / TLC</span>
+                                <span class="info-value font-bold">TLC Cikande</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">📅 Dibuat Pada</span>
+                                <span class="info-value">10/06/2026 14:25</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🔄 Terakhir Update</span>
+                                <span class="info-value">20/07/2026 11:10</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🕒 Terakhir Login</span>
+                                <span class="info-value">22/07/2026 10:15</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons Stack -->
+                        <div class="user-actions-stack">
+                            <button class="btn-white-outline-full">✏️ Edit User</button>
+                            <button class="btn-white-outline-full">🔓 Reset Password</button>
+                            <button class="btn-red-outline-full">🙅‍♂️ Nonaktifkan Akun</button>
+                        </div>
+
+                        <!-- Riwayat Login Terakhir Section -->
+                        <div class="user-login-history-section">
+                            <span class="history-heading">Riwayat Login Terakhir</span>
+                            <div class="history-items-list">
+                                <div class="login-history-item">
+                                    <div class="history-left">
+                                        <span class="green-dot-sm">🟢</span>
+                                        <div>
+                                            <span class="history-time">22/07/2026 10:15</span>
+                                            <span class="history-device">Chrome - Windows</span>
+                                        </div>
+                                    </div>
+                                    <span class="history-ip">192.168.1.10</span>
+                                </div>
+                                <div class="login-history-item">
+                                    <div class="history-left">
+                                        <span class="green-dot-sm">🟢</span>
+                                        <div>
+                                            <span class="history-time">22/07/2026 09:20</span>
+                                            <span class="history-device">Chrome - Windows</span>
+                                        </div>
+                                    </div>
+                                    <span class="history-ip">192.168.1.10</span>
+                                </div>
+                                <div class="login-history-item">
+                                    <div class="history-left">
+                                        <span class="green-dot-sm">🟢</span>
+                                        <div>
+                                            <span class="history-time">22/07/2026 08:55</span>
+                                            <span class="history-device">Mobile - Android</span>
+                                        </div>
+                                    </div>
+                                    <span class="history-ip">192.168.1.15</span>
+                                </div>
+                            </div>
+                            <button class="btn-view-all-history">Lihat Semua Riwayat</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Page Footer -->
+        <footer class="app-page-footer">
+            <span>© 2026 J&T Express. All rights reserved.</span>
+            <span>Version 1.0.0</span>
+        </footer>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

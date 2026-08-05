@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Pengaturan</title>
+    <meta name="description" content="Sistem pengaturan dan konfigurasi J&T Express Transportation Monitoring System.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR (DARK THEME) -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="monitoring.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">History</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-help-box">
+                    <div class="help-content">
+                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                        <div class="help-text-group">
+                            <span class="help-title">Butuh Bantuan?</span>
+                            <span class="help-sub">Hubungi Admin Sistem</span>
+                        </div>
+                    </div>
+                    <button class="btn-help-contact">Kontak Admin</button>
+                </div>
+            </aside>
+
+            <!-- MAIN PENGATURAN BODY -->
+            <main class="main-incoming-body">
+
+                <!-- Top Header Nav -->
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <div>
+                            <h2 class="inc-main-title" style="font-size: 22px;">Pengaturan</h2>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Pengaturan</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <span>22 Juli 2026</span>
+                            <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
+                        </div>
+                        <div class="inc-notif-bell">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="inc-bell-badge">5</span>
+                        </div>
+                        <div class="inc-user-chip">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name">Hamdan <span>v</span></span>
+                                <span class="inc-user-role">Operator</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- 9 Horizontal Settings Navigation Tabs Row -->
+                <div class="settings-nav-tabs">
+                    <button class="settings-tab-item active">⚙️ <span>Umum</span></button>
+                    <button class="settings-tab-item">👤 <span>Akun & Profil</span></button>
+                    <button class="settings-tab-item">🔔 <span>Notifikasi</span></button>
+                    <button class="settings-tab-item">⚙️ <span>SLA & Sistem</span></button>
+                    <button class="settings-tab-item">🎨 <span>Tampilan</span></button>
+                    <button class="settings-tab-item">🛡️ <span>Keamanan</span></button>
+                    <button class="settings-tab-item">🔌 <span>Integrasi</span></button>
+                    <button class="settings-tab-item">💾 <span>Backup & Data</span></button>
+                    <button class="settings-tab-item">↔️ <span>Log Aktivitas</span></button>
+                </div>
+
+                <!-- 6 Settings Cards Grid (3 Columns x 2 Rows Layout) -->
+                <div class="settings-grid-container">
+                    
+                    <!-- Row 1 - Card 1: Informasi Sistem -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="st-title-wrap">
+                                <span class="st-icon blue">ℹ️</span>
+                                <h3 class="st-title">Informasi Sistem</h3>
+                            </div>
+                            <svg class="sys-monitor-ic" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        </div>
+
+                        <div class="st-card-body">
+                            <div class="form-group-st">
+                                <label>Nama Sistem</label>
+                                <input type="text" value="Transportation Monitoring System">
+                            </div>
+                            <div class="form-group-st">
+                                <label>Perusahaan</label>
+                                <input type="text" value="J&T Express">
+                            </div>
+                            <div class="form-group-st">
+                                <label>Alamat</label>
+                                <textarea rows="2">Jl. Raya Bandara Soekarno-Hatta No.1, Tangerang, Banten</textarea>
+                            </div>
+                            <div class="st-double-row">
+                                <div class="form-group-st">
+                                    <label>Zona Waktu</label>
+                                    <select><option>Asia/Jakarta (WIB)</option></select>
+                                </div>
+                                <div class="form-group-st">
+                                    <label>Format Waktu</label>
+                                    <select><option>24 Jam (HH:mm)</option></select>
+                                </div>
+                            </div>
+                            <div class="st-double-row">
+                                <div class="form-group-st">
+                                    <label>Format Tanggal</label>
+                                    <select><option>dd/mm/yyyy</option></select>
+                                </div>
+                                <div class="form-group-st">
+                                    <label>Bahasa</label>
+                                    <select><option>Bahasa Indonesia</option></select>
+                                </div>
+                            </div>
+                            <div style="margin-top: 6px;">
+                                <button class="btn-st-red">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 1 - Card 2: Pengaturan Notifikasi -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="st-title-wrap">
+                                <span class="st-icon orange">🔔</span>
+                                <h3 class="st-title">Pengaturan Notifikasi</h3>
+                            </div>
+                        </div>
+
+                        <div class="st-card-body">
+                            <div class="toggle-setting-row">
+                                <div class="toggle-icon-wrap">🔔</div>
+                                <div class="toggle-text-meta">
+                                    <strong>Notifikasi Trip Telat SLA</strong>
+                                    <span>Menerima notifikasi ketika trip melewati target SLA</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="toggle-setting-row">
+                                <div class="toggle-icon-wrap">⏰</div>
+                                <div class="toggle-text-meta">
+                                    <strong>Notifikasi Trouble Baru</strong>
+                                    <span>Menerima notifikasi ketika ada trouble baru</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="toggle-setting-row">
+                                <div class="toggle-icon-wrap">🚑</div>
+                                <div class="toggle-text-meta">
+                                    <strong>Notifikasi Laka</strong>
+                                    <span>Menerima notifikasi ketika ada laporan laka</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="toggle-setting-row">
+                                <div class="toggle-icon-wrap">🕒</div>
+                                <div class="toggle-text-meta">
+                                    <strong>Notifikasi Monitoring 4 Jam</strong>
+                                    <span>Pengingat update monitoring 4 jam</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="toggle-setting-row">
+                                <div class="toggle-icon-wrap">✉️</div>
+                                <div class="toggle-text-meta">
+                                    <strong>Kirim notifikasi ke Email</strong>
+                                    <span>Kirim notifikasi juga ke email pengguna</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div style="margin-top: 10px;">
+                                <button class="btn-st-outline">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 1 - Card 3: Pengaturan Tampilan -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="st-title-wrap">
+                                <span class="st-icon purple">🎨</span>
+                                <h3 class="st-title">Pengaturan Tampilan</h3>
+                            </div>
+                        </div>
+
+                        <div class="st-card-body">
+                            <div class="form-group-st">
+                                <label>Tema Warna</label>
+                                <div class="color-theme-dots">
+                                    <button class="color-dot red active">✓</button>
+                                    <button class="color-dot blue"></button>
+                                    <button class="color-dot green"></button>
+                                    <button class="color-dot purple"></button>
+                                    <button class="color-dot orange"></button>
+                                    <button class="color-dot dark"></button>
+                                </div>
+                            </div>
+
+                            <div class="form-group-st">
+                                <label>Mode Tampilan</label>
+                                <div class="mode-select-btns">
+                                    <button class="btn-mode active">☀️ Terang</button>
+                                    <button class="btn-mode">🌙 Gelap</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group-st">
+                                <label>Ukuran Font</label>
+                                <select><option>Sedang</option></select>
+                            </div>
+
+                            <div class="form-group-st">
+                                <label>Kepadatan Tampilan</label>
+                                <select><option>Normal</option></select>
+                            </div>
+
+                            <div style="margin-top: 10px;">
+                                <button class="btn-st-red">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2 - Card 4: Pengaturan SLA & Sistem -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="st-title-wrap">
+                                <span class="st-icon red">🛡️</span>
+                                <h3 class="st-title">Pengaturan SLA & Sistem</h3>
+                            </div>
+                        </div>
+
+                        <div class="st-card-body">
+                            <div class="form-group-st inline-input-wrap">
+                                <label>Batas Peringatan SLA</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" value="1" style="width: 50px; text-align: center;">
+                                    <span style="font-size: 11px; color: #64748B;">Jam sebelum target SLA</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group-st inline-input-wrap">
+                                <label>Batas Keterlambatan</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" value="00:15" style="width: 70px; text-align: center;">
+                                    <span style="font-size: 11px; color: #64748B;">Jam:Menit dianggap telat</span>
+                                </div>
+                            </div>
+
+                            <div class="toggle-setting-row no-ic">
+                                <div class="toggle-text-meta">
+                                    <strong>Auto Generate SLA</strong>
+                                    <span>Otomatis generate SLA setelah data incoming disimpan</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="toggle-setting-row no-ic">
+                                <div class="toggle-text-meta">
+                                    <strong>Update Monitoring Otomatis</strong>
+                                    <span>Refresh data monitoring setiap <input type="text" value="5" style="width: 40px; text-align: center; padding: 2px 4px; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 11px;"> detik</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div style="margin-top: 10px;">
+                                <button class="btn-st-outline">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2 - Card 5: Pengaturan Keamanan -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="st-title-wrap">
+                                <span class="st-icon dark">🔒</span>
+                                <h3 class="st-title">Pengaturan Keamanan</h3>
+                            </div>
+                        </div>
+
+                        <div class="st-card-body">
+                            <div class="form-group-st inline-input-wrap">
+                                <label>Session Timeout</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" value="60" style="width: 60px; text-align: center;">
+                                    <span style="font-size: 11px; color: #64748B;">menit</span>
+                                </div>
+                            </div>
+
+                            <div class="toggle-setting-row no-ic">
+                                <div class="toggle-text-meta">
+                                    <strong>Verifikasi 2 Langkah (2FA)</strong>
+                                    <span>Aktifkan verifikasi 2 langkah untuk semua pengguna</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="toggle-setting-row no-ic">
+                                <div class="toggle-text-meta">
+                                    <strong>Akses Multi Device</strong>
+                                    <span>Izinkan akun login di beberapa perangkat</span>
+                                </div>
+                                <label class="switch-toggle"><input type="checkbox"><span class="slider-round"></span></label>
+                            </div>
+
+                            <div class="form-group-st inline-input-wrap">
+                                <label>Password Minimal</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="text" value="8" style="width: 50px; text-align: center;">
+                                    <span style="font-size: 11px; color: #64748B;">karakter</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 10px;">
+                                <button class="btn-st-outline">Simpan Perubahan</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2 - Card 6: Manajemen Data -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="st-title-wrap">
+                                <span class="st-icon green">💾</span>
+                                <h3 class="st-title">Manajemen Data</h3>
+                            </div>
+                        </div>
+
+                        <div class="st-card-body">
+                            <div class="data-mgmt-row">
+                                <div class="data-mgmt-ic">💾</div>
+                                <div class="data-mgmt-meta">
+                                    <strong>Backup Database</strong>
+                                    <span>Backup data sistem secara manual</span>
+                                </div>
+                                <button class="btn-data-action">Backup</button>
+                            </div>
+
+                            <div class="data-mgmt-row">
+                                <div class="data-mgmt-ic">📊</div>
+                                <div class="data-mgmt-meta">
+                                    <strong>Export Data</strong>
+                                    <span>Export semua data ke file Excel</span>
+                                </div>
+                                <button class="btn-data-action">Export</button>
+                            </div>
+
+                            <div class="data-mgmt-row">
+                                <div class="data-mgmt-ic">📥</div>
+                                <div class="data-mgmt-meta">
+                                    <strong>Import Data</strong>
+                                    <span>Import data dari file Excel</span>
+                                </div>
+                                <button class="btn-data-action">Import</button>
+                            </div>
+
+                            <div class="data-mgmt-row">
+                                <div class="data-mgmt-ic">🧹</div>
+                                <div class="data-mgmt-meta">
+                                    <strong>Bersihkan Cache</strong>
+                                    <span>Membersihkan cache sistem</span>
+                                </div>
+                                <button class="btn-data-action">Bersihkan</button>
+                            </div>
+
+                            <!-- Danger Reset Box (Soft Red Background) -->
+                            <div class="danger-reset-box">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="danger-ic">⚙️</span>
+                                    <div>
+                                        <strong style="color: #DC2626; font-size: 12px;">Reset Semua Pengaturan</strong>
+                                        <span style="font-size: 10.5px; color: #64748B; display: block;">Kembalikan semua pengaturan ke default</span>
+                                    </div>
+                                </div>
+                                <span style="color: #DC2626; font-weight: 800; font-size: 14px;">&gt;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+
+        <footer class="app-page-footer">
+            <span>© 2026 J&T Express. All rights reserved.</span>
+            <span>Version 1.0.0</span>
+        </footer>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

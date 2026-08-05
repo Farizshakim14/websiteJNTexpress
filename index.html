@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Login</title>
+    <meta name="description" content="Sistem monitoring operasional transportasi untuk mendukung ketepatan waktu pengiriman dan kualitas layanan J&T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main App Container -->
+    <div id="app-container" class="app-container">
+        
+        <!-- PURE LOGIN SECTION -->
+        <section id="login-section" class="login-section">
+            
+            <!-- Left Banner Panel -->
+            <div class="banner-panel">
+                <img src="assets/login.png" alt="J&T Express Transportation Monitoring System" class="banner-image">
+            </div>
+
+            <!-- Right Login Form Panel -->
+            <div class="form-panel">
+                
+                <!-- Background Map Watermark -->
+                <div class="map-watermark" aria-hidden="true">
+                    <svg viewBox="0 0 1000 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g opacity="0.12" fill="#94A3B8">
+                            <circle cx="150" cy="180" r="3" />
+                            <circle cx="160" cy="185" r="3" />
+                            <circle cx="170" cy="190" r="3" />
+                            <circle cx="180" cy="195" r="3" />
+                            <circle cx="280" cy="140" r="3.5" />
+                            <circle cx="295" cy="135" r="3.5" />
+                            <circle cx="310" cy="130" r="3.5" />
+                            <circle cx="380" cy="180" r="3.5" />
+                            <circle cx="395" cy="175" r="3.5" />
+                            <circle cx="410" cy="185" r="3.5" />
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Diagonal Red Accent Graphic Shape in Bottom Right -->
+                <div class="red-diagonal-accent" aria-hidden="true">
+                    <svg viewBox="0 0 500 500" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="500,180 500,500 180,500" fill="#E30613" />
+                    </svg>
+                </div>
+
+                <!-- Login Box Card -->
+                <div class="login-card">
+                    <div class="login-header">
+                        <h1 class="login-title">Login</h1>
+                        <p class="login-subtitle">
+                            Selamat datang di Transportation Monitoring System<br>J&T Express
+                        </p>
+                    </div>
+
+                    <!-- Alert Box -->
+                    <div id="alert-box" class="alert-box hidden" role="alert">
+                        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="alert-message">Username atau password salah!</span>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="login-form" novalidate>
+                        <div class="form-group">
+                            <label for="username-input" class="form-label">Username</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </span>
+                                <input type="text" id="username-input" name="username" class="form-input" placeholder="Masukkan username" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password-input" class="form-label">Password</label>
+                            <div class="input-wrapper">
+                                <span class="input-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </span>
+                                <input type="password" id="password-input" name="password" class="form-input" placeholder="Masukkan password" required>
+                                <button type="button" id="toggle-password" class="password-toggle-btn" aria-label="Tampilkan password">
+                                    <svg id="eye-off-icon" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                                    </svg>
+                                    <svg id="eye-icon" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="remember-me" name="remember" checked>
+                                <span class="custom-checkbox">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                                <span class="checkbox-label">Ingat saya</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="btn-login" class="btn-login">
+                            <span class="btn-text-content">
+                                <svg class="login-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                    <polyline points="10 17 15 12 10 7"></polyline>
+                                    <line x1="15" y1="12" x2="3" y2="12"></line>
+                                </svg>
+                                <span>Login</span>
+                            </span>
+                            <span class="btn-spinner hidden"></span>
+                        </button>
+                    </form>
+
+                    <div class="card-footer">
+                        <p>&copy; 2026 J&T Express. Hak cipta dilindungi.</p>
+                        <button type="button" id="demo-fill-btn" class="demo-chip">
+                            💡 Isi Demo: admin / admin123
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- JavaScript Script -->
+    <script src="app.js"></script>
+</body>
+</html>

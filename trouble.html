@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Trouble & Laka</title>
+    <meta name="description"
+        content="Sistem monitoring operasional dan penanganan kejadian Trouble & Laka J&T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+
+        <div class="dashboard-layout">
+
+            <!-- SIDEBAR (DARK THEME - PHOTO 1 MATCH) -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                            alt="Hamdan Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                        <span class="profile-role">Operator</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                                    <path
+                                        d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z">
+                                    </path>
+                                </svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 16 14"></polyline>
+                                </svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path>
+                                </svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                    </path>
+                                </svg>
+                                <span class="nav-text">Master Data</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <span class="nav-text">Report</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span class="nav-text">History</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                </svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                    </path>
+                                </svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-footer-graphic">
+                    <div class="route-line-svg">
+                        <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2"
+                                stroke-dasharray="4 4" />
+                            <circle cx="30" cy="60" r="5" fill="#E30613" />
+                            <circle cx="100" cy="50" r="5" fill="#E30613" />
+                            <circle cx="180" cy="25" r="5" fill="#E30613" />
+                        </svg>
+                    </div>
+                    <div class="truck-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80"
+                            alt="J&T Express Truck" class="sidebar-truck-img">
+                    </div>
+                    <div class="sidebar-system-title">
+                        <span class="sys-light">Transportation</span>
+                        <span class="sys-bold">Monitoring System</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN TROUBLE BODY -->
+            <main class="main-incoming-body">
+
+                <!-- Top Header Nav -->
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
+                        <div>
+                            <h2 class="inc-main-title">Trouble & Laka</h2>
+                            <span class="inc-breadcrumb">Dashboard / Trouble & Laka</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <span>22 Juli 2026</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="inc-notif-bell">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="inc-bell-badge">5</span>
+                        </div>
+                        <div class="inc-user-chip">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                                alt="Hamdan Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name">Hamdan</span>
+                                <span class="inc-user-role">Operator</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Top Right Action Button Row -->
+                <div class="inc-action-row">
+                    <button id="btn-report-incident" class="btn-inc-add"
+                        style="background-color: #E30613; padding: 10px 22px; font-size: 13.5px; border-radius: 8px;">
+                        + Laporkan Kejadian
+                    </button>
+                </div>
+
+                <!-- 5 KPI Summary Cards -->
+                <div class="inc-kpi-grid">
+                    <!-- Card 1: TOTAL KEJADIAN -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle red-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                </path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">TOTAL KEJADIAN</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">14</span>
+                                <span class="inc-kpi-unit">Kejadian</span>
+                            </div>
+                            <span class="inc-kpi-sub" style="color: #EF4444;">↑ 27% dari kemarin</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: TROUBLE -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle orange-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">TROUBLE</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">11</span>
+                                <span class="inc-kpi-unit">Kejadian</span>
+                            </div>
+                            <div class="inc-progress-bar-wrap">
+                                <span class="progress-pct orange">78.6%</span>
+                                <div class="progress-track">
+                                    <div class="progress-fill orange" style="width: 78.6%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: LAKA -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle purple-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                            </svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">LAKA</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">3</span>
+                                <span class="inc-kpi-unit">Kejadian</span>
+                            </div>
+                            <div class="inc-progress-bar-wrap">
+                                <span class="progress-pct" style="color: #9333EA;">21.4%</span>
+                                <div class="progress-track">
+                                    <div class="progress-fill" style="width: 21.4%; background-color: #9333EA;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: DALAM PENANGANAN -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle orange-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">DALAM PENANGANAN</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">6</span>
+                                <span class="inc-kpi-unit">Kejadian</span>
+                            </div>
+                            <div class="inc-progress-bar-wrap">
+                                <span class="progress-pct orange">42.9%</span>
+                                <div class="progress-track">
+                                    <div class="progress-fill orange" style="width: 42.9%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: SUDAH SELESAI -->
+                    <div class="inc-kpi-card">
+                        <div class="inc-kpi-icon-circle green-light">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="inc-kpi-info">
+                            <span class="inc-kpi-label">SUDAH SELESAI</span>
+                            <div class="inc-kpi-val-row">
+                                <span class="inc-kpi-number">8</span>
+                                <span class="inc-kpi-unit">Kejadian</span>
+                            </div>
+                            <div class="inc-progress-bar-wrap">
+                                <span class="progress-pct green">57.1%</span>
+                                <div class="progress-track">
+                                    <div class="progress-fill green" style="width: 57.1%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Grid Row -->
+                <div class="inc-filter-card">
+                    <div class="filter-inputs-grid">
+                        <div class="filter-group">
+                            <label>Tanggal</label>
+                            <input type="text" value="01/07/2026 - 22/07/2026 📅">
+                        </div>
+                        <div class="filter-group">
+                            <label>Jenis Kejadian</label>
+                            <select>
+                                <option>Semua Jenis</option>
+                                <option>Trouble</option>
+                                <option>Laka</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select>
+                                <option>Semua Status</option>
+                                <option>OPEN</option>
+                                <option>DALAM PENANGANAN</option>
+                                <option>SELESAI</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Nama Rute</label>
+                            <select>
+                                <option>Semua Rute</option>
+                                <option>JKT - PLG</option>
+                                <option>JKT - JOG</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>TLC</label>
+                            <select>
+                                <option>Semua TLC</option>
+                                <option>PLM FUSO</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Cari Kode Tugas / Plat / Driver</label>
+                            <div class="search-input-wrap">
+                                <input type="text" placeholder="Ketik untuk mencari...">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-action-btns">
+                        <button class="btn-inc-reset">Reset</button>
+                        <button class="btn-inc-filter">🔻 Filter</button>
+                    </div>
+                </div>
+
+                <!-- Main Split Layout (Table + Right Detail Incident Panel) -->
+                <div class="inc-split-container">
+
+                    <!-- Table Section (Left) -->
+                    <div class="inc-table-card">
+                        <div class="inc-table-header">
+                            <h3 class="inc-table-title">Daftar Trouble & Laka</h3>
+                        </div>
+
+                        <div class="inc-table-scroll">
+                            <table class="inc-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Waktu Kejadian</th>
+                                        <th>Kode Tugas</th>
+                                        <th>TLC</th>
+                                        <th>Rute</th>
+                                        <th>Plat Nomor</th>
+                                        <th>Jenis</th>
+                                        <th>Lokasi Kejadian</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="inc-row trouble-row active-selected" style="background-color: #FEF2F2;">
+                                        <td class="col-center">1</td>
+                                        <td><span class="time-main">22/07/2026</span><br><span
+                                                class="time-sub">10:35</span></td>
+                                        <td><strong>DBGX2607220004</strong></td>
+                                        <td>PLM FUSO</td>
+                                        <td>JKT - PLG</td>
+                                        <td>B 9356 PKK</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>Tol Cikampek KM 47</td>
+                                        <td><span class="badge-status orange-outline">DALAM PENANGANAN</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">2</td>
+                                        <td><span class="time-main">22/07/2026</span><br><span
+                                                class="time-sub">09:10</span></td>
+                                        <td><strong>DBGX2607220002</strong></td>
+                                        <td>JOG CDD</td>
+                                        <td>JKT - JOG</td>
+                                        <td>B 9134 PKK</td>
+                                        <td><span style="color: #9333EA; font-weight: 700;">💥 Laka</span></td>
+                                        <td>Rest Area KM 102</td>
+                                        <td><span class="badge-status"
+                                                style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2;">OPEN</span>
+                                        </td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">3</td>
+                                        <td><span class="time-main">22/07/2026</span><br><span
+                                                class="time-sub">03:45</span></td>
+                                        <td><strong>DBGX2607210019</strong></td>
+                                        <td>SRG FUSO</td>
+                                        <td>JKT - SRG</td>
+                                        <td>B 9041 SXX</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>Tol Batang KM 368</td>
+                                        <td><span class="badge-status green-outline">SELESAI</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">4</td>
+                                        <td><span class="time-main">21/07/2026</span><br><span
+                                                class="time-sub">22:15</span></td>
+                                        <td><strong>DBGX2607210007</strong></td>
+                                        <td>MDN CDD</td>
+                                        <td>JKT - MDN</td>
+                                        <td>B 9011 SXX</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>SPBU Subang</td>
+                                        <td><span class="badge-status orange-outline">DALAM PENANGANAN</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">5</td>
+                                        <td><span class="time-main">21/07/2026</span><br><span
+                                                class="time-sub">18:30</span></td>
+                                        <td><strong>DBGX2607210005</strong></td>
+                                        <td>PKU FUSO</td>
+                                        <td>JKT - PKU</td>
+                                        <td>B 9562 PXW</td>
+                                        <td><span style="color: #9333EA; font-weight: 700;">💥 Laka</span></td>
+                                        <td>Km 11 Pekanbaru</td>
+                                        <td><span class="badge-status"
+                                                style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2;">OPEN</span>
+                                        </td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">6</td>
+                                        <td><span class="time-main">21/07/2026</span><br><span
+                                                class="time-sub">14:20</span></td>
+                                        <td><strong>DBGX2607210003</strong></td>
+                                        <td>CKP CDD</td>
+                                        <td>JKT - CKP</td>
+                                        <td>B 9904 TLX</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>Cirebon Kota</td>
+                                        <td><span class="badge-status green-outline">SELESAI</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">7</td>
+                                        <td><span class="time-main">20/07/2026</span><br><span
+                                                class="time-sub">23:05</span></td>
+                                        <td><strong>DBGX2607200021</strong></td>
+                                        <td>MES FUSO</td>
+                                        <td>JKT - MES</td>
+                                        <td>B 9957 PXW</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>Tol Kanci KM 207</td>
+                                        <td><span class="badge-status green-outline">SELESAI</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">8</td>
+                                        <td><span class="time-main">20/07/2026</span><br><span
+                                                class="time-sub">17:50</span></td>
+                                        <td><strong>DBGX2607200016</strong></td>
+                                        <td>SUB CDD</td>
+                                        <td>JKT - SUB</td>
+                                        <td>B 9173 JXX</td>
+                                        <td><span style="color: #9333EA; font-weight: 700;">💥 Laka</span></td>
+                                        <td>Waru - Sidoarjo</td>
+                                        <td><span class="badge-status orange-outline">DALAM PENANGANAN</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">9</td>
+                                        <td><span class="time-main">20/07/2026</span><br><span
+                                                class="time-sub">09:40</span></td>
+                                        <td><strong>DBGX2607200010</strong></td>
+                                        <td>BDO FUSO</td>
+                                        <td>JKT - BDO</td>
+                                        <td>B 9472 KDA</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>Gerbang Cileunyi</td>
+                                        <td><span class="badge-status green-outline">SELESAI</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                    <tr class="inc-row trouble-row">
+                                        <td class="col-center">10</td>
+                                        <td><span class="time-main">19/07/2026</span><br><span
+                                                class="time-sub">21:15</span></td>
+                                        <td><strong>DBGX2607190017</strong></td>
+                                        <td>DPS FUSO</td>
+                                        <td>JKT - DPS</td>
+                                        <td>B 9801 LXX</td>
+                                        <td><span style="color: #EF4444; font-weight: 700;">⚠️ Trouble</span></td>
+                                        <td>SPBU Ngawi</td>
+                                        <td><span class="badge-status green-outline">SELESAI</span></td>
+                                        <td class="col-center"><button class="btn-view-eye">👁️</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Table Footer Pagination -->
+                        <div class="inc-table-footer">
+                            <span style="font-size: 12px; color: #64748B;">Menampilkan 1 - 10 dari 14 data</span>
+                            <div class="inc-pagination" style="margin-left: auto;">
+                                <button class="p-btn">&lt;</button>
+                                <button class="p-btn active">1</button>
+                                <button class="p-btn">2</button>
+                                <button class="p-btn">&gt;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Detail Incident Panel (EXACT MATCH SCREENSHOT) -->
+                    <div class="inc-detail-card">
+                        <div class="detail-card-header">
+                            <h3 class="detail-title">Detail Kejadian</h3>
+                            <span class="badge-status orange-outline">DALAM PENANGANAN</span>
+                            <button class="btn-close-x" style="font-size: 18px; margin-left: 8px;">&times;</button>
+                        </div>
+
+                        <!-- Hero Box Incident -->
+                        <div class="detail-hero-box" style="background-color: #FEF2F2; border: 1px solid #FEE2E2;">
+                            <div class="detail-hero-icon" style="background-color: #FEE2E2; color: #EF4444;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div class="detail-hero-meta">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="detail-code">DBGX2607220004</span>
+                                    <span
+                                        style="background-color: #FEE2E2; color: #DC2626; font-size: 10.5px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Trouble</span>
+                                </div>
+                                <span class="detail-route">JAKARTA - PALEMBANG (PLM FUSO) - ADD</span>
+                            </div>
+                        </div>
+
+                        <!-- Meta Info List -->
+                        <div class="detail-info-list">
+                            <div class="info-item">
+                                <span class="info-label">🕒 Waktu Kejadian</span>
+                                <span class="info-value font-bold">22/07/2026 10:35 WIB</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">📍 Lokasi Kejadian</span>
+                                <span class="info-value">Tol Cikampek KM 47</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🚛 Plat Nomor</span>
+                                <span class="info-value font-bold">B 9356 PKK</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">👤 Driver 1</span>
+                                <span class="info-value">Yosep P.</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">👤 Driver 2</span>
+                                <span class="info-value">Yuda R.</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🔧 Jenis Trouble</span>
+                                <span class="info-value font-bold" style="color: #EF4444;">Ban Pecah</span>
+                            </div>
+                            <div class="info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                                <span class="info-label">📝 Keterangan</span>
+                                <span class="info-value" style="font-size: 11.5px; line-height: 1.4; color: #475569;">
+                                    Ban belakang kanan pecah, sedang proses penggantian ban.
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🟢 Status</span>
+                                <span class="badge-status orange-outline"
+                                    style="font-size: 10.5px; padding: 2px 8px;">DALAM PENANGANAN</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">👤 Dilaporkan Oleh</span>
+                                <span class="info-value">Hamdan (Operator)</span>
+                            </div>
+                        </div>
+
+                        <!-- Incident Photo Gallery Section -->
+                        <div class="incident-gallery-section" style="display: flex; flex-direction: column; gap: 8px;">
+                            <span style="font-size: 12.5px; font-weight: 700; color: #0F172A;">Foto Kejadian</span>
+                            <div class="photo-thumbnails-grid"
+                                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">
+                                <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=200&q=80"
+                                    alt="Truck Incident Front" class="incident-thumb">
+                                <img src="https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=200&q=80"
+                                    alt="Tire Damage" class="incident-thumb">
+                                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=200&q=80"
+                                    alt="Tire Close Up" class="incident-thumb">
+                                <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=200&q=80"
+                                    alt="Truck Side" class="incident-thumb">
+                                <div class="add-photo-box">
+                                    <span style="font-size: 16px; font-weight: 700;">+</span>
+                                    <span style="font-size: 9px; font-weight: 600; text-align: center;">Tambah
+                                        Foto</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Riwayat Penanganan Timeline -->
+                        <div class="timeline-container" style="margin-top: 4px;">
+                            <span class="timeline-heading">Riwayat Penanganan</span>
+                            <div class="incident-history-timeline"
+                                style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
+                                <div class="history-step" style="display: flex; gap: 10px; align-items: flex-start;">
+                                    <div class="step-dot orange-dot"></div>
+                                    <div class="step-meta">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-size: 11px; font-weight: 700; color: #0F172A;">22/07/2026
+                                                10:40</span>
+                                        </div>
+                                        <span
+                                            style="font-size: 11px; color: #334155; line-height: 1.3; display: block;">Menunggu
+                                            bantuan dari mekanik terdekat</span>
+                                        <span style="font-size: 10px; color: #94A3B8;">oleh Hamdan (Operator)</span>
+                                    </div>
+                                </div>
+                                <div class="history-step" style="display: flex; gap: 10px; align-items: flex-start;">
+                                    <div class="step-dot blue-dot"></div>
+                                    <div class="step-meta">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="font-size: 11px; font-weight: 700; color: #0F172A;">22/07/2026
+                                                11:05</span>
+                                        </div>
+                                        <span
+                                            style="font-size: 11px; color: #334155; line-height: 1.3; display: block;">Mekanik
+                                            dalam perjalanan</span>
+                                        <span style="font-size: 10px; color: #94A3B8;">oleh Admin Control Tower</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="detail-actions">
+                            <div class="btn-group-2">
+                                <button class="btn-white-outline">✏️ Edit Data</button>
+                                <button class="btn-white-outline">🔄 Update Status</button>
+                            </div>
+                            <button id="btn-close-incident" class="btn-red-full" style="background-color: #C8000A;">
+                                🛑 Tutup Kejadian
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
