@@ -1,311 +1,350 @@
 /**
  * J&T Express - Transportation Monitoring System
- * App JavaScript Logic (Mandatory Login & Router)
+ * App Controller & UI Interactivity Logic (v5 — Full Security Hardening, RBAC Permission Matrix, Notification Center & Backup Engine)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
-    // 1. ROUTING & MANDATORY LOGIN GUARD
+    // 1. AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
     // ----------------------------------------------------
-    const path = window.location.pathname.toLowerCase();
-    
-    // Use sessionStorage so opening a new browser tab requires login first!
+    const path = window.location.pathname;
+    const pageName = path.split('/').pop() || 'index.html';
+
+    const publicPages = ['index.html', ''];
     const isLoggedIn = sessionStorage.getItem('jnt_is_logged_in') === 'true';
     const activeUsername = sessionStorage.getItem('jnt_active_username') || 'Hamdan';
+    const activeRole = sessionStorage.getItem('jnt_user_role') || 'ADMIN'; // Default ADMIN, customizable per user
 
-    const isLoginPage = path.endsWith('login.html') || path.endsWith('index.html') || path.endsWith('/') || path === '';
-    const isDashboardPage = path.includes('dashboard.html');
-    const isIncomingPage = path.includes('incoming.html');
-    const isTroublePage = path.includes('trouble.html');
-    const isUsersPage = path.includes('users.html');
-    const isMonitoringPage = path.includes('monitoring.html');
-    const isSettingsPage = path.includes('settings.html');
-
-    // RULE: If accessing protected pages without logging in first, force redirect to Login Page (index.html)
-    if (!isLoginPage && !isLoggedIn) {
+    if (!isLoggedIn && !publicPages.includes(pageName)) {
         window.location.href = 'index.html';
         return;
     }
 
-    // Populate user profile name if logged in
-    const sidebarUserName = document.getElementById('sidebar-user-name');
-    const dashUserName = document.getElementById('dash-user-name');
-    if (sidebarUserName) sidebarUserName.textContent = activeUsername;
-    if (dashUserName) dashUserName.textContent = activeUsername;
-
-    // ----------------------------------------------------
-    // 2. LOGIN FORM HANDLING (index.html / login.html)
-    // ----------------------------------------------------
-    const loginForm = document.getElementById('login-form');
-    const usernameInput = document.getElementById('username-input');
-    const passwordInput = document.getElementById('password-input');
-    const rememberMeCheckbox = document.getElementById('remember-me');
-    const togglePasswordBtn = document.getElementById('toggle-password');
-    const eyeIcon = document.getElementById('eye-icon');
-    const eyeOffIcon = document.getElementById('eye-off-icon');
-    const alertBox = document.getElementById('alert-box');
-    const alertMessage = document.getElementById('alert-message');
-    const demoFillBtn = document.getElementById('demo-fill-btn');
-
-    if (togglePasswordBtn && passwordInput) {
-        togglePasswordBtn.addEventListener('click', () => {
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
-            if (eyeOffIcon && eyeIcon) {
-                eyeOffIcon.classList.toggle('hidden', isPassword);
-                eyeIcon.classList.toggle('hidden', !isPassword);
-            }
-        });
+    if (isLoggedIn && publicPages.includes(pageName)) {
+        window.location.href = 'dashboard.html';
+        return;
     }
 
-    if (usernameInput) {
-        const savedUser = localStorage.getItem('jnt_saved_username');
-        if (savedUser) {
-            usernameInput.value = savedUser;
-            if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
-        }
-    }
-
-    if (demoFillBtn && usernameInput && passwordInput) {
-        demoFillBtn.addEventListener('click', () => {
-            usernameInput.value = 'Hamdan';
-            passwordInput.value = 'admin123';
-        });
-    }
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
-
-            if (!username || !password) {
-                if (alertMessage && alertBox) {
-                    alertMessage.textContent = 'Silakan lengkapi username dan password!';
-                    alertBox.classList.remove('hidden');
-                }
-                return;
-            }
-
-            sessionStorage.setItem('jnt_is_logged_in', 'true');
-            sessionStorage.setItem('jnt_active_username', username);
-
-            if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-                localStorage.setItem('jnt_saved_username', username);
-            } else {
-                localStorage.removeItem('jnt_saved_username');
-            }
-
-            window.location.href = 'dashboard.html';
-        });
-    }
-
-    // Logout Handler
-    const btnLogout = document.getElementById('btn-logout');
-    if (btnLogout) {
-        btnLogout.addEventListener('click', () => {
-            sessionStorage.removeItem('jnt_is_logged_in');
-            sessionStorage.removeItem('jnt_active_username');
-            window.location.href = 'index.html';
-        });
-    }
-
-    // ----------------------------------------------------
-    // 3. SIDEBAR NAVIGATION ROUTER
-    // ----------------------------------------------------
-    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const navTextElem = link.querySelector('.nav-text');
-            const menuName = navTextElem ? navTextElem.innerText.trim() : '';
-
-            if (menuName === 'Dashboard') {
-                if (!isDashboardPage) {
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-            } else if (menuName === 'Incoming') {
-                if (!isIncomingPage) {
-                    window.location.href = 'incoming.html';
-                    return;
-                }
-            } else if (menuName === 'Monitoring 4 Jam') {
-                if (!isMonitoringPage) {
-                    window.location.href = 'monitoring.html';
-                    return;
-                }
-            } else if (menuName === 'Trouble & Laka') {
-                if (!isTroublePage) {
-                    window.location.href = 'trouble.html';
-                    return;
-                }
-            } else if (menuName === 'User Management') {
-                if (!isUsersPage) {
-                    window.location.href = 'users.html';
-                    return;
-                }
-            } else if (menuName === 'Pengaturan') {
-                if (!isSettingsPage) {
-                    window.location.href = 'settings.html';
-                    return;
-                }
-            }
-
-            const href = link.getAttribute('href');
-            if (href && href !== '#' && !href.startsWith('javascript')) {
-                return;
-            }
-
-            e.preventDefault();
-            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => item.classList.remove('active'));
-            link.closest('.nav-item').classList.add('active');
-
-            const mainHeading = document.querySelector('.page-main-heading, .inc-main-title');
-            const breadcrumbSub = document.querySelector('.breadcrumb-sub, .inc-breadcrumb');
-            if (mainHeading) mainHeading.textContent = menuName.toUpperCase();
-            if (breadcrumbSub) breadcrumbSub.textContent = `Dashboard > ${menuName}`;
-        });
+    // Dynamic User Banner Updates
+    const userNameEls = document.querySelectorAll('#sidebar-user-name, #topbar-user-name, #dash-user-name');
+    userNameEls.forEach(el => {
+        if (el) el.textContent = activeUsername;
     });
 
-    // ----------------------------------------------------
-    // 4. DATA REPORT SLA BULANAN (dashboard.html)
-    // ----------------------------------------------------
-    const slaTableBody = document.getElementById('sla-table-body');
-    const initialSlaData = [
-        {
-            no: 1, namaRute: 'JKT - SMG', kodeTugas: 'JT250715001', trip: 1, inputBy: 'Fariz', platNomor: 'B 1234 KJD',
-            jamOtw: '15/07 04:00', jamAktualSampai: '15/07 14:00', awb: 120, targetSlaOtw: '10:00', sisaSlaOtw: '05:54', ketOtw: 'On Time',
-            totalSlaRet: '10:00', targetSampaiRet: '15/07 14:00', kodeTugasBalikan: 'JT250715003', ketBalikan: 'lsl', jamBerangkatGateway: '15/07 17:40',
-            jamSampaiJkt: '16/07 04:50', targetSlaRet2: '10:00', totalSlaRet2: '11:10', totalTelatRet: '01:10', ketRet: 'Late',
-            targetSampaiPp: '16/07 03:40', slaRoundtrip: '20:10', totalSlaPp: '21:20', ketPp: 'Late', totalLatePp: '01:10',
-            driver1: 'Miftahudin', driver1Phone: '082311888408', driver2: 'Ridwan S', driver2Phone: '0817531260467', wilayah: 'Jawa Tengah'
-        },
-        {
-            no: 2, namaRute: 'JKT - SBY', kodeTugas: 'JT250715002', trip: 1, inputBy: 'Fariz', platNomor: 'B 9876 KJN',
-            jamOtw: '15/07 04:00', jamAktualSampai: '15/07 22:20', awb: 150, targetSlaOtw: '18:00', sisaSlaOtw: '13:54', ketOtw: 'On Time',
-            totalSlaRet: '18:00', targetSampaiRet: '15/07 22:00', kodeTugasBalikan: 'JT250715028', ketBalikan: 'lsl', jamBerangkatGateway: '16/07 01:00',
-            jamSampaiJkt: '16/07 12:45', targetSlaRet2: '18:00', totalSlaRet2: '11:45', totalTelatRet: '-5:15', ketRet: 'On Time',
-            targetSampaiPp: '16/07 19:00', slaRoundtrip: '36:00', totalSlaPp: '30:15', ketPp: 'On Time', totalLatePp: '-5:45',
-            driver1: 'Wahyudi', driver1Phone: '087789975088', driver2: 'Aseng', driver2Phone: '087810165477', wilayah: 'Jawa Timur'
-        }
-    ];
+    const userRoleEls = document.querySelectorAll('.profile-role, .inc-user-role');
+    userRoleEls.forEach(el => {
+        if (el) el.textContent = activeRole;
+    });
 
-    let currentSlaData = [...initialSlaData];
-
-    function renderSlaTable() {
-        if (!slaTableBody) return;
-        slaTableBody.innerHTML = '';
-        currentSlaData.forEach(item => {
-            const tr = document.createElement('tr');
-            const ketOtwClass = item.ketOtw === 'On Time' ? 'badge-on-time' : 'badge-late';
-            const ketRetClass = item.ketRet === 'On Time' ? 'badge-on-time' : 'badge-late';
-            const ketPpClass = item.ketPp === 'On Time' ? 'badge-on-time' : 'badge-late';
-
-            tr.innerHTML = `
-                <td class="col-center">${item.no}</td>
-                <td><strong>${item.namaRute}</strong></td>
-                <td>${item.kodeTugas}</td>
-                <td class="col-center">${item.trip}</td>
-                <td>${item.inputBy}</td>
-                <td>${item.platNomor}</td>
-                <td>${item.jamOtw}</td>
-                <td>${item.jamAktualSampai}</td>
-                <td>${item.awb}</td>
-                <td>${item.targetSlaOtw}</td>
-                <td class="text-green">${item.sisaSlaOtw}</td>
-                <td><span class="${ketOtwClass}">${item.ketOtw}</span></td>
-                <td>${item.totalSlaRet}</td>
-                <td>${item.targetSampaiRet}</td>
-                <td>${item.kodeTugasBalikan}</td>
-                <td>${item.ketBalikan}</td>
-                <td>${item.jamBerangkatGateway}</td>
-                <td>${item.jamSampaiJkt}</td>
-                <td>${item.targetSlaRet2}</td>
-                <td>${item.totalSlaRet2}</td>
-                <td class="${item.totalTelatRet.startsWith('-') ? 'text-green' : 'text-red'}">${item.totalTelatRet}</td>
-                <td><span class="${ketRetClass}">${item.ketRet}</span></td>
-                <td>${item.targetSampaiPp}</td>
-                <td>${item.slaRoundtrip}</td>
-                <td>${item.totalSlaPp}</td>
-                <td><span class="${ketPpClass}">${item.ketPp}</span></td>
-                <td class="${item.totalLatePp.startsWith('-') ? 'text-green' : 'text-red'}">${item.totalLatePp}</td>
-                <td>
-                    <div class="driver-info-box">
-                        <span class="driver-name">${item.driver1}</span>
-                        <span class="driver-phone">${item.driver1Phone}</span>
-                    </div>
-                </td>
-                <td>${item.wilayah}</td>
-                <td class="col-center">
-                    <div class="action-btns-cell">
-                        <button class="btn-icon-action" onclick="alert('Edit data ${item.namaRute}')">✏️</button>
-                        <button class="btn-icon-action" onclick="deleteRow(${item.no})">🗑️</button>
-                    </div>
-                </td>
-            `;
-            slaTableBody.appendChild(tr);
-        });
-    }
-
-    window.deleteRow = function(no) {
-        if (confirm(`Hapus data baris No. ${no}?`)) {
-            currentSlaData = currentSlaData.filter(d => d.no !== no);
-            renderSlaTable();
-        }
+    // PERMISSION MATRIX ROUTE GUARD
+    const rolePermissions = {
+        'ADMIN': ['*'],
+        'SUPERVISOR': ['dashboard.html', 'incoming.html', 'monitoring.html', 'sla-vendor.html', 'trouble.html', 'shift-management.html', 'report.html', 'audit.html', 'profile.html'],
+        'OPERATOR_SLA': ['dashboard.html', 'incoming.html', 'sla-vendor.html', 'monitoring.html', 'trouble.html', 'report.html', 'profile.html'],
+        'OPERATOR_MONITORING': ['dashboard.html', 'monitoring.html', 'trouble.html', 'incoming.html', 'sla-vendor.html', 'report.html', 'profile.html']
     };
 
-    if (slaTableBody) renderSlaTable();
+    const restrictedPagesForSLA = ['master.html', 'users.html', 'settings.html'];
+    const restrictedPagesForMonitoring = ['master.html', 'users.html', 'settings.html'];
 
-    // ----------------------------------------------------
-    // 5. PENGATURAN PAGE INTERACTIONS (settings.html)
-    // ----------------------------------------------------
-    const settingTabs = document.querySelectorAll('.settings-tab-item');
-    if (settingTabs.length > 0) {
-        settingTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                settingTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-            });
-        });
+    if (activeRole === 'OPERATOR_SLA' && restrictedPagesForSLA.includes(pageName)) {
+        alert(`⚠️ Akses Dibatasi: Peran Anda (${activeRole}) tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
+        window.location.href = 'dashboard.html';
+        return;
     }
 
-    const colorDots = document.querySelectorAll('.color-dot');
-    if (colorDots.length > 0) {
-        colorDots.forEach(dot => {
-            dot.addEventListener('click', () => {
-                colorDots.forEach(d => {
-                    d.classList.remove('active');
-                    d.textContent = '';
-                });
-                dot.classList.add('active');
-                dot.textContent = '✓';
-            });
-        });
+    if (activeRole === 'OPERATOR_MONITORING' && restrictedPagesForMonitoring.includes(pageName)) {
+        alert(`⚠️ Akses Dibatasi: Peran Anda (${activeRole}) tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
+        window.location.href = 'dashboard.html';
+        return;
     }
 
-    const modeBtns = document.querySelectorAll('.btn-mode');
-    if (modeBtns.length > 0) {
-        modeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
-    }
-
-    const saveStBtns = document.querySelectorAll('.btn-st-red, .btn-st-outline');
-    saveStBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            alert('✅ Perubahan pengaturan berhasil disimpan!');
+    const logoutBtns = document.querySelectorAll('#btn-logout, .btn-logout-action');
+    logoutBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Konfirmasi Keluar: Apakah Anda yakin ingin keluar dari sistem?')) {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            }
         });
     });
 
-    const dangerResetBox = document.querySelector('.danger-reset-box');
-    if (dangerResetBox) {
-        dangerResetBox.addEventListener('click', () => {
-            if (confirm('Konfirmasi Reset: Apakah Anda yakin ingin mengembalikan seluruh pengaturan sistem ke default awal?')) {
-                alert('🔄 Pengaturan telah dikembalikan ke kondisi default!');
+    // ----------------------------------------------------
+    // 2. PAGE DETECTOR & ACTIVE SIDEBAR INTERACTION
+    // ----------------------------------------------------
+    const isDashboardPage = pageName === 'dashboard.html';
+    const isIncomingPage = pageName === 'incoming.html';
+    const isMonitoringPage = pageName === 'monitoring.html';
+    const isSlaPage = pageName === 'sla-vendor.html';
+    const isTroublePage = pageName === 'trouble.html';
+    const isMasterPage = pageName === 'master.html';
+    const isShiftPage = pageName === 'shift-management.html';
+    const isReportPage = pageName === 'report.html';
+    const isSettingsPage = pageName === 'settings.html';
+    const isUsersPage = pageName === 'users.html';
+    const isProfilePage = pageName === 'profile.html';
+
+    // Universal Modal Handlers
+    window.openModal = (modalId) => {
+        const targetModal = document.getElementById(modalId);
+        if (targetModal) targetModal.classList.remove('hidden');
+    };
+
+    window.closeModal = (modalEl) => {
+        if (typeof modalEl === 'string') modalEl = document.getElementById(modalEl);
+        if (modalEl) modalEl.classList.add('hidden');
+    };
+
+    // Global Click Delegation for Modals & Trigger Buttons
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button, .btn, .modal-close-btn');
+        if (!btn) return;
+
+        if (btn.classList.contains('modal-close-btn') || btn.classList.contains('btn-close-x')) {
+            const overlay = btn.closest('.modal-overlay');
+            if (overlay) closeModal(overlay);
+            return;
+        }
+
+        const btnId = btn.id;
+        const text = btn.textContent.trim();
+
+        if (btnId === 'btn-report-incident' || text.includes('Laporkan Kejadian')) {
+            openModal('modal-add-trouble');
+        } else if (btnId === 'btn-add-incoming' || text.includes('Tambah Incoming')) {
+            openModal('modal-add-incoming');
+        } else if (btnId === 'btn-add-monitoring' || text.includes('Input Perjalanan')) {
+            openModal('modal-add-monitoring');
+        } else if (btnId === 'btn-add-user' || text.includes('Tambah User')) {
+            openModal('modal-add-user');
+        } else if (btnId === 'btn-add-shift' || text.includes('Mulai Shift Baru')) {
+            openModal('modal-add-shift');
+        }
+    });
+
+    // Close overlay when clicking backdrop
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal(overlay);
+        });
+    });
+
+    // Shared Active Trips Cache
+    let activeIncomingMap = {};
+
+    if (typeof JNTFirebaseService !== 'undefined') {
+        JNTFirebaseService.subscribeActiveIncomingForMonitoring((activeTrips) => {
+            activeTrips.forEach(trip => {
+                activeIncomingMap[trip.kodeTugas] = trip;
+            });
+
+            // Populate Trouble Select
+            const trKodeSelect = document.getElementById('tr-kode-tugas-select');
+            if (trKodeSelect) {
+                const curVal = trKodeSelect.value;
+                trKodeSelect.innerHTML = '<option value="">-- Pilih Armada Terlibat Incident --</option>';
+                activeTrips.forEach(trip => {
+                    const opt = document.createElement('option');
+                    opt.value = trip.kodeTugas;
+                    opt.textContent = `${trip.kodeTugas} - ${trip.platNomor} (${trip.namaRute || trip.trip})`;
+                    trKodeSelect.appendChild(opt);
+                });
+                if (curVal && activeIncomingMap[curVal]) {
+                    trKodeSelect.value = curVal;
+                }
+            }
+
+            // Populate Monitoring Select
+            const monKodeSelect = document.getElementById('mon-kode-tugas-select');
+            if (monKodeSelect) {
+                const curVal = monKodeSelect.value;
+                monKodeSelect.innerHTML = '<option value="">-- Pilih Armada Aktif --</option>';
+                activeTrips.forEach(trip => {
+                    const opt = document.createElement('option');
+                    opt.value = trip.kodeTugas;
+                    opt.textContent = `${trip.kodeTugas} - ${trip.platNomor} (${trip.namaRute || trip.trip})`;
+                    monKodeSelect.appendChild(opt);
+                });
+                if (curVal && activeIncomingMap[curVal]) {
+                    monKodeSelect.value = curVal;
+                }
             }
         });
+
+        // ----------------------------------------------------
+        // 3. REAL-TIME NOTIFICATION CENTER BELL WIDGET
+        // ----------------------------------------------------
+        const notifBells = document.querySelectorAll('.inc-notif-bell');
+        JNTFirebaseService.subscribeNotifications((alertsList) => {
+            notifBells.forEach(bell => {
+                const badge = bell.querySelector('.inc-bell-badge');
+                if (badge) badge.textContent = alertsList.length;
+
+                bell.onclick = () => {
+                    if (alertsList.length === 0) {
+                        alert("🔔 Notifikasi: Tidak ada peringatan kritis saat ini.");
+                        return;
+                    }
+
+                    const notifSummary = alertsList.map((a, i) => `${i+1}. ${a.title}\n   ${a.message}`).join('\n\n');
+                    alert(`🔔 NOTIFICATION CENTER (${alertsList.length} Alerts):\n----------------------------------------\n${notifSummary}`);
+                };
+            });
+        });
+    }
+
+    // ----------------------------------------------------
+    // 4. DATABASE BACKUP & ADMIN RESTORE (settings.html)
+    // ----------------------------------------------------
+    const btnBackupNow = document.getElementById('btn-backup-now');
+    const btnRestoreDb = document.getElementById('btn-restore-database');
+    const restoreJsonInput = document.getElementById('restore-json-input');
+
+    if (btnBackupNow) {
+        btnBackupNow.addEventListener('click', async () => {
+            alert('⏳ Memproses Backup Database Snapshot Firestore...');
+            try {
+                if (typeof JNTFirebaseService !== 'undefined') {
+                    const snapshot = await JNTFirebaseService.exportDatabaseSnapshot();
+                    const jsonStr = JSON.stringify(snapshot, null, 2);
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+                    link.setAttribute('download', `JNT_Express_TMS_Backup_${todayStr}.json`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    alert('✅ Database Backup Snapshot berhasil diunduh!');
+                }
+            } catch (err) {
+                alert(`❌ Gagal melakukan backup: ${err.message}`);
+            }
+        });
+    }
+
+    if (btnRestoreDb && restoreJsonInput) {
+        btnRestoreDb.addEventListener('click', () => {
+            if (activeRole !== 'ADMIN') {
+                alert('⚠️ Akses Ditolak: Fitur Restore Database hanya dapat dijalankan oleh Role ADMIN!');
+                return;
+            }
+
+            if (confirm('⚠️ PERINGATAN RESTORE DATABASE:\nApakah Anda yakin ingin memulihkan seluruh data database dari file backup JSON?\nTindakan ini akan memperbarui data Firestore saat ini.')) {
+                restoreJsonInput.click();
+            }
+        });
+
+        restoreJsonInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const jsonObj = JSON.parse(event.target.result);
+                    alert('⏳ Memproses restore data ke Firestore...');
+                    await JNTFirebaseService.restoreDatabaseFromJSON(jsonObj);
+                    alert('✅ Restore Database Firestore berhasil diselesaikan!');
+                } catch (err) {
+                    alert(`❌ Error Restore Data: File JSON tidak valid atau korup! (${err.message})`);
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    // ----------------------------------------------------
+    // 5. SHIFT FORM & AUDIT TRAIL LOGIC (shift-management.html)
+    // ----------------------------------------------------
+    const formAddShift = document.getElementById('form-add-shift');
+    if (formAddShift) {
+        formAddShift.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const namaShift = document.getElementById('sh-nama-select').value;
+            const tanggal = document.getElementById('sh-tanggal-input').value;
+            const op1Nama = document.getElementById('sh-op1-select').value;
+            const op1Tugas = document.getElementById('sh-op1-tugas-input').value;
+            const op2Nama = document.getElementById('sh-op2-select').value;
+            const op2Tugas = document.getElementById('sh-op2-tugas-input').value;
+
+            const todayClean = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const newShiftId = `SHIFT-${todayClean}-0${Math.floor(Math.random()*9)+1}`;
+
+            const shiftObj = {
+                shiftId: newShiftId,
+                tanggal: tanggal,
+                namaShift: namaShift,
+                status: "AKTIF",
+                operator1: { nama: op1Nama, tugas: op1Tugas },
+                operator2: { nama: op2Nama, tugas: op2Tugas },
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            sessionStorage.setItem('jnt_active_shift_id', newShiftId);
+
+            if (typeof JNTFirebaseService !== 'undefined') {
+                await JNTFirebaseService.saveActiveShift(shiftObj);
+                await JNTFirebaseService.logAuditEvent({
+                    waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                    operator: activeUsername,
+                    shiftId: newShiftId,
+                    modul: "Shift Management",
+                    kodeTugas: "-",
+                    aktivitas: `Pergantian Shift Baru (${namaShift} - Operator 1: ${op1Nama}, Operator 2: ${op2Nama})`
+                });
+            }
+
+            alert(`✅ Shift Baru (${newShiftId}) berhasil diaktifkan!\nOperator 1: ${op1Nama}\nOperator 2: ${op2Nama}`);
+            formAddShift.reset();
+            closeModal(document.getElementById('modal-add-shift'));
+        });
+    }
+
+    // ----------------------------------------------------
+    // 6. REAL-TIME FIRESTORE LISTENERS FOR SHIFT & AUDIT
+    // ----------------------------------------------------
+    if (typeof JNTFirebaseService !== 'undefined') {
+
+        // SHIFT & AUDIT LOG SYNC (shift-management.html)
+        if (isShiftPage) {
+            JNTFirebaseService.subscribeShifts((shiftsList) => {
+                if (shiftsList.length === 0) return;
+                const activeShift = shiftsList.find(s => s.status === 'AKTIF') || shiftsList[0];
+
+                const elShiftId = document.getElementById('sh-shift-id');
+                const elOp1Nama = document.getElementById('sh-op1-nama');
+                const elOp1Tugas = document.getElementById('sh-op1-tugas');
+                const elOp2Nama = document.getElementById('sh-op2-nama');
+                const elOp2Tugas = document.getElementById('sh-op2-tugas');
+
+                if (elShiftId) elShiftId.textContent = `ID: ${activeShift.shiftId || 'SHIFT-20260816-01'}`;
+                if (elOp1Nama) elOp1Nama.textContent = activeShift.operator1 ? activeShift.operator1.nama : 'Hamdan Hamdani';
+                if (elOp1Tugas) elOp1Tugas.textContent = activeShift.operator1 ? activeShift.operator1.tugas : 'Monitoring 4H + Incident';
+                if (elOp2Nama) elOp2Nama.textContent = activeShift.operator2 ? activeShift.operator2.nama : 'Rizky Ramadhan';
+                if (elOp2Tugas) elOp2Tugas.textContent = activeShift.operator2 ? activeShift.operator2.tugas : 'SLA Vendor + Incoming';
+            });
+
+            JNTFirebaseService.subscribeAuditLogs((logsList) => {
+                const tbody = document.querySelector('.audit-table tbody');
+                if (!tbody) return;
+
+                tbody.innerHTML = logsList.map((item, idx) => {
+                    return `
+                        <tr class="inc-row">
+                            <td class="col-center">${idx + 1}</td>
+                            <td><strong>${item.waktu || '-'}</strong></td>
+                            <td><span class="badge-status blue-outline">${item.shiftId || 'SHIFT-20260816-01'}</span></td>
+                            <td><strong>${item.operator || 'System'}</strong></td>
+                            <td><span class="badge-status green-outline">${item.modul || 'General'}</span></td>
+                            <td><strong style="color: #E30613;">${item.kodeTugas || '-'}</strong></td>
+                            <td>${item.aktivitas || '-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            });
+        }
     }
 });

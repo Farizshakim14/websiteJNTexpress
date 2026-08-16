@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Report, Performance Operator & Export</title>
+    <meta name="description" content="Sistem Pelaporan Terpadu, Rekap Kinerja Operator, Export Multi-Sheet Excel & Import Validasi Data J&T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR PANEL (DARK THEME) -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="monitoring.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sla-vendor.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="shift-management.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">Shift Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="master.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="report.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report & Export</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-help-box">
+                    <div class="help-content">
+                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                        <div class="help-text-group">
+                            <span class="help-title">Butuh Bantuan?</span>
+                            <span class="help-sub">Hubungi Admin Sistem</span>
+                        </div>
+                    </div>
+                    <button class="btn-help-contact">Kontak Admin</button>
+                </div>
+            </aside>
+
+            <!-- MAIN REPORT BODY -->
+            <main class="main-incoming-body">
+
+                <!-- Top Header Nav -->
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <div>
+                            <h2 class="inc-main-title" style="font-size: 22px;">Reporting, Performance Operator & Export</h2>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Report & Export</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <button id="btn-open-export-modal" class="btn-inc-add" onclick="document.getElementById('modal-export-filter').classList.remove('hidden')" style="background-color: #16A34A; cursor: pointer; padding: 8px 16px;">
+                            📥 Export Excel (Multi-Sheet)
+                        </button>
+                        <button id="btn-open-import-modal" class="btn-inc-reset" onclick="document.getElementById('modal-import-excel').classList.remove('hidden')" style="cursor: pointer; padding: 8px 16px;">
+                            📤 Import Excel
+                        </button>
+                    </div>
+                </header>
+
+                <!-- TAB HEADERS (4 REPORTING TABS) -->
+                <div style="display: flex; gap: 8px; border-bottom: 2px solid #E2E8F0; margin-bottom: 20px;">
+                    <button class="btn-tab-report active" id="tab-btn-sla" onclick="switchReportTab('sla')">📊 Report SLA Vendor</button>
+                    <button class="btn-tab-report" id="tab-btn-monitoring" onclick="switchReportTab('monitoring')">🚚 Report Monitoring 4H</button>
+                    <button class="btn-tab-report" id="tab-btn-trouble" onclick="switchReportTab('trouble')">🚨 Report Trouble & Laka</button>
+                    <button class="btn-tab-report" id="tab-btn-operator" onclick="switchReportTab('operator')">👤 Rekap Kinerja Operator</button>
+                </div>
+
+                <!-- TAB CONTENT 1: SLA REPORT -->
+                <div id="tab-content-sla" class="report-tab-pane">
+                    <div class="inc-kpi-grid">
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">TOTAL TRIP MONITORING</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number">128</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">ON TIME OUTBOUND</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #16A34A;">98.4%</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">LATE OUTBOUND</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #DC2626;">2 Unit</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">TOTAL LATE PP</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #D97706;">3 Jam 15 Mnt</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-card" style="margin-top: 16px;">
+                        <div class="inc-table-header">
+                            <h3 class="inc-table-title">Rekap Kinerja SLA Vendor per Rute</h3>
+                        </div>
+                        <div class="inc-table-scroll">
+                            <table class="inc-data-table">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Rute / Trip</th>
+                                        <th>TLC</th>
+                                        <th>Wilayah</th>
+                                        <th>Total Trip</th>
+                                        <th>On Time</th>
+                                        <th>Late</th>
+                                        <th>Target SLA PP</th>
+                                        <th>Akurasi SLA %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="inc-row">
+                                        <td class="col-center">1</td>
+                                        <td><strong>JAKARTA - YOGYA (JOG CDD)</strong></td>
+                                        <td>JOG CDD</td>
+                                        <td>JAWA</td>
+                                        <td>45</td>
+                                        <td style="color: #16A34A; font-weight: 700;">44</td>
+                                        <td style="color: #DC2626; font-weight: 700;">1</td>
+                                        <td>32 Jam</td>
+                                        <td><span class="badge-status green-outline">97.7%</span></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">2</td>
+                                        <td><strong>JAKARTA - SEMARANG (SRG FUSO)</strong></td>
+                                        <td>SRG FUSO</td>
+                                        <td>JAWA</td>
+                                        <td>38</td>
+                                        <td style="color: #16A34A; font-weight: 700;">38</td>
+                                        <td style="color: #DC2626; font-weight: 700;">0</td>
+                                        <td>30 Jam</td>
+                                        <td><span class="badge-status green-outline">100%</span></td>
+                                    </tr>
+                                    <tr class="inc-row">
+                                        <td class="col-center">3</td>
+                                        <td><strong>JAKARTA - PALEMBANG (PLM FUSO)</strong></td>
+                                        <td>PLM FUSO</td>
+                                        <td>SUMATERA</td>
+                                        <td>22</td>
+                                        <td style="color: #16A34A; font-weight: 700;">21</td>
+                                        <td style="color: #DC2626; font-weight: 700;">1</td>
+                                        <td>48 Jam</td>
+                                        <td><span class="badge-status green-outline">95.4%</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 2: MONITORING 4H REPORT -->
+                <div id="tab-content-monitoring" class="report-tab-pane hidden">
+                    <div class="inc-kpi-grid">
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">TOTAL CHECK-IN 4H</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number">420</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">CHECK-IN TEPAT WAKTU</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #16A34A;">395</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">TERLAMBAT CHECK-IN</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #D97706;">25</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">KEPATUHAN OPERATOR %</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #2563EB;">94.04%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 3: TROUBLE & LAKA REPORT -->
+                <div id="tab-content-trouble" class="report-tab-pane hidden">
+                    <div class="inc-kpi-grid">
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">TOTAL KEJADIAN TROUBLE</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number">14</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">TOTAL KEJADIAN LAKA</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #9333EA;">2</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">DALAM PENANGANAN</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #D97706;">5</span></div>
+                            </div>
+                        </div>
+                        <div class="inc-kpi-card">
+                            <div class="inc-kpi-info">
+                                <span class="inc-kpi-label">SUDAH SELESAI</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #16A34A;">11</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT 4: PERFORMANCE OPERATOR REPORT -->
+                <div id="tab-content-operator" class="report-tab-pane hidden">
+                    <div class="inc-split-container">
+                        
+                        <!-- Operator 1 Performance -->
+                        <div class="inc-table-card" style="flex: 1;">
+                            <div class="inc-table-header">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #E30613;">
+                                    <div>
+                                        <h3 class="inc-table-title">Hamdan Hamdani</h3>
+                                        <span style="font-size: 11.5px; color: #64748B;">Role: Operator Utama • Monitoring & Trouble</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="padding: 16px;">
+                                <div class="info-item"><span class="info-label">Check-in Monitoring 4H</span><span class="info-value font-bold">42 Transaksi</span></div>
+                                <div class="info-item"><span class="info-label">Laporan Trouble & Laka</span><span class="info-value font-bold" style="color: #DC2626;">4 Laporan</span></div>
+                                <div class="info-item"><span class="info-label">Revisi Posisi Slot</span><span class="info-value font-bold">2 Kali</span></div>
+                                <div class="info-item" style="border-top: 1.5px solid #E2E8F0; padding-top: 10px; margin-top: 8px;">
+                                    <span class="info-label font-bold">TOTAL AKTIVITAS OPERASIONAL</span>
+                                    <span class="info-value font-bold" style="color: #2563EB; font-size: 16px;">48 Aktivitas</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Operator 2 Performance -->
+                        <div class="inc-table-card" style="flex: 1;">
+                            <div class="inc-table-header">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #3B82F6;">
+                                    <div>
+                                        <h3 class="inc-table-title">Rizky Ramadhan</h3>
+                                        <span style="font-size: 11.5px; color: #64748B;">Role: Operator Pendamping • SLA & Incoming</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="padding: 16px;">
+                                <div class="info-item"><span class="info-label">Input Incoming SSOT</span><span class="info-value font-bold">28 Transaksi</span></div>
+                                <div class="info-item"><span class="info-label">Update Jam Sampai SLA</span><span class="info-value font-bold" style="color: #16A34A;">37 Update</span></div>
+                                <div class="info-item"><span class="info-label">Koreksi Data Master</span><span class="info-value font-bold">2 Kali</span></div>
+                                <div class="info-item" style="border-top: 1.5px solid #E2E8F0; padding-top: 10px; margin-top: 8px;">
+                                    <span class="info-label font-bold">TOTAL AKTIVITAS OPERASIONAL</span>
+                                    <span class="info-value font-bold" style="color: #2563EB; font-size: 16px;">67 Aktivitas</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <footer class="app-page-footer">
+            <span>© 2026 J&T Express. All rights reserved.</span>
+            <span>Version 1.0.0</span>
+        </footer>
+
+    </div>
+
+    <!-- MODAL POPUP: EXPORT EXCEL (MULTI-SHEET FILTERED) -->
+    <div id="modal-export-filter" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3>📥 Export Data Excel Multi-Sheet</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-export-excel" class="modal-body-form" style="padding: 18px 22px;">
+                <div class="form-field" style="margin-bottom: 14px;">
+                    <label style="font-weight: 700;">Pilih Modul Target Export</label>
+                    <select id="exp-modul-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700;">
+                        <option value="ALL">📦 Semua Data (Multi-Sheet Excel: SLA, 4H, Trouble, Shift, Audit Log)</option>
+                        <option value="SLA">📊 SLA Vendor (Outbound, Return, Roundtrip)</option>
+                        <option value="MONITORING">🚚 Monitoring 4 Jam Check-in</option>
+                        <option value="TROUBLE">🚨 Trouble & Laka Incident</option>
+                        <option value="SHIFT">👥 Shift Management & Penugasan</option>
+                        <option value="AUDIT">📜 Audit Trail Log System</option>
+                    </select>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Dari Tanggal</label>
+                        <input type="date" id="exp-date-from" value="2026-08-01" required style="border: 1px solid #CBD5E1; padding: 10px 12px;">
+                    </div>
+                    <div class="form-field">
+                        <label>Sampai Tanggal</label>
+                        <input type="date" id="exp-date-to" value="2026-08-16" required style="border: 1px solid #CBD5E1; padding: 10px 12px;">
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 14px;">
+                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red" style="background-color: #16A34A;">📥 Export File Excel (.csv/.xlsx)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: IMPORT EXCEL WITH SAFETY PIPELINE -->
+    <div id="modal-import-excel" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>📤 Import Data Excel (Safety Validation Pipeline)</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body-form" style="padding: 18px 22px;">
+                <div class="form-field">
+                    <label>Pilih File Excel / CSV (.xlsx, .csv)</label>
+                    <input type="file" id="imp-file-input" accept=".csv, .xlsx" style="border: 1px dashed #3B82F6; padding: 16px; background: #EFF6FF; border-radius: 8px; cursor: pointer;">
+                </div>
+
+                <div id="imp-validation-box" class="hidden" style="margin-top: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px;">
+                    <strong style="color: #0F172A;">Hasil Validasi File:</strong>
+                    <div style="display: flex; gap: 16px; margin-top: 8px;">
+                        <span style="color: #16A34A; font-weight: 700;">✅ Baris Valid: <strong id="val-valid-count">24</strong></span>
+                        <span style="color: #DC2626; font-weight: 700;">⚠️ Baris Duplikat/Error: <strong id="val-error-count">0</strong></span>
+                    </div>
+                    <span style="font-size: 11.5px; color: #64748B; margin-top: 6px; display: block;">* Pengecekan Kode Tugas unik & Master SSOT telah berhasil diverifikasi.</span>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 16px;">
+                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
+                    <button type="button" id="btn-commit-import" class="btn-jnt-red" disabled style="opacity: 0.5;">📥 Konfirmasi & Commit Ke Firestore</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Config & Service -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+        function switchReportTab(tabName) {
+            document.querySelectorAll('.btn-tab-report').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.report-tab-pane').forEach(pane => pane.classList.add('hidden'));
+
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            const activePane = document.getElementById(`tab-content-${tabName}`);
+
+            if (activeBtn) activeBtn.classList.add('active');
+            if (activePane) activePane.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

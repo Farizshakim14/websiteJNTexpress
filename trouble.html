@@ -75,7 +75,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="monitoring.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <circle cx="12" cy="12" r="10"></circle>
@@ -85,7 +85,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="sla-vendor.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <circle cx="12" cy="12" r="10"></circle>
@@ -107,8 +107,14 @@
                                 <span class="nav-text">Trouble & Laka</span>
                             </a>
                         </li>
-                        <li class="nav-item has-dropdown">
-                            <a href="#" class="nav-link">
+                        <li class="nav-item">
+                            <a href="shift-management.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">Shift Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="master.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path
@@ -116,24 +122,12 @@
                                     </path>
                                 </svg>
                                 <span class="nav-text">Master Data</span>
-                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
                             </a>
                         </li>
-                        <li class="nav-item has-dropdown">
-                            <a href="#" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                </svg>
-                                <span class="nav-text">Report</span>
-                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
+                        <li class="nav-item">
+                            <a href="report.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report & Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -147,7 +141,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="users.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -157,7 +151,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="settings.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <circle cx="12" cy="12" r="3"></circle>
@@ -166,6 +160,12 @@
                                     </path>
                                 </svg>
                                 <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="profile.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">Profil Saya</span>
                             </a>
                         </li>
                     </ul>
@@ -241,8 +241,8 @@
 
                 <!-- Top Right Action Button Row -->
                 <div class="inc-action-row">
-                    <button id="btn-report-incident" class="btn-inc-add"
-                        style="background-color: #E30613; padding: 10px 22px; font-size: 13.5px; border-radius: 8px;">
+                    <button id="btn-report-incident" class="btn-inc-add" onclick="document.getElementById('modal-add-trouble').classList.remove('hidden')"
+                        style="background-color: #E30613; padding: 10px 22px; font-size: 13.5px; border-radius: 8px; cursor: pointer;">
                         + Laporkan Kejadian
                     </button>
                 </div>
@@ -743,6 +743,109 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP: LAPORKAN KEJADIAN TROUBLE & LAKA (SSOT INTEGRATED) -->
+    <div id="modal-add-trouble" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 620px;">
+            <div class="modal-header">
+                <h3>🚨 Laporkan Kejadian Incident (Trouble & Laka)</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-trouble" class="modal-body-form" style="padding: 18px 22px;">
+                
+                <!-- SSOT Auto-Pull Kode Tugas -->
+                <div class="form-field" style="margin-bottom: 14px;">
+                    <label style="font-weight: 700; color: #1E293B;">Pilih Kode Tugas Armada (Incoming SSOT)</label>
+                    <select id="tr-kode-tugas-select" required style="background-color: #172030; border: 1.5px solid #EF4444; border-radius: 6px; padding: 11px 14px; color: #FFFFFF; font-size: 14px; font-weight: 700;">
+                        <option value="">-- Pilih Armada Terlibat Incident --</option>
+                    </select>
+                    <span style="font-size: 11px; color: #64748B; margin-top: 4px; display: block;">* Identitas Armada, Rute, Plat, & Driver otomatis ditarik dari SSOT tanpa ketik ulang.</span>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Plat Nomor Armada</label>
+                        <input type="text" id="tr-plat" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155; font-weight: 700;">
+                    </div>
+                    <div class="form-field">
+                        <label>Driver Utama</label>
+                        <input type="text" id="tr-driver" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155;">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Rute & TLC</label>
+                        <input type="text" id="tr-rute-tlc" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155;">
+                    </div>
+                    <div class="form-field">
+                        <label>Tingkat Tingkat Keparahan (Severity Level)</label>
+                        <select id="tr-severity" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700;">
+                            <option value="LOW">🟢 LOW (Ringan / Penanganan cepat)</option>
+                            <option value="MEDIUM" selected>🟡 MEDIUM (Sedang / Perlu Bantuan Mekanik)</option>
+                            <option value="HIGH">🔴 HIGH (Berat / Perlu Unit Derek)</option>
+                            <option value="CRITICAL">💥 CRITICAL (Kecelakaan Fatal / Laka)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Jenis Kejadian</label>
+                        <select id="tr-jenis" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                            <option value="Trouble">⚠️ Trouble Kendaraan</option>
+                            <option value="Laka">💥 Kecelakaan / Laka Lantas</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Kategori Kendala</label>
+                        <select id="tr-kategori-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                            <option value="Ban Pecah / Kerusakan Ban">Ban Pecah / Kerusakan Ban</option>
+                            <option value="Mogok / Mesin Overheat">Mogok / Mesin Overheat</option>
+                            <option value="Kemacetan Parah Jalur Tol">Kemacetan Parah Jalur Tol</option>
+                            <option value="Antrean Panjang Pelabuhan">Antrean Panjang Pelabuhan</option>
+                            <option value="Cuaca Buruk / Banjir">Cuaca Buruk / Banjir</option>
+                            <option value="Laka Lantas">Kecelakaan Lalu Lintas (Laka)</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Lokasi Kejadian Tepat</label>
+                        <input type="text" id="tr-lokasi" placeholder="Contoh: Tol Cikampek KM 47 / Rest Area 208" required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                    </div>
+                    <div class="form-field">
+                        <label>Waktu Kejadian</label>
+                        <input type="text" id="tr-waktu-kejadian" readonly style="background-color: #F8FAFC; color: #DC2626; font-weight: 700;">
+                    </div>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label>Kronologi Ringkas Kejadian</label>
+                    <textarea id="tr-kronologi" rows="2" placeholder="Jelaskan kronologi singkat bagaimana kejadian terjadi..." required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px; font-family: inherit;"></textarea>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label>Dampak Terhadap Perjalanan & Paket</label>
+                    <input type="text" id="tr-dampak" placeholder="Contoh: Potensi keterlambatan 2 Jam, barang paket aman terkuci" style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                </div>
+
+                <div class="modal-footer" style="margin-top: 14px;">
+                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red">🚨 Simpan Laporan Incident (Firestore)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Config & Service -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
     <script src="app.js"></script>
 </body>
 

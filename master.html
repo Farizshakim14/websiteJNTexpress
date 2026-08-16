@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Master Data Management</title>
+    <meta name="description" content="Sistem kelola Master Data Rute, Trip, Armada, Driver, dan SLA Target J&T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR PANEL -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card" id="sidebar-user-card-btn">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="User Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator SLA</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="monitoring.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sla-vendor.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="shift-management.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">Shift Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="master.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="report.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report & Export</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="profile.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">Profil Saya</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-footer-graphic">
+                    <div class="route-line-svg">
+                        <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4"/>
+                            <circle cx="30" cy="60" r="5" fill="#E30613"/>
+                            <circle cx="100" cy="50" r="5" fill="#E30613"/>
+                            <circle cx="180" cy="25" r="5" fill="#E30613"/>
+                        </svg>
+                    </div>
+                    <div class="sidebar-system-title">
+                        <span class="sys-light">Transportation</span>
+                        <span class="sys-bold">Monitoring System</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN BODY -->
+            <main class="main-incoming-body">
+                
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn" aria-label="Toggle menu">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <div>
+                            <h2 class="inc-main-title" style="font-size: 22px;">Master Data Management</h2>
+                            <span class="inc-breadcrumb">Dashboard / Master Data</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <span>22 Juli 2026</span>
+                        </div>
+                        <div class="inc-user-chip" id="topbar-user-chip-btn">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name">Hamdan</span>
+                                <span class="inc-user-role">Operator SLA</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Horizontal Tabs for Master Sub-items -->
+                <div class="settings-nav-tabs" style="margin: 16px 0;">
+                    <button class="settings-tab-item active" id="tab-btn-master-trips" onclick="switchMasterTab('trips')">🛣️ <span>Master Trips & Target SLA</span></button>
+                    <button class="settings-tab-item" id="tab-btn-master-fleets" onclick="switchMasterTab('fleets')">🚛 <span>Master Armada (Fleet)</span></button>
+                    <button class="settings-tab-item" id="tab-btn-master-drivers" onclick="switchMasterTab('drivers')">👨‍✈️ <span>Master Driver</span></button>
+                    <button class="settings-tab-item" id="tab-btn-master-reasons" onclick="switchMasterTab('reasons')">⚠️ <span>Master Alasan Keterlambatan</span></button>
+                </div>
+
+                <!-- SECTION 1: MASTER TRIPS & SLA TARGETS -->
+                <div id="section-master-trips" class="inc-table-card" style="padding: 20px;">
+                    <div class="inc-table-header" style="margin-bottom: 16px;">
+                        <div>
+                            <h3 class="inc-table-title">Master Trip, Rute & Standard Target SLA</h3>
+                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Data acuan otomatis (Auto-Fill Engine) untuk pengisian Incoming & SLA</span>
+                        </div>
+                        <button class="btn-inc-add" onclick="document.getElementById('modal-add-master-trip').classList.remove('hidden')">
+                            + Tambah Master Trip
+                        </button>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table" id="table-master-trips">
+                            <thead>
+                                <tr>
+                                    <th>Kode Trip</th>
+                                    <th>Nama Rute</th>
+                                    <th>TLC Tujuan</th>
+                                    <th>Layanan</th>
+                                    <th>Wilayah</th>
+                                    <th>Target Outbound (Jam)</th>
+                                    <th>Target Return (Jam)</th>
+                                    <th>Target Roundtrip (PP)</th>
+                                    <th class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated by Firebase -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: MASTER FLEETS -->
+                <div id="section-master-fleets" class="inc-table-card hidden" style="padding: 20px;">
+                    <div class="inc-table-header" style="margin-bottom: 16px;">
+                        <div>
+                            <h3 class="inc-table-title">Master Armada Kendaraan (Fleet)</h3>
+                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Daftar truk operasional J&T Express & Vendor</span>
+                        </div>
+                        <button class="btn-inc-add" onclick="document.getElementById('modal-add-master-fleet').classList.remove('hidden')">
+                            + Tambah Armada Baru
+                        </button>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table" id="table-master-fleets">
+                            <thead>
+                                <tr>
+                                    <th>Plat Nomor</th>
+                                    <th>Tipe Armada</th>
+                                    <th>Nama Vendor / Owner</th>
+                                    <th>Status Armada</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated by Firebase -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: MASTER DRIVERS -->
+                <div id="section-master-drivers" class="inc-table-card hidden" style="padding: 20px;">
+                    <div class="inc-table-header" style="margin-bottom: 16px;">
+                        <div>
+                            <h3 class="inc-table-title">Master Pengemudi (Driver)</h3>
+                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Database driver resmi J&T Express</span>
+                        </div>
+                        <button class="btn-inc-add" onclick="document.getElementById('modal-add-master-driver').classList.remove('hidden')">
+                            + Tambah Driver Baru
+                        </button>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table" id="table-master-drivers">
+                            <thead>
+                                <tr>
+                                    <th>Nama Driver</th>
+                                    <th>No. Telepon / HP</th>
+                                    <th>Golongan SIM</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated by Firebase -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: MASTER REASONS -->
+                <div id="section-master-reasons" class="inc-table-card hidden" style="padding: 20px;">
+                    <div class="inc-table-header" style="margin-bottom: 16px;">
+                        <div>
+                            <h3 class="inc-table-title">Master Alasan Keterlambatan</h3>
+                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Daftar Opsi Alasan Kendala SLA di Lapangan</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table" id="table-master-reasons">
+                            <thead>
+                                <tr>
+                                    <th>ID Alasan</th>
+                                    <th>Deskripsi Alasan Keterlambatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated by Firebase -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: TAMBAH MASTER TRIP -->
+    <div id="modal-add-master-trip" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3>🛣️ Tambah Master Trip & Target SLA Baru</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-master-trip" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Kode Trip (Contoh: JOG CDD)</label>
+                        <input type="text" id="mt-code" placeholder="JOG CDD" required>
+                    </div>
+                    <div class="form-field">
+                        <label>TLC Tujuan</label>
+                        <input type="text" id="mt-tlc" placeholder="JOG CDD" required>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label>Nama Rute Pengiriman</label>
+                    <input type="text" id="mt-rute" placeholder="JAKARTA - YOGYA" required>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Jenis Layanan</label>
+                        <select id="mt-layanan" style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                            <option value="ADD">ADD</option>
+                            <option value="REG">REG</option>
+                            <option value="EZ">EZ</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Wilayah</label>
+                        <select id="mt-wilayah" style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                            <option value="JAWA">JAWA</option>
+                            <option value="SUMATERA">SUMATERA</option>
+                            <option value="KALIMANTAN">KALIMANTAN</option>
+                            <option value="SULAWESI">SULAWESI</option>
+                            <option value="BALI-NTT">BALI-NTT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2" style="margin-top: 10px;">
+                    <div class="form-field">
+                        <label>Target SLA Berangkat (Jam)</label>
+                        <input type="number" id="mt-sla-out" placeholder="16" required min="1">
+                    </div>
+                    <div class="form-field">
+                        <label>Target SLA Balikan (Jam)</label>
+                        <input type="number" id="mt-sla-ret" placeholder="16" required min="1">
+                    </div>
+                </div>
+
+                <div class="modal-footer-btns" style="margin-top: 16px;">
+                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan Master Trip</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: TAMBAH ARMADA -->
+    <div id="modal-add-master-fleet" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>🚛 Tambah Master Armada Baru</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-master-fleet" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-field">
+                    <label>Plat Nomor Armada</label>
+                    <input type="text" id="mf-plat" placeholder="Contoh: B 9134 PXX" required>
+                </div>
+                <div class="form-field">
+                    <label>Tipe Kendaraan</label>
+                    <input type="text" id="mf-tipe" placeholder="Contoh: FUSO Box / CDD Long" required>
+                </div>
+                <div class="form-field">
+                    <label>Nama Vendor / Transport</label>
+                    <input type="text" id="mf-vendor" placeholder="Contoh: PT J&T Logistics" required>
+                </div>
+                <div class="modal-footer-btns" style="margin-top: 16px;">
+                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan Armada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: TAMBAH DRIVER -->
+    <div id="modal-add-master-driver" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>👨‍✈️ Tambah Master Driver Baru</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-master-driver" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-field">
+                    <label>Nama Lengkap Driver</label>
+                    <input type="text" id="md-nama" placeholder="Contoh: Nasrul F." required>
+                </div>
+                <div class="form-field">
+                    <label>No. Telepon / HP</label>
+                    <input type="text" id="md-phone" placeholder="Contoh: 0812-1111-2222" required>
+                </div>
+                <div class="form-field">
+                    <label>Golongan SIM</label>
+                    <input type="text" id="md-sim" placeholder="Contoh: B2 Umum" required>
+                </div>
+                <div class="modal-footer-btns" style="margin-top: 16px;">
+                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-submit">Simpan Driver</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Config & Logic -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="app.js"></script>
+    <script>
+        function switchMasterTab(tabName) {
+            document.querySelectorAll('.settings-tab-item').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-btn-master-${tabName}`).classList.add('active');
+
+            ['trips', 'fleets', 'drivers', 'reasons'].forEach(sec => {
+                document.getElementById(`section-master-${sec}`).classList.add('hidden');
+            });
+            document.getElementById(`section-master-${tabName}`).classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof JNTFirebaseService !== 'undefined') {
+                // Subscribe Master Trips
+                JNTFirebaseService.subscribeMasterTrips(trips => {
+                    const tbody = document.querySelector('#table-master-trips tbody');
+                    if (tbody) {
+                        tbody.innerHTML = trips.map(t => `
+                            <tr>
+                                <td><strong style="color: var(--primary-red);">${t.code}</strong></td>
+                                <td>${t.rute}</td>
+                                <td><span class="badge-status blue-outline">${t.tlc}</span></td>
+                                <td><span class="badge-status gray">${t.layanan || 'ADD'}</span></td>
+                                <td><span class="badge-status green-outline">${t.wilayah || 'JAWA'}</span></td>
+                                <td><strong>${t.targetSLAOutboundHours} Jam</strong></td>
+                                <td><strong>${t.targetSLAReturnHours} Jam</strong></td>
+                                <td><strong style="color: #2563EB;">${t.targetSLARoundtripHours || (t.targetSLAOutboundHours*2)} Jam (PP)</strong></td>
+                                <td class="text-center">
+                                    <button class="btn-table-action" onclick="if(confirm('Hapus master trip ${t.code}?')) JNTFirebaseService.deleteMasterTrip('${t.code}')">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                });
+
+                // Subscribe Master Fleets
+                JNTFirebaseService.subscribeMasterFleets(fleets => {
+                    const tbody = document.querySelector('#table-master-fleets tbody');
+                    if (tbody) {
+                        tbody.innerHTML = fleets.map(f => `
+                            <tr>
+                                <td><strong>${f.platNomor}</strong></td>
+                                <td>${f.tipe}</td>
+                                <td>${f.vendor}</td>
+                                <td><span class="badge-status green">${f.status || 'Siap Jalan'}</span></td>
+                            </tr>
+                        `).join('');
+                    }
+                });
+
+                // Subscribe Master Drivers
+                JNTFirebaseService.subscribeMasterDrivers(drivers => {
+                    const tbody = document.querySelector('#table-master-drivers tbody');
+                    if (tbody) {
+                        tbody.innerHTML = drivers.map(d => `
+                            <tr>
+                                <td><strong>${d.nama}</strong></td>
+                                <td>${d.phone}</td>
+                                <td><span class="badge-status blue-outline">${d.sim}</span></td>
+                                <td><span class="badge-status green">🟢 ${d.status}</span></td>
+                            </tr>
+                        `).join('');
+                    }
+                });
+
+                // Subscribe Master Reasons
+                JNTFirebaseService.subscribeMasterReasons(reasons => {
+                    const tbody = document.querySelector('#table-master-reasons tbody');
+                    if (tbody) {
+                        tbody.innerHTML = reasons.map(r => `
+                            <tr>
+                                <td><span class="badge-status gray">${r.id}</span></td>
+                                <td><strong>${r.alasan}</strong></td>
+                            </tr>
+                        `).join('');
+                    }
+                });
+            }
+
+            // Form Submit Master Trip
+            document.getElementById('form-add-master-trip')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const code = document.getElementById('mt-code').value.trim();
+                const outH = parseInt(document.getElementById('mt-sla-out').value);
+                const retH = parseInt(document.getElementById('mt-sla-ret').value);
+                const tripData = {
+                    code: code,
+                    tlc: document.getElementById('mt-tlc').value.trim(),
+                    rute: document.getElementById('mt-rute').value.trim(),
+                    layanan: document.getElementById('mt-layanan').value,
+                    wilayah: document.getElementById('mt-wilayah').value,
+                    targetSLAOutboundHours: outH,
+                    targetSLAReturnHours: retH,
+                    targetSLARoundtripHours: outH + retH
+                };
+                await JNTFirebaseService.saveMasterTrip(tripData);
+                alert(`✅ Master Trip ${code} berhasil disimpan!`);
+                document.getElementById('form-add-master-trip').reset();
+                document.getElementById('modal-add-master-trip').classList.add('hidden');
+            });
+
+            // Form Submit Master Fleet
+            document.getElementById('form-add-master-fleet')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fleetData = {
+                    platNomor: document.getElementById('mf-plat').value.trim(),
+                    tipe: document.getElementById('mf-tipe').value.trim(),
+                    vendor: document.getElementById('mf-vendor').value.trim(),
+                    status: 'Siap Jalan'
+                };
+                await JNTFirebaseService.saveMasterFleet(fleetData);
+                alert(`✅ Master Armada ${fleetData.platNomor} berhasil disimpan!`);
+                document.getElementById('form-add-master-fleet').reset();
+                document.getElementById('modal-add-master-fleet').classList.add('hidden');
+            });
+
+            // Form Submit Master Driver
+            document.getElementById('form-add-master-driver')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const driverData = {
+                    nama: document.getElementById('md-nama').value.trim(),
+                    phone: document.getElementById('md-phone').value.trim(),
+                    sim: document.getElementById('md-sim').value.trim(),
+                    status: 'Aktif'
+                };
+                await JNTFirebaseService.saveMasterDriver(driverData);
+                alert(`✅ Master Driver ${driverData.nama} berhasil disimpan!`);
+                document.getElementById('form-add-master-driver').reset();
+                document.getElementById('modal-add-master-driver').classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

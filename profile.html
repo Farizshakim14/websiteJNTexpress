@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&T Express - Profil Saya</title>
+    <meta name="description" content="Profil Pengguna dan Pengaturan Keamanan Akun J&T Express Transportation Monitoring System.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR PANEL -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card" id="sidebar-user-card-btn" style="cursor: pointer;" title="Lihat Profil Saya">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">↑</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="incoming.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                                <span class="nav-text">Incoming</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="monitoring.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sla-vendor.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble & Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="master.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                            </a>
+                        </li>
+                        <li class="nav-item has-dropdown">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report</span>
+                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">History</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="profile.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">Profil Saya</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-help-box">
+                    <div class="help-content">
+                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+                        <div class="help-text-group">
+                            <span class="help-title">Butuh Bantuan?</span>
+                            <span class="help-sub">Hubungi Admin Sistem</span>
+                        </div>
+                    </div>
+                    <button class="btn-help-contact">Kontak Admin</button>
+                </div>
+            </aside>
+
+            <!-- MAIN PROFILE BODY -->
+            <main class="main-incoming-body">
+
+                <!-- Top Navigation Header -->
+                <header class="inc-top-nav">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <div>
+                            <h2 class="inc-main-title" style="font-size: 22px;">Profil Saya</h2>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Profil Saya</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <span>22 Juli 2026</span>
+                            <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
+                        </div>
+                        <div class="inc-notif-bell">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="inc-bell-badge">5</span>
+                        </div>
+                        <div class="inc-user-chip" id="topbar-user-chip-btn" style="cursor: pointer;" title="Profil Saya">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name" id="dash-user-name">Hamdan <span>v</span></span>
+                                <span class="inc-user-role">Operator</span>
+                            </div>
+                        </div>
+                        <button id="btn-logout" class="btn-inc-reset" style="padding: 6px 12px; font-size: 12px; color: #DC2626; border-color: #FCA5A5; background: #FEF2F2;" title="Keluar Akun">
+                            🚪 Logout
+                        </button>
+                    </div>
+                </header>
+
+                <!-- PROFILE HERO BANNER CARD -->
+                <div class="profile-hero-card">
+                    <div class="profile-cover-bg">
+                        <div class="cover-overlay-pattern"></div>
+                    </div>
+
+                    <div class="profile-hero-main">
+                        <div class="profile-avatar-wrapper">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Hamdan Profile Photo" class="profile-hero-img" id="profile-avatar-img">
+                            <label for="avatar-file-input" class="avatar-edit-badge" title="Ganti Foto Profil">
+                                📷
+                                <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
+                            </label>
+                        </div>
+
+                        <div class="profile-hero-text">
+                            <div class="profile-name-row">
+                                <h1 class="profile-full-name">Hamdan Hamdani</h1>
+                                <span class="badge-role-hero">Operator Utama</span>
+                                <span class="badge-status-green">🟢 Active</span>
+                            </div>
+                            <p class="profile-sub-meta">
+                                <span>🆔 NIK: <strong>JNT-2026-8804</strong></span>
+                                <span class="meta-dot">•</span>
+                                <span>🏢 Penugasan: <strong>TLC Cikande Gateway</strong></span>
+                                <span class="meta-dot">•</span>
+                                <span>✉️ Email: <strong>hamdan@jtexpress.co.id</strong></span>
+                            </p>
+                        </div>
+
+                        <div class="profile-hero-actions">
+                            <button id="btn-edit-profile" class="btn-st-red">✏️ Edit Informasi Profil</button>
+                        </div>
+                    </div>
+
+                    <!-- 4 QUICK STATS ROW -->
+                    <div class="profile-stats-row">
+                        <div class="p-stat-box">
+                            <span class="p-stat-ic red">🚚</span>
+                            <div>
+                                <strong class="p-stat-val">1.248</strong>
+                                <span class="p-stat-lbl">Total Trip Diinput</span>
+                            </div>
+                        </div>
+                        <div class="p-stat-box">
+                            <span class="p-stat-ic green">⏱️</span>
+                            <div>
+                                <strong class="p-stat-val">99.4%</strong>
+                                <span class="p-stat-lbl">Tingkat Akurasi SLA</span>
+                            </div>
+                        </div>
+                        <div class="p-stat-box">
+                            <span class="p-stat-ic blue">📅</span>
+                            <div>
+                                <strong class="p-stat-val">2.410 Jam</strong>
+                                <span class="p-stat-lbl">Total Jam Kerja</span>
+                            </div>
+                        </div>
+                        <div class="p-stat-box">
+                            <span class="p-stat-ic purple">🛡️</span>
+                            <div>
+                                <strong class="p-stat-val" style="color: #16A34A;">Terverifikasi</strong>
+                                <span class="p-stat-lbl">Status Keamanan 2FA</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAIN SPLIT GRID (INFORMASI DIRI & AKUN + KEAMANAN & ACTIVITY TIMELINE) -->
+                <div class="inc-split-container" style="margin-top: 20px;">
+                    
+                    <!-- LEFT COLUMN: Informasi Pribadi & Pekerjaan Card -->
+                    <div class="inc-table-card" style="flex: 1.4;">
+                        <div class="inc-table-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 18px;">👤</span>
+                                <h3 class="inc-table-title">Informasi Pribadi & Pekerjaan</h3>
+                            </div>
+                            <span class="badge-status blue-outline">Data Terverifikasi</span>
+                        </div>
+
+                        <form id="profile-info-form" class="st-card-body" style="padding: 20px;">
+                            <div class="form-grid-2col">
+                                <div class="form-group-st">
+                                    <label>Nama Lengkap</label>
+                                    <input type="text" id="prof-fullname" value="Hamdan Hamdani">
+                                </div>
+                                <div class="form-group-st">
+                                    <label>Username</label>
+                                    <input type="text" id="prof-username" value="Hamdan" readonly style="background-color: #F8FAFC;">
+                                </div>
+                            </div>
+
+                            <div class="form-grid-2col">
+                                <div class="form-group-st">
+                                    <label>Email Perusahaan</label>
+                                    <input type="email" id="prof-email" value="hamdan@jtexpress.co.id">
+                                </div>
+                                <div class="form-group-st">
+                                    <label>No. Telepon / WhatsApp</label>
+                                    <input type="tel" id="prof-phone" value="0812-3456-7890">
+                                </div>
+                            </div>
+
+                            <div class="form-grid-2col">
+                                <div class="form-group-st">
+                                    <label>Role / Jabatan</label>
+                                    <input type="text" value="Operator Transportasi" readonly style="background-color: #F8FAFC;">
+                                </div>
+                                <div class="form-group-st">
+                                    <label>Cabang / TLC Utama</label>
+                                    <select id="prof-tlc">
+                                        <option selected>TLC Cikande</option>
+                                        <option>TLC Serpong</option>
+                                        <option>Head Office Jakarta</option>
+                                        <option>Gateway Surabaya</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-grid-2col">
+                                <div class="form-group-st">
+                                    <label>Departemen</label>
+                                    <input type="text" value="Logistik & Transport Operations" readonly style="background-color: #F8FAFC;">
+                                </div>
+                                <div class="form-group-st">
+                                    <label>Tanggal Bergabung</label>
+                                    <input type="text" value="10 Juni 2024 (2 Tahun 1 Bulan)" readonly style="background-color: #F8FAFC;">
+                                </div>
+                            </div>
+
+                            <div class="form-group-st">
+                                <label>Alamat Operasional Cabang</label>
+                                <textarea rows="2">Kawasan Industri Cikande Indah No. 12, Serang, Banten 42186</textarea>
+                            </div>
+
+                            <div style="display: flex; gap: 12px; margin-top: 10px;">
+                                <button type="submit" class="btn-st-red">💾 Simpan Perubahan Profil</button>
+                                <button type="button" class="btn-st-outline">🔄 Batal</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Security & Activity Logs Stack -->
+                    <div class="inc-detail-card" style="width: 380px; min-width: 380px; gap: 16px;">
+                        
+                        <!-- CARD 1: UBAH PASSWORD & KEAMANAN AKUN -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <div class="st-title-wrap">
+                                    <span class="st-icon dark">🔒</span>
+                                    <h3 class="st-title">Keamanan & Ubah Password</h3>
+                                </div>
+                            </div>
+
+                            <form id="change-pass-form" class="st-card-body">
+                                <div class="form-group-st">
+                                    <label>Password Saat Ini</label>
+                                    <input type="password" id="current-pass" placeholder="••••••••" required>
+                                </div>
+
+                                <div class="form-group-st">
+                                    <label>Password Baru</label>
+                                    <input type="password" id="new-pass" placeholder="Minimal 8 karakter" required>
+                                </div>
+
+                                <div class="form-group-st">
+                                    <label>Konfirmasi Password Baru</label>
+                                    <input type="password" id="confirm-pass" placeholder="Ulangi password baru" required>
+                                </div>
+
+                                <div class="toggle-setting-row no-ic" style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px;">
+                                    <div class="toggle-text-meta">
+                                        <strong style="font-size: 12px;">Verifikasi 2 Langkah (2FA)</strong>
+                                        <span style="font-size: 10.5px; color: #64748B;">Autentikasi kode OTP via Email/SMS</span>
+                                    </div>
+                                    <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                                </div>
+
+                                <div style="margin-top: 12px;">
+                                    <button type="submit" class="btn-st-red" style="width: 100%;">🔑 Perbarui Password</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- CARD 2: PERANGKAT TERHUBUNG (SESSIONS) -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <div class="st-title-wrap">
+                                    <span class="st-icon blue">💻</span>
+                                    <h3 class="st-title">Perangkat Terhubung</h3>
+                                </div>
+                            </div>
+
+                            <div class="st-card-body">
+                                <div class="device-session-item active-session">
+                                    <div class="device-ic-wrap">💻</div>
+                                    <div class="device-meta">
+                                        <strong class="device-name">Chrome di Windows 11</strong>
+                                        <span class="device-sub">192.168.1.10 • Jakarta, ID</span>
+                                        <span class="device-status-tag green">🟢 Sesi Saat Ini</span>
+                                    </div>
+                                </div>
+
+                                <div class="device-session-item">
+                                    <div class="device-ic-wrap">📱</div>
+                                    <div class="device-meta">
+                                        <strong class="device-name">Android J&T TMS App</strong>
+                                        <span class="device-sub">180.252.12.44 • Terakhir aktif 2 jam lalu</span>
+                                    </div>
+                                    <button class="btn-revoke-session" title="Keluarkan Sesi">✕</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD 3: RIWAYAT AKTIVITAS TERSIMPAN -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <div class="st-title-wrap">
+                                    <span class="st-icon orange">📜</span>
+                                    <h3 class="st-title">Aktivitas Terakhir Saya</h3>
+                                </div>
+                            </div>
+
+                            <div class="st-card-body">
+                                <div class="profile-activity-timeline">
+                                    <div class="p-act-item">
+                                        <div class="p-act-dot green"></div>
+                                        <div class="p-act-meta">
+                                            <strong>Input Incoming DBGX2607220004</strong>
+                                            <span>Rute JKT - PLG (Plat B 9356 PKK)</span>
+                                            <span class="p-act-time">Hari ini, 10:15 WIB</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-act-item">
+                                        <div class="p-act-dot blue"></div>
+                                        <div class="p-act-meta">
+                                            <strong>Update Monitoring 4 Jam Slot 08-12</strong>
+                                            <span>Posisi Cipali Tol untuk Armada B 9134 PXX</span>
+                                            <span class="p-act-time">Hari ini, 09:45 WIB</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-act-item">
+                                        <div class="p-act-dot red"></div>
+                                        <div class="p-act-meta">
+                                            <strong>Melaporkan Trouble Ban Pecah</strong>
+                                            <span>Lokasi KM 47 Tol Cikampek</span>
+                                            <span class="p-act-time">Kemarin, 14:20 WIB</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+
+        <footer class="app-page-footer">
+            <span>© 2026 J&T Express. All rights reserved.</span>
+            <span>Version 1.0.0</span>
+        </footer>
+
+    </div>
+
+    <!-- Firebase SDK Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Config & Service -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
