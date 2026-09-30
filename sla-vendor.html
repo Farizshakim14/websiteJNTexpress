@@ -291,14 +291,80 @@
                         <input type="text" id="sla-new-kode-tugas" placeholder="Contoh: DBGX2609300001" required>
                     </div>
                     <div class="form-field">
-                        <label>Pilih Trip / Rute Master</label>
-                        <select id="sla-new-trip" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
-                            <option value="JOG CDD">JOG CDD (JAKARTA - YOGYA)</option>
-                            <option value="SRG FUSO">SRG FUSO (JAKARTA - SEMARANG)</option>
-                            <option value="BDG CDD">BDG CDD (JAKARTA - BANDUNG)</option>
-                            <option value="PLM FUSO">PLM FUSO (JAKARTA - PALEMBANG)</option>
-                            <option value="SUB FUSO">SUB FUSO (JAKARTA - SURABAYA)</option>
-                        </select>
+                        <label>Pilih / Ketik Trip Master</label>
+                        <input type="text" id="sla-new-trip" list="sla-trip-datalist" placeholder="🔍 Ketik atau Pilih Trip (Contoh: BDO CDD, MES FUSO)..." required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
+                        <datalist id="sla-trip-datalist">
+                            <option value="BDO CDD">BDO CDD — JAKARTA - BANDUNG (Target 4.5 Jam)</option>
+                            <option value="BDO FUSO">BDO FUSO — JAKARTA - BANDUNG (Target 5.5 Jam)</option>
+                            <option value="TKG CDD">TKG CDD — JAKARTA - LAMPUNG (Target 11 Jam)</option>
+                            <option value="TKG FUSO">TKG FUSO — JAKARTA - LAMPUNG (Target 13.5 Jam)</option>
+                            <option value="SRG CDD">SRG CDD — JAKARTA - SEMARANG (Target 12.5 Jam)</option>
+                            <option value="SRG FUSO">SRG FUSO — JAKARTA - SEMARANG (Target 14 Jam)</option>
+                            <option value="PLM CDD">PLM CDD — JAKARTA - PALEMBANG (Target 20 Jam)</option>
+                            <option value="PLM FUSO">PLM FUSO — JAKARTA - PALEMBANG (Target 20 Jam)</option>
+                            <option value="SOC CDD">SOC CDD — JAKARTA - SOLO (Target 14.5 Jam)</option>
+                            <option value="SOC FUSO">SOC FUSO — JAKARTA - SOLO (Target 14.5 Jam)</option>
+                            <option value="JOG CDD">JOG CDD — JAKARTA - YOGYAKARTA (Target 16 Jam)</option>
+                            <option value="JOG FUSO">JOG FUSO — JAKARTA - YOGYAKARTA (Target 20 Jam)</option>
+                            <option value="PMH CDD">PMH CDD — JAKARTA - PRABUMULIH (Target 21 Jam)</option>
+                            <option value="PMH FUSO">PMH FUSO — JAKARTA - PRABUMULIH (Target 21 Jam)</option>
+                            <option value="SUB CDD">SUB CDD — JAKARTA - SURABAYA (Target 19 Jam)</option>
+                            <option value="SUB FUSO">SUB FUSO — JAKARTA - SURABAYA (Target 23 Jam)</option>
+                            <option value="BKS CDD">BKS CDD — JAKARTA - BENGKULU (Target 21 Jam)</option>
+                            <option value="BKS FUSO">BKS FUSO — JAKARTA - BENGKULU (Target 23 Jam)</option>
+                            <option value="DJB CDD">DJB CDD — JAKARTA - JAMBI (Target 21 Jam)</option>
+                            <option value="DJB FUSO">DJB FUSO — JAKARTA - JAMBI (Target 23 Jam)</option>
+                            <option value="LLG CDD">LLG CDD — JAKARTA - LUBUKLINGGAU (Target 23 Jam)</option>
+                            <option value="LLG FUSO">LLG FUSO — JAKARTA - LUBUKLINGGAU (Target 23 Jam)</option>
+                            <option value="PKU CDD">PKU CDD — JAKARTA - PEKANBARU (Target 43 Jam)</option>
+                            <option value="PKU FUSO">PKU FUSO — JAKARTA - PEKANBARU (Target 43.8 Jam)</option>
+                            <option value="PDG CDD">PDG CDD — JAKARTA - PADANG (Target 44.3 Jam)</option>
+                            <option value="PDG FUSO">PDG FUSO — JAKARTA - PADANG (Target 49.3 Jam)</option>
+                            <option value="RPT CDD">RPT CDD — JAKARTA - RANTAUPRAPAT (Target 48 Jam)</option>
+                            <option value="RPT FUSO">RPT FUSO — JAKARTA - RANTAUPRAPAT (Target 50 Jam)</option>
+                            <option value="MES CDD">MES CDD — JAKARTA - MEDAN (Target 71 Jam)</option>
+                            <option value="MES FUSO">MES FUSO — JAKARTA - MEDAN (Target 71 Jam)</option>
+                            <option value="BTJ CDD">BTJ CDD — JAKARTA - ACEH (Target 62 Jam)</option>
+                            <option value="BTJ FUSO">BTJ FUSO — JAKARTA - ACEH (Target 63 Jam)</option>
+                            <option value="GSK CDD">GSK CDD — JAKARTA - GRESIK (Target 19 Jam)</option>
+                            <option value="GSK FUSO">GSK FUSO — JAKARTA - GRESIK (Target 19 Jam)</option>
+                            <option value="TGR CDD">TGR CDD — JAKARTA - TANGERANG (Target 0.5 Jam)</option>
+                            <option value="TGR FUSO">TGR FUSO — JAKARTA - TANGERANG (Target 0.5 Jam)</option>
+                            <option value="DPK CDD">DPK CDD — JAKARTA - DEPOK (Target 2 Jam)</option>
+                            <option value="DPK FUSO">DPK FUSO — JAKARTA - DEPOK (Target 2 Jam)</option>
+                            <option value="BGR CDD">BGR CDD — JAKARTA - BOGOR (Target 2.8 Jam)</option>
+                            <option value="BGR FUSO">BGR FUSO — JAKARTA - BOGOR (Target 3 Jam)</option>
+                            <option value="BKI CDD">BKI CDD — JAKARTA - BEKASI (Target 2 Jam)</option>
+                            <option value="BKI FUSO">BKI FUSO — JAKARTA - BEKASI (Target 2 Jam)</option>
+                            <option value="CKR CDD">CKR CDD — JAKARTA - CIKARANG (Target 2.8 Jam)</option>
+                            <option value="SEG CDD">SEG CDD — JAKARTA - SERANG (Target 1.5 Jam)</option>
+                            <option value="SEG FUSO">SEG FUSO — JAKARTA - SERANG (Target 1.5 Jam)</option>
+                            <option value="JAT CDD">JAT CDD — JAKARTA - JAT (Target 1.5 Jam)</option>
+                            <option value="SMI CDD">SMI CDD — JAKARTA - SUKABUMI (Target 6 Jam)</option>
+                            <option value="TSK CDD">TSK CDD — JAKARTA - TASIKMALAYA (Target 10 Jam)</option>
+                            <option value="TSK FUSO">TSK FUSO — JAKARTA - TASIKMALAYA (Target 10 Jam)</option>
+                            <option value="CRN CDD">CRN CDD — JAKARTA - CIREBON (Target 8.5 Jam)</option>
+                            <option value="CKP CDD">CKP CDD — JAKARTA - CIKAMPEK (Target 4.5 Jam)</option>
+                            <option value="PTI CDD">PTI CDD — JAKARTA - PATI (Target 14 Jam)</option>
+                            <option value="PWO CDD">PWO CDD — JAKARTA - PURWOKERTO (Target 12.5 Jam)</option>
+                            <option value="MDN CDD">MDN CDD — JAKARTA - MADIUN (Target 20 Jam)</option>
+                            <option value="MDN FUSO">MDN FUSO — JAKARTA - MADIUN (Target 20 Jam)</option>
+                            <option value="KDR CDD">KDR CDD — JAKARTA - KEDIRI (Target 14 Jam)</option>
+                            <option value="KDR FUSO">KDR FUSO — JAKARTA - KEDIRI (Target 16 Jam)</option>
+                            <option value="MLG CDD">MLG CDD — JAKARTA - MALANG (Target 21 Jam)</option>
+                            <option value="TGL CDD">TGL CDD — JAKARTA - TEGAL (Target 9 Jam)</option>
+                            <option value="BAL CDD">BAL CDD — JAKARTA - BALARAJA (Target 1.5 Jam)</option>
+                            <option value="DPS CDD">DPS CDD — JAKARTA - DENPASAR (Target 40 Jam)</option>
+                            <option value="DPS FUSO">DPS FUSO — JAKARTA - DENPASAR (Target 41 Jam)</option>
+                            <option value="JBR CDD">JBR CDD — JAKARTA - JEMBER (Target 29 Jam)</option>
+                            <option value="JBR FUSO">JBR FUSO — JAKARTA - JEMBER (Target 29 Jam)</option>
+                            <option value="MDR CDD">MDR CDD — JAKARTA - MADURA (Target 20 Jam)</option>
+                            <option value="MDR FUSO">MDR FUSO — JAKARTA - MADURA (Target 20 Jam)</option>
+                            <option value="PRO CDD">PRO CDD — JAKARTA - PROBOLINGGO (Target 22 Jam)</option>
+                            <option value="LMG CDD">LMG CDD — JAKARTA - LAMONGAN (Target 19.5 Jam)</option>
+                            <option value="CIM CDD">CIM CDD — JAKARTA - CIMAHI (Target 4.5 Jam)</option>
+                            <option value="CIM FUSO">CIM FUSO — JAKARTA - CIMAHI (Target 5.5 Jam)</option>
+                        </datalist>
                     </div>
                 </div>
                 <div class="form-row-2">
@@ -573,7 +639,8 @@
             document.getElementById('form-add-mobil-keluar')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const kodeTugas = document.getElementById('sla-new-kode-tugas').value.trim();
-                const trip = document.getElementById('sla-new-trip').value;
+                const rawTrip = document.getElementById('sla-new-trip').value.trim();
+                const trip = rawTrip.includes(' — ') ? rawTrip.split(' — ')[0].trim() : rawTrip;
                 const platNomor = document.getElementById('sla-new-plat').value.trim();
                 const driver1 = document.getElementById('sla-new-driver').value.trim();
                 const jamBerangkat = document.getElementById('sla-new-jam-berangkat').value.trim();
