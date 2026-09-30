@@ -5,6 +5,46 @@
 
 const JNTFirebaseService = {
     
+    // Local Storage & Firestore Dual-SSOT Helper
+    getLocalStore(colName) {
+        try {
+            const raw = localStorage.getItem(`jnt_store_${colName}`);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e) {
+            return [];
+        }
+    },
+
+    saveLocalStore(colName, list) {
+        try {
+            localStorage.setItem(`jnt_store_${colName}`, JSON.stringify(list));
+        } catch(e) {}
+    },
+
+    async saveDoc(colName, docId, data, merge = false) {
+        // 1. Always update local storage first so UI reacts 100% reliably
+        const current = this.getLocalStore(colName);
+        const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+        let updatedObj = { id: docId, ...data };
+        if (existingIdx >= 0) {
+            updatedObj = merge ? { ...current[existingIdx], ...data } : updatedObj;
+            current[existingIdx] = updatedObj;
+        } else {
+            current.push(updatedObj);
+        }
+        this.saveLocalStore(colName, current);
+
+        // 2. Try Firestore Cloud set safely
+        if (window.db) {
+            try {
+                await window.db.collection(colName).doc(docId).set(data, { merge: merge });
+            } catch (err) {
+                console.warn(`Firestore write notice [${colName}/${docId}]: Saved locally due to cloud permissions (${err.message})`);
+            }
+        }
+        return updatedObj;
+    },
+
     // Helper to get active Shift ID
     getActiveShiftId() {
         const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -462,10 +502,10 @@ const JNTFirebaseService = {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        await window.db.collection('incoming').doc(tripData.kodeTugas).set(fullTripData);
+        await this.saveDoc('incoming', tripData.kodeTugas, fullTripData, true);
 
         // Outbound SLA
-        await window.db.collection('sla_outbound').doc(tripData.kodeTugas).set({
+        await this.saveDoc('sla_outbound', tripData.kodeTugas, {
             kodeTugas: tripData.kodeTugas,
             trip: fullTripData.trip,
             namaRute: fullTripData.namaRute,
@@ -479,10 +519,10 @@ const JNTFirebaseService = {
             alasan: "",
             inputBy: tripData.inputBy || "Hamdan",
             shiftId: shiftId
-        });
+        }, true);
 
         // Roundtrip SLA
-        await window.db.collection('sla_roundtrip').doc(tripData.kodeTugas).set({
+        await this.saveDoc('sla_roundtrip', tripData.kodeTugas, {
             kodeTugas: tripData.kodeTugas,
             trip: fullTripData.trip,
             wilayah: masterInfo.wilayah,
@@ -491,11 +531,11 @@ const JNTFirebaseService = {
             totalLatePPMinutes: 0,
             statusRoundtrip: "WAITING_RETURN",
             keterangan: "Menunggu data perjalanan balikan dari Gateway"
-        });
+        }, true);
 
         // Monitoring 4H Record
         const todayStr = new Date().toISOString().split('T')[0];
-        await window.db.collection('monitoring_4h').doc(tripData.kodeTugas).set({
+        await this.saveDoc('monitoring_4h', tripData.kodeTugas, {
             kodeTugas: tripData.kodeTugas,
             tanggalMonitoring: todayStr,
             trip: fullTripData.trip,
@@ -515,7 +555,7 @@ const JNTFirebaseService = {
             lastUpdateTime: fullTripData.jamBerangkat,
             lastUpdateBy: fullTripData.inputBy,
             statusPerjalanan: "ON PROGRESS"
-        });
+        }, true);
 
         // Log Audit Event
         await this.logAuditEvent({
@@ -531,8 +571,7 @@ const JNTFirebaseService = {
     },
 
     async updateIncomingTrip(kodeTugas, updateObj) {
-        if (!window.db) return;
-        return window.db.collection('incoming').doc(kodeTugas).set(updateObj, { merge: true });
+        return this.saveDoc('incoming', kodeTugas, updateObj, true);
     },
 
     // ----------------------------------------------------
@@ -548,9 +587,8 @@ const JNTFirebaseService = {
     },
 
     async saveSLAOutbound(kodeTugas, updateObj) {
-        if (!window.db) return;
         const shiftId = this.getActiveShiftId();
-        await window.db.collection('sla_outbound').doc(kodeTugas).set({ ...updateObj, shiftId: shiftId }, { merge: true });
+        await this.saveDoc('sla_outbound', kodeTugas, { ...updateObj, shiftId: shiftId }, true);
         await this.recalculateSLARoundtrip(kodeTugas);
 
         await this.logAuditEvent({
@@ -573,9 +611,8 @@ const JNTFirebaseService = {
     },
 
     async saveSLAReturn(kodeTugas, returnObj) {
-        if (!window.db) return;
         const shiftId = this.getActiveShiftId();
-        await window.db.collection('sla_return').doc(kodeTugas).set({ ...returnObj, shiftId: shiftId }, { merge: true });
+        await this.saveDoc('sla_return', kodeTugas, { ...returnObj, shiftId: shiftId }, true);
         await this.recalculateSLARoundtrip(kodeTugas);
     },
 
