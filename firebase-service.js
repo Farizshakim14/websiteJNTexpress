@@ -475,6 +475,11 @@ const JNTFirebaseService = {
         return fullTripData;
     },
 
+    async updateIncomingTrip(kodeTugas, updateObj) {
+        if (!window.db) return;
+        return window.db.collection('incoming').doc(kodeTugas).set(updateObj, { merge: true });
+    },
+
     // ----------------------------------------------------
     // 4. SLA MONITORING 3-TAB ENGINE
     // ----------------------------------------------------

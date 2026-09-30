@@ -168,14 +168,19 @@
 
                 <!-- TAB 1: SLA BERANGKAT -->
                 <div id="section-sla-outbound" class="inc-table-card" style="padding: 20px;">
-                    <div class="inc-table-header" style="margin-bottom: 16px;">
+                    <div class="inc-table-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div>
                             <h3 class="inc-table-title">Perhitungan SLA Berangkat (Outbound Trip)</h3>
-                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Pencatatan jam aktual sampai di Gateway tujuan & evaluasi keterlambatan</span>
+                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Pencatatan jam mobil keluar (berangkat) & jam aktual sampai di Gateway tujuan</span>
                         </div>
-                        <button class="btn-inc-add" onclick="document.getElementById('modal-update-sla-outbound').classList.remove('hidden')">
-                            ✏️ Update Jam Sampai Gateway
-                        </button>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn-inc-add" onclick="openAddMobilKeluarModal()" style="background-color: #E30613; cursor: pointer;">
+                                🚛 + Input Mobil Keluar (Berangkat)
+                            </button>
+                            <button class="btn-inc-add" onclick="document.getElementById('modal-update-sla-outbound').classList.remove('hidden')" style="background-color: #2563EB; cursor: pointer;">
+                                ✏️ Update Jam Sampai Gateway
+                            </button>
+                        </div>
                     </div>
 
                     <div class="inc-table-scroll">
@@ -269,6 +274,58 @@
                 </div>
 
             </main>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP 0: INPUT MOBIL KELUAR (PEMBERANGKATAN SLA) -->
+    <div id="modal-add-mobil-keluar" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3>🚛 Input Mobil Keluar (Pemberangkatan SLA)</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-mobil-keluar" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Kode Tugas Armada</label>
+                        <input type="text" id="sla-new-kode-tugas" placeholder="Contoh: DBGX2609300001" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Pilih Trip / Rute Master</label>
+                        <select id="sla-new-trip" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                            <option value="JOG CDD">JOG CDD (JAKARTA - YOGYA)</option>
+                            <option value="SRG FUSO">SRG FUSO (JAKARTA - SEMARANG)</option>
+                            <option value="BDG CDD">BDG CDD (JAKARTA - BANDUNG)</option>
+                            <option value="PLM FUSO">PLM FUSO (JAKARTA - PALEMBANG)</option>
+                            <option value="SUB FUSO">SUB FUSO (JAKARTA - SURABAYA)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Plat Nomor Armada</label>
+                        <input type="text" id="sla-new-plat" placeholder="Contoh: B 9134 PXX" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Driver Utama</label>
+                        <input type="text" id="sla-new-driver" placeholder="Contoh: Nasrul F." required>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Jam Berangkat (Mobil Keluar)</label>
+                        <input type="text" id="sla-new-jam-berangkat" placeholder="DD/MM/YYYY HH:mm" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Total AWB / Paket</label>
+                        <input type="number" id="sla-new-awb" placeholder="Contoh: 6500" value="5000">
+                    </div>
+                </div>
+                <div class="modal-footer-btns" style="margin-top: 16px;">
+                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-submit" style="background-color: #E30613;">🚀 Catat Mobil Keluar</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -491,7 +548,59 @@
                 });
             }
 
-            // Global modal helper
+            // Global modal helpers
+            window.openAddMobilKeluarModal = () => {
+                const now = new Date();
+                const dd = String(now.getDate()).padStart(2, '0');
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const yyyy = now.getFullYear();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const min = String(now.getMinutes()).padStart(2, '0');
+                
+                const timeStr = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+                const jamInput = document.getElementById('sla-new-jam-berangkat');
+                if (jamInput) jamInput.value = timeStr;
+
+                const codeInput = document.getElementById('sla-new-kode-tugas');
+                if (codeInput) {
+                    codeInput.value = `DBGX26${mm}${dd}${Math.floor(1000 + Math.random() * 9000)}`;
+                }
+
+                document.getElementById('modal-add-mobil-keluar').classList.remove('hidden');
+            };
+
+            // Submit Form Input Mobil Keluar
+            document.getElementById('form-add-mobil-keluar')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const kodeTugas = document.getElementById('sla-new-kode-tugas').value.trim();
+                const trip = document.getElementById('sla-new-trip').value;
+                const platNomor = document.getElementById('sla-new-plat').value.trim();
+                const driver1 = document.getElementById('sla-new-driver').value.trim();
+                const jamBerangkat = document.getElementById('sla-new-jam-berangkat').value.trim();
+                const totalAwb = parseInt(document.getElementById('sla-new-awb').value) || 5000;
+
+                const inputBy = sessionStorage.getItem('jnt_active_username') || "Hamdan";
+
+                try {
+                    await JNTFirebaseService.addIncomingTrip({
+                        kodeTugas: kodeTugas,
+                        trip: trip,
+                        platNomor: platNomor,
+                        driver1: driver1,
+                        jamBerangkat: jamBerangkat,
+                        totalAwb: totalAwb,
+                        sisaAwb: 0,
+                        status: 'SEDANG DIPROSES',
+                        inputBy: inputBy
+                    });
+
+                    alert(`✅ Mobil Keluar ${kodeTugas} (${platNomor}) berhasil dicatat di SLA Berangkat!\nPerjalanan kini aktif dan siap diperbarui setiap 4 jam di menu Monitoring 4 Jam.`);
+                    document.getElementById('modal-add-mobil-keluar').classList.add('hidden');
+                } catch (err) {
+                    alert(err.message || 'Terjadi kesalahan saat menyimpan data mobil keluar.');
+                }
+            });
+
             window.openUpdateOutboundModal = (kodeTugas) => {
                 const selectOpt = document.getElementById('sla-out-kode-tugas');
                 if (selectOpt && kodeTugas) selectOpt.value = kodeTugas;

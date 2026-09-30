@@ -213,7 +213,7 @@
                     </div>
                     <div class="filter-action-btns">
                         <button class="btn-inc-reset">🔄 Reset</button>
-                        <button id="btn-add-monitoring" class="btn-inc-add" onclick="document.getElementById('modal-add-monitoring').classList.remove('hidden')" style="background-color: #E30613; cursor: pointer;">+ Input Perjalanan</button>
+                        <button id="btn-add-monitoring" class="btn-inc-add" onclick="document.getElementById('modal-add-monitoring').classList.remove('hidden')" style="background-color: #E30613; cursor: pointer;">📍 Check-in / Update Lokasi 4 Jam</button>
                     </div>
                 </div>
 
@@ -695,5 +695,169 @@
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
     <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof JNTFirebaseService === 'undefined') return;
+
+            // Set active slot label
+            const currentActiveSlot = JNTFirebaseService.determineActiveSlot();
+            const slotLabel = JNTFirebaseService.getSlotTimeWindowLabel(currentActiveSlot);
+            const activeSlotEl = document.getElementById('lbl-active-slot-time');
+            if (activeSlotEl) activeSlotEl.textContent = slotLabel;
+
+            // Helper to fill current time
+            const fillCurrentTime = () => {
+                const now = new Date();
+                const dd = String(now.getDate()).padStart(2, '0');
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const yyyy = now.getFullYear();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const min = String(now.getMinutes()).padStart(2, '0');
+                const timeInput = document.getElementById('mon-jam-update-aktual');
+                if (timeInput) timeInput.value = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+            };
+
+            // Global open modal helper
+            window.openUpdateMonitoringModal = (kodeTugas, slotKey = null) => {
+                const selectEl = document.getElementById('mon-kode-tugas-select');
+                if (selectEl && kodeTugas) {
+                    selectEl.value = kodeTugas;
+                    selectEl.dispatchEvent(new Event('change'));
+                }
+                const slotEl = document.getElementById('mon-slot-select');
+                if (slotEl && slotKey) {
+                    slotEl.value = slotKey;
+                } else if (slotEl) {
+                    slotEl.value = currentActiveSlot;
+                }
+                fillCurrentTime();
+                document.getElementById('modal-add-monitoring').classList.remove('hidden');
+            };
+
+            // Auto-fill meta on selecting Kode Tugas
+            const monKodeSelect = document.getElementById('mon-kode-tugas-select');
+            monKodeSelect?.addEventListener('change', async (e) => {
+                const kode = e.target.value;
+                if (!kode) return;
+
+                if (window.db) {
+                    const doc = await window.db.collection('incoming').doc(kode).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('mon-plat').value = data.platNomor || '';
+                        document.getElementById('mon-driver').value = data.driver1 || '';
+                        document.getElementById('mon-rute').value = `${data.trip || ''} (${data.namaRute || ''})`;
+                    }
+                }
+            });
+
+            // Subscribe to Firestore monitoring 4H live data
+            JNTFirebaseService.subscribeMonitoring4H((list) => {
+                const tbody = document.querySelector('.monitoring-table tbody');
+                if (!tbody) return;
+
+                let updatedCount = 0;
+                let pendingCount = 0;
+
+                tbody.innerHTML = list.map((item, idx) => {
+                    const slots = item.slots || {};
+
+                    const renderSlotCell = (slotKey) => {
+                        const sData = slots[slotKey];
+                        if (!sData || !sData.lokasi) {
+                            return `<td class="col-center text-dim">-</td>`;
+                        }
+                        const isCurrentActive = (slotKey === currentActiveSlot);
+                        const chipClass = isCurrentActive ? 'chip-pos active-slot' : (sData.jenisUpdate === 'Lokasi Normal' ? 'chip-pos green' : 'chip-pos');
+                        return `
+                            <td class="col-center">
+                                <span class="${chipClass}" title="${sData.keterangan || ''}">
+                                    ${sData.lokasi}<br>
+                                    <span class="time-sub">${sData.jamUpdateAktual ? sData.jamUpdateAktual.split(' ')[1] || sData.jamUpdateAktual : ''}</span>
+                                </span>
+                            </td>
+                        `;
+                    };
+
+                    const currentSlotData = slots[currentActiveSlot];
+                    if (currentSlotData && currentSlotData.lokasi) {
+                        updatedCount++;
+                    } else {
+                        pendingCount++;
+                    }
+
+                    const isCompleted = item.statusPerjalanan === 'COMPLETED';
+                    const badgeClass = isCompleted ? 'green-outline' : (item.statusPerjalanan === 'KENDALA' ? 'red' : 'blue-outline');
+
+                    return `
+                        <tr class="inc-row">
+                            <td class="col-center">${idx + 1}</td>
+                            <td><strong style="color: var(--primary-red);">${item.kodeTugas}</strong></td>
+                            <td>${item.trip || item.namaRute || '-'}</td>
+                            <td>${item.tlc || 'JKT'}</td>
+                            <td><strong>${item.platNomor || '-'}</strong></td>
+                            <td>${item.driver1 || '-'}</td>
+                            ${renderSlotCell("00:00")}
+                            ${renderSlotCell("04:00")}
+                            ${renderSlotCell("08:00")}
+                            ${renderSlotCell("12:00")}
+                            ${renderSlotCell("16:00")}
+                            ${renderSlotCell("20:00")}
+                            <td class="col-center" style="font-size: 11px;">${item.lastUpdateTime || '-'}</td>
+                            <td class="col-center"><span class="badge-status ${badgeClass}">${item.statusPerjalanan || 'ON PROGRESS'}</span></td>
+                            <td class="col-center">
+                                <button class="btn-view-eye" onclick="openUpdateMonitoringModal('${item.kodeTugas}')" title="Update Checkpoint Lokasi 4H">📍</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                // Update KPI Cards
+                const kpiTotal = document.getElementById('kpi-total-armada');
+                const kpiUpdated = document.getElementById('kpi-sudah-update');
+                const kpiPending = document.getElementById('kpi-belum-update');
+
+                if (kpiTotal) kpiTotal.textContent = list.length;
+                if (kpiUpdated) kpiUpdated.textContent = updatedCount;
+                if (kpiPending) kpiPending.textContent = pendingCount;
+            });
+
+            // Submit Form Update Slot Monitoring 4H
+            document.getElementById('form-add-monitoring')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const kodeTugas = document.getElementById('mon-kode-tugas-select').value;
+                const slotKey = document.getElementById('mon-slot-select').value;
+                const lokasi = document.getElementById('mon-posisi-lokasi').value.trim();
+                const jenisUpdate = document.getElementById('mon-jenis-update').value;
+                const statusPerjalanan = document.getElementById('mon-status-perjalanan').value;
+                const keterangan = document.getElementById('mon-keterangan').value.trim();
+                const jamUpdateAktual = document.getElementById('mon-jam-update-aktual').value;
+                const inputBy = sessionStorage.getItem('jnt_active_username') || "Hamdan";
+
+                if (!kodeTugas || !lokasi) {
+                    alert('Harap lengkapi Kode Tugas dan Lokasi Terakhir Armada!');
+                    return;
+                }
+
+                try {
+                    await JNTFirebaseService.saveMonitoringSlotUpdate(
+                        kodeTugas,
+                        slotKey,
+                        lokasi,
+                        keterangan,
+                        jenisUpdate,
+                        jamUpdateAktual,
+                        inputBy,
+                        statusPerjalanan
+                    );
+
+                    alert(`✅ Checkpoint Posisi 4 Jam untuk ${kodeTugas} (Slot ${slotKey}: ${lokasi}) berhasil disimpan di Firestore!`);
+                    document.getElementById('modal-add-monitoring').classList.add('hidden');
+                } catch (err) {
+                    alert('Terjadi kesalahan saat menyimpan update monitoring: ' + err.message);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
