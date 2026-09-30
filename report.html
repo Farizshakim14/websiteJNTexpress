@@ -25,7 +25,7 @@
                     </div>
                 </div>
 
-                <div class="sidebar-user-card">
+                <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
                         <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
@@ -94,22 +94,41 @@
                         </li>
                         <li class="nav-item">
                             <a href="users.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                                 <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="profile.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">Profil Saya</span>
                             </a>
                         </li>
                     </ul>
                 </nav>
 
-                <div class="sidebar-help-box">
-                    <div class="help-content">
-                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
-                        <div class="help-text-group">
-                            <span class="help-title">Butuh Bantuan?</span>
-                            <span class="help-sub">Hubungi Admin Sistem</span>
-                        </div>
+                <div class="sidebar-footer-graphic">
+                    <div class="route-line-svg">
+                        <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4"/>
+                            <circle cx="30" cy="60" r="5" fill="#E30613"/>
+                            <circle cx="100" cy="50" r="5" fill="#E30613"/>
+                            <circle cx="180" cy="25" r="5" fill="#E30613"/>
+                        </svg>
                     </div>
-                    <button class="btn-help-contact">Kontak Admin</button>
+                    <div class="truck-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80" alt="J&T Express Truck" class="sidebar-truck-img">
+                    </div>
+                    <div class="sidebar-system-title">
+                        <span class="sys-light">Transportation</span>
+                        <span class="sys-bold">Monitoring System</span>
+                    </div>
                 </div>
             </aside>
 

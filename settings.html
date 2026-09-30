@@ -25,7 +25,7 @@
                     </div>
                 </div>
 
-                <div class="sidebar-user-card">
+                <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
                         <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
@@ -75,22 +75,21 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="shift-management.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">Shift Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="master.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                                 <span class="nav-text">Master Data</span>
                             </a>
                         </li>
-                        <li class="nav-item has-dropdown">
-                            <a href="#" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span class="nav-text">Report</span>
-                                <svg class="chevron-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                            </a>
-                        </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                <span class="nav-text">History</span>
+                            <a href="report.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report & Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -114,15 +113,22 @@
                     </ul>
                 </nav>
 
-                <div class="sidebar-help-box">
-                    <div class="help-content">
-                        <svg class="headset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
-                        <div class="help-text-group">
-                            <span class="help-title">Butuh Bantuan?</span>
-                            <span class="help-sub">Hubungi Admin Sistem</span>
-                        </div>
+                <div class="sidebar-footer-graphic">
+                    <div class="route-line-svg">
+                        <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4"/>
+                            <circle cx="30" cy="60" r="5" fill="#E30613"/>
+                            <circle cx="100" cy="50" r="5" fill="#E30613"/>
+                            <circle cx="180" cy="25" r="5" fill="#E30613"/>
+                        </svg>
                     </div>
-                    <button class="btn-help-contact">Kontak Admin</button>
+                    <div class="truck-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80" alt="J&T Express Truck" class="sidebar-truck-img">
+                    </div>
+                    <div class="sidebar-system-title">
+                        <span class="sys-light">Transportation</span>
+                        <span class="sys-bold">Monitoring System</span>
+                    </div>
                 </div>
             </aside>
 
