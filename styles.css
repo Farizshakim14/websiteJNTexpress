@@ -1031,12 +1031,22 @@ body.light-body-theme {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
     z-index: 200;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.modal-overlay::-webkit-scrollbar,
+.modal-card::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .modal-card {
@@ -1044,9 +1054,13 @@ body.light-body-theme {
     border: 1px solid var(--border-dark);
     border-radius: 12px;
     width: 100%;
-    max-width: 540px;
+    max-width: 580px;
     padding: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    max-height: 92vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .modal-header {
