@@ -373,8 +373,18 @@
                         <input type="text" id="sla-new-plat" placeholder="Contoh: B 9134 PXX" required>
                     </div>
                     <div class="form-field">
+                        <label>Nama Vendor / Pemilik Armada</label>
+                        <input type="text" id="sla-new-vendor" placeholder="Contoh: PT J&T Logistics / PT Trans Jaya" required>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
                         <label>Driver Utama</label>
                         <input type="text" id="sla-new-driver" placeholder="Contoh: Nasrul F." required>
+                    </div>
+                    <div class="form-field">
+                        <label>No. WhatsApp / HP Driver</label>
+                        <input type="text" id="sla-new-driver-phone" placeholder="Contoh: 0812-3456-7890" required>
                     </div>
                 </div>
                 <div class="form-row-2">
@@ -387,9 +397,9 @@
                         <input type="number" id="sla-new-awb" placeholder="Contoh: 6500" value="5000">
                     </div>
                 </div>
-                <div class="modal-footer-btns" style="margin-top: 16px;">
-                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-submit" style="background-color: #E30613;">🚀 Catat Mobil Keluar</button>
+                <div class="modal-footer-btns" style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                    <button type="button" class="btn-cancel modal-close-btn" style="background: transparent; color: #94A3B8; border: 1px solid rgba(255,255,255,0.18); padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s ease;">Batal</button>
+                    <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #E30613 0%, #B9040E 100%); color: #FFFFFF; border: none; padding: 11px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(227, 6, 19, 0.4); transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;">🚀 Catat Mobil Keluar</button>
                 </div>
             </form>
         </div>
@@ -642,7 +652,9 @@
                 const rawTrip = document.getElementById('sla-new-trip').value.trim();
                 const trip = rawTrip.includes(' — ') ? rawTrip.split(' — ')[0].trim() : rawTrip;
                 const platNomor = document.getElementById('sla-new-plat').value.trim();
+                const vendor = document.getElementById('sla-new-vendor')?.value.trim() || 'PT J&T Logistics';
                 const driver1 = document.getElementById('sla-new-driver').value.trim();
+                const driverPhone = document.getElementById('sla-new-driver-phone')?.value.trim() || '';
                 const jamBerangkat = document.getElementById('sla-new-jam-berangkat').value.trim();
                 const totalAwb = parseInt(document.getElementById('sla-new-awb').value) || 5000;
 
@@ -653,7 +665,9 @@
                         kodeTugas: kodeTugas,
                         trip: trip,
                         platNomor: platNomor,
+                        vendor: vendor,
                         driver1: driver1,
+                        driverPhone: driverPhone,
                         jamBerangkat: jamBerangkat,
                         totalAwb: totalAwb,
                         sisaAwb: 0,
