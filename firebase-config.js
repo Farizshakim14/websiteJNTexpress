@@ -24,6 +24,13 @@ if (typeof firebase !== 'undefined') {
     db = firebase.firestore();
     auth = firebase.auth();
 
+    // Ensure user is authenticated for Firestore rules
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            auth.signInAnonymously().catch(err => console.warn("Firebase Anonymous Auth:", err.message));
+        }
+    });
+
     // Attach to window object for global accessibility
     window.db = db;
     window.auth = auth;
