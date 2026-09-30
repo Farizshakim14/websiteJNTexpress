@@ -33,6 +33,7 @@ const JNTFirebaseService = {
             current.push(updatedObj);
         }
         this.saveLocalStore(colName, current);
+        window.dispatchEvent(new CustomEvent('jnt_data_updated', { detail: { colName, docId, data } }));
 
         // 2. Try Firestore Cloud set safely
         if (window.db) {
@@ -43,6 +44,42 @@ const JNTFirebaseService = {
             }
         }
         return updatedObj;
+    },
+
+    createSub(colName, callback) {
+        const emit = (cloudList = []) => {
+            const localList = this.getLocalStore(colName);
+            const map = new Map();
+            cloudList.forEach(i => map.set(i.id || i.kodeTugas || i._docId, i));
+            localList.forEach(i => map.set(i.id || i.kodeTugas || i._docId, i));
+            callback(Array.from(map.values()));
+        };
+
+        emit([]);
+
+        const eventHandler = () => emit([]);
+        window.addEventListener('jnt_data_updated', eventHandler);
+
+        let unsub = () => {};
+        if (window.db) {
+            try {
+                unsub = window.db.collection(colName).onSnapshot(snap => {
+                    const data = [];
+                    snap.forEach(d => data.push({ id: d.id, ...d.data() }));
+                    emit(data);
+                }, err => {
+                    console.warn(`Firestore snapshot notice [${colName}]:`, err.message);
+                    emit([]);
+                });
+            } catch (e) {
+                emit([]);
+            }
+        }
+
+        return () => {
+            window.removeEventListener('jnt_data_updated', eventHandler);
+            if (typeof unsub === 'function') unsub();
+        };
     },
 
     // Helper to get active Shift ID
@@ -457,30 +494,28 @@ const JNTFirebaseService = {
     // 3. INCOMING TRIPS (SINGLE SOURCE OF TRUTH)
     // ----------------------------------------------------
     async checkDuplicateKodeTugas(kodeTugas) {
-        if (!window.db) return false;
+        if (!kodeTugas) return false;
         const targetClean = kodeTugas.trim().toLowerCase();
-        const snap = await window.db.collection('incoming').get();
-        let found = false;
-        snap.forEach(d => {
-            if (d.id.toLowerCase() === targetClean || (d.data().kodeTugas && d.data().kodeTugas.toLowerCase() === targetClean)) {
-                found = true;
+        let items = this.getLocalStore('incoming') || [];
+        if (window.db) {
+            try {
+                const snap = await window.db.collection('incoming').get();
+                snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+            } catch (err) {
+                console.warn("checkDuplicateKodeTugas Firestore query notice:", err.message);
             }
-        });
-        return found;
+        }
+        return items.some(d => 
+            (d.id && String(d.id).toLowerCase() === targetClean) || 
+            (d.kodeTugas && String(d.kodeTugas).toLowerCase() === targetClean)
+        );
     },
 
     subscribeIncoming(callback) {
-        if (!window.db) return () => {};
-        return window.db.collection('incoming').onSnapshot((snapshot) => {
-            const data = [];
-            snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
-            callback(data);
-        }, err => console.error("Firestore incoming snapshot error:", err));
+        return this.createSub('incoming', callback);
     },
 
     async addIncomingTrip(tripData) {
-        if (!window.db) return;
-
         const isDuplicate = await this.checkDuplicateKodeTugas(tripData.kodeTugas);
         if (isDuplicate) {
             throw new Error(`⚠️ Kode Tugas "${tripData.kodeTugas}" sudah terdaftar di sistem! Silakan gunakan Kode Tugas unik.`);
@@ -499,7 +534,7 @@ const JNTFirebaseService = {
             targetSLAReturnHours: masterInfo.targetSLAReturnHours,
             targetSLARoundtripHours: masterInfo.targetSLARoundtripHours,
             shiftId: shiftId,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: new Date().toISOString()
         };
 
         await this.saveDoc('incoming', tripData.kodeTugas, fullTripData, true);
@@ -578,12 +613,7 @@ const JNTFirebaseService = {
     // 4. SLA MONITORING 3-TAB ENGINE
     // ----------------------------------------------------
     subscribeSLAOutbound(callback) {
-        if (!window.db) return () => {};
-        return window.db.collection('sla_outbound').onSnapshot(snap => {
-            const data = [];
-            snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            callback(data);
-        });
+        return this.createSub('sla_outbound', callback);
     },
 
     async saveSLAOutbound(kodeTugas, updateObj) {
@@ -602,12 +632,7 @@ const JNTFirebaseService = {
     },
 
     subscribeSLAReturn(callback) {
-        if (!window.db) return () => {};
-        return window.db.collection('sla_return').onSnapshot(snap => {
-            const data = [];
-            snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            callback(data);
-        });
+        return this.createSub('sla_return', callback);
     },
 
     async saveSLAReturn(kodeTugas, returnObj) {
@@ -617,12 +642,7 @@ const JNTFirebaseService = {
     },
 
     subscribeSLARoundtrip(callback) {
-        if (!window.db) return () => {};
-        return window.db.collection('sla_roundtrip').onSnapshot(snap => {
-            const data = [];
-            snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            callback(data);
-        });
+        return this.createSub('sla_roundtrip', callback);
     },
 
     async recalculateSLARoundtrip(kodeTugas) {
@@ -723,21 +743,24 @@ const JNTFirebaseService = {
     },
 
     subscribeMonitoring4H(callback) {
-        if (!window.db) return () => {};
-        return window.db.collection('monitoring_4h').onSnapshot(snap => {
-            const list = [];
-            snap.forEach(d => list.push({ id: d.id, ...d.data() }));
-            callback(list);
-        });
+        return this.createSub('monitoring_4h', callback);
     },
 
     async saveMonitoringSlotUpdate(kodeTugas, slotKey, lokasi, keterangan = "", jenisUpdate = "Lokasi Normal", jamUpdateAktual = "", inputBy = "Hamdan", statusPerjalanan = "ON PROGRESS") {
-        if (!window.db) return;
-
         const shiftId = this.getActiveShiftId();
-        const docRef = window.db.collection('monitoring_4h').doc(kodeTugas);
-        const docSnap = await docRef.get();
-        let existing = docSnap.exists ? docSnap.data() : { slots: {} };
+        let existing = {};
+        const localList = this.getLocalStore('monitoring_4h');
+        const foundLocal = localList.find(i => (i.id === kodeTugas || i.kodeTugas === kodeTugas));
+        if (foundLocal) existing = foundLocal;
+
+        if (window.db) {
+            try {
+                const docSnap = await window.db.collection('monitoring_4h').doc(kodeTugas).get();
+                if (docSnap.exists) existing = { ...existing, ...docSnap.data() };
+            } catch (e) {
+                console.warn("saveMonitoringSlotUpdate get notice:", e.message);
+            }
+        }
         if (!existing.slots) existing.slots = {};
 
         const oldSlotData = existing.slots[slotKey];
@@ -745,7 +768,7 @@ const JNTFirebaseService = {
             lokasi: lokasi,
             keterangan: keterangan,
             jenisUpdate: jenisUpdate,
-            jamUpdateAktual: jamUpdateAktual,
+            jamUpdateAktual: jamUpdateAktual || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
             inputBy: inputBy,
             shiftId: shiftId,
             statusUpdate: "SUDAH UPDATE"
@@ -754,7 +777,7 @@ const JNTFirebaseService = {
         // Audit Trail Log if Overwriting an existing slot
         if (oldSlotData && oldSlotData.lokasi && oldSlotData.lokasi !== lokasi) {
             await this.logAuditEvent({
-                waktu: jamUpdateAktual || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                waktu: newSlotData.jamUpdateAktual,
                 operator: inputBy,
                 shiftId: shiftId,
                 modul: "Monitoring 4H",
@@ -763,7 +786,7 @@ const JNTFirebaseService = {
             });
         } else {
             await this.logAuditEvent({
-                waktu: jamUpdateAktual || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                waktu: newSlotData.jamUpdateAktual,
                 operator: inputBy,
                 shiftId: shiftId,
                 modul: "Monitoring 4H",
@@ -775,15 +798,17 @@ const JNTFirebaseService = {
         existing.slots[slotKey] = newSlotData;
 
         const updateObj = {
+            ...existing,
+            kodeTugas: kodeTugas,
             slots: existing.slots,
             lastUpdateSlot: slotKey,
             lastUpdateLokasi: lokasi,
-            lastUpdateTime: jamUpdateAktual,
+            lastUpdateTime: newSlotData.jamUpdateAktual,
             lastUpdateBy: inputBy,
             statusPerjalanan: statusPerjalanan
         };
 
-        return docRef.set(updateObj, { merge: true });
+        return this.saveDoc('monitoring_4h', kodeTugas, updateObj, true);
     },
 
     // ----------------------------------------------------
