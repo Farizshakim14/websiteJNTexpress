@@ -71,14 +71,35 @@ const JNTFirebaseService = {
             const fleetsSnap = await window.db.collection('master_fleets').get();
             if (fleetsSnap.empty) {
                 const initialFleets = [
-                    { platNomor: "B 9134 PXX", tipe: "FUSO Box", vendor: "PT J&T Logistics", status: "Siap Jalan" },
-                    { platNomor: "B 9041 SXX", tipe: "CDD Long", vendor: "PT Trans Jaya", status: "Siap Jalan" },
-                    { platNomor: "B 9812 BKN", tipe: "CDD Standard", vendor: "PT J&T Logistics", status: "Siap Jalan" },
-                    { platNomor: "B 9356 PKK", tipe: "FUSO Wingbox", vendor: "PT Express Transport", status: "Siap Jalan" },
-                    { platNomor: "B 9201 SKK", tipe: "FUSO Box", vendor: "PT Cepat Express", status: "Siap Jalan" }
+                    { platNomor: "B 9134 PXX", tipe: "FUSO Box", vendor: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)", status: "Siap Jalan" },
+                    { platNomor: "B 9041 SXX", tipe: "CDD Long", vendor: "PT. ASIA PASIFIK LOGISTIK (APL)", status: "Siap Jalan" },
+                    { platNomor: "B 9812 BKN", tipe: "CDD Standard", vendor: "PT. JET TRANSPORT SERVICES (JTS)", status: "Siap Jalan" },
+                    { platNomor: "B 9356 PKK", tipe: "FUSO Wingbox", vendor: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)", status: "Siap Jalan" },
+                    { platNomor: "B 9201 SKK", tipe: "FUSO Box", vendor: "PT. SOLUSI DUNIA EXPEDISI (SDE)", status: "Siap Jalan" }
                 ];
                 for (const f of initialFleets) {
                     await window.db.collection('master_fleets').doc(f.platNomor.replace(/\s+/g, '')).set(f);
+                }
+            }
+
+            // B2. Master Vendors (11 Official Vendors)
+            const vendorsSnap = await window.db.collection('master_vendors').get();
+            if (vendorsSnap.empty) {
+                const initialVendors = [
+                    { code: "SERYU", nama: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)", status: "AKTIF" },
+                    { code: "APL", nama: "PT. ASIA PASIFIK LOGISTIK (APL)", status: "AKTIF" },
+                    { code: "KLS", nama: "PT. KENCANA LOGISTIK SAMUDERA (KLS)", status: "AKTIF" },
+                    { code: "JTS", nama: "PT. JET TRANSPORT SERVICES (JTS)", status: "AKTIF" },
+                    { code: "CHIJUN", nama: "PT CHIJUN SMART FREIGHT (CHIJUN)", status: "AKTIF" },
+                    { code: "PAL", nama: "PT. PESONA ABADI LOGISTIK (PAL)", status: "AKTIF" },
+                    { code: "AB", nama: "PT ANUGERAH BERSATU (AB)", status: "AKTIF" },
+                    { code: "SOLUSI", nama: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)", status: "AKTIF" },
+                    { code: "REYA", nama: "PT. REYA BAHAGIA ABADI (REYA)", status: "AKTIF" },
+                    { code: "SDE", nama: "PT. SOLUSI DUNIA EXPEDISI (SDE)", status: "AKTIF" },
+                    { code: "MTI", nama: "PT. MEDIA TRANS INDO (MTI)", status: "AKTIF" }
+                ];
+                for (const v of initialVendors) {
+                    await window.db.collection('master_vendors').doc(v.code).set(v);
                 }
             }
 
