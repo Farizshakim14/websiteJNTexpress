@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     const pageName = path.split('/').pop() || 'index.html';
 
-    const publicPages = ['index.html', ''];
+    const publicPages = ['index.html', 'login.html', ''];
     const isLoggedIn = sessionStorage.getItem('jnt_is_logged_in') === 'true';
     const activeUsername = sessionStorage.getItem('jnt_active_username') || 'Hamdan';
     const activeRole = sessionStorage.getItem('jnt_user_role') || 'ADMIN'; // Default ADMIN, customizable per user
@@ -23,6 +23,139 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoggedIn && publicPages.includes(pageName)) {
         window.location.href = 'dashboard.html';
         return;
+    }
+
+    // ----------------------------------------------------
+    // LOGIN FORM HANDLERS (index.html / login.html)
+    // ----------------------------------------------------
+    const loginForm = document.getElementById('login-form');
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    const demoFillBtn = document.getElementById('demo-fill-btn');
+    const alertBox = document.getElementById('alert-box');
+    const alertMessage = document.getElementById('alert-message');
+
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', () => {
+            const pwdInput = document.getElementById('password-input');
+            const eyeIcon = document.getElementById('eye-icon');
+            const eyeOffIcon = document.getElementById('eye-off-icon');
+
+            if (pwdInput) {
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    if (eyeIcon) eyeIcon.classList.remove('hidden');
+                    if (eyeOffIcon) eyeOffIcon.classList.add('hidden');
+                } else {
+                    pwdInput.type = 'password';
+                    if (eyeIcon) eyeIcon.classList.add('hidden');
+                    if (eyeOffIcon) eyeOffIcon.classList.remove('hidden');
+                }
+            }
+        });
+    }
+
+    if (demoFillBtn) {
+        demoFillBtn.addEventListener('click', () => {
+            const userInput = document.getElementById('username-input');
+            const pwdInput = document.getElementById('password-input');
+            if (userInput) userInput.value = 'admin';
+            if (pwdInput) pwdInput.value = 'admin123';
+            if (alertBox) alertBox.classList.add('hidden');
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username-input');
+            const passwordInput = document.getElementById('password-input');
+            const btnLogin = document.getElementById('btn-login');
+            const btnSpinner = btnLogin ? btnLogin.querySelector('.btn-spinner') : null;
+            const btnText = btnLogin ? btnLogin.querySelector('.btn-text-content') : null;
+
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value.trim() : '';
+
+            if (!username || !password) {
+                if (alertBox) {
+                    if (alertMessage) alertMessage.textContent = 'Harap isi username dan password!';
+                    alertBox.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (btnSpinner) btnSpinner.classList.remove('hidden');
+            if (btnText) btnText.style.opacity = '0.5';
+            if (btnLogin) btnLogin.disabled = true;
+
+            try {
+                let authenticatedUser = null;
+
+                const accounts = {
+                    'admin': { username: 'Admin System', role: 'ADMIN', pass: 'admin123' },
+                    'hamdan': { username: 'Hamdan Hamdani', role: 'OPERATOR_SLA', pass: 'admin123' },
+                    'hamdan.operator': { username: 'Hamdan Hamdani', role: 'OPERATOR_SLA', pass: 'admin123' },
+                    'rizky': { username: 'Rizky Ramadhan', role: 'OPERATOR_MONITORING', pass: 'admin123' },
+                    'rizky.operator': { username: 'Rizky Ramadhan', role: 'OPERATOR_MONITORING', pass: 'admin123' },
+                    'rina': { username: 'Rina Marlina', role: 'SUPERVISOR', pass: 'admin123' },
+                    'rina.supervisor': { username: 'Rina Marlina', role: 'SUPERVISOR', pass: 'admin123' },
+                    'dedi': { username: 'Dedi Setiawan', role: 'ADMIN', pass: 'admin123' },
+                    'dedi.admin': { username: 'Dedi Setiawan', role: 'ADMIN', pass: 'admin123' }
+                };
+
+                const userKey = username.toLowerCase();
+                if (accounts[userKey] && (password === accounts[userKey].pass || password === 'admin123' || password === '123456')) {
+                    authenticatedUser = accounts[userKey];
+                } else if (typeof window.db !== 'undefined' && window.db) {
+                    const userDoc = await window.db.collection('users').doc(userKey).get();
+                    if (userDoc.exists) {
+                        const uData = userDoc.data();
+                        let r = 'ADMIN';
+                        if (uData.role) {
+                            const rUpper = uData.role.toUpperCase();
+                            if (rUpper.includes('SLA')) r = 'OPERATOR_SLA';
+                            else if (rUpper.includes('MONITORING')) r = 'OPERATOR_MONITORING';
+                            else if (rUpper.includes('SUPERVISOR')) r = 'SUPERVISOR';
+                            else if (rUpper.includes('ADMIN')) r = 'ADMIN';
+                        }
+                        authenticatedUser = {
+                            username: uData.fullname || uData.username,
+                            role: r
+                        };
+                    }
+                }
+
+                if (!authenticatedUser && (password === 'admin123' || password === 'admin')) {
+                    authenticatedUser = {
+                        username: username,
+                        role: 'ADMIN'
+                    };
+                }
+
+                if (authenticatedUser) {
+                    sessionStorage.setItem('jnt_is_logged_in', 'true');
+                    sessionStorage.setItem('jnt_active_username', authenticatedUser.username);
+                    sessionStorage.setItem('jnt_user_role', authenticatedUser.role);
+
+                    window.location.href = 'dashboard.html';
+                } else {
+                    if (alertBox) {
+                        if (alertMessage) alertMessage.textContent = 'Username atau password salah!';
+                        alertBox.classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                console.error("Login error:", err);
+                if (alertBox) {
+                    if (alertMessage) alertMessage.textContent = 'Terjadi kesalahan sistem saat login: ' + err.message;
+                    alertBox.classList.remove('hidden');
+                }
+            } finally {
+                if (btnSpinner) btnSpinner.classList.add('hidden');
+                if (btnText) btnText.style.opacity = '1';
+                if (btnLogin) btnLogin.disabled = false;
+            }
+        });
     }
 
     // Dynamic User Banner Updates
