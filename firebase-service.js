@@ -26,6 +26,21 @@ window.addEventListener('storage', (e) => {
     }
 });
 
+// Auto-Reconnection Network Listener for Real-Time Offline Queue Flushing
+if (typeof window !== 'undefined') {
+    window.addEventListener('online', async () => {
+        console.log('[NETWORK RECONNECT] Online event detected. Auto-flushing pending sync queue...');
+        if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.flushPendingSyncQueue === 'function') {
+            try {
+                const res = await JNTFirebaseService.flushPendingSyncQueue();
+                console.log('[NETWORK RECONNECT] Auto-flush completed:', res);
+            } catch (err) {
+                console.warn('[NETWORK RECONNECT] Auto-flush warning:', err.message);
+            }
+        }
+    });
+}
+
 const JNTFirebaseService = {
 
     // Broadcast data mutation across local listeners and open browser tabs
@@ -81,7 +96,7 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // OFFLINE SYNC QUEUE & RESILIENT RETRY ENGINE
+    // OFFLINE SYNC QUEUE & RESILIENT RETRY ENGINE (v5)
     // ----------------------------------------------------
     getPendingSyncQueue() {
         try {
@@ -98,10 +113,62 @@ const JNTFirebaseService = {
         } catch (e) { }
     },
 
+    getPendingSyncCount() {
+        return this.getPendingSyncQueue().length;
+    },
+
+    getSyncConflicts() {
+        try {
+            const raw = localStorage.getItem('jnt_conflicts');
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    saveSyncConflicts(conflicts) {
+        try {
+            localStorage.setItem('jnt_conflicts', JSON.stringify(conflicts));
+        } catch (e) { }
+    },
+
+    recordSyncConflict(conflictRecord) {
+        const conflicts = this.getSyncConflicts();
+        const existingIdx = conflicts.findIndex(c => c.colName === conflictRecord.colName && c.docId === conflictRecord.docId);
+        const record = {
+            id: `CONF-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            ...conflictRecord,
+            timestamp: Date.now()
+        };
+        if (existingIdx >= 0) {
+            conflicts[existingIdx] = record;
+        } else {
+            conflicts.push(record);
+        }
+        this.saveSyncConflicts(conflicts);
+        return record;
+    },
+
+    clearSyncConflict(colName, docId) {
+        const conflicts = this.getSyncConflicts();
+        const filtered = conflicts.filter(c => !(c.colName === colName && c.docId === docId));
+        this.saveSyncConflicts(filtered);
+    },
+
+    clearAllSyncConflicts() {
+        try {
+            localStorage.removeItem('jnt_conflicts');
+        } catch (e) { }
+    },
+
     enqueuePendingSync(item) {
         const queue = this.getPendingSyncQueue();
         const existingIdx = queue.findIndex(q => q.colName === item.colName && q.docId === item.docId);
-        const record = { ...item, timestamp: Date.now() };
+        const record = {
+            ...item,
+            queuedAt: item.queuedAt || Date.now(),
+            timestamp: Date.now()
+        };
         if (existingIdx >= 0) {
             queue[existingIdx] = record;
         } else {
@@ -128,46 +195,279 @@ const JNTFirebaseService = {
 
     async flushPendingSyncQueue() {
         const queue = this.getPendingSyncQueue();
-        if (!queue.length || !window.db) return { success: true, processed: 0, remaining: queue.length };
+        if (!queue.length) return { success: true, processed: 0, conflicts: 0, remaining: 0 };
+        if (!window.db) return { success: false, processed: 0, conflicts: 0, remaining: queue.length, error: 'Database offline' };
 
         let processed = 0;
+        let conflictsCount = 0;
         const remainingQueue = [];
 
         for (const item of queue) {
             try {
                 if (item.action === 'delete') {
+                    // Cloud Delete Execution
                     await window.db.collection(item.colName).doc(item.docId).delete();
+                    console.log(`[SYNC RETRY SUCCESS] Cloud delete confirmed for ${item.colName}/${item.docId}`);
+
+                    // Cloud confirmed: remove from LocalStorage
+                    const current = this.getLocalStore(item.colName);
+                    const filtered = current.filter(i => (i.id !== item.docId && i.kodeTugas !== item.docId && i._docId !== item.docId));
+                    this.saveLocalStore(item.colName, filtered);
+                    this.notifyDataMutated({ colName: item.colName, docId: item.docId, action: 'delete', confirmed: true });
+                    processed++;
                 } else {
+                    // Action 'set': Optimistic Concurrency & Anti Last-Write-Wins
+                    let cloudDocSnap = null;
+                    try {
+                        cloudDocSnap = await window.db.collection(item.colName).doc(item.docId).get();
+                    } catch (readErr) {
+                        console.warn(`[SYNC RETRY] Pre-check read error for ${item.colName}/${item.docId}:`, readErr.message);
+                    }
+
+                    if (cloudDocSnap && cloudDocSnap.exists) {
+                        const cloudData = cloudDocSnap.data();
+                        const cloudUpdatedAt = cloudData.updatedAt ? new Date(cloudData.updatedAt).getTime() : 0;
+                        const baseUpdatedAt = item.baseUpdatedAt ? new Date(item.baseUpdatedAt).getTime() : 0;
+
+                        // If server document was modified AFTER the local base timestamp:
+                        if (cloudUpdatedAt > 0 && baseUpdatedAt > 0 && cloudUpdatedAt > baseUpdatedAt) {
+                            const conflictingFields = [];
+                            for (const [key, val] of Object.entries(item.data || {})) {
+                                if (['updatedAt', 'syncStatus', 'syncedToCloud', '_syncStatus', 'syncError', '_baseUpdatedAt', '_pendingDelete', '_conflictDetails', '_cloudVersion'].includes(key)) continue;
+                                if (cloudData[key] !== undefined && JSON.stringify(cloudData[key]) !== JSON.stringify(val)) {
+                                    conflictingFields.push({ field: key, cloudVal: cloudData[key], localVal: val });
+                                }
+                            }
+
+                            if (conflictingFields.length > 0) {
+                                conflictsCount++;
+                                console.warn(`[SYNC CONFLICT DETECTED] ${item.colName}/${item.docId}: Server updatedAt (${cloudData.updatedAt}) > baseUpdatedAt (${item.baseUpdatedAt})`);
+
+                                // Record conflict into jnt_conflicts
+                                this.recordSyncConflict({
+                                    colName: item.colName,
+                                    docId: item.docId,
+                                    cloudData: cloudData,
+                                    localData: item.data,
+                                    conflicts: conflictingFields,
+                                    baseUpdatedAt: item.baseUpdatedAt,
+                                    detectedAt: new Date().toISOString()
+                                });
+
+                                // Update local store item to CONFLICT status
+                                const current = this.getLocalStore(item.colName);
+                                const idx = current.findIndex(i => (i.id === item.docId || i.kodeTugas === item.docId || i._docId === item.docId));
+                                if (idx >= 0) {
+                                    current[idx].syncStatus = 'CONFLICT';
+                                    current[idx]._syncStatus = 'CONFLICT';
+                                    current[idx].syncError = `Konflik data: Versi di server (${cloudData.updatedAt}) lebih baru`;
+                                    current[idx]._conflictDetails = conflictingFields;
+                                    current[idx]._cloudVersion = cloudData;
+                                    this.saveLocalStore(item.colName, current);
+                                }
+
+                                if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+                                    window.dispatchEvent(new CustomEvent('jnt_sync_conflict', {
+                                        detail: {
+                                            colName: item.colName,
+                                            docId: item.docId,
+                                            cloudData,
+                                            localData: item.data,
+                                            conflicts: conflictingFields
+                                        }
+                                    }));
+                                }
+
+                                // Retain item in queue marked as CONFLICT; do NOT overwrite cloud
+                                remainingQueue.push({ ...item, status: 'CONFLICT', error: 'Conflicted with cloud version' });
+                                continue;
+                            }
+                        }
+                    }
+
+                    // Safe to write to cloud Firestore
                     const cleanData = { ...item.data };
                     delete cleanData.syncStatus;
                     delete cleanData.syncedToCloud;
                     delete cleanData._syncStatus;
                     delete cleanData.syncError;
+                    delete cleanData._baseUpdatedAt;
+                    delete cleanData._pendingDelete;
+                    delete cleanData._conflictDetails;
+                    delete cleanData._cloudVersion;
+                    cleanData.updatedAt = new Date().toISOString();
+
                     await window.db.collection(item.colName).doc(item.docId).set(cleanData, { merge: item.merge !== false });
 
                     // Update item in local store to SYNCED
                     const current = this.getLocalStore(item.colName);
-                    const idx = current.findIndex(i => (i.id === item.docId || i.kodeTugas === item.docId));
+                    const idx = current.findIndex(i => (i.id === item.docId || i.kodeTugas === item.docId || i._docId === item.docId));
                     if (idx >= 0) {
-                        current[idx].syncStatus = 'SYNCED';
-                        current[idx].syncedToCloud = true;
-                        current[idx]._syncStatus = 'SYNCED';
+                        current[idx] = { ...current[idx], ...cleanData, syncStatus: 'SYNCED', syncedToCloud: true, _syncStatus: 'SYNCED' };
                         delete current[idx].syncError;
+                        delete current[idx]._conflictDetails;
+                        delete current[idx]._cloudVersion;
+                        delete current[idx]._pendingDelete;
+                        this.saveLocalStore(item.colName, current);
+                    }
+                    processed++;
+                }
+            } catch (err) {
+                console.warn(`[SYNC RETRY FAILED] ${item.colName}/${item.docId}: ${err.message}`);
+                if (item.action === 'delete') {
+                    const current = this.getLocalStore(item.colName);
+                    const idx = current.findIndex(i => (i.id === item.docId || i.kodeTugas === item.docId || i._docId === item.docId));
+                    if (idx >= 0) {
+                        current[idx].syncError = `Penghapusan Cloud gagal: ${err.message}`;
                         this.saveLocalStore(item.colName, current);
                     }
                 }
-                processed++;
-            } catch (err) {
-                console.warn(`[SYNC RETRY FAILED] ${item.colName}/${item.docId}: ${err.message}`);
-                remainingQueue.push(item);
+                remainingQueue.push({ ...item, error: err.message });
             }
         }
 
         this.savePendingSyncQueue(remainingQueue);
         if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
-            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: remainingQueue.length, processed } }));
+            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: remainingQueue.length, processed, conflicts: conflictsCount } }));
         }
-        return { success: true, processed, remaining: remainingQueue.length };
+        return { success: true, processed, conflicts: conflictsCount, remaining: remainingQueue.length };
+    },
+
+    async resolveSyncConflict(colName, docId, strategy = 'KEEP_CLOUD', customData = null) {
+        console.log(`[RESOLVE CONFLICT] ${colName}/${docId} with strategy: ${strategy}`);
+        const queue = this.getPendingSyncQueue();
+        const queueIdx = queue.findIndex(q => q.colName === colName && q.docId === docId);
+        const queuedItem = queueIdx >= 0 ? queue[queueIdx] : null;
+
+        if (strategy === 'KEEP_CLOUD') {
+            let cloudData = null;
+            if (window.db) {
+                try {
+                    const snap = await window.db.collection(colName).doc(docId).get();
+                    if (snap.exists) cloudData = snap.data();
+                } catch (e) { }
+            }
+            if (!cloudData) {
+                const conflict = (this.getSyncConflicts() || []).find(c => c.colName === colName && c.docId === docId);
+                if (conflict) cloudData = conflict.cloudData;
+            }
+
+            if (cloudData) {
+                const current = this.getLocalStore(colName);
+                const idx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+                const syncedObj = { ...cloudData, id: docId, syncStatus: 'SYNCED', syncedToCloud: true, _syncStatus: 'SYNCED' };
+                delete syncedObj.syncError;
+                delete syncedObj._conflictDetails;
+                delete syncedObj._cloudVersion;
+                delete syncedObj._pendingDelete;
+                if (idx >= 0) {
+                    current[idx] = syncedObj;
+                } else {
+                    current.push(syncedObj);
+                }
+                this.saveLocalStore(colName, current);
+            }
+
+            this.removePendingSyncItem(colName, docId);
+            this.clearSyncConflict(colName, docId);
+
+            await this.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
+                shiftId: this.getActiveShiftId(),
+                modul: "Conflict Resolution",
+                kodeTugas: docId,
+                aktivitas: `[RESOLUSI KONFLIK] Diterapkan strategi KEEP_CLOUD untuk ${colName}/${docId}`
+            });
+
+            this.notifyDataMutated({ colName, docId, action: 'resolve_conflict', strategy: 'KEEP_CLOUD' });
+            return { success: true, strategy: 'KEEP_CLOUD' };
+
+        } else if (strategy === 'OVERWRITE_CLOUD') {
+            const current = this.getLocalStore(colName);
+            const localItem = current.find(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+            const payload = localItem ? { ...localItem } : (queuedItem ? { ...queuedItem.data } : {});
+
+            delete payload.syncStatus;
+            delete payload.syncedToCloud;
+            delete payload._syncStatus;
+            delete payload.syncError;
+            delete payload._conflictDetails;
+            delete payload._cloudVersion;
+            delete payload._baseUpdatedAt;
+            delete payload._pendingDelete;
+            payload.updatedAt = new Date().toISOString();
+
+            if (window.db) {
+                await window.db.collection(colName).doc(docId).set(payload, { merge: true });
+            }
+
+            const idx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+            if (idx >= 0) {
+                current[idx] = { ...current[idx], ...payload, syncStatus: 'SYNCED', syncedToCloud: true, _syncStatus: 'SYNCED' };
+                delete current[idx].syncError;
+                delete current[idx]._conflictDetails;
+                delete current[idx]._cloudVersion;
+                delete current[idx]._pendingDelete;
+                this.saveLocalStore(colName, current);
+            }
+
+            this.removePendingSyncItem(colName, docId);
+            this.clearSyncConflict(colName, docId);
+
+            await this.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
+                shiftId: this.getActiveShiftId(),
+                modul: "Conflict Resolution",
+                kodeTugas: docId,
+                aktivitas: `[RESOLUSI KONFLIK] Diterapkan strategi OVERWRITE_CLOUD (Manual Override) untuk ${colName}/${docId}`
+            });
+
+            this.notifyDataMutated({ colName, docId, action: 'resolve_conflict', strategy: 'OVERWRITE_CLOUD' });
+            return { success: true, strategy: 'OVERWRITE_CLOUD' };
+
+        } else if (strategy === 'MERGE') {
+            const mergedPayload = { ...(customData || {}) };
+            delete mergedPayload.syncStatus;
+            delete mergedPayload.syncedToCloud;
+            delete mergedPayload._syncStatus;
+            delete mergedPayload.syncError;
+            delete mergedPayload._conflictDetails;
+            delete mergedPayload._cloudVersion;
+            delete mergedPayload._pendingDelete;
+            mergedPayload.updatedAt = new Date().toISOString();
+
+            if (window.db) {
+                await window.db.collection(colName).doc(docId).set(mergedPayload, { merge: true });
+            }
+
+            const current = this.getLocalStore(colName);
+            const idx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+            if (idx >= 0) {
+                current[idx] = { ...current[idx], ...mergedPayload, syncStatus: 'SYNCED', syncedToCloud: true, _syncStatus: 'SYNCED' };
+                delete current[idx].syncError;
+                delete current[idx]._conflictDetails;
+                delete current[idx]._cloudVersion;
+                delete current[idx]._pendingDelete;
+                this.saveLocalStore(colName, current);
+            }
+
+            this.removePendingSyncItem(colName, docId);
+            this.clearSyncConflict(colName, docId);
+
+            await this.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
+                shiftId: this.getActiveShiftId(),
+                modul: "Conflict Resolution",
+                kodeTugas: docId,
+                aktivitas: `[RESOLUSI KONFLIK] Diterapkan strategi MERGE untuk ${colName}/${docId}`
+            });
+
+            this.notifyDataMutated({ colName, docId, action: 'resolve_conflict', strategy: 'MERGE' });
+            return { success: true, strategy: 'MERGE' };
+        }
     },
 
     async saveDoc(colName, docId, data, merge = false) {
@@ -175,6 +475,11 @@ const JNTFirebaseService = {
         let updatedObj = { id: docId, ...data };
         let isSynced = false;
         let syncErrMessage = null;
+
+        const current = this.getLocalStore(colName);
+        const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+        const existingItem = existingIdx >= 0 ? current[existingIdx] : null;
+        const baseUpdatedAt = data._baseUpdatedAt || (existingItem && existingItem.updatedAt ? existingItem.updatedAt : null);
 
         // 1. Attempt authoritative write to Firestore Cloud
         if (window.db) {
@@ -184,11 +489,18 @@ const JNTFirebaseService = {
                 delete cloudPayload.syncedToCloud;
                 delete cloudPayload._syncStatus;
                 delete cloudPayload.syncError;
+                delete cloudPayload._baseUpdatedAt;
+                delete cloudPayload._pendingDelete;
+                delete cloudPayload._conflictDetails;
+                delete cloudPayload._cloudVersion;
+
+                cloudPayload.updatedAt = cloudPayload.updatedAt || new Date().toISOString();
 
                 await window.db.collection(colName).doc(docId).set(cloudPayload, { merge: merge });
                 console.log(`[SLA UPDATE] WRITE FIRESTORE SUCCESS [${colName}/${docId}]`);
                 isSynced = true;
                 this.removePendingSyncItem(colName, docId);
+                updatedObj.updatedAt = cloudPayload.updatedAt;
             } catch (err) {
                 syncErrMessage = err.message || 'Firestore Write Failed';
                 console.warn(`[SLA UPDATE] FIRESTORE ERROR [${colName}/${docId}]: ${syncErrMessage}`);
@@ -203,19 +515,32 @@ const JNTFirebaseService = {
             updatedObj.syncedToCloud = true;
             updatedObj._syncStatus = 'SYNCED';
             delete updatedObj.syncError;
+            delete updatedObj._pendingDelete;
+            delete updatedObj._conflictDetails;
+            delete updatedObj._cloudVersion;
         } else {
             updatedObj.syncStatus = 'PENDING';
             updatedObj.syncedToCloud = false;
             updatedObj._syncStatus = 'PENDING';
             updatedObj.syncError = syncErrMessage;
-            this.enqueuePendingSync({ colName, docId, data, merge, action: 'set', error: syncErrMessage });
+            updatedObj.updatedAt = data.updatedAt || new Date().toISOString();
+            delete updatedObj._pendingDelete;
+            this.enqueuePendingSync({
+                colName,
+                docId,
+                data: { ...data, updatedAt: updatedObj.updatedAt },
+                merge,
+                action: 'set',
+                error: syncErrMessage,
+                baseUpdatedAt: baseUpdatedAt,
+                queuedAt: Date.now()
+            });
         }
 
         // 3. Mirror to LocalStorage read-cache
-        const current = this.getLocalStore(colName);
-        const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
         if (existingIdx >= 0) {
             updatedObj = merge ? { ...current[existingIdx], ...updatedObj } : updatedObj;
+            delete updatedObj._pendingDelete;
             current[existingIdx] = updatedObj;
         } else {
             current.push(updatedObj);
@@ -230,6 +555,7 @@ const JNTFirebaseService = {
     async deleteDoc(colName, docId) {
         console.log(`[SLA DELETE] START DELETE [${colName}/${docId}]`);
         let deleteSuccess = false;
+        let deleteErrMessage = null;
 
         if (window.db) {
             try {
@@ -238,20 +564,43 @@ const JNTFirebaseService = {
                 this.removePendingSyncItem(colName, docId);
                 deleteSuccess = true;
             } catch (err) {
-                console.warn(`[SLA DELETE] FIRESTORE FAILED - QUEUED [${colName}/${docId}]: ${err.message}`);
-                this.enqueuePendingSync({ colName, docId, action: 'delete', error: err.message });
+                deleteErrMessage = err.message || 'Firestore Delete Failed';
+                console.warn(`[SLA DELETE] FIRESTORE FAILED - QUEUED [${colName}/${docId}]: ${deleteErrMessage}`);
             }
         } else {
-            this.enqueuePendingSync({ colName, docId, action: 'delete', error: 'No database connection' });
+            deleteErrMessage = 'Cloud database not initialized';
         }
 
         const current = this.getLocalStore(colName);
-        const filtered = current.filter(i => (i.id !== docId && i.kodeTugas !== docId && i._docId !== docId));
-        this.saveLocalStore(colName, filtered);
-        console.log(`[SLA DELETE] LOCAL STORAGE REMOVE SUCCESS [${colName}/${docId}]`);
+        const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
 
-        this.notifyDataMutated({ colName, docId, action: 'delete' });
-        return deleteSuccess;
+        if (deleteSuccess) {
+            // Confirmed by cloud: safely remove from LocalStorage
+            const filtered = current.filter(i => (i.id !== docId && i.kodeTugas !== docId && i._docId !== docId));
+            this.saveLocalStore(colName, filtered);
+            console.log(`[SLA DELETE] LOCAL STORAGE REMOVE SUCCESS [${colName}/${docId}]`);
+            this.notifyDataMutated({ colName, docId, action: 'delete', confirmed: true });
+            return { success: true, confirmed: true };
+        } else {
+            // NOT confirmed by cloud: retain local cache, mark as PENDING_DELETE
+            if (existingIdx >= 0) {
+                current[existingIdx]._pendingDelete = true;
+                current[existingIdx].syncStatus = 'PENDING_DELETE';
+                current[existingIdx]._syncStatus = 'PENDING_DELETE';
+                current[existingIdx].syncError = deleteErrMessage;
+                this.saveLocalStore(colName, current);
+                console.log(`[SLA DELETE] LOCAL STORAGE RETAINED (PENDING CLOUD CONFIRMATION) [${colName}/${docId}]`);
+            }
+            this.enqueuePendingSync({
+                colName,
+                docId,
+                action: 'delete',
+                error: deleteErrMessage,
+                queuedAt: Date.now()
+            });
+            this.notifyDataMutated({ colName, docId, action: 'delete', confirmed: false, pending: true });
+            return { success: true, confirmed: false, pending: true };
+        }
     },
 
     // ----------------------------------------------------
@@ -301,31 +650,54 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // GLOBAL CASCADE DELETION ENGINE
+    // GLOBAL CASCADE DELETION ENGINE (v5)
+    // ----------------------------------------------------
+    // ----------------------------------------------------
+    // GLOBAL CASCADE DELETION ENGINE (v5)
     // ----------------------------------------------------
     async deleteTripCascade(kodeTugas, isMasterDelete = true) {
         if (!kodeTugas) return;
         console.log(`[GLOBAL CASCADE DELETE] KodeTugas: ${kodeTugas}`);
 
-        // Delete from all collections to guarantee 100% sync
+        // 1. Troubles collection: Per Firestore security rules, deletion is forbidden (`allow delete: if false;`).
+        // Close / resolve any open incidents for this trip without deleting the immutable history and without resurrecting the deleted trip.
+        const localTroubles = this.getLocalStore('troubles') || [];
+        for (const tr of localTroubles) {
+            if (tr.kodeTugas === kodeTugas && tr.status !== 'SUDAH SELESAI') {
+                await this.updateIncidentStatus(tr.incidentId || tr.id, 'SUDAH SELESAI', `[CASCADE DELETE] Trip ${kodeTugas} dibatalkan/dihapus`, "Supervisor", false);
+            }
+        }
+
+        if (window.db) {
+            try {
+                const snap = await window.db.collection('troubles').where('kodeTugas', '==', kodeTugas).get();
+                if (snap && snap.docs) {
+                    for (const d of snap.docs) {
+                        const data = d.data();
+                        if (data.status !== 'SUDAH SELESAI') {
+                            await window.db.collection('troubles').doc(d.id).update({
+                                status: 'SUDAH SELESAI',
+                                updatedAt: new Date().toISOString(),
+                                catatanPenyelesaian: `[CASCADE DELETE] Trip ${kodeTugas} dibatalkan/dihapus. Kendala ditutup otomatis.`
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[CASCADE TROUBLE CLOSE NOTICE]', e.message);
+            }
+        }
+
+        // 2. Cascade delete across all 5 operational trip collections
         await this.deleteDoc('sla_outbound', kodeTugas);
         await this.deleteDoc('monitoring_4h', kodeTugas);
         await this.deleteDoc('sla_return', kodeTugas);
         await this.deleteDoc('sla_roundtrip', kodeTugas);
         await this.deleteDoc('incoming', kodeTugas);
 
-        if (window.db) {
-            try {
-                const snap = await window.db.collection('troubles').where('kodeTugas', '==', kodeTugas).get();
-                snap.forEach(async d => {
-                    await this.deleteDoc('troubles', d.id);
-                });
-            } catch (e) { }
-        }
-
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-            operator: sessionStorage.getItem('jnt_active_username') || "Hamdan",
+            operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
             shiftId: this.getActiveShiftId(),
             modul: "Cascade Delete",
             kodeTugas: kodeTugas,
@@ -1545,7 +1917,7 @@ const JNTFirebaseService = {
         return fullIncident;
     },
 
-    async updateIncidentStatus(incidentId, newStatus, note = "", user = "Hamdan") {
+    async updateIncidentStatus(incidentId, newStatus, note = "", user = "Hamdan", restoreTripStatus = true) {
         const data = await this.getDoc('troubles', incidentId);
         if (!data) {
             console.warn(`[TROUBLE] Incident with ID ${incidentId} not found.`);
@@ -1570,20 +1942,22 @@ const JNTFirebaseService = {
 
         await this.saveDoc('troubles', incidentId, updatedData, true);
 
-        // If completed/closed, restore monitoring and SLA trip status
-        if (newStatus === 'SUDAH SELESAI' && data.kodeTugas && data.kodeTugas !== "-") {
+        // If completed/closed, restore monitoring and SLA trip status ONLY if trip exists and restoreTripStatus is true
+        if (restoreTripStatus && newStatus === 'SUDAH SELESAI' && data.kodeTugas && data.kodeTugas !== "-") {
             const incDoc = await this.getDoc('incoming', data.kodeTugas);
-            const slaDoc = await this.getDoc('sla_outbound', data.kodeTugas);
-            const isCompletedTrip = incDoc && (incDoc.status === 'SUDAH SELESAI' || incDoc.status === 'COMPLETED');
+            if (incDoc && !incDoc._pendingDelete) {
+                const slaDoc = await this.getDoc('sla_outbound', data.kodeTugas);
+                const isCompletedTrip = incDoc.status === 'SUDAH SELESAI' || incDoc.status === 'COMPLETED';
 
-            if (!isCompletedTrip) {
-                await this.saveDoc('monitoring_4h', data.kodeTugas, { statusPerjalanan: "ON PROGRESS" }, true);
-                await this.saveDoc('incoming', data.kodeTugas, { status: "SEDANG DIPROSES" }, true);
-                await this.saveDoc('sla_outbound', data.kodeTugas, { statusSla: "BERJALAN" }, true);
-            } else {
-                await this.saveDoc('monitoring_4h', data.kodeTugas, { statusPerjalanan: "COMPLETED" }, true);
-                await this.saveDoc('incoming', data.kodeTugas, { status: "SUDAH SELESAI" }, true);
-                await this.saveDoc('sla_outbound', data.kodeTugas, { statusSla: slaDoc && slaDoc.lateMinutes > 0 ? "LATE" : "ON TIME" }, true);
+                if (!isCompletedTrip) {
+                    await this.saveDoc('monitoring_4h', data.kodeTugas, { statusPerjalanan: "ON PROGRESS" }, true);
+                    await this.saveDoc('incoming', data.kodeTugas, { status: "SEDANG DIPROSES" }, true);
+                    await this.saveDoc('sla_outbound', data.kodeTugas, { statusSla: "BERJALAN" }, true);
+                } else {
+                    await this.saveDoc('monitoring_4h', data.kodeTugas, { statusPerjalanan: "COMPLETED" }, true);
+                    await this.saveDoc('incoming', data.kodeTugas, { status: "SUDAH SELESAI" }, true);
+                    await this.saveDoc('sla_outbound', data.kodeTugas, { statusSla: slaDoc && slaDoc.lateMinutes > 0 ? "LATE" : "ON TIME" }, true);
+                }
             }
         }
 
