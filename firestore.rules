@@ -7,72 +7,95 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (getUserRole() == 'ADMIN' || request.auth.token.email.matches('.*admin.*'));
+    }
+
+    function isSupervisor() {
+      return isAuthenticated() && (getUserRole() == 'SUPERVISOR' || isAdmin());
+    }
+
     // 1. Audit Logs: Strictly Append-Only (Immutable Audit Trail)
     // No update or delete allowed under any circumstances
     match /audit_logs/{logId} {
-      allow read: if true;
-      allow create: if true;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.operator != null;
       allow update, delete: if false;
     }
 
     // 2. Operational Collections: Real-time TMS Dispatch & Monitoring
     match /incoming/{docId} {
-      allow read, create, update: if true;
-      allow delete: if true; // Trip cancellation
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
+      allow delete: if isSupervisor(); // Trip cancellation reserved for Supervisor & Admin
     }
 
     match /sla_outbound/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create, update: if isAuthenticated();
+      allow delete: if isSupervisor();
     }
 
     match /sla_return/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create, update: if isAuthenticated();
+      allow delete: if isSupervisor();
     }
 
     match /sla_roundtrip/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create, update: if isAuthenticated();
+      allow delete: if isSupervisor();
     }
 
     match /monitoring_4h/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create, update: if isAuthenticated();
+      allow delete: if isSupervisor();
     }
 
     // 3. Trouble & Incident Management
     match /troubles/{docId} {
-      allow read, create, update: if true;
+      allow read, create, update: if isAuthenticated();
       allow delete: if false; // Incidents cannot be deleted, must be marked 'SUDAH SELESAI'
     }
 
     // 4. Shift Management
     match /shifts/{docId} {
-      allow read, create, update: if true;
+      allow read, create, update: if isAuthenticated();
       allow delete: if false; // Shift records are permanent operational history
     }
 
-    // 5. Master Data Collections
+    // 5. Master Data Collections: Read by all authenticated users, written by Supervisor/Admin
     match /master_trips/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isSupervisor();
     }
 
     match /master_fleets/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isSupervisor();
     }
 
     match /master_vendors/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isSupervisor();
     }
 
     match /master_drivers/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isSupervisor();
     }
 
     match /master_reasons/{docId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isSupervisor();
     }
 
-    // 6. User Management & Security Profiles
+    // 6. User Management & Security Profiles: Restricted to Admins
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     // Fallback default deny for any unlisted collections

@@ -80,51 +80,178 @@ const JNTFirebaseService = {
         return data;
     },
 
+    // ----------------------------------------------------
+    // OFFLINE SYNC QUEUE & RESILIENT RETRY ENGINE
+    // ----------------------------------------------------
+    getPendingSyncQueue() {
+        try {
+            const raw = localStorage.getItem('jnt_sync_queue');
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+
+    savePendingSyncQueue(queue) {
+        try {
+            localStorage.setItem('jnt_sync_queue', JSON.stringify(queue));
+        } catch (e) { }
+    },
+
+    enqueuePendingSync(item) {
+        const queue = this.getPendingSyncQueue();
+        const existingIdx = queue.findIndex(q => q.colName === item.colName && q.docId === item.docId);
+        const record = { ...item, timestamp: Date.now() };
+        if (existingIdx >= 0) {
+            queue[existingIdx] = record;
+        } else {
+            queue.push(record);
+        }
+        this.savePendingSyncQueue(queue);
+        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: queue.length, item: record } }));
+        }
+    },
+
+    removePendingSyncItem(colName, docId) {
+        const queue = this.getPendingSyncQueue();
+        const filtered = queue.filter(q => !(q.colName === colName && q.docId === docId));
+        this.savePendingSyncQueue(filtered);
+        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: filtered.length } }));
+        }
+    },
+
+    async retrySyncPending() {
+        return this.flushPendingSyncQueue();
+    },
+
+    async flushPendingSyncQueue() {
+        const queue = this.getPendingSyncQueue();
+        if (!queue.length || !window.db) return { success: true, processed: 0, remaining: queue.length };
+
+        let processed = 0;
+        const remainingQueue = [];
+
+        for (const item of queue) {
+            try {
+                if (item.action === 'delete') {
+                    await window.db.collection(item.colName).doc(item.docId).delete();
+                } else {
+                    const cleanData = { ...item.data };
+                    delete cleanData.syncStatus;
+                    delete cleanData.syncedToCloud;
+                    delete cleanData._syncStatus;
+                    delete cleanData.syncError;
+                    await window.db.collection(item.colName).doc(item.docId).set(cleanData, { merge: item.merge !== false });
+
+                    // Update item in local store to SYNCED
+                    const current = this.getLocalStore(item.colName);
+                    const idx = current.findIndex(i => (i.id === item.docId || i.kodeTugas === item.docId));
+                    if (idx >= 0) {
+                        current[idx].syncStatus = 'SYNCED';
+                        current[idx].syncedToCloud = true;
+                        current[idx]._syncStatus = 'SYNCED';
+                        delete current[idx].syncError;
+                        this.saveLocalStore(item.colName, current);
+                    }
+                }
+                processed++;
+            } catch (err) {
+                console.warn(`[SYNC RETRY FAILED] ${item.colName}/${item.docId}: ${err.message}`);
+                remainingQueue.push(item);
+            }
+        }
+
+        this.savePendingSyncQueue(remainingQueue);
+        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: remainingQueue.length, processed } }));
+        }
+        return { success: true, processed, remaining: remainingQueue.length };
+    },
+
     async saveDoc(colName, docId, data, merge = false) {
         console.log(`[SLA UPDATE] START WRITE [${colName}/${docId}]`, data);
+        let updatedObj = { id: docId, ...data };
+        let isSynced = false;
+        let syncErrMessage = null;
+
+        // 1. Attempt authoritative write to Firestore Cloud
+        if (window.db) {
+            try {
+                const cloudPayload = { ...data };
+                delete cloudPayload.syncStatus;
+                delete cloudPayload.syncedToCloud;
+                delete cloudPayload._syncStatus;
+                delete cloudPayload.syncError;
+
+                await window.db.collection(colName).doc(docId).set(cloudPayload, { merge: merge });
+                console.log(`[SLA UPDATE] WRITE FIRESTORE SUCCESS [${colName}/${docId}]`);
+                isSynced = true;
+                this.removePendingSyncItem(colName, docId);
+            } catch (err) {
+                syncErrMessage = err.message || 'Firestore Write Failed';
+                console.warn(`[SLA UPDATE] FIRESTORE ERROR [${colName}/${docId}]: ${syncErrMessage}`);
+            }
+        } else {
+            syncErrMessage = 'Cloud database not initialized';
+        }
+
+        // 2. Set explicit synchronization status
+        if (isSynced) {
+            updatedObj.syncStatus = 'SYNCED';
+            updatedObj.syncedToCloud = true;
+            updatedObj._syncStatus = 'SYNCED';
+            delete updatedObj.syncError;
+        } else {
+            updatedObj.syncStatus = 'PENDING';
+            updatedObj.syncedToCloud = false;
+            updatedObj._syncStatus = 'PENDING';
+            updatedObj.syncError = syncErrMessage;
+            this.enqueuePendingSync({ colName, docId, data, merge, action: 'set', error: syncErrMessage });
+        }
+
+        // 3. Mirror to LocalStorage read-cache
         const current = this.getLocalStore(colName);
         const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
-        let updatedObj = { id: docId, ...data };
         if (existingIdx >= 0) {
-            updatedObj = merge ? { ...current[existingIdx], ...data } : updatedObj;
+            updatedObj = merge ? { ...current[existingIdx], ...updatedObj } : updatedObj;
             current[existingIdx] = updatedObj;
         } else {
             current.push(updatedObj);
         }
         this.saveLocalStore(colName, current);
-        console.log(`[SLA UPDATE] WRITE LOCAL STORAGE SUCCESS [${colName}/${docId}]`);
+        console.log(`[SLA UPDATE] WRITE LOCAL STORAGE SUCCESS [${colName}/${docId}] (Status: ${updatedObj.syncStatus})`);
 
-        this.notifyDataMutated({ colName, docId, action: 'save', data: updatedObj });
-
-        if (window.db) {
-            try {
-                await window.db.collection(colName).doc(docId).set(data, { merge: merge });
-                console.log(`[SLA UPDATE] WRITE FIRESTORE SUCCESS [${colName}/${docId}]`);
-            } catch (err) {
-                console.warn(`[SLA UPDATE] FIRESTORE ERROR [${colName}/${docId}]: ${err.message}`);
-            }
-        }
+        this.notifyDataMutated({ colName, docId, action: 'save', data: updatedObj, syncStatus: updatedObj.syncStatus });
         return updatedObj;
     },
 
     async deleteDoc(colName, docId) {
         console.log(`[SLA DELETE] START DELETE [${colName}/${docId}]`);
+        let deleteSuccess = false;
+
+        if (window.db) {
+            try {
+                await window.db.collection(colName).doc(docId).delete();
+                console.log(`[SLA DELETE] FIRESTORE SUCCESS [${colName}/${docId}]`);
+                this.removePendingSyncItem(colName, docId);
+                deleteSuccess = true;
+            } catch (err) {
+                console.warn(`[SLA DELETE] FIRESTORE FAILED - QUEUED [${colName}/${docId}]: ${err.message}`);
+                this.enqueuePendingSync({ colName, docId, action: 'delete', error: err.message });
+            }
+        } else {
+            this.enqueuePendingSync({ colName, docId, action: 'delete', error: 'No database connection' });
+        }
+
         const current = this.getLocalStore(colName);
         const filtered = current.filter(i => (i.id !== docId && i.kodeTugas !== docId && i._docId !== docId));
         this.saveLocalStore(colName, filtered);
         console.log(`[SLA DELETE] LOCAL STORAGE REMOVE SUCCESS [${colName}/${docId}]`);
 
         this.notifyDataMutated({ colName, docId, action: 'delete' });
-
-        if (window.db) {
-            try {
-                await window.db.collection(colName).doc(docId).delete();
-                console.log(`[SLA DELETE] FIRESTORE SUCCESS [${colName}/${docId}]`);
-            } catch (err) {
-                console.warn(`[SLA DELETE] FIRESTORE FAILED - LOCAL ONLY [${colName}/${docId}]: ${err.message}`);
-            }
-        }
-        return true;
+        return deleteSuccess;
     },
 
     // ----------------------------------------------------
@@ -1198,7 +1325,7 @@ const JNTFirebaseService = {
             const targetSLAPPMinutes = targetSLAPP * 60;
             const totalLatePPMinutes = Math.max(0, totalPPMinutes - targetSLAPPMinutes);
 
-            const statusRoundtrip = totalLatePPMinutes > 0 ? "LATE PP" : "ON TIME PP";
+            const statusRoundtrip = totalLatePPMinutes > 0 ? "LATE PP" : "ON TIME";
             const keteranganPP = totalLatePPMinutes > 0 ?
                 `Terlambat ${Math.floor(totalLatePPMinutes / 60)} jam ${totalLatePPMinutes % 60} menit` :
                 "Tiba Tepat Waktu PP";
@@ -1447,12 +1574,16 @@ const JNTFirebaseService = {
         if (newStatus === 'SUDAH SELESAI' && data.kodeTugas && data.kodeTugas !== "-") {
             const incDoc = await this.getDoc('incoming', data.kodeTugas);
             const slaDoc = await this.getDoc('sla_outbound', data.kodeTugas);
-            const isCompletedTrip = incDoc && (incDoc.status === 'SUDAH SELESAI' || (slaDoc && slaDoc.jamSampaiAktual));
+            const isCompletedTrip = incDoc && (incDoc.status === 'SUDAH SELESAI' || incDoc.status === 'COMPLETED');
 
             if (!isCompletedTrip) {
                 await this.saveDoc('monitoring_4h', data.kodeTugas, { statusPerjalanan: "ON PROGRESS" }, true);
                 await this.saveDoc('incoming', data.kodeTugas, { status: "SEDANG DIPROSES" }, true);
                 await this.saveDoc('sla_outbound', data.kodeTugas, { statusSla: "BERJALAN" }, true);
+            } else {
+                await this.saveDoc('monitoring_4h', data.kodeTugas, { statusPerjalanan: "COMPLETED" }, true);
+                await this.saveDoc('incoming', data.kodeTugas, { status: "SUDAH SELESAI" }, true);
+                await this.saveDoc('sla_outbound', data.kodeTugas, { statusSla: slaDoc && slaDoc.lateMinutes > 0 ? "LATE" : "ON TIME" }, true);
             }
         }
 
@@ -1835,6 +1966,90 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
+    // 9B. CONTROLLED LOCALSTORAGE -> FIRESTORE MIGRATION ENGINE
+    // ----------------------------------------------------
+    async getLocalStorageMigrationPreview() {
+        const collections = ['incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h', 'troubles', 'shifts', 'master_trips', 'master_fleets', 'master_vendors', 'master_drivers', 'master_reasons', 'users', 'audit_logs'];
+        const preview = {
+            totalLocalRecords: 0,
+            collections: {},
+            pendingSyncCount: this.getPendingSyncQueue().length,
+            cloudConnected: !!window.db
+        };
+
+        for (const col of collections) {
+            const localItems = this.getLocalStore(col) || [];
+            preview.totalLocalRecords += localItems.length;
+            preview.collections[col] = {
+                localCount: localItems.length,
+                pendingCount: localItems.filter(i => i.syncStatus === 'PENDING' || i._syncStatus === 'PENDING').length
+            };
+        }
+        return preview;
+    },
+
+    async executeLocalStorageToFirestoreMigration(options = { dryRun: false }) {
+        if (!window.db) {
+            throw new Error("Koneksi Firestore Cloud belum terinisialisasi. Pastikan koneksi internet dan API key valid.");
+        }
+
+        const collections = ['master_trips', 'master_fleets', 'master_vendors', 'master_drivers', 'master_reasons', 'users', 'shifts', 'incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h', 'troubles', 'audit_logs'];
+        const report = {
+            startedAt: new Date().toISOString(),
+            migratedTotal: 0,
+            failedTotal: 0,
+            details: {}
+        };
+
+        for (const colName of collections) {
+            const localList = this.getLocalStore(colName) || [];
+            let colSuccess = 0;
+            let colFailed = 0;
+
+            for (const item of localList) {
+                const docId = item.id || item.kodeTugas || item.incidentId || item.shiftId || item.code;
+                if (!docId) continue;
+
+                if (!options.dryRun) {
+                    try {
+                        const cleanItem = { ...item };
+                        cleanItem.syncStatus = 'SYNCED';
+                        cleanItem.syncedToCloud = true;
+                        cleanItem._syncStatus = 'SYNCED';
+                        cleanItem._migratedAt = new Date().toISOString();
+                        delete cleanItem.syncError;
+
+                        await window.db.collection(colName).doc(docId).set(cleanItem, { merge: true });
+                        colSuccess++;
+                    } catch (err) {
+                        colFailed++;
+                        console.warn(`[MIGRATION ERROR] ${colName}/${docId}: ${err.message}`);
+                    }
+                } else {
+                    colSuccess++;
+                }
+            }
+
+            report.migratedTotal += colSuccess;
+            report.failedTotal += colFailed;
+            report.details[colName] = { success: colSuccess, failed: colFailed, total: localList.length };
+        }
+
+        report.completedAt = new Date().toISOString();
+        if (!options.dryRun) {
+            await this.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: sessionStorage.getItem('jnt_active_username') || "Admin",
+                shiftId: this.getActiveShiftId(),
+                modul: "Database Migration",
+                kodeTugas: "-",
+                aktivitas: `Migrasi LocalStorage ke Firestore Selesai (${report.migratedTotal} berhasil, ${report.failedTotal} gagal)`
+            });
+        }
+        return report;
+    },
+
+    // ----------------------------------------------------
     // 10. REAL-TIME NOTIFICATION CENTER ENGINE
     // ----------------------------------------------------
     subscribeNotifications(callback) {
@@ -1874,9 +2089,25 @@ const JNTFirebaseService = {
 // Explicit Global Attachment to Window Object
 window.JNTFirebaseService = JNTFirebaseService;
 
+// Network State & Auto-Retry Listeners
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+    window.addEventListener('online', () => {
+        console.log('🌐 [NETWORK ONLINE] Connection restored. Retrying pending sync queue...');
+        JNTFirebaseService.retrySyncPending();
+        window.dispatchEvent(new CustomEvent('jnt_network_status_changed', { detail: { isOnline: true } }));
+    });
+    window.addEventListener('offline', () => {
+        console.warn('⚠️ [NETWORK OFFLINE] Working in offline draft mode.');
+        window.dispatchEvent(new CustomEvent('jnt_network_status_changed', { detail: { isOnline: false } }));
+    });
+}
+
 // Initialize seeding when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        JNTFirebaseService.seedInitialDataIfEmpty();
-    }, 500);
-});
+if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            JNTFirebaseService.seedInitialDataIfEmpty();
+            JNTFirebaseService.retrySyncPending();
+        }, 500);
+    });
+}

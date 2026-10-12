@@ -429,6 +429,28 @@
                     </div>
 
                         <div class="st-card-body">
+                            <!-- Cloud Firestore Migration & Offline Sync Engine -->
+                            <div class="data-mgmt-row" style="background-color: #F8FAFC; border: 1px dashed #CBD5E1; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+                                <div class="data-mgmt-ic">☁️</div>
+                                <div class="data-mgmt-meta">
+                                    <strong style="color: #2563EB;">Migrasi Data ke Cloud Firestore</strong>
+                                    <span>Pindahkan data lokal ke Cloud Firestore (Idempotent)</span>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button id="btn-migrate-preview" class="btn-data-action" style="background-color: #0284C7; color: #FFF;">Preview</button>
+                                    <button id="btn-run-migration" class="btn-data-action" style="background-color: #2563EB; color: #FFF;">Migrasi</button>
+                                </div>
+                            </div>
+
+                            <div class="data-mgmt-row" style="margin-bottom: 12px;">
+                                <div class="data-mgmt-ic">⚡</div>
+                                <div class="data-mgmt-meta">
+                                    <strong>Antrean Sinkronisasi Offline</strong>
+                                    <span>Kirimkan transaksi tertunda saat jaringan pulih</span>
+                                </div>
+                                <button id="btn-flush-sync-queue" class="btn-data-action" style="background-color: #D97706; color: #FFF;">Sync Now</button>
+                            </div>
+
                             <div class="data-mgmt-row">
                                 <div class="data-mgmt-ic">💾</div>
                                 <div class="data-mgmt-meta">

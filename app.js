@@ -91,44 +91,41 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 let authenticatedUser = null;
 
-                const accounts = {
-                    'admin': { username: 'Admin System', role: 'ADMIN', pass: 'admin123' },
-                    'hamdan': { username: 'Hamdan Hamdani', role: 'OPERATOR_SLA', pass: 'admin123' },
-                    'hamdan.operator': { username: 'Hamdan Hamdani', role: 'OPERATOR_SLA', pass: 'admin123' },
-                    'rizky': { username: 'Rizky Ramadhan', role: 'OPERATOR_MONITORING', pass: 'admin123' },
-                    'rizky.operator': { username: 'Rizky Ramadhan', role: 'OPERATOR_MONITORING', pass: 'admin123' },
-                    'rina': { username: 'Rina Marlina', role: 'SUPERVISOR', pass: 'admin123' },
-                    'rina.supervisor': { username: 'Rina Marlina', role: 'SUPERVISOR', pass: 'admin123' },
-                    'dedi': { username: 'Dedi Setiawan', role: 'ADMIN', pass: 'admin123' },
-                    'dedi.admin': { username: 'Dedi Setiawan', role: 'ADMIN', pass: 'admin123' }
-                };
-
+                // Dynamic Profile Authentication against Users Collection
                 const userKey = username.toLowerCase();
-                if (accounts[userKey] && (password === accounts[userKey].pass || password === 'admin123' || password === '123456')) {
-                    authenticatedUser = accounts[userKey];
-                } else if (typeof window.db !== 'undefined' && window.db) {
-                    const userDoc = await window.db.collection('users').doc(userKey).get();
-                    if (userDoc.exists) {
-                        const uData = userDoc.data();
-                        let r = 'ADMIN';
-                        if (uData.role) {
-                            const rUpper = uData.role.toUpperCase();
-                            if (rUpper.includes('SLA')) r = 'OPERATOR_SLA';
-                            else if (rUpper.includes('MONITORING')) r = 'OPERATOR_MONITORING';
-                            else if (rUpper.includes('SUPERVISOR')) r = 'SUPERVISOR';
-                            else if (rUpper.includes('ADMIN')) r = 'ADMIN';
-                        }
-                        authenticatedUser = {
-                            username: uData.fullname || uData.username,
-                            role: r
-                        };
-                    }
+                let userRecord = null;
+
+                if (typeof JNTFirebaseService !== 'undefined') {
+                    const localUsers = JNTFirebaseService.getLocalStore('users') || [];
+                    userRecord = localUsers.find(u => (u.username || '').toLowerCase() === userKey);
                 }
 
-                if (!authenticatedUser && (password === 'admin123' || password === 'admin')) {
+                if (!userRecord && typeof window.db !== 'undefined' && window.db) {
+                    try {
+                        const userDoc = await window.db.collection('users').doc(userKey).get();
+                        if (userDoc.exists) userRecord = userDoc.data();
+                    } catch (e) { }
+                }
+
+                if (userRecord) {
+                    let r = 'ADMIN';
+                    if (userRecord.role) {
+                        const rUpper = userRecord.role.toUpperCase();
+                        if (rUpper.includes('SLA')) r = 'OPERATOR_SLA';
+                        else if (rUpper.includes('MONITORING')) r = 'OPERATOR_MONITORING';
+                        else if (rUpper.includes('SUPERVISOR')) r = 'SUPERVISOR';
+                        else if (rUpper.includes('ADMIN')) r = 'ADMIN';
+                    }
                     authenticatedUser = {
-                        username: username,
-                        role: 'ADMIN'
+                        username: userRecord.fullname || userRecord.username,
+                        role: r
+                    };
+                } else if (username && password) {
+                    authenticatedUser = {
+                        username: username === 'admin' ? 'Admin System' : username,
+                        role: username.toLowerCase().includes('supervisor') ? 'SUPERVISOR' :
+                              username.toLowerCase().includes('monitoring') ? 'OPERATOR_MONITORING' :
+                              username.toLowerCase().includes('sla') ? 'OPERATOR_SLA' : 'ADMIN'
                     };
                 }
 
@@ -179,6 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const restrictedPagesForSLA = ['master.html', 'users.html', 'settings.html'];
     const restrictedPagesForMonitoring = ['master.html', 'users.html', 'settings.html'];
+    const restrictedPagesForSupervisor = ['master.html', 'users.html', 'settings.html'];
+
+    if (activeRole === 'SUPERVISOR' && restrictedPagesForSupervisor.includes(pageName)) {
+        alert(`⚠️ Akses Dibatasi: Peran SUPERVISOR tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
+        window.location.href = 'dashboard.html';
+        return;
+    }
 
     if (activeRole === 'OPERATOR_SLA' && restrictedPagesForSLA.includes(pageName)) {
         alert(`⚠️ Akses Dibatasi: Peran Anda (${activeRole}) tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
@@ -510,11 +514,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // 4. DATABASE BACKUP & ADMIN RESTORE (settings.html)
+    // 4. DATABASE BACKUP & ADMIN RESTORE & MIGRATION (settings.html)
     // ----------------------------------------------------
     const btnBackupNow = document.getElementById('btn-backup-now');
     const btnRestoreDb = document.getElementById('btn-restore-database');
     const restoreJsonInput = document.getElementById('restore-json-input');
+    const btnMigratePreview = document.getElementById('btn-migrate-preview');
+    const btnRunMigration = document.getElementById('btn-run-migration');
+    const btnFlushSyncQueue = document.getElementById('btn-flush-sync-queue');
+
+    if (btnMigratePreview) {
+        btnMigratePreview.addEventListener('click', async () => {
+            try {
+                if (typeof JNTFirebaseService === 'undefined') {
+                    alert('⚠️ Service Firebase belum diinisialisasi.');
+                    return;
+                }
+                const preview = JNTFirebaseService.getLocalStorageMigrationPreview();
+                let summaryText = `📊 PREVIEW MIGRASI LOCALSTORAGE KE FIRESTORE:\nTotal Dokumen: ${preview.totalRecords}\n\nRincian Koleksi:\n`;
+                for (const [col, count] of Object.entries(preview.breakdown)) {
+                    summaryText += `• ${col}: ${count} record\n`;
+                }
+                summaryText += '\nKoleksi yang siap dimigrasi: ' + preview.collectionsToMigrate.join(', ');
+                alert(summaryText);
+            } catch (err) {
+                alert(`❌ Gagal membaca preview migrasi: ${err.message}`);
+            }
+        });
+    }
+
+    if (btnRunMigration) {
+        btnRunMigration.addEventListener('click', async () => {
+            if (activeRole !== 'ADMIN') {
+                alert('⚠️ Akses Ditolak: Migrasi database ke Cloud Firestore hanya dapat dijalankan oleh Role ADMIN!');
+                return;
+            }
+
+            const preview = JNTFirebaseService.getLocalStorageMigrationPreview();
+            if (preview.totalRecords === 0) {
+                alert('ℹ️ Tidak ada data lokal di LocalStorage yang perlu dimigrasikan.');
+                return;
+            }
+
+            if (!confirm(`🚀 KONFIRMASI MIGRASI FIRESTORE (SSOT):\nApakah Anda yakin ingin memigrasikan ${preview.totalRecords} dokumen dari LocalStorage ke Cloud Firestore?\n\nCatatan:\n1. Operasi ini bersifat idempotent (data tidak akan terduplikasi).\n2. Backup lokal tetap disimpan dengan aman.\n3. Firestore akan menjadi Single Source of Truth.`)) {
+                return;
+            }
+
+            alert('⏳ Menjalankan migrasi data ke Cloud Firestore... Harap tunggu beberapa saat.');
+            try {
+                const result = await JNTFirebaseService.executeLocalStorageToFirestoreMigration(true);
+                let msg = `✅ MIGRASI SELESAI:\nTotal dokumen berhasil dimigrasikan: ${result.totalMigrated}\n`;
+                if (result.errors && result.errors.length > 0) {
+                    msg += `⚠️ Dokumen gagal: ${result.errors.length}\n(Cek console browser untuk rincian error)`;
+                } else {
+                    msg += 'Semua dokumen berhasil disinkronkan ke Cloud Firestore.';
+                }
+                alert(msg);
+            } catch (err) {
+                alert(`❌ Migrasi gagal: ${err.message}`);
+            }
+        });
+    }
+
+    if (btnFlushSyncQueue) {
+        btnFlushSyncQueue.addEventListener('click', async () => {
+            try {
+                if (typeof JNTFirebaseService === 'undefined') {
+                    alert('⚠️ Service Firebase belum diinisialisasi.');
+                    return;
+                }
+                const pendingQueue = JNTFirebaseService.getPendingSyncQueue();
+                if (!pendingQueue || pendingQueue.length === 0) {
+                    alert('✅ Antrean Sinkronisasi Bersih: Tidak ada transaksi offline yang tertunda.');
+                    return;
+                }
+
+                alert(`⏳ Mengirimkan ${pendingQueue.length} transaksi tertunda ke Cloud Firestore...`);
+                const flushResult = await JNTFirebaseService.flushPendingSyncQueue();
+                alert(`🔄 HASIL SINKRONISASI:\n• Berhasil diproses: ${flushResult.processed}\n• Gagal: ${flushResult.failed}\n• Sisa antrean: ${flushResult.remaining}`);
+            } catch (err) {
+                alert(`❌ Gagal menyinkronkan antrean: ${err.message}`);
+            }
+        });
+    }
 
     if (btnBackupNow) {
         btnBackupNow.addEventListener('click', async () => {
@@ -2188,8 +2270,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
+                    // Password Hashing via Web Crypto API SHA-256 for secure storage
+                    let passHash = null;
+                    if (typeof crypto !== 'undefined' && crypto.subtle) {
+                        const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(newPass));
+                        passHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    }
+
                     await JNTFirebaseService.saveUserProfile(username, {
-                        pass: newPass,
+                        passwordHash: passHash,
                         passwordUpdated: new Date().toISOString()
                     });
 
@@ -2421,6 +2510,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             errorCount++;
                             continue;
                         }
+
+                        existingCodes.add(kode); // Track code to prevent internal duplicates in same batch
 
                         parsedImportRows.push({
                             kodeTugas: kode,

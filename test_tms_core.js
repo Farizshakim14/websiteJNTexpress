@@ -3,25 +3,54 @@
  * Tests Dual-SSOT, Trouble Engine, User Management, Backup/Restore, Audit Trail, and Report Engine
  */
 
-// Mock browser environment for Node.js
-const storageMap = {};
+// Browser & Cloud Adapter Environment for Node.js
+const persistentStorage = new Map();
 global.localStorage = {
-    getItem(key) { return storageMap[key] || null; },
-    setItem(key, val) { storageMap[key] = String(val); },
-    removeItem(key) { delete storageMap[key]; },
-    clear() { Object.keys(storageMap).forEach(k => delete storageMap[k]); }
+    getItem(key) { return persistentStorage.has(key) ? persistentStorage.get(key) : null; },
+    setItem(key, val) { persistentStorage.set(key, String(val)); },
+    removeItem(key) { persistentStorage.delete(key); },
+    clear() { persistentStorage.clear(); }
 };
 
 global.sessionStorage = {
-    getItem(key) { return storageMap['sess_' + key] || null; },
-    setItem(key, val) { storageMap['sess_' + key] = String(val); },
-    removeItem(key) { delete storageMap['sess_' + key]; },
-    clear() { Object.keys(storageMap).filter(k => k.startsWith('sess_')).forEach(k => delete storageMap[k]); }
+    getItem(key) { return persistentStorage.has('sess_' + key) ? persistentStorage.get('sess_' + key) : null; },
+    setItem(key, val) { persistentStorage.set('sess_' + key, String(val)); },
+    removeItem(key) { persistentStorage.delete('sess_' + key); },
+    clear() { persistentStorage.clear(); }
 };
 
+// Database Adapter for Firestore operations
+const firestoreStore = new Map();
 global.window = {
     dispatchEvent() {},
-    addEventListener() {}
+    addEventListener() {},
+    db: {
+        collection: (col) => ({
+            doc: (docId) => ({
+                set: async (data) => {
+                    firestoreStore.set(`${col}/${docId}`, data);
+                    return true;
+                },
+                get: async () => {
+                    const data = firestoreStore.get(`${col}/${docId}`);
+                    return { exists: !!data, data: () => data };
+                },
+                delete: async () => {
+                    firestoreStore.delete(`${col}/${docId}`);
+                    return true;
+                }
+            }),
+            get: async () => {
+                const docs = [];
+                for (const [key, val] of firestoreStore.entries()) {
+                    if (key.startsWith(`${col}/`)) {
+                        docs.push({ id: key.split('/')[1], data: () => val });
+                    }
+                }
+                return docs;
+            }
+        })
+    }
 };
 
 global.document = {

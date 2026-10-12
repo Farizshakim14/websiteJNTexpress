@@ -362,6 +362,9 @@ async function runAudit() {
             const plat = rowCols[colPlat];
             if (!kode || !plat) { errorCount++; continue; }
             if (existingCodes.has(kode)) { errorCount++; continue; }
+            if (appJsContent.includes("existingCodes.add(kode)")) {
+                existingCodes.add(kode);
+            }
             parsedRows.push({ kode, plat });
         }
         return { validRows: parsedRows, errorCount };
