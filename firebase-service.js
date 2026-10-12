@@ -1830,22 +1830,282 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // 8. USERS CRUD
+    // 8. USERS CRUD & FIREBASE AUTHENTICATION IDENTITY ENGINE
     // ----------------------------------------------------
     subscribeUsers(callback) {
         return this.createSub('users', callback);
     },
 
+    normalizeRole(roleStr) {
+        if (!roleStr) return 'OPERATOR_SLA';
+        const r = String(roleStr).toUpperCase().trim();
+        if (r === 'ADMIN' || r === 'ADMINISTRATOR') return 'ADMIN';
+        if (r === 'SUPERVISOR' || r === 'SPV') return 'SUPERVISOR';
+        if (r.includes('MONITORING')) return 'OPERATOR_MONITORING';
+        if (r.includes('SLA') || r.includes('OPERATOR')) return 'OPERATOR_SLA';
+        return 'OPERATOR_SLA';
+    },
+
+    async resolveEmailFromIdentifier(identifier) {
+        if (!identifier) return '';
+        const idTrim = String(identifier).trim();
+        if (idTrim.includes('@')) return idTrim.toLowerCase();
+
+        const uname = idTrim.toLowerCase();
+        const localUsers = this.getLocalStore('users') || [];
+        const found = localUsers.find(u => (u.username || '').toLowerCase() === uname);
+        if (found && found.email) return found.email.toLowerCase();
+
+        if (window.db) {
+            try {
+                const docSnap = await window.db.collection('users').doc(uname).get();
+                if (docSnap.exists && docSnap.data().email) {
+                    return docSnap.data().email.toLowerCase();
+                }
+                const qSnap = await window.db.collection('users').where('username', '==', uname).limit(1).get();
+                if (!qSnap.empty && qSnap.docs[0].data().email) {
+                    return qSnap.docs[0].data().email.toLowerCase();
+                }
+            } catch (e) { }
+        }
+
+        return `${uname}@jtexpress.co.id`;
+    },
+
+    async getUserProfileByUid(uid) {
+        if (!uid) return null;
+        let profile = null;
+        if (window.db) {
+            try {
+                const snap = await window.db.collection('users').doc(uid).get();
+                if (snap.exists) profile = snap.data();
+            } catch (e) { }
+        }
+        if (!profile) {
+            const localUsers = this.getLocalStore('users') || [];
+            profile = localUsers.find(u => u.uid === uid || u.id === uid);
+        }
+        return profile;
+    },
+
+    async getUserProfileByUsername(username) {
+        if (!username) return null;
+        const uname = username.toLowerCase().trim();
+        const localUsers = this.getLocalStore('users') || [];
+        let profile = localUsers.find(u => (u.username || '').toLowerCase() === uname || (u.id || '').toLowerCase() === uname);
+
+        if (!profile && window.db) {
+            try {
+                const docSnap = await window.db.collection('users').doc(uname).get();
+                if (docSnap.exists) {
+                    profile = docSnap.data();
+                } else {
+                    const qSnap = await window.db.collection('users').where('username', '==', uname).limit(1).get();
+                    if (!qSnap.empty) profile = qSnap.docs[0].data();
+                }
+            } catch (e) { }
+        }
+        return profile;
+    },
+
+    async loginWithFirebaseAuth(identifier, password) {
+        if (!identifier || !password) {
+            throw new Error("Username/Email dan Password wajib diisi!");
+        }
+        if (!window.auth) {
+            throw new Error("Firebase Auth SDK belum diinisialisasi.");
+        }
+
+        const email = await this.resolveEmailFromIdentifier(identifier);
+
+        try {
+            const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+
+            let profile = await this.getUserProfileByUid(user.uid);
+
+            if (!profile) {
+                const uname = identifier.includes('@') ? identifier.split('@')[0].toLowerCase() : identifier.toLowerCase();
+                const legacyProfile = await this.getUserProfileByUsername(uname);
+
+                if (legacyProfile) {
+                    profile = {
+                        ...legacyProfile,
+                        uid: user.uid,
+                        id: user.uid,
+                        email: user.email || legacyProfile.email || email,
+                        migratedToFirebaseAuth: true,
+                        migratedAt: new Date().toISOString()
+                    };
+                    await this.saveDoc('users', user.uid, profile, true);
+                    console.log(`[AUTH] Migrated legacy profile to UID: ${user.uid}`);
+                } else {
+                    profile = {
+                        uid: user.uid,
+                        id: user.uid,
+                        username: uname,
+                        fullname: user.displayName || uname,
+                        email: user.email || email,
+                        role: 'OPERATOR_SLA',
+                        status: 'Aktif',
+                        createdAt: new Date().toISOString()
+                    };
+                    await this.saveDoc('users', user.uid, profile, true);
+                }
+            }
+
+            if ((profile.status || 'Aktif').toLowerCase() === 'nonaktif' || (profile.status || '').toLowerCase() === 'inactive') {
+                await window.auth.signOut();
+                throw new Error("Akun Anda berstatus Nonaktif. Silakan hubungi Administrator.");
+            }
+
+            profile.role = this.normalizeRole(profile.role);
+
+            await this.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: profile.fullname || profile.username,
+                shiftId: this.getActiveShiftId(),
+                modul: "Autentikasi",
+                kodeTugas: "-",
+                aktivitas: `User Login Berhasil via Firebase Auth (${profile.username} - ${profile.role})`
+            });
+
+            return { user, profile };
+        } catch (err) {
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                const uname = identifier.includes('@') ? identifier.split('@')[0].toLowerCase() : identifier.toLowerCase();
+                const legacy = await this.getUserProfileByUsername(uname);
+                if (legacy) {
+                    const activationErr = new Error(`Akun "${uname}" terdaftar pada sistem lama, namun belum diaktifkan di Firebase Authentication.`);
+                    activationErr.code = 'LEGACY_ACCOUNT_NEEDS_ACTIVATION';
+                    activationErr.legacyUser = legacy;
+                    activationErr.email = email;
+                    throw activationErr;
+                }
+            }
+            throw err;
+        }
+    },
+
+    async createUserAccount(profileData, password) {
+        if (!window.auth) throw new Error("Firebase Auth SDK belum aktif.");
+        if (!profileData.email) throw new Error("Email wajib diisi!");
+        if (!profileData.username) throw new Error("Username wajib diisi!");
+        if (!password || password.length < 6) throw new Error("Password minimal 6 karakter.");
+
+        const cred = await window.auth.createUserWithEmailAndPassword(profileData.email, password);
+        const uid = cred.user.uid;
+
+        const newProfile = {
+            uid: uid,
+            id: uid,
+            username: profileData.username.toLowerCase().trim(),
+            fullname: profileData.fullname || profileData.username,
+            email: profileData.email.toLowerCase().trim(),
+            phone: profileData.phone || '',
+            role: this.normalizeRole(profileData.role),
+            tlc: profileData.tlc || 'Head Office',
+            status: profileData.status || 'Aktif',
+            createdAt: new Date().toISOString()
+        };
+
+        await this.saveDoc('users', uid, newProfile, true);
+
+        await this.logAuditEvent({
+            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            operator: sessionStorage.getItem('jnt_active_username') || "Admin",
+            shiftId: this.getActiveShiftId(),
+            modul: "User Management",
+            kodeTugas: "-",
+            aktivitas: `Pendaftaran User Baru via Firebase Auth: ${newProfile.username} (${newProfile.role})`
+        });
+
+        return newProfile;
+    },
+
+    async activateLegacyUser(usernameOrEmail, password) {
+        if (!window.auth) throw new Error("Firebase Auth SDK belum aktif.");
+        if (!password || password.length < 6) throw new Error("Password minimal 6 karakter.");
+
+        const email = await this.resolveEmailFromIdentifier(usernameOrEmail);
+        const uname = usernameOrEmail.includes('@') ? usernameOrEmail.split('@')[0].toLowerCase() : usernameOrEmail.toLowerCase();
+
+        const legacy = await this.getUserProfileByUsername(uname);
+        if (!legacy) {
+            throw new Error(`Data profil lama untuk "${usernameOrEmail}" tidak ditemukan.`);
+        }
+
+        const cred = await window.auth.createUserWithEmailAndPassword(email, password);
+        const uid = cred.user.uid;
+
+        const migratedProfile = {
+            ...legacy,
+            uid: uid,
+            id: uid,
+            username: legacy.username || uname,
+            email: email,
+            role: this.normalizeRole(legacy.role),
+            status: legacy.status || 'Aktif',
+            migratedToFirebaseAuth: true,
+            migratedAt: new Date().toISOString()
+        };
+
+        await this.saveDoc('users', uid, migratedProfile, true);
+
+        await this.logAuditEvent({
+            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            operator: migratedProfile.fullname || uname,
+            shiftId: this.getActiveShiftId(),
+            modul: "Autentikasi",
+            kodeTugas: "-",
+            aktivitas: `Aktivasi Migrasi Akun Lama ke Firebase Auth: ${uname}`
+        });
+
+        return { user: cred.user, profile: migratedProfile };
+    },
+
+    async sendPasswordReset(identifier) {
+        if (!window.auth) throw new Error("Firebase Auth SDK belum aktif.");
+        const email = await this.resolveEmailFromIdentifier(identifier);
+        await window.auth.sendPasswordResetEmail(email);
+
+        await this.logAuditEvent({
+            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            operator: sessionStorage.getItem('jnt_active_username') || "System",
+            shiftId: this.getActiveShiftId(),
+            modul: "User Management",
+            kodeTugas: "-",
+            aktivitas: `Kirim Tautan Reset Password Firebase Auth ke ${email}`
+        });
+        return email;
+    },
+
+    async logoutFirebaseAuth() {
+        if (window.auth) {
+            try {
+                await window.auth.signOut();
+            } catch (e) {
+                console.warn("[AUTH LOGOUT]", e.message);
+            }
+        }
+        sessionStorage.clear();
+        if (typeof localStorage !== 'undefined' && typeof localStorage.removeItem === 'function') {
+            localStorage.removeItem('jnt_auth_user');
+        }
+        console.log("[AUTH LOGOUT] Firebase Auth & Session cleared.");
+    },
+
     async saveUserProfile(username, profileData) {
         if (!username) throw new Error("Username wajib diisi!");
         const shiftId = this.getActiveShiftId();
-        const docId = username.toLowerCase().trim();
-        const existing = await this.getDoc('users', docId) || {};
+        const docId = profileData.uid || username.toLowerCase().trim();
+        const existing = await this.getDoc('users', docId) || await this.getUserProfileByUsername(username) || {};
         const updated = await this.saveDoc('users', docId, {
             ...existing,
             ...profileData,
             id: docId,
-            username: profileData.username || username,
+            username: profileData.username || existing.username || username,
+            role: this.normalizeRole(profileData.role || existing.role),
             updatedAt: new Date().toISOString()
         }, true);
 
@@ -1855,7 +2115,7 @@ const JNTFirebaseService = {
             shiftId: shiftId,
             modul: "User Management",
             kodeTugas: "-",
-            aktivitas: `Simpan/Update Profil User: ${username} (Role: ${profileData.role || existing.role || '-'})`
+            aktivitas: `Simpan/Update Profil User: ${username} (Role: ${updated.role})`
         });
 
         return updated;
