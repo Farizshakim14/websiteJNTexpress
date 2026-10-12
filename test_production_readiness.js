@@ -450,6 +450,7 @@ async function runAudit() {
     // Write audit machine results to json for easy report generation
     fs.writeFileSync('audit_results.json', JSON.stringify(results, null, 2));
     console.log("📄 Raw audit data written to audit_results.json\n");
+    process.exit(0);
 }
 
 runAudit();
