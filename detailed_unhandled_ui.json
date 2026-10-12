@@ -1,0 +1,295 @@
+{
+  "dashboard.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stro"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-inc-add",
+      "text": "📥 Export Report",
+      "lineSnippet": "<button class=\"btn-inc-add\" style=\"background-color: #E30613; font-size: 13px; border-radius: 8px;\">"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-inc-reset",
+      "text": "Lihat Semua",
+      "lineSnippet": "<button class=\"btn-inc-reset\" style=\"font-size: 11.5px; padding: 4px 10px;\">Lihat "
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-inc-reset",
+      "text": "Lihat Detail",
+      "lineSnippet": "<button class=\"btn-inc-reset\" style=\"font-size: 11.5px; padding: 4px 10px;\">Lihat "
+    },
+    {
+      "type": "LINK (Dead Href #)",
+      "id": "(no id)",
+      "classes": "alert-see-all",
+      "text": "Lihat Semua",
+      "lineSnippet": "<a href=\"#\" class=\"alert-see-all\">Lihat Semua</a>"
+    },
+    {
+      "type": "LINK (Dead Href #)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Lihat Semua Trip Telat &rarr;",
+      "lineSnippet": "<a href=\"#\" style=\"font-size: 12px; font-weight: 700; color: #2563EB"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "dash-select",
+      "text": "Dropdown options",
+      "lineSnippet": "<select class=\"dash-select\"> <option>Semua Wilayah</option> "
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "dash-select-sm",
+      "text": "Dropdown options",
+      "lineSnippet": "<select class=\"dash-select-sm\"> <option>7 Hari Terakhir</option> "
+    }
+  ],
+  "monitoring.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\" aria-label=\"Toggle Sidebar\"> <svg viewBox="
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "inc-per-page",
+      "text": "Dropdown options",
+      "lineSnippet": "<select class=\"inc-per-page\" style=\"padding: 4px 8px; border-radius: 6px; border: 1px solid #CBD5E1;"
+    }
+  ],
+  "sla-vendor.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\" aria-label=\"Toggle menu\"> <svg viewBox=\"0 "
+    }
+  ],
+  "trouble.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stro"
+    }
+  ],
+  "shift-management.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stro"
+    }
+  ],
+  "master.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\" aria-label=\"Toggle menu\"> <svg viewBox=\"0 "
+    }
+  ],
+  "report.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stro"
+    }
+  ],
+  "users.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-view-all-history",
+      "text": "Lihat Semua Riwayat",
+      "lineSnippet": "<button class=\"btn-view-all-history\">Lihat Semua Riwayat</button>"
+    }
+  ],
+  "settings.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stro"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "👤 Akun & Profil",
+      "lineSnippet": "<button class=\"settings-tab-item\">👤 <span>Akun & Profil</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "🔔 Notifikasi",
+      "lineSnippet": "<button class=\"settings-tab-item\">🔔 <span>Notifikasi</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "⚙️ SLA & Sistem",
+      "lineSnippet": "<button class=\"settings-tab-item\">⚙️ <span>SLA & Sistem</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "🎨 Tampilan",
+      "lineSnippet": "<button class=\"settings-tab-item\">🎨 <span>Tampilan</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "🛡️ Keamanan",
+      "lineSnippet": "<button class=\"settings-tab-item\">🛡️ <span>Keamanan</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "🔌 Integrasi",
+      "lineSnippet": "<button class=\"settings-tab-item\">🔌 <span>Integrasi</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "💾 Backup & Data",
+      "lineSnippet": "<button class=\"settings-tab-item\">💾 <span>Backup & Data</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "settings-tab-item",
+      "text": "↔️ Log Aktivitas",
+      "lineSnippet": "<button class=\"settings-tab-item\">↔️ <span>Log Aktivitas</span></button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-st-red",
+      "text": "Simpan Perubahan",
+      "lineSnippet": "<button class=\"btn-st-red\">Simpan Perubahan</button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-st-red",
+      "text": "Simpan Perubahan",
+      "lineSnippet": "<button class=\"btn-st-red\">Simpan Perubahan</button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-data-action",
+      "text": "Export",
+      "lineSnippet": "<button class=\"btn-data-action\">Export</button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-data-action",
+      "text": "Import",
+      "lineSnippet": "<button class=\"btn-data-action\">Import</button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-data-action",
+      "text": "Bersihkan",
+      "lineSnippet": "<button class=\"btn-data-action\">Bersihkan</button>"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Dropdown options",
+      "lineSnippet": "<select><option>Asia/Jakarta (WIB)</option></select>"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Dropdown options",
+      "lineSnippet": "<select><option>24 Jam (HH:mm)</option></select>"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Dropdown options",
+      "lineSnippet": "<select><option>dd/mm/yyyy</option></select>"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Dropdown options",
+      "lineSnippet": "<select><option>Bahasa Indonesia</option></select>"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Dropdown options",
+      "lineSnippet": "<select><option>Sedang</option></select>"
+    },
+    {
+      "type": "SELECT (Unbound Filter/Dropdown)",
+      "id": "(no id)",
+      "classes": "(no class)",
+      "text": "Dropdown options",
+      "lineSnippet": "<select><option>Normal</option></select>"
+    }
+  ],
+  "profile.html": [
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "hamburger-btn",
+      "text": "(icon/empty)",
+      "lineSnippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stro"
+    },
+    {
+      "type": "BUTTON",
+      "id": "btn-edit-profile",
+      "classes": "btn-st-red",
+      "text": "✏️ Edit Informasi Profil",
+      "lineSnippet": "<button id=\"btn-edit-profile\" class=\"btn-st-red\">✏️ Edit Informasi Profil</button>"
+    },
+    {
+      "type": "BUTTON",
+      "id": "(no id)",
+      "classes": "btn-revoke-session",
+      "text": "✕",
+      "lineSnippet": "<button class=\"btn-revoke-session\" title=\"Keluarkan Sesi\">✕</button>"
+    }
+  ]
+}

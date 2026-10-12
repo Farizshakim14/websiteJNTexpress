@@ -2,9 +2,82 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow full read/write access for all operational collections
-    match /{document=**} {
+    // Helper functions for auth & role verification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 1. Audit Logs: Strictly Append-Only (Immutable Audit Trail)
+    // No update or delete allowed under any circumstances
+    match /audit_logs/{logId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // 2. Operational Collections: Real-time TMS Dispatch & Monitoring
+    match /incoming/{docId} {
+      allow read, create, update: if true;
+      allow delete: if true; // Trip cancellation
+    }
+
+    match /sla_outbound/{docId} {
+      allow read, create, update, delete: if true;
+    }
+
+    match /sla_return/{docId} {
+      allow read, create, update, delete: if true;
+    }
+
+    match /sla_roundtrip/{docId} {
+      allow read, create, update, delete: if true;
+    }
+
+    match /monitoring_4h/{docId} {
+      allow read, create, update, delete: if true;
+    }
+
+    // 3. Trouble & Incident Management
+    match /troubles/{docId} {
+      allow read, create, update: if true;
+      allow delete: if false; // Incidents cannot be deleted, must be marked 'SUDAH SELESAI'
+    }
+
+    // 4. Shift Management
+    match /shifts/{docId} {
+      allow read, create, update: if true;
+      allow delete: if false; // Shift records are permanent operational history
+    }
+
+    // 5. Master Data Collections
+    match /master_trips/{docId} {
       allow read, write: if true;
+    }
+
+    match /master_fleets/{docId} {
+      allow read, write: if true;
+    }
+
+    match /master_vendors/{docId} {
+      allow read, write: if true;
+    }
+
+    match /master_drivers/{docId} {
+      allow read, write: if true;
+    }
+
+    match /master_reasons/{docId} {
+      allow read, write: if true;
+    }
+
+    // 6. User Management & Security Profiles
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Fallback default deny for any unlisted collections
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

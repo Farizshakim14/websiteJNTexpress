@@ -1,0 +1,319 @@
+{
+  "dashboard.html": {
+    "deadLinks": [
+      {
+        "text": "Lihat Semua",
+        "id": "",
+        "href": "#",
+        "snippet": "<a href=\"#\" class=\"alert-see-all\">Lihat Semua</a>"
+      },
+      {
+        "text": "Lihat\n                                Semua Trip Telat &rarr;",
+        "id": "",
+        "href": "#",
+        "snippet": "<a href=\"#\"\n                                style=\"font-size: 12px; font-weight: 700; color: #2563EB"
+      }
+    ],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" st"
+      },
+      {
+        "text": "📅 Hari Ini",
+        "id": "",
+        "classes": "btn-dash-chip active",
+        "snippet": "<button class=\"btn-dash-chip active\">📅 Hari Ini</button>"
+      },
+      {
+        "text": "📥 Export Report",
+        "id": "",
+        "classes": "btn-inc-add",
+        "snippet": "<button class=\"btn-inc-add\" style=\"background-color: #E30613; font-size: 13px; border-radius: 8px;\"> "
+      },
+      {
+        "text": "Lihat\n                                Semua",
+        "id": "",
+        "classes": "btn-inc-reset",
+        "snippet": "<button class=\"btn-inc-reset\" style=\"font-size: 11.5px; padding: 4px 10px;\">Lihat Semua<"
+      },
+      {
+        "text": "Lihat\n                                Detail",
+        "id": "",
+        "classes": "btn-inc-reset",
+        "snippet": "<button class=\"btn-inc-reset\" style=\"font-size: 11.5px; padding: 4px 10px;\">Lihat Detail"
+      }
+    ]
+  },
+  "monitoring.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\" aria-label=\"Toggle Sidebar\"> <svg viewBox=\"0 0 24 24\" fill=\"no"
+      },
+      {
+        "text": "🔄 Reset Filter",
+        "id": "btn-reset-monitoring",
+        "classes": "btn-inc-reset",
+        "snippet": "<button id=\"btn-reset-monitoring\" class=\"btn-inc-reset\" style=\"padding: 9px 16px; border-radius: 8px; font-weight: 700;\""
+      },
+      {
+        "text": "&lt;",
+        "id": "",
+        "classes": "p-btn",
+        "snippet": "<button class=\"p-btn\">&lt;</button>"
+      },
+      {
+        "text": "1",
+        "id": "",
+        "classes": "p-btn active",
+        "snippet": "<button class=\"p-btn active\">1</button>"
+      },
+      {
+        "text": "2",
+        "id": "",
+        "classes": "p-btn",
+        "snippet": "<button class=\"p-btn\">2</button>"
+      },
+      {
+        "text": "3",
+        "id": "",
+        "classes": "p-btn",
+        "snippet": "<button class=\"p-btn\">3</button>"
+      },
+      {
+        "text": "&gt;",
+        "id": "",
+        "classes": "p-btn",
+        "snippet": "<button class=\"p-btn\">&gt;</button>"
+      }
+    ]
+  },
+  "sla-vendor.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\" aria-label=\"Toggle menu\"> <svg viewBox=\"0 0 24 24\" fill=\"none\""
+      },
+      {
+        "text": "🗑️ Ya, Hapus",
+        "id": "btn-confirm-delete-sla-submit",
+        "classes": "btn-modal-danger",
+        "snippet": "<button type=\"button\" id=\"btn-confirm-delete-sla-submit\" class=\"btn-modal-danger\" style=\"flex: 1;\"> "
+      }
+    ]
+  },
+  "trouble.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" st"
+      }
+    ]
+  },
+  "shift-management.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" st"
+      }
+    ]
+  },
+  "master.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\" aria-label=\"Toggle menu\"> <svg viewBox=\"0 0 24 24\" fill=\"none\""
+      }
+    ]
+  },
+  "report.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" st"
+      }
+    ]
+  },
+  "users.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "Lihat Semua Riwayat",
+        "id": "",
+        "classes": "btn-view-all-history",
+        "snippet": "<button class=\"btn-view-all-history\">Lihat Semua Riwayat</button>"
+      }
+    ]
+  },
+  "settings.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" st"
+      },
+      {
+        "text": "⚙️ Umum",
+        "id": "",
+        "classes": "settings-tab-item active",
+        "snippet": "<button class=\"settings-tab-item active\">⚙️ <span>Umum</span></button>"
+      },
+      {
+        "text": "👤 Akun & Profil",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">👤 <span>Akun & Profil</span></button>"
+      },
+      {
+        "text": "🔔 Notifikasi",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">🔔 <span>Notifikasi</span></button>"
+      },
+      {
+        "text": "⚙️ SLA & Sistem",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">⚙️ <span>SLA & Sistem</span></button>"
+      },
+      {
+        "text": "🎨 Tampilan",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">🎨 <span>Tampilan</span></button>"
+      },
+      {
+        "text": "🛡️ Keamanan",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">🛡️ <span>Keamanan</span></button>"
+      },
+      {
+        "text": "🔌 Integrasi",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">🔌 <span>Integrasi</span></button>"
+      },
+      {
+        "text": "💾 Backup & Data",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">💾 <span>Backup & Data</span></button>"
+      },
+      {
+        "text": "↔️ Log Aktivitas",
+        "id": "",
+        "classes": "settings-tab-item",
+        "snippet": "<button class=\"settings-tab-item\">↔️ <span>Log Aktivitas</span></button>"
+      },
+      {
+        "text": "Simpan Perubahan",
+        "id": "",
+        "classes": "btn-st-red",
+        "snippet": "<button class=\"btn-st-red\">Simpan Perubahan</button>"
+      },
+      {
+        "text": "Simpan Perubahan",
+        "id": "",
+        "classes": "btn-st-outline",
+        "snippet": "<button class=\"btn-st-outline\">Simpan Perubahan</button>"
+      },
+      {
+        "text": "Simpan Perubahan",
+        "id": "",
+        "classes": "btn-st-red",
+        "snippet": "<button class=\"btn-st-red\">Simpan Perubahan</button>"
+      },
+      {
+        "text": "Simpan Perubahan",
+        "id": "",
+        "classes": "btn-st-outline",
+        "snippet": "<button class=\"btn-st-outline\">Simpan Perubahan</button>"
+      },
+      {
+        "text": "Simpan Perubahan",
+        "id": "",
+        "classes": "btn-st-outline",
+        "snippet": "<button class=\"btn-st-outline\">Simpan Perubahan</button>"
+      },
+      {
+        "text": "Export",
+        "id": "",
+        "classes": "btn-data-action",
+        "snippet": "<button class=\"btn-data-action\">Export</button>"
+      },
+      {
+        "text": "Import",
+        "id": "",
+        "classes": "btn-data-action",
+        "snippet": "<button class=\"btn-data-action\">Import</button>"
+      },
+      {
+        "text": "Bersihkan",
+        "id": "",
+        "classes": "btn-data-action",
+        "snippet": "<button class=\"btn-data-action\">Bersihkan</button>"
+      }
+    ]
+  },
+  "profile.html": {
+    "deadLinks": [],
+    "deadButtons": [
+      {
+        "text": "[Icon/Empty]",
+        "id": "",
+        "classes": "hamburger-btn",
+        "snippet": "<button class=\"hamburger-btn\"> <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" st"
+      },
+      {
+        "text": "✏️ Edit Informasi Profil",
+        "id": "btn-edit-profile",
+        "classes": "btn-st-red",
+        "snippet": "<button id=\"btn-edit-profile\" class=\"btn-st-red\">✏️ Edit Informasi Profil</button>"
+      },
+      {
+        "text": "🔄 Batal",
+        "id": "",
+        "classes": "btn-st-outline",
+        "snippet": "<button type=\"button\" class=\"btn-st-outline\">🔄 Batal</button>"
+      },
+      {
+        "text": "✕",
+        "id": "",
+        "classes": "btn-revoke-session",
+        "snippet": "<button class=\"btn-revoke-session\" title=\"Keluarkan Sesi\">✕</button>"
+      }
+    ]
+  },
+  "login.html": {
+    "deadLinks": [],
+    "deadButtons": []
+  },
+  "index.html": {
+    "deadLinks": [],
+    "deadButtons": []
+  }
+}

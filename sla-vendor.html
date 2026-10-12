@@ -50,12 +50,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="incoming.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                                <span class="nav-text">Incoming</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
@@ -134,19 +128,22 @@
             <!-- MAIN BODY -->
             <main class="main-incoming-body">
                 
-                <header class="inc-top-nav">
+                <header class="inc-top-nav sla-header-modern">
                     <div class="inc-title-group">
                         <button class="hamburger-btn" aria-label="Toggle menu">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                         </button>
-                        <div>
-                            <h2 class="inc-main-title" style="font-size: 22px;">SLA Vendor Monitoring (3-Tab)</h2>
-                            <span class="inc-breadcrumb">Dashboard / SLA Vendor</span>
+                        <div class="header-text-block">
+                            <h1 class="header-main-title">
+                                <span class="header-title-icon">⏱️</span> SLA Vendor Monitoring
+                            </h1>
+                            <p class="header-subtitle">Monitoring real-time ketepatan waktu &amp; performa armada vendor transport</p>
                         </div>
                     </div>
 
                     <div class="inc-top-right">
                         <div class="inc-date-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; margin-right: 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                             <span>22 Juli 2026</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn">
@@ -159,43 +156,93 @@
                     </div>
                 </header>
 
-                <!-- 3 SLA Tabs Navigation -->
-                <div class="settings-nav-tabs" style="margin: 16px 0;">
-                    <button class="settings-tab-item active" id="tab-btn-sla-outbound" onclick="switchSlaTab('outbound')">🚚 <span>TAB 1 — SLA Berangkat (JKT → Gateway)</span></button>
-                    <button class="settings-tab-item" id="tab-btn-sla-return" onclick="switchSlaTab('return')">🔄 <span>TAB 2 — SLA Balikan (Gateway → JKT999)</span></button>
-                    <button class="settings-tab-item" id="tab-btn-sla-roundtrip" onclick="switchSlaTab('roundtrip')">🔄 <span>TAB 3 — SLA Roundtrip (PP)</span></button>
+                <!-- Mini KPI Summary Section -->
+                <div class="sla-kpi-grid" style="margin: 20px 0 16px 0;">
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon total">🚚</div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">TOTAL TRIP</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-total-trip">0</span>
+                                <span class="sla-kpi-badge neutral">Hari ini</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon success">✅</div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">ON TIME</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-ontime-count">0</span>
+                                <span class="sla-kpi-badge green" id="kpi-ontime-pct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon danger">⏰</div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">LATE</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-late-count">0</span>
+                                <span class="sla-kpi-badge red" id="kpi-late-pct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon warning">📍</div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">IN TRANSIT</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-transit-count">0</span>
+                                <span class="sla-kpi-badge blue">Monitoring</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 SLA Segmented Navigation -->
+                <div class="sla-segmented-tabs">
+                    <button class="sla-tab-btn active" id="tab-btn-sla-outbound" onclick="switchSlaTab('outbound')">
+                        <span>🚚</span> SLA Berangkat <span class="tab-sub">JKT → Gateway</span>
+                    </button>
+                    <button class="sla-tab-btn" id="tab-btn-sla-return" onclick="switchSlaTab('return')">
+                        <span>🔄</span> SLA Balikan <span class="tab-sub">Gateway → JKT999</span>
+                    </button>
+                    <button class="sla-tab-btn" id="tab-btn-sla-roundtrip" onclick="switchSlaTab('roundtrip')">
+                        <span>🔁</span> SLA Roundtrip <span class="tab-sub">Pulang-Pergi PP</span>
+                    </button>
                 </div>
 
                 <!-- TAB 1: SLA BERANGKAT -->
-                <div id="section-sla-outbound" class="inc-table-card" style="padding: 20px;">
-                    <div class="inc-table-header" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <div>
-                            <h3 class="inc-table-title">Perhitungan SLA Berangkat (Outbound Trip)</h3>
-                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Pencatatan jam mobil keluar (berangkat) & jam aktual sampai di Gateway tujuan</span>
+                <div id="section-sla-outbound" class="sla-table-card-redesign">
+                    <div class="sla-card-header-bar">
+                        <div class="sla-card-title-group">
+                            <h3 class="sla-card-title">Perhitungan SLA Berangkat (Outbound Trip)</h3>
+                            <span class="sla-card-badge">● LIVE MONITORING</span>
                         </div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn-inc-add" onclick="openAddMobilKeluarModal()" style="background-color: #E30613; cursor: pointer;">
-                                🚛 + Input Mobil Keluar (Berangkat)
+                        <div class="sla-card-actions">
+                            <button class="btn-sla-primary-action" onclick="openAddMobilKeluarModal()">
+                                <span>🚚</span> Input Keberangkatan
                             </button>
-                            <button class="btn-inc-add" onclick="document.getElementById('modal-update-sla-outbound').classList.remove('hidden')" style="background-color: #2563EB; cursor: pointer;">
-                                ✏️ Update Jam Sampai Gateway
+                            <button class="btn-sla-secondary-action" onclick="document.getElementById('modal-update-sla-outbound').classList.remove('hidden')">
+                                <span>✏️</span> Update SLA
                             </button>
                         </div>
                     </div>
 
                     <div class="inc-table-scroll">
-                        <table class="inc-data-table" id="table-sla-outbound">
+                        <table class="sla-enterprise-table" id="table-sla-outbound">
                             <thead>
                                 <tr>
                                     <th>Kode Tugas</th>
                                     <th>Trip</th>
                                     <th>Plat Nomor</th>
                                     <th>Jam Berangkat</th>
-                                    <th>Target SLA (Jam)</th>
-                                    <th>Jam Sampai Aktual</th>
+                                    <th>Target SLA</th>
+                                    <th>Jam Sampai</th>
                                     <th>Durasi Aktual</th>
                                     <th>Telat SLA</th>
-                                    <th>Alasan Keterlambatan</th>
+                                    <th>Alasan</th>
                                     <th>Status SLA</th>
                                     <th class="text-center">Aksi</th>
                                 </tr>
@@ -208,29 +255,29 @@
                 </div>
 
                 <!-- TAB 2: SLA BALIKAN -->
-                <div id="section-sla-return" class="inc-table-card hidden" style="padding: 20px;">
-                    <div class="inc-table-header" style="margin-bottom: 16px;">
-                        <div>
-                            <h3 class="inc-table-title">Perhitungan SLA Balikan (Return Trip)</h3>
-                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Pencatatan perjalanan kembali armada dari Gateway menuju JKT999</span>
+                <div id="section-sla-return" class="sla-table-card-redesign hidden">
+                    <div class="sla-card-header-bar">
+                        <div class="sla-card-title-group">
+                            <h3 class="sla-card-title">Perhitungan SLA Balikan (Return Trip)</h3>
+                            <span class="sla-card-badge" style="background:#EFF6FF; border-color:#BFDBFE; color:#2563EB;">● RETURN TRIP</span>
                         </div>
-                        <button class="btn-inc-add" onclick="document.getElementById('modal-add-sla-return').classList.remove('hidden')">
-                            + Input Data Perjalanan Balikan
+                        <button class="btn-sla-primary-action" onclick="document.getElementById('modal-add-sla-return').classList.remove('hidden')">
+                            <span>+</span> Input Perjalanan Balikan
                         </button>
                     </div>
 
                     <div class="inc-table-scroll">
-                        <table class="inc-data-table" id="table-sla-return">
+                        <table class="sla-enterprise-table" id="table-sla-return">
                             <thead>
                                 <tr>
-                                    <th>Kode Tugas Balikan</th>
-                                    <th>Kode Tugas Asal</th>
+                                    <th>Kode Balikan</th>
+                                    <th>Kode Asal</th>
                                     <th>Berangkat Gateway</th>
                                     <th>Sampai JKT999</th>
-                                    <th>Target SLA Balikan</th>
+                                    <th>Target SLA</th>
                                     <th>Durasi Balikan</th>
                                     <th>Total Telat</th>
-                                    <th>Alasan Keterlambatan</th>
+                                    <th>Alasan</th>
                                     <th class="text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -242,16 +289,16 @@
                 </div>
 
                 <!-- TAB 3: SLA ROUNDTRIP (PP) -->
-                <div id="section-sla-roundtrip" class="inc-table-card hidden" style="padding: 20px;">
-                    <div class="inc-table-header" style="margin-bottom: 16px;">
-                        <div>
-                            <h3 class="inc-table-title">Perhitungan SLA Roundtrip (Pulang-Pergi PP)</h3>
-                            <span class="inc-breadcrumb" style="display: block; margin-top: 4px;">Akumulasi durasi total perjalanan PP & penentuan status final SLA</span>
+                <div id="section-sla-roundtrip" class="sla-table-card-redesign hidden">
+                    <div class="sla-card-header-bar">
+                        <div class="sla-card-title-group">
+                            <h3 class="sla-card-title">Perhitungan SLA Roundtrip (Pulang-Pergi PP)</h3>
+                            <span class="sla-card-badge" style="background:#FAF5FF; border-color:#E9D5FF; color:#9333EA;">● ROUNDTRIP PP</span>
                         </div>
                     </div>
 
                     <div class="inc-table-scroll">
-                        <table class="inc-data-table" id="table-sla-roundtrip">
+                        <table class="sla-enterprise-table" id="table-sla-roundtrip">
                             <thead>
                                 <tr>
                                     <th>Kode Tugas</th>
@@ -411,8 +458,8 @@
                     </div>
                 </div>
                 <div class="modal-footer-btns" style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
-                    <button type="button" class="btn-cancel modal-close-btn" style="background: transparent; color: #94A3B8; border: 1px solid rgba(255,255,255,0.18); padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s ease;">Batal</button>
-                    <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #E30613 0%, #B9040E 100%); color: #FFFFFF; border: none; padding: 11px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 14px rgba(227, 6, 19, 0.4); transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;">🚀 Catat Mobil Keluar</button>
+                    <button type="button" class="btn-modal-secondary modal-close-btn">✕ Batal</button>
+                    <button type="submit" class="btn-modal-danger">🚀 Catat Mobil Keluar</button>
                 </div>
             </form>
         </div>
@@ -447,9 +494,9 @@
                         <option value="Cuaca Buruk / Hujan Deras">Cuaca Buruk / Hujan Deras</option>
                     </select>
                 </div>
-                <div class="modal-footer-btns" style="margin-top: 16px;">
-                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-submit">Simpan Update SLA</button>
+                <div class="modal-footer-btns" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                    <button type="button" class="btn-modal-secondary modal-close-btn">✕ Batal</button>
+                    <button type="submit" class="btn-modal-primary">💾 Simpan Update SLA</button>
                 </div>
             </form>
         </div>
@@ -492,11 +539,41 @@
                         <option value="Antrean Pelabuhan">Antrean Pelabuhan</option>
                     </select>
                 </div>
-                <div class="modal-footer-btns" style="margin-top: 16px;">
-                    <button type="button" class="btn-cancel modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-submit">Simpan Perjalanan Balikan</button>
+                <div class="modal-footer-btns" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                    <button type="button" class="btn-modal-secondary modal-close-btn">✕ Batal</button>
+                    <button type="submit" class="btn-modal-primary">💾 Simpan Perjalanan Balikan</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION: DELETE SLA OUTBOUND -->
+    <div id="modal-confirm-delete-sla" class="modal-overlay hidden">
+        <div class="modal-card modal-card-bounce" style="max-width: 440px; text-align: center; padding: 24px 28px;">
+            <div class="delete-icon-badge">
+                <span style="font-size: 28px;">⚠️</span>
+            </div>
+            
+            <h3 style="font-size: 20px; font-weight: 800; color: #FFFFFF; margin-bottom: 6px; margin-top: 12px;">
+                Hapus Data SLA?
+            </h3>
+            <p style="font-size: 13.5px; color: #94A3B8; margin-bottom: 16px;">
+                Apakah Anda yakin ingin menghapus data SLA untuk kode tugas:
+            </p>
+
+            <div style="background: rgba(227, 6, 19, 0.1); border: 1px solid rgba(227, 6, 19, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 18px;">
+                <strong id="delete-target-kode-tugas" style="color: #E30613; font-size: 16px; letter-spacing: 0.5px;">-</strong>
+                <div style="font-size: 12px; color: #94A3B8; margin-top: 4px;">Data SLA outbound ini akan dihapus dari daftar monitoring.</div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn-modal-secondary modal-close-btn" style="flex: 1;">
+                    ✕ Batal
+                </button>
+                <button type="button" id="btn-confirm-delete-sla-submit" class="btn-modal-danger" style="flex: 1;">
+                    🗑️ Ya, Hapus
+                </button>
+            </div>
         </div>
     </div>
 
@@ -507,16 +584,20 @@
     <!-- Config & Logic -->
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
+    <script src="sla-countdown-engine.js"></script>
     <script src="app.js"></script>
     <script>
         function switchSlaTab(tabName) {
-            document.querySelectorAll('.settings-tab-item').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-btn-sla-${tabName}`).classList.add('active');
+            document.querySelectorAll('.sla-tab-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-btn-sla-${tabName}`);
+            if (activeBtn) activeBtn.classList.add('active');
 
             ['outbound', 'return', 'roundtrip'].forEach(sec => {
-                document.getElementById(`section-sla-${sec}`).classList.add('hidden');
+                const section = document.getElementById(`section-sla-${sec}`);
+                if (section) section.classList.add('hidden');
             });
-            document.getElementById(`section-sla-${tabName}`).classList.remove('hidden');
+            const targetSection = document.getElementById(`section-sla-${tabName}`);
+            if (targetSection) targetSection.classList.remove('hidden');
         }
 
         // Parse date format "DD/MM/YYYY HH:mm" or "DD/MM HH:mm"
@@ -537,10 +618,63 @@
         }
 
         function formatDuration(minutes) {
-            if (isNaN(minutes) || minutes <= 0) return "0 Jam 0 Min";
+            if (isNaN(minutes) || minutes <= 0) return "0h 00m";
             const h = Math.floor(minutes / 60);
             const m = minutes % 60;
-            return `${h} Jam ${m} Min`;
+            return `${h}h ${m < 10 ? '0' : ''}${m}m`;
+        }
+
+        function formatDateTimeHierarchy(str) {
+            if (!str) return '<span class="text-dim">Belum Sampai</span>';
+            const parts = str.trim().split(' ');
+            if (parts.length < 2) return `<div>${str}</div>`;
+            return `
+                <div class="date-hierarchy">
+                    <span class="date-part">${parts[0]}</span>
+                    <span class="time-part">${parts[1]}</span>
+                </div>
+            `;
+        }
+
+        function formatLateDisplay(minutes) {
+            if (isNaN(minutes) || minutes <= 0) return `<span style="color:#16A34A; font-weight:700;">0h 00m</span>`;
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return `<span style="color:#DC2626; font-weight:700;">${h}h ${m < 10 ? '0' : ''}${m}m</span>`;
+        }
+
+        function updateSLAOutboundKPIs(list) {
+            const total = list.length;
+            let onTime = 0;
+            let late = 0;
+            let transit = 0;
+
+            list.forEach(i => {
+                if (i.statusSla === 'ON TIME') {
+                    onTime++;
+                } else if (i.lateMinutes > 0 || i.statusSla === 'LATE') {
+                    late++;
+                } else {
+                    transit++;
+                }
+            });
+
+            const onTimePct = total > 0 ? Math.round((onTime / total) * 100) : 0;
+            const latePct = total > 0 ? Math.round((late / total) * 100) : 0;
+
+            const elTotal = document.getElementById('kpi-total-trip');
+            const elOnTime = document.getElementById('kpi-ontime-count');
+            const elOnTimePct = document.getElementById('kpi-ontime-pct');
+            const elLate = document.getElementById('kpi-late-count');
+            const elLatePct = document.getElementById('kpi-late-pct');
+            const elTransit = document.getElementById('kpi-transit-count');
+
+            if (elTotal) elTotal.textContent = total;
+            if (elOnTime) elOnTime.textContent = onTime;
+            if (elOnTimePct) elOnTimePct.textContent = `${onTimePct}%`;
+            if (elLate) elLate.textContent = late;
+            if (elLatePct) elLatePct.textContent = `${latePct}%`;
+            if (elTransit) elTransit.textContent = transit;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -559,28 +693,39 @@
                         selectRetOpt.innerHTML = list.map(i => `<option value="${i.kodeTugas}">${i.kodeTugas} (${i.trip})</option>`).join('');
                     }
 
+                    updateSLAOutboundKPIs(list);
+
                     if (tbody) {
                         tbody.innerHTML = list.map(i => {
-                            const isLate = i.lateMinutes > 0;
-                            const badgeSla = i.statusSla === 'ON TIME' ? 'green-outline' : (isLate ? 'red' : 'blue-outline');
+                            const departureTime = i.jamBerangkat || '';
+                            const targetHours = i.targetSLAHours || 16;
+                            const actualArrival = i.jamSampaiAktual || '';
+
                             return `
-                                <tr>
-                                    <td><strong style="color: var(--primary-red);">${i.kodeTugas}</strong></td>
-                                    <td><span class="badge-status blue-outline">${i.trip || '-'}</span></td>
+                                <tr data-sla-departure="${departureTime}" data-sla-hours="${targetHours}" data-sla-arrival="${actualArrival}">
+                                    <td><span class="kode-tugas-mono">${i.kodeTugas}</span></td>
+                                    <td><span class="sla-trip-pill">${i.trip || '-'}</span></td>
                                     <td><strong>${i.platNomor || '-'}</strong></td>
-                                    <td>${i.jamBerangkat || '-'}</td>
-                                    <td><strong>${i.targetSLAHours || 16} Jam</strong></td>
-                                    <td>${i.jamSampaiAktual || '<span class="text-dim">Belum Sampai</span>'}</td>
-                                    <td><strong>${formatDuration(i.durasiBerangkatMinutes)}</strong></td>
-                                    <td><strong style="color: ${isLate ? '#DC2626' : '#16A34A'};">${formatDuration(i.lateMinutes)}</strong></td>
+                                    <td>${formatDateTimeHierarchy(i.jamBerangkat)}</td>
+                                    <td><span class="sla-target-badge">${targetHours}h Target</span></td>
+                                    <td>${formatDateTimeHierarchy(i.jamSampaiAktual)}</td>
+                                    <td><span class="sla-live-countdown">--:--:--</span></td>
+                                    <td>${formatLateDisplay(i.lateMinutes)}</td>
                                     <td>${i.alasan || '-'}</td>
-                                    <td><span class="badge-status ${badgeSla}">${i.statusSla}</span></td>
+                                    <td><span class="sla-live-status"></span></td>
                                     <td class="text-center">
-                                        <button class="btn-table-action" onclick="openUpdateOutboundModal('${i.kodeTugas}')" title="Edit Sampai">✏️</button>
+                                        <div class="sla-action-buttons">
+                                            <button class="btn-sla-action btn-edit" onclick="openUpdateOutboundModal('${i.kodeTugas}')" title="Edit SLA Outbound">✏️</button>
+                                            <button class="btn-sla-action btn-delete" onclick="openDeleteOutboundModal('${i.kodeTugas}')" title="Hapus SLA Outbound">🗑️</button>
+                                        </div>
                                     </td>
                                 </tr>
                             `;
                         }).join('');
+
+                        if (window.SLACountdownEngine) {
+                            window.SLACountdownEngine.tick();
+                        }
                     }
                 });
 
@@ -674,7 +819,7 @@
                 const inputBy = sessionStorage.getItem('jnt_active_username') || "Hamdan";
 
                 try {
-                    await JNTFirebaseService.addIncomingTrip({
+                    const newTripData = {
                         kodeTugas: kodeTugas,
                         trip: trip,
                         platNomor: platNomor,
@@ -686,20 +831,71 @@
                         sisaAwb: 0,
                         status: 'SEDANG DIPROSES',
                         inputBy: inputBy
-                    });
+                    };
 
-                    alert(`✅ Mobil Keluar ${kodeTugas} (${platNomor}) berhasil dicatat di SLA Berangkat!\nPerjalanan kini aktif dan siap diperbarui setiap 4 jam di menu Monitoring 4 Jam.`);
+                    await JNTFirebaseService.addIncomingTrip(newTripData);
+
                     document.getElementById('modal-add-mobil-keluar').classList.add('hidden');
+                    document.getElementById('form-add-mobil-keluar').reset();
+
+                    // Trigger Interactive Action Success Modal
+                    if (typeof window.showSLASuccessModal === 'function') {
+                        window.showSLASuccessModal({
+                            actionType: 'Input Keberangkatan Mobil & SLA Outbound',
+                            kodeTugas: kodeTugas,
+                            platNomor: platNomor,
+                            trip: trip,
+                            driver: driver1,
+                            vendor: vendor,
+                            jamBerangkat: jamBerangkat,
+                            totalAwb: totalAwb,
+                            inputBy: inputBy
+                        });
+                    } else {
+                        alert(`✅ Mobil Keluar ${kodeTugas} (${platNomor}) berhasil dicatat di SLA Berangkat!`);
+                    }
                 } catch (err) {
                     alert(err.message || 'Terjadi kesalahan saat menyimpan data mobil keluar.');
                 }
             });
 
-            window.openUpdateOutboundModal = (kodeTugas) => {
+            window.openUpdateOutboundModal = async (kodeTugas) => {
                 const selectOpt = document.getElementById('sla-out-kode-tugas');
                 if (selectOpt && kodeTugas) selectOpt.value = kodeTugas;
+                
+                // Pre-fill existing data if available
+                const outData = (await JNTFirebaseService.getDoc('sla_outbound', kodeTugas)) || {};
+                const jamSampaiInput = document.getElementById('sla-out-jam-sampai');
+                const alasanSelect = document.getElementById('sla-out-alasan');
+
+                if (jamSampaiInput) jamSampaiInput.value = outData.jamSampaiAktual || '';
+                if (alasanSelect && outData.alasan) alasanSelect.value = outData.alasan;
+
                 document.getElementById('modal-update-sla-outbound').classList.remove('hidden');
             };
+
+            let pendingDeleteKodeTugas = null;
+
+            window.openDeleteOutboundModal = (kodeTugas) => {
+                pendingDeleteKodeTugas = kodeTugas;
+                const kodeEl = document.getElementById('delete-target-kode-tugas');
+                if (kodeEl) kodeEl.textContent = kodeTugas;
+                document.getElementById('modal-confirm-delete-sla').classList.remove('hidden');
+            };
+
+            document.getElementById('btn-confirm-delete-sla-submit')?.addEventListener('click', async () => {
+                if (!pendingDeleteKodeTugas) return;
+                const kodeTugas = pendingDeleteKodeTugas;
+                try {
+                    await JNTFirebaseService.deleteSLAOutbound(kodeTugas);
+                    document.getElementById('modal-confirm-delete-sla').classList.add('hidden');
+                    if (typeof window.showToastNotification === 'function') {
+                        window.showToastNotification("🗑️ DELETED", `Data SLA Outbound ${kodeTugas} berhasil dihapus.`, "info");
+                    }
+                } catch (err) {
+                    console.warn("Delete SLA error notice:", err.message);
+                }
+            });
 
             // Submit Form Outbound Update
             document.getElementById('form-update-sla-outbound')?.addEventListener('submit', async (e) => {
@@ -708,9 +904,8 @@
                 const jamSampaiAktualStr = document.getElementById('sla-out-jam-sampai').value.trim();
                 const alasan = document.getElementById('sla-out-alasan').value;
 
-                // Calculate duration
-                const incDoc = await window.db.collection('incoming').doc(kodeTugas).get();
-                const incData = incDoc.exists ? incDoc.data() : {};
+                // Calculate duration safely using Dual SSOT getDoc
+                const incData = (await JNTFirebaseService.getDoc('incoming', kodeTugas)) || {};
 
                 const dBerangkat = parseCustomDate(incData.jamBerangkat);
                 const dSampai = parseCustomDate(jamSampaiAktualStr);
@@ -736,8 +931,24 @@
                 // Update incoming status
                 await JNTFirebaseService.updateIncomingTrip(kodeTugas, { status: 'SUDAH SELESAI' });
 
-                alert(`✅ Jam Sampai Outbound ${kodeTugas} diperbarui! Status SLA Outbound: ${statusSla}`);
                 document.getElementById('modal-update-sla-outbound').classList.add('hidden');
+
+                if (typeof window.showSLASuccessModal === 'function') {
+                    window.showSLASuccessModal({
+                        actionType: `Update Jam Sampai Gateway (Status: ${statusSla})`,
+                        kodeTugas: kodeTugas,
+                        platNomor: incData.platNomor || '-',
+                        trip: incData.trip || incData.namaRute || '-',
+                        driver: incData.driver1 || '-',
+                        vendor: incData.vendor || 'PT J&T Logistics',
+                        jamBerangkat: jamSampaiAktualStr,
+                        targetSLAHours: targetHours,
+                        totalAwb: incData.totalAwb || 0,
+                        inputBy: sessionStorage.getItem('jnt_active_username') || "Hamdan"
+                    });
+                } else {
+                    alert(`✅ Jam Sampai Outbound ${kodeTugas} diperbarui! Status SLA Outbound: ${statusSla}`);
+                }
             });
 
             // Submit Form Return SLA
@@ -749,8 +960,8 @@
                 const jamSampaiJKT999Str = document.getElementById('sla-ret-jam-sampai').value.trim();
                 const alasan = document.getElementById('sla-ret-alasan').value;
 
-                const incDoc = await window.db.collection('incoming').doc(kodeAsal).get();
-                const incData = incDoc.exists ? incDoc.data() : {};
+                const incData = (await JNTFirebaseService.getDoc('incoming', kodeAsal)) || {};
+
                 const targetHours = incData.targetSLAReturnHours || 16;
 
                 const dBerg = parseCustomDate(jamBerangkatGatewayStr);
@@ -777,8 +988,24 @@
 
                 await JNTFirebaseService.saveSLAReturn(kodeAsal, returnObj);
 
-                alert(`✅ Data Perjalanan Balikan ${kodeBalikan} tersimpan! Recalculating SLA Roundtrip (PP)...`);
-                document.getElementById('form-add-sla-return').classList.add('hidden');
+                document.getElementById('modal-add-sla-return').classList.add('hidden');
+
+                if (typeof window.showSLASuccessModal === 'function') {
+                    window.showSLASuccessModal({
+                        actionType: 'Input Perjalanan Balikan SLA',
+                        kodeTugas: kodeBalikan,
+                        platNomor: incData.platNomor || '-',
+                        trip: `Balikan Asal: ${kodeAsal}`,
+                        driver: incData.driver1 || '-',
+                        vendor: incData.vendor || 'PT J&T Logistics',
+                        jamBerangkat: jamBerangkatGatewayStr,
+                        targetSLAHours: targetHours,
+                        totalAwb: incData.totalAwb || 0,
+                        inputBy: sessionStorage.getItem('jnt_active_username') || "Hamdan"
+                    });
+                } else {
+                    alert(`✅ Data Perjalanan Balikan ${kodeBalikan} tersimpan! Recalculating SLA Roundtrip (PP)...`);
+                }
             });
         });
     </script>

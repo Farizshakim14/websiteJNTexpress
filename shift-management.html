@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J&T Express - Shift Management</title>
-    <meta name="description" content="Manajemen Pembagian Shift 2 Operator dan Audit Aktivitas Penugasan J&T Express.">
+    <title>J&T Express - Shift Management Control Center</title>
+    <meta name="description" content="Control Center Penugasan 2 Operator, Aktivitas Operasional, dan Audit Trail Shift J&T Express.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,7 @@
                     </div>
                 </div>
 
-                <div class="sidebar-user-card" id="sidebar-user-card-btn">
+                <div class="sidebar-user-card" id="sidebar-user-card-btn" style="cursor: pointer;" title="Profil Saya">
                     <div class="avatar-wrapper">
                         <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
@@ -48,12 +48,6 @@
                             <a href="dashboard.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                                 <span class="nav-text">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="incoming.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                                <span class="nav-text">Incoming</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -132,79 +126,136 @@
                 </div>
             </aside>
 
-            <!-- MAIN SHIFT MANAGEMENT BODY -->
+            <!-- MAIN SHIFT CONTROL CENTER BODY -->
             <main class="main-incoming-body">
 
-                <!-- Top Header Nav -->
+                <!-- TOP NAV HEADER BAR -->
                 <header class="inc-top-nav">
                     <div class="inc-title-group">
                         <button class="hamburger-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                         </button>
                         <div>
-                            <h2 class="inc-main-title" style="font-size: 22px;">Shift Management (Penugasan 2 Operator)</h2>
-                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Shift Management</span>
+                            <h2 class="inc-main-title" style="font-size: 22px;">SHIFT MANAGEMENT</h2>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Operator & Shift Control Center</span>
+                            <p style="font-size: 11.5px; color: #64748B; margin-top: 2px;">Kelola penugasan operator, periode kerja, aktivitas, dan audit shift.</p>
                         </div>
                     </div>
 
                     <div class="inc-top-right">
-                        <div class="inc-date-chip">
-                            <span>16 Agustus 2026</span>
-                            <span style="font-size: 11.5px; color: #64748B;">Shift 1 (08:00 - 20:00)</span>
+                        <div class="inc-date-chip" id="sh-top-date-chip">
+                            <span>📅 01 Oktober 2026</span>
+                            <span style="font-size: 11.5px; color: #64748B;" id="sh-top-clock-text">10:30:00 WIB</span>
                         </div>
-                        <button id="btn-add-shift" class="btn-inc-add" onclick="document.getElementById('modal-add-shift').classList.remove('hidden')" style="background-color: #E30613; cursor: pointer; padding: 8px 16px;">
+                        <button id="btn-open-start-shift" class="btn-jnt-red" style="padding: 9px 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             + Mulai Shift Baru
                         </button>
                     </div>
                 </header>
 
-                <!-- ACTIVE SHIFT HERO CARD -->
-                <div class="profile-hero-card" style="background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%); color: #FFF; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 6px solid #E30613;">
+                <!-- ACTIVE SHIFT HERO CONTROL CENTER CARD -->
+                <div class="shift-control-hero">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
                         <div>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <span class="badge-status green-outline" style="font-size: 12px; padding: 3px 10px; background: rgba(22, 163, 74, 0.2); color: #4ADE80; border-color: #22C55E;">🟢 SHIFT SAAT INI AKTIF</span>
-                                <span style="font-size: 13px; color: #94A3B8; font-weight: 700;" id="sh-shift-id">ID: SHIFT-20260816-01</span>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span id="sh-active-status-badge" class="badge-status green-outline" style="font-size: 12px; padding: 4px 12px; background: rgba(34, 197, 94, 0.2); color: #4ADE80; border-color: #22C55E; font-weight: 800;">
+                                    🟢 SHIFT SAAT INI AKTIF
+                                </span>
+                                <span style="font-size: 13.5px; color: #94A3B8; font-weight: 800; font-family: monospace;" id="sh-active-id">
+                                    SHIFT-20261001-01
+                                </span>
                             </div>
-                            <h2 style="font-size: 24px; font-weight: 800; margin: 0; color: #FFF;">Shift 1 (08:00 - 20:00 WIB)</h2>
-                            <span style="font-size: 13px; color: #CBD5E1; margin-top: 4px; display: block;">Tanggal Tugas: 16 Agustus 2026 • Durasi Operasional: 12 Jam</span>
+                            <h2 style="font-size: 26px; font-weight: 800; margin: 0; color: #FFFFFF;" id="sh-active-title">
+                                Shift 1 (08:00 - 20:00 WIB)
+                            </h2>
+                            <span style="font-size: 13px; color: #CBD5E1; margin-top: 4px; display: block;" id="sh-active-meta">
+                                Tanggal Tugas: 01 Oktober 2026 • Durasi Operasional: 12 Jam
+                            </span>
                         </div>
 
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn-st-outline" style="background: rgba(255,255,255,0.1); color: #FFF; border-color: rgba(255,255,255,0.2);" onclick="alert('Shift ID: SHIFT-20260816-01\\nStatus: AKTIF\\nMulai: 08:00 WIB')">📋 Salin Shift ID</button>
-                            <button type="button" class="btn-st-red" onclick="document.getElementById('modal-add-shift').classList.remove('hidden')">🔄 Pergantian Shift</button>
+                        <!-- Hero Action Buttons -->
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" id="btn-copy-shift-id" class="btn-st-outline" style="background: rgba(255,255,255,0.1); color: #FFF; border-color: rgba(255,255,255,0.25);" title="Salin Shift ID">
+                                📋 Salin Shift ID
+                            </button>
+                            <button type="button" id="btn-open-edit-shift" class="btn-st-outline" style="background: rgba(255,255,255,0.1); color: #FFF; border-color: rgba(255,255,255,0.25);" title="Edit Operator & Penugasan Shift">
+                                ✏️ Edit Shift
+                            </button>
+                            <button type="button" id="btn-open-switch-shift" class="btn-jnt-red" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);" title="Pergantian Operator Shift">
+                                🔄 Pergantian Shift
+                            </button>
+                            <button type="button" id="btn-open-end-shift" class="btn-st-outline" style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border-color: #EF4444;" title="Akhiri Shift Saat Ini">
+                                ⏹️ Akhiri Shift
+                            </button>
                         </div>
                     </div>
 
-                    <!-- 2 OPERATOR ASSIGNMENT CARDS GRID -->
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 20px;">
+                    <!-- WARNING BANNER IF ENDING SOON -->
+                    <div id="sh-shift-alert-banner" class="hidden" style="margin-top: 14px; padding: 10px 14px; background: rgba(245, 158, 11, 0.2); border: 1px solid #F59E0B; border-radius: 8px; color: #FDE68A; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <span>⚠️ WARNING:</span> <span id="sh-alert-msg">Shift aktif hampir selesai (kurang dari 1 jam tersisa). Mohon persiapkan pergantian operator!</span>
+                    </div>
+
+                    <!-- DYNAMIC SHIFT TIMELINE PROGRESS TRACK -->
+                    <div class="shift-timeline-container">
+                        <div class="shift-timeline-header">
+                            <span>PROGRESS PERIODE KERJA SHIFT</span>
+                            <span id="sh-current-time-text">WAKTU AKTUAL: 10:30 WIB</span>
+                        </div>
+                        <div class="shift-timeline-track">
+                            <div id="sh-timeline-fill" class="shift-timeline-fill" style="width: 25%;"></div>
+                            <div id="sh-timeline-pin" class="shift-timeline-pin" style="left: 25%;" title="Waktu Saat Ini"></div>
+                        </div>
+                        <div class="shift-timeline-labels">
+                            <span id="sh-start-time-label">08:00 WIB</span>
+                            <span id="sh-remaining-time-label" style="color: #38BDF8;">⏳ Sisa Durasi: 9 Jam 30 Menit</span>
+                            <span id="sh-end-time-label">20:00 WIB</span>
+                        </div>
+                    </div>
+
+                    <!-- 2 OPERATOR CARDS GRID -->
+                    <div class="operator-cards-grid">
                         
-                        <!-- Operator 1 Card -->
-                        <div style="background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 16px; display: flex; gap: 14px; align-items: center;">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" style="width: 54px; height: 54px; border-radius: 50%; border: 2px solid #E30613; object-fit: cover;">
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <strong style="font-size: 16px; color: #FFF;" id="sh-op1-nama">Hamdan Hamdani</strong>
-                                    <span style="background: #E30613; color: #FFF; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">OPERATOR 1</span>
+                        <!-- OPERATOR 1 CARD -->
+                        <div class="operator-card-item">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="op-avatar-img op1-border" id="sh-op1-avatar">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <strong style="font-size: 16.5px; color: #FFF;" id="sh-op1-nama">Hamdan Hamdani</strong>
+                                        <span class="op-badge-tag op1">OPERATOR 1</span>
+                                    </div>
+                                    <span style="font-size: 11.5px; color: #4ADE80; font-weight: 700;" id="sh-op1-status-dot">🟢 Online</span>
                                 </div>
-                                <span style="font-size: 12px; color: #94A3B8; display: block; margin-top: 2px;">Role: Operator Utama</span>
+                                <span style="font-size: 12px; color: #94A3B8; display: block; margin-top: 2px;" id="sh-op1-role">Role: Operator Utama</span>
                                 <div style="margin-top: 6px; font-size: 12px; color: #38BDF8; font-weight: 700;">
-                                    📌 Tugas Shift: <span style="color: #FFF; font-weight: 600;" id="sh-op1-tugas">Monitoring 4H + Incident (Trouble & Laka)</span>
+                                    📌 Penugasan: <span style="color: #FFF; font-weight: 600;" id="sh-op1-tugas">Monitoring 4H & Incident</span>
+                                </div>
+                                <div style="display: flex; gap: 14px; margin-top: 10px; font-size: 12px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 8px;">
+                                    <span>📍 Check-in 4H: <strong style="color: #F59E0B;" id="sh-op1-mon-count">0</strong></span>
+                                    <span>🚨 Incident Report: <strong style="color: #EF4444;" id="sh-op1-inc-count">0</strong></span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Operator 2 Card -->
-                        <div style="background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; padding: 16px; display: flex; gap: 14px; align-items: center;">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" alt="Rizky Avatar" style="width: 54px; height: 54px; border-radius: 50%; border: 2px solid #3B82F6; object-fit: cover;">
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <strong style="font-size: 16px; color: #FFF;" id="sh-op2-nama">Rizky Ramadhan</strong>
-                                    <span style="background: #2563EB; color: #FFF; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">OPERATOR 2</span>
+                        <!-- OPERATOR 2 CARD -->
+                        <div class="operator-card-item">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" alt="Rizky Avatar" class="op-avatar-img op2-border" id="sh-op2-avatar">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <strong style="font-size: 16.5px; color: #FFF;" id="sh-op2-nama">Rizky Ramadhan</strong>
+                                        <span class="op-badge-tag op2">OPERATOR 2</span>
+                                    </div>
+                                    <span style="font-size: 11.5px; color: #4ADE80; font-weight: 700;" id="sh-op2-status-dot">🟢 Online</span>
                                 </div>
-                                <span style="font-size: 12px; color: #94A3B8; display: block; margin-top: 2px;">Role: Operator Pendamping</span>
+                                <span style="font-size: 12px; color: #94A3B8; display: block; margin-top: 2px;" id="sh-op2-role">Role: Operator Pendamping</span>
                                 <div style="margin-top: 6px; font-size: 12px; color: #38BDF8; font-weight: 700;">
-                                    📌 Tugas Shift: <span style="color: #FFF; font-weight: 600;" id="sh-op2-tugas">SLA Vendor + Incoming SSOT</span>
+                                    📌 Penugasan: <span style="color: #FFF; font-weight: 600;" id="sh-op2-tugas">SLA Vendor & Master Data</span>
+                                </div>
+                                <div style="display: flex; gap: 14px; margin-top: 10px; font-size: 12px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 8px;">
+                                    <span>⏱️ Update SLA: <strong style="color: #10B981;" id="sh-op2-sla-count">0</strong></span>
+                                    <span>📊 Total Transaksi: <strong style="color: #3B82F6;" id="sh-op2-total-count">0</strong></span>
                                 </div>
                             </div>
                         </div>
@@ -212,166 +263,191 @@
                     </div>
                 </div>
 
-                <!-- 4 KPI SUMMARY CARDS (PERFORMANCE REKAP SHIFT) -->
-                <div class="inc-kpi-grid">
-                    <div class="inc-kpi-card">
-                        <div class="inc-kpi-icon-circle blue-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                        </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">INPUT INCOMING SHIFT</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">28</span>
-                                <span class="inc-kpi-unit">Transaksi</span>
-                            </div>
-                            <span class="inc-kpi-sub" style="color: #64748B;">Oleh Operator 2 (Rizky)</span>
-                        </div>
-                    </div>
-
-                    <div class="inc-kpi-card">
-                        <div class="inc-kpi-icon-circle green-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
-                        </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">SLA UPDATES SHIFT</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" style="color: #16A34A;">37</span>
-                                <span class="inc-kpi-unit">Trip</span>
-                            </div>
-                            <span class="inc-kpi-sub" style="color: #16A34A;">Oleh Operator 2 (Rizky)</span>
-                        </div>
-                    </div>
-
-                    <div class="inc-kpi-card">
-                        <div class="inc-kpi-icon-circle orange-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
-                        </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">CHECK-IN MONITORING 4H</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" style="color: #D97706;">42</span>
-                                <span class="inc-kpi-unit">Check-in</span>
-                            </div>
-                            <span class="inc-kpi-sub" style="color: #D97706;">Oleh Operator 1 (Hamdan)</span>
-                        </div>
-                    </div>
-
-                    <div class="inc-kpi-card">
-                        <div class="inc-kpi-icon-circle red-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                        </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">INCIDENT LAPOR SHIFT</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" style="color: #DC2626;">4</span>
-                                <span class="inc-kpi-unit">Incident</span>
-                            </div>
-                            <span class="inc-kpi-sub" style="color: #DC2626;">Oleh Operator 1 (Hamdan)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- MAIN SPLIT CONTAINER (AUDIT LOGS SHIFT & RIWAYAT PERGANTIAN SHIFT) -->
-                <div class="inc-split-container" style="margin-top: 20px;">
+                <!-- 6 DYNAMIC KPI SUMMARY CARDS GRID -->
+                <div class="shift-kpi-grid-6">
                     
-                    <!-- Audit Logs Table Section (Left) -->
-                    <div class="inc-table-card" style="flex: 1.5;">
-                        <div class="inc-table-header">
-                            <div>
-                                <h3 class="inc-table-title">Audit Trail Transaksi Shift (Real-Time Logs)</h3>
-                                <span style="font-size: 12px; color: #64748B;">Mencatat otomatis aktivitas operator beserta Shift ID</span>
-                            </div>
-                            <button class="btn-inc-import">📥 Export Audit Log</button>
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle blue-light" style="background: #EFF6FF; color: #2563EB; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                         </div>
-
-                        <div class="inc-table-scroll">
-                            <table class="inc-data-table audit-table">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>Waktu</th>
-                                        <th>Shift ID</th>
-                                        <th>Operator Input</th>
-                                        <th>Modul</th>
-                                        <th>Kode Tugas</th>
-                                        <th>Aktivitas Transaksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="inc-row">
-                                        <td class="col-center">1</td>
-                                        <td><strong>22/07/2026 10:35</strong></td>
-                                        <td><span class="badge-status blue-outline">SHIFT-20260816-01</span></td>
-                                        <td><strong>Hamdan</strong> <span style="font-size: 10px; color: #64748B;">(Op 1)</span></td>
-                                        <td><span class="badge-status red">Trouble & Laka</span></td>
-                                        <td><strong style="color: #E30613;">DBGX2607220004</strong></td>
-                                        <td>Melaporkan Incident Trouble (Ban Pecah)</td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">2</td>
-                                        <td><strong>22/07/2026 09:35</strong></td>
-                                        <td><span class="badge-status blue-outline">SHIFT-20260816-01</span></td>
-                                        <td><strong>Rizky</strong> <span style="font-size: 10px; color: #64748B;">(Op 2)</span></td>
-                                        <td><span class="badge-status green-outline">SLA Vendor</span></td>
-                                        <td><strong>DBGX2607220004</strong></td>
-                                        <td>Update Jam Sampai Gateway (23/07/2026 08:30)</td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">3</td>
-                                        <td><strong>22/07/2026 09:17</strong></td>
-                                        <td><span class="badge-status blue-outline">SHIFT-20260816-01</span></td>
-                                        <td><strong>Hamdan</strong> <span style="font-size: 10px; color: #64748B;">(Op 1)</span></td>
-                                        <td><span class="badge-status orange-outline">Monitoring 4H</span></td>
-                                        <td><strong>DBGX2607220001</strong></td>
-                                        <td>Check-in Posisi Slot 08:00 (Tol Cipali KM 102)</td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">4</td>
-                                        <td><strong>22/07/2026 08:10</strong></td>
-                                        <td><span class="badge-status blue-outline">SHIFT-20260816-01</span></td>
-                                        <td><strong>Rizky</strong> <span style="font-size: 10px; color: #64748B;">(Op 2)</span></td>
-                                        <td><span class="badge-status blue-outline">Incoming SSOT</span></td>
-                                        <td><strong>DBGX2607220002</strong></td>
-                                        <td>Input Transaksi Incoming Baru (SRG FUSO)</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="inc-kpi-info" style="margin-top: 10px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">TOTAL TRANSAKSI</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 2px;">
+                                <span class="inc-kpi-number" id="kpi-total-tx" style="font-size: 22px; font-weight: 800; color: #0F172A;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 11.5px; color: #64748B;">Aktivitas</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: #64748B; display: block; margin-top: 2px;">Rekapitulasi Shift</span>
                         </div>
                     </div>
 
-                    <!-- Right Side Shift Schedule Card -->
-                    <div class="inc-detail-card" style="width: 320px; min-width: 320px;">
-                        <div class="detail-card-header">
-                            <h3 class="detail-title">Jadwal Shift Operasional</h3>
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle orange-light" style="background: #FEF3C7; color: #D97706; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
                         </div>
-
-                        <div class="detail-info-list" style="padding: 16px;">
-                            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <strong style="color: #0F172A;">Shift 1 (Pagi - Malam)</strong>
-                                    <span class="badge-status green-outline">AKTIF</span>
-                                </div>
-                                <span style="font-size: 12px; color: #64748B; display: block; margin-top: 4px;">🕒 08:00 - 20:00 WIB</span>
-                                <div style="margin-top: 8px; font-size: 11.5px; color: #334155;">
-                                    👤 Op 1: Hamdan<br>
-                                    👤 Op 2: Rizky
-                                </div>
+                        <div class="inc-kpi-info" style="margin-top: 10px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">MONITORING 4H</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 2px;">
+                                <span class="inc-kpi-number" id="kpi-mon-checkin" style="font-size: 22px; font-weight: 800; color: #D97706;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 11.5px; color: #64748B;">Check-in</span>
                             </div>
-
-                            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <strong style="color: #0F172A;">Shift 2 (Malam - Pagi)</strong>
-                                    <span class="badge-status" style="border: 1px solid #CBD5E1; color: #64748B;">MENDATANG</span>
-                                </div>
-                                <span style="font-size: 12px; color: #64748B; display: block; margin-top: 4px;">🕒 20:00 - 08:00 WIB</span>
-                                <div style="margin-top: 8px; font-size: 11.5px; color: #334155;">
-                                    👤 Op 1: Dedi Setiawan<br>
-                                    👤 Op 2: Faris Ramadhan
-                                </div>
-                            </div>
+                            <span style="font-size: 10.5px; color: #D97706; display: block; margin-top: 2px;">Oleh Op 1 (Hamdan)</span>
                         </div>
                     </div>
 
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle green-light" style="background: #F0FDF4; color: #16A34A; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                        </div>
+                        <div class="inc-kpi-info" style="margin-top: 10px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">SLA UPDATES</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 2px;">
+                                <span class="inc-kpi-number" id="kpi-sla-update" style="font-size: 22px; font-weight: 800; color: #16A34A;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 11.5px; color: #64748B;">Update</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: #16A34A; display: block; margin-top: 2px;">Oleh Op 2 (Rizky)</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle red-light" style="background: #FEF2F2; color: #DC2626; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        </div>
+                        <div class="inc-kpi-info" style="margin-top: 10px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">TROUBLE / INCIDENT</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 2px;">
+                                <span class="inc-kpi-number" id="kpi-inc-count" style="font-size: 22px; font-weight: 800; color: #DC2626;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 11.5px; color: #64748B;">Incident</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: #DC2626; display: block; margin-top: 2px;">Terdeteksi</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle purple-light" style="background: #F3E8FF; color: #9333EA; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </div>
+                        <div class="inc-kpi-info" style="margin-top: 10px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">SHIFT DURATION</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 2px;">
+                                <span class="inc-kpi-number" id="kpi-shift-duration" style="font-size: 20px; font-weight: 800; color: #9333EA;">12 Jam</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: #64748B; display: block; margin-top: 2px;">Periode Operasional</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle teal-light" style="background: #CCFBF1; color: #0D9488; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                        <div class="inc-kpi-info" style="margin-top: 10px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">ACTIVE OPERATORS</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 2px;">
+                                <span class="inc-kpi-number" id="kpi-active-ops" style="font-size: 20px; font-weight: 800; color: #0D9488;">2 Operator</span>
+                            </div>
+                            <span style="font-size: 10.5px; color: #10B981; display: block; margin-top: 2px;">Terverifikasi Active</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SECTION: RIWAYAT SHIFT OPERASIONAL TABLE CARD -->
+                <div class="inc-table-card" style="margin-top: 24px;" id="section-shift-history">
+                    <div class="inc-table-header" style="flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <h3 class="inc-table-title" style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                                📜 Riwayat Shift Operasional
+                            </h3>
+                            <span style="font-size: 12px; color: #64748B;">Daftar seluruh periode shift yang telah selesai maupun sedang berjalan</span>
+                        </div>
+
+                        <!-- Search & Filter Controls -->
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                            <input type="text" id="sh-history-search" placeholder="🔍 Cari Shift ID / Operator..." style="padding: 8px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 13px; outline: none; width: 220px;">
+                            
+                            <select id="sh-history-status-filter" style="padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; background: #FFF;">
+                                <option value="ALL">Semua Status</option>
+                                <option value="AKTIF">🟢 AKTIF</option>
+                                <option value="COMPLETED">✅ COMPLETED</option>
+                            </select>
+
+                            <button id="btn-reset-history-filter" class="btn-st-outline" style="padding: 8px 14px; font-size: 12.5px;">
+                                🔄 Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table shift-history-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Shift ID</th>
+                                    <th>Tanggal</th>
+                                    <th>Jam Operasional</th>
+                                    <th>Operator 1</th>
+                                    <th>Operator 2</th>
+                                    <th>Durasi</th>
+                                    <th>Status</th>
+                                    <th>Total Aktivitas</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sh-history-tbody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Footer -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid #E2E8F0; font-size: 12.5px; color: #64748B;">
+                        <span id="sh-pagination-info">Menampilkan 1 - 5 dari 5 Shift</span>
+                        <div style="display: flex; gap: 6px;" id="sh-pagination-controls">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION: SHIFT ACTIVITY & AUDIT TRAIL TABLE CARD -->
+                <div class="inc-table-card" style="margin-top: 24px;" id="section-audit-trail">
+                    <div class="inc-table-header" style="flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <h3 class="inc-table-title" style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                                🛡️ Shift Activity & Audit Trail (Real-Time Logs)
+                            </h3>
+                            <span style="font-size: 12px; color: #64748B;">Mencatat otomatis setiap transaksi beserta Shift ID & Operator bertugas</span>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="audit-module-filter" style="padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; background: #FFF;">
+                                <option value="ALL">Semua Modul</option>
+                                <option value="Monitoring 4H">Monitoring 4H</option>
+                                <option value="SLA Vendor">SLA Vendor</option>
+                                <option value="Trouble & Laka">Trouble & Laka</option>
+                                <option value="Shift Management">Shift Management</option>
+                            </select>
+
+                            <button id="btn-export-audit-log" class="btn-inc-import" style="padding: 8px 14px;">📥 Export Audit Log</button>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table audit-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Waktu</th>
+                                    <th>Shift ID</th>
+                                    <th>Operator Input</th>
+                                    <th>Modul</th>
+                                    <th>Kode Tugas</th>
+                                    <th>Aktivitas Transaksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-table-body">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </main>
@@ -384,64 +460,248 @@
 
     </div>
 
-    <!-- MODAL POPUP: ATUR / PERGANTIAN SHIFT -->
-    <div id="modal-add-shift" class="modal-overlay hidden">
-        <div class="modal-card" style="max-width: 560px;">
+    <!-- MODAL 1: MULAI SHIFT BARU -->
+    <div id="modal-start-shift" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 580px;">
             <div class="modal-header">
-                <h3>🔄 Atur / Pergantian Shift Operasional</h3>
+                <h3>🚀 Mulai Shift Baru Operasional</h3>
                 <button type="button" class="btn-close-x modal-close-btn">&times;</button>
             </div>
-            <form id="form-add-shift" class="modal-body-form" style="padding: 18px 22px;">
+            <form id="form-start-shift" class="modal-body-form" style="padding: 20px 24px;">
                 
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Nama Shift</label>
-                        <select id="sh-nama-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700;">
-                            <option value="Shift 1 (08:00 - 20:00)">Shift 1 (08:00 - 20:00 WIB)</option>
-                            <option value="Shift 2 (20:00 - 08:00)">Shift 2 (20:00 - 08:00 WIB)</option>
-                        </select>
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Tanggal Shift</label>
+                        <input type="date" id="st-tanggal-input" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                     <div class="form-field">
-                        <label>Tanggal Operasional</label>
-                        <input type="text" id="sh-tanggal-input" value="16/08/2026" required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Nama Shift</label>
+                        <select id="st-nama-select" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                            <option value="Shift 1 (08:00 - 20:00 WIB)">Shift 1 (08:00 - 20:00 WIB)</option>
+                            <option value="Shift 2 (20:00 - 08:00 WIB)">Shift 2 (20:00 - 08:00 WIB)</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Operator 1 (Monitoring & Incident)</label>
-                        <select id="sh-op1-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
-                            <option value="Hamdan">Hamdan Hamdani</option>
-                            <option value="Dedi">Dedi Setiawan</option>
-                            <option value="Rina">Rina Marlina</option>
-                        </select>
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Jam Mulai</label>
+                        <input type="time" id="st-jam-mulai-input" value="08:00" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                     <div class="form-field">
-                        <label>Penugasan Operator 1</label>
-                        <input type="text" id="sh-op1-tugas-input" value="Monitoring 4H + Incident" required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Jam Selesai</label>
+                        <input type="time" id="st-jam-selesai-input" value="20:00" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                 </div>
 
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Operator 2 (SLA & Incoming)</label>
-                        <select id="sh-op2-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
-                            <option value="Rizky" selected>Rizky Ramadhan</option>
-                            <option value="Faris">Faris Ramadhan</option>
-                            <option value="Aisyah">Siti Aisyah</option>
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator 1 (Utama)</label>
+                        <select id="st-op1-select" required style="border: 1.5px solid #E30613; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; width: 100%;">
+                            <option value="Hamdan Hamdani">Hamdan Hamdani</option>
+                            <option value="Dedi Setiawan">Dedi Setiawan</option>
+                            <option value="Rina Marlina">Rina Marlina</option>
                         </select>
                     </div>
                     <div class="form-field">
-                        <label>Penugasan Operator 2</label>
-                        <input type="text" id="sh-op2-tugas-input" value="SLA Vendor + Incoming SSOT" required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Penugasan Op 1</label>
+                        <input type="text" id="st-op1-tugas" value="Monitoring 4H & Incident" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                 </div>
 
-                <div class="modal-footer" style="margin-top: 14px;">
-                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red">🔄 Simpan Pergantian Shift (Firestore)</button>
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator 2 (Pendamping)</label>
+                        <select id="st-op2-select" required style="border: 1.5px solid #2563EB; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; width: 100%;">
+                            <option value="Rizky Ramadhan" selected>Rizky Ramadhan</option>
+                            <option value="Faris Ramadhan">Faris Ramadhan</option>
+                            <option value="Siti Aisyah">Siti Aisyah</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Penugasan Op 2</label>
+                        <input type="text" id="st-op2-tugas" value="SLA Vendor & Master Data" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                    </div>
+                </div>
+
+                <!-- LIVE PREVIEW CARD IN MODAL -->
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 16px; margin-top: 10px;">
+                    <span style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">PREVIEW SHIFT GENERATOR</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                        <strong style="font-size: 14px; color: #0F172A;" id="st-preview-id">ID: SHIFT-20261001-01</strong>
+                        <span class="badge-status green-outline" style="font-size: 11px;">STATUS: AKTIF</span>
+                    </div>
+                    <div style="font-size: 12px; color: #334155; margin-top: 4px;">
+                        👤 Op 1: <span id="st-preview-op1">Hamdan Hamdani</span> • 👤 Op 2: <span id="st-preview-op2">Rizky Ramadhan</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-st-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red" style="padding: 10px 20px; font-weight: 800;">🚀 Mulai Shift Baru</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: PERGANTIAN SHIFT -->
+    <div id="modal-switch-shift" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3>🔄 Pergantian Shift Operasional</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-switch-shift" class="modal-body-form" style="padding: 20px 24px;">
+                <p style="font-size: 13px; color: #64748B; margin-bottom: 14px;">
+                    Melakukan handover dan mengakhiri shift lama, serta mengaktifkan shift baru secara otomatis.
+                </p>
+
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator Baru 1</label>
+                        <select id="sw-op1-select" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                            <option value="Dedi Setiawan">Dedi Setiawan</option>
+                            <option value="Hamdan Hamdani">Hamdan Hamdani</option>
+                            <option value="Rina Marlina">Rina Marlina</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator Baru 2</label>
+                        <select id="sw-op2-select" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                            <option value="Faris Ramadhan">Faris Ramadhan</option>
+                            <option value="Rizky Ramadhan">Rizky Ramadhan</option>
+                            <option value="Siti Aisyah">Siti Aisyah</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 14px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Catatan / Alasan Handover</label>
+                    <textarea id="sw-catatan" rows="3" placeholder="Contoh: Pergantian jam operasional shift 1 ke shift 2..." style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%; resize: vertical;"></textarea>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-st-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red" style="background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); padding: 10px 20px; font-weight: 800;">🔄 Simpan Pergantian Shift</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: EDIT SHIFT OPERATOR -->
+    <div id="modal-edit-shift" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3>✏️ Edit Penugasan Operator Shift</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-edit-shift" class="modal-body-form" style="padding: 20px 24px;">
+                
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator 1 (Utama)</label>
+                        <select id="ed-op1-select" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                            <option value="Hamdan Hamdani">Hamdan Hamdani</option>
+                            <option value="Dedi Setiawan">Dedi Setiawan</option>
+                            <option value="Rina Marlina">Rina Marlina</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Penugasan Op 1</label>
+                        <input type="text" id="ed-op1-tugas" value="Monitoring 4H & Incident" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                    </div>
+                </div>
+
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator 2 (Pendamping)</label>
+                        <select id="ed-op2-select" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                            <option value="Rizky Ramadhan">Rizky Ramadhan</option>
+                            <option value="Faris Ramadhan">Faris Ramadhan</option>
+                            <option value="Siti Aisyah">Siti Aisyah</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Penugasan Op 2</label>
+                        <input type="text" id="ed-op2-tugas" value="SLA Vendor & Master Data" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-st-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red" style="padding: 10px 20px; font-weight: 800;">💾 Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: KONFIRMASI AKHIRI SHIFT -->
+    <div id="modal-end-shift" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 500px; text-align: center; padding: 24px;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px;"><circle cx="12" cy="12" r="10"></circle><rect x="9" y="9" width="6" height="6"></rect></svg>
+            </div>
+            
+            <h3 style="font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 6px;">Akhiri Shift Operasional?</h3>
+            <p style="font-size: 13.5px; color: #64748B; margin-bottom: 16px;">
+                Status shift akan diubah menjadi <strong>COMPLETED</strong>. Data aktivitas shift ini tetap aman di riwayat.
+            </p>
+
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; text-align: left; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: #64748B;">ID Shift:</span>
+                    <strong style="font-size: 13px; color: #0F172A;" id="end-modal-id">SHIFT-20261001-01</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: #64748B;">Operator Bertugas:</span>
+                    <strong style="font-size: 12.5px; color: #0F172A;" id="end-modal-ops">Hamdan & Rizky</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="font-size: 12px; color: #64748B;">Total Transaksi:</span>
+                    <strong style="font-size: 12.5px; color: #2563EB;" id="end-modal-tx">0 Aktivitas</strong>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-st-outline modal-close-btn" style="flex: 1;">Batal</button>
+                <button type="button" id="btn-confirm-end-shift" class="btn-jnt-red" style="background: #DC2626; flex: 1; padding: 11px;">⏹️ Ya, Akhiri Shift</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: DETAIL SHIFT & ACTIVITY TIMELINE -->
+    <div id="modal-shift-detail" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 680px;">
+            <div class="modal-header">
+                <h3>📜 Detail Shift & Activity Timeline</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body-form" style="padding: 20px 24px;">
+                
+                <div style="background: #0F172A; color: #FFF; border-radius: 12px; padding: 16px; margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 18px; color: #FFF;" id="dt-modal-id">SHIFT-20261001-01</strong>
+                        <span class="badge-status green-outline" id="dt-modal-status">AKTIF</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #CBD5E1; margin-top: 6px;">
+                        <span>📅 Tanggal: <strong id="dt-modal-tanggal" style="color:#FFF;">01/10/2026</strong></span> • 
+                        <span>🕒 Jam: <strong id="dt-modal-jam" style="color:#FFF;">08:00 - 20:00 WIB</strong></span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #CBD5E1; margin-top: 4px;">
+                        <span>👤 Op 1: <strong id="dt-modal-op1" style="color:#FFF;">Hamdan</strong></span> • 
+                        <span>👤 Op 2: <strong id="dt-modal-op2" style="color:#FFF;">Rizky</strong></span>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 14px; font-weight: 800; color: #0F172A; margin-bottom: 12px;">TIMELINE AKTIVITAS OPERATOR</h4>
+                <div id="dt-modal-timeline" class="vertical-slot-timeline" style="max-height: 320px; overflow-y: auto;">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn-st-outline modal-close-btn">Tutup</button>
+                </div>
+            </div>
         </div>
     </div>
 

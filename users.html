@@ -51,12 +51,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="incoming.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                                <span class="nav-text">Incoming</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
@@ -173,7 +167,7 @@
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">TOTAL USER</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">42</span>
+                                <span class="inc-kpi-number" id="usr-kpi-total">0</span>
                             </div>
                             <span class="inc-kpi-sub" style="color: #64748B;">Semua Pengguna</span>
                         </div>
@@ -187,7 +181,7 @@
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">ADMIN</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">6</span>
+                                <span class="inc-kpi-number" id="usr-kpi-admin">0</span>
                             </div>
                             <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
                         </div>
@@ -201,7 +195,7 @@
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">SUPERVISOR</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">12</span>
+                                <span class="inc-kpi-number" id="usr-kpi-spv">0</span>
                             </div>
                             <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
                         </div>
@@ -215,7 +209,7 @@
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">OPERATOR</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">24</span>
+                                <span class="inc-kpi-number" id="usr-kpi-op">0</span>
                             </div>
                             <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
                         </div>
@@ -229,7 +223,7 @@
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">NONAKTIF</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">3</span>
+                                <span class="inc-kpi-number" id="usr-kpi-inactive">0</span>
                             </div>
                             <span class="inc-kpi-sub" style="color: #64748B;">Akun</span>
                         </div>
@@ -242,39 +236,40 @@
                         <div class="filter-group">
                             <label>Cari User</label>
                             <div class="search-input-wrap">
-                                <input type="text" placeholder="Cari nama, username, email...">
+                                <input type="text" id="usr-filter-search" placeholder="Cari nama, username, email...">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             </div>
                         </div>
                         <div class="filter-group">
                             <label>Role</label>
-                            <select>
-                                <option>Semua Role</option>
-                                <option>Admin</option>
-                                <option>Supervisor</option>
-                                <option>Operator</option>
+                            <select id="usr-filter-role">
+                                <option value="">Semua Role</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Operator">Operator</option>
                             </select>
                         </div>
                         <div class="filter-group">
                             <label>Cabang / TLC</label>
-                            <select>
-                                <option>Semua Cabang</option>
-                                <option>Head Office</option>
-                                <option>TLC Cikande</option>
-                                <option>TLC Serpong</option>
+                            <select id="usr-filter-tlc">
+                                <option value="">Semua Cabang</option>
+                                <option value="Head Office">Head Office</option>
+                                <option value="TLC Cikande">TLC Cikande</option>
+                                <option value="TLC Serpong">TLC Serpong</option>
+                                <option value="Gateway Surabaya">Gateway Surabaya</option>
                             </select>
                         </div>
                         <div class="filter-group">
                             <label>Status</label>
-                            <select>
-                                <option>Semua Status</option>
-                                <option>Aktif</option>
-                                <option>Nonaktif</option>
+                            <select id="usr-filter-status">
+                                <option value="">Semua Status</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Nonaktif">Nonaktif</option>
                             </select>
                         </div>
                         <div class="filter-group" style="justify-content: flex-end; display: flex; gap: 8px;">
-                            <button class="btn-inc-reset" style="padding: 9px 18px; margin-top: 18px;">🔄 Reset</button>
-                            <button id="btn-add-user" class="btn-inc-add" onclick="document.getElementById('modal-add-user').classList.remove('hidden')" style="padding: 9px 18px; margin-top: 18px; background-color: #E30613; cursor: pointer;">+ Tambah User</button>
+                            <button type="button" id="btn-reset-user-filter" class="btn-inc-reset" style="padding: 9px 18px; margin-top: 18px;">🔄 Reset</button>
+                            <button type="button" id="btn-add-user" class="btn-inc-add" onclick="document.getElementById('modal-add-user').classList.remove('hidden')" style="padding: 9px 18px; margin-top: 18px; background-color: #E30613; cursor: pointer;">+ Tambah User</button>
                         </div>
                     </div>
                 </div>
@@ -286,7 +281,7 @@
                     <div class="inc-table-card">
                         <div class="inc-table-header">
                             <h3 class="inc-table-title">Daftar Pengguna</h3>
-                            <button class="btn-inc-import">📥 Export Excel</button>
+                            <button type="button" id="btn-export-users-excel" class="btn-inc-import">📥 Export Excel</button>
                         </div>
 
                         <div class="inc-table-scroll">
@@ -305,150 +300,9 @@
                                         <th class="col-center">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr class="inc-row user-row active-selected">
-                                        <td class="col-center">1</td>
-                                        <td><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Hamdan</strong></td>
-                                        <td class="text-dim">hamdan.operator</td>
-                                        <td class="text-dim">hamdan@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-operator">Operator</span></td>
-                                        <td>TLC Cikande</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 10:15</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">2</td>
-                                        <td><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Rina Marlina</strong></td>
-                                        <td class="text-dim">rina.supervisor</td>
-                                        <td class="text-dim">rina@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-supervisor">Supervisor</span></td>
-                                        <td>TLC Serpong</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 09:48</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">3</td>
-                                        <td><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Dedi Setiawan</strong></td>
-                                        <td class="text-dim">dedi.admin</td>
-                                        <td class="text-dim">dedi@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-admin">Admin</span></td>
-                                        <td>Head Office</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 09:20</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">4</td>
-                                        <td><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Faris Ramadhan</strong></td>
-                                        <td class="text-dim">faris.operator</td>
-                                        <td class="text-dim">faris@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-operator">Operator</span></td>
-                                        <td>TLC Cilegon</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 08:55</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">5</td>
-                                        <td><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Siti Aisyah</strong></td>
-                                        <td class="text-dim">aisyah.operator</td>
-                                        <td class="text-dim">aisyah@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-operator">Operator</span></td>
-                                        <td>TLC Bekasi</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 08:30</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">6</td>
-                                        <td><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Agus Supriyono</strong></td>
-                                        <td class="text-dim">agus.supervisor</td>
-                                        <td class="text-dim">agus@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-supervisor">Supervisor</span></td>
-                                        <td>TLC Cikarang</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 07:58</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">7</td>
-                                        <td><img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Budi Santoso</strong></td>
-                                        <td class="text-dim">budi.operator</td>
-                                        <td class="text-dim">budi@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-operator">Operator</span></td>
-                                        <td>TLC Karawang</td>
-                                        <td><span class="status-dot-inactive">🔴 Nonaktif</span></td>
-                                        <td>18/07/2026 16:45</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr class="inc-row user-row">
-                                        <td class="col-center">8</td>
-                                        <td><img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=80&q=80" class="user-row-avatar"></td>
-                                        <td><strong>Mega Putri</strong></td>
-                                        <td class="text-dim">mega.admin</td>
-                                        <td class="text-dim">mega@jtexpress.co.id</td>
-                                        <td><span class="role-badge role-admin">Admin</span></td>
-                                        <td>Head Office</td>
-                                        <td><span class="status-dot-active">🟢 Aktif</span></td>
-                                        <td>22/07/2026 07:30</td>
-                                        <td class="col-center">
-                                            <div class="user-actions-row">
-                                                <button class="btn-action-sm">✏️</button>
-                                                <button class="btn-action-sm">🔓</button>
-                                                <button class="btn-action-sm">⋮</button>
-                                            </div>
-                                        </td>
+                                <tbody id="users-table-tbody">
+                                    <tr>
+                                        <td colspan="10" style="text-align: center; padding: 24px; color: #64748B;">Memuat data pengguna...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -456,47 +310,30 @@
 
                         <!-- Table Footer Pagination -->
                         <div class="inc-table-footer" style="align-items: center;">
-                            <span style="font-size: 12px; color: #64748B;">Menampilkan 1 - 8 dari 42 data</span>
+                            <span id="users-pagination-info" style="font-size: 12px; color: #64748B;">Menampilkan 0 data</span>
                             <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
-                                <div class="inc-pagination">
-                                    <button class="p-btn">&lt;</button>
-                                    <button class="p-btn active">1</button>
-                                    <button class="p-btn">2</button>
-                                    <button class="p-btn">3</button>
-                                    <button class="p-btn">4</button>
-                                    <button class="p-btn">5</button>
-                                    <span class="page-dots">...</span>
-                                    <button class="p-btn">6</button>
-                                    <button class="p-btn">&gt;</button>
-                                </div>
-                                <div class="per-page-row" style="font-size: 12px; color: #64748B; display: flex; align-items: center; gap: 6px;">
-                                    <span>Tampilkan</span>
-                                    <select class="inc-per-page">
-                                        <option>10</option>
-                                        <option>25</option>
-                                    </select>
-                                    <span>data</span>
+                                <div class="inc-pagination" id="users-pagination-controls">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Right Side Detail User Panel (EXACT MATCH SCREENSHOT) -->
-                    <div class="inc-detail-card">
+                    <div class="inc-detail-card" id="users-detail-card-panel">
                         <div class="detail-card-header">
                             <h3 class="detail-title">Detail User</h3>
                         </div>
 
                         <!-- User Hero Profile Box -->
                         <div class="user-detail-profile-box">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-detail-avatar">
+                            <img id="usr-dt-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Avatar" class="user-detail-avatar">
                             <div class="user-detail-hero-meta">
                                 <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
-                                    <span class="user-detail-name">Hamdan</span>
-                                    <span class="user-active-chip">Aktif</span>
+                                    <span class="user-detail-name" id="usr-dt-name">-</span>
+                                    <span class="user-active-chip" id="usr-dt-status-chip">Aktif</span>
                                 </div>
-                                <span class="user-detail-uname">hamdan.operator</span>
-                                <span class="user-detail-role">Operator</span>
+                                <span class="user-detail-uname" id="usr-dt-uname">-</span>
+                                <span class="user-detail-role" id="usr-dt-role">-</span>
                             </div>
                         </div>
 
@@ -504,39 +341,35 @@
                         <div class="detail-info-list">
                             <div class="info-item">
                                 <span class="info-label">✉️ Email</span>
-                                <span class="info-value font-bold">hamdan@jtexpress.co.id</span>
+                                <span class="info-value font-bold" id="usr-dt-email">-</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">📞 No. Telepon</span>
-                                <span class="info-value">0812-3456-7890</span>
+                                <span class="info-value" id="usr-dt-phone">-</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">👤 Role</span>
-                                <span class="info-value">Operator</span>
+                                <span class="info-value" id="usr-dt-role-item">-</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">🏢 Cabang / TLC</span>
-                                <span class="info-value font-bold">TLC Cikande</span>
+                                <span class="info-value font-bold" id="usr-dt-tlc">-</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">📅 Dibuat Pada</span>
-                                <span class="info-value">10/06/2026 14:25</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🔄 Terakhir Update</span>
-                                <span class="info-value">20/07/2026 11:10</span>
+                                <span class="info-value" id="usr-dt-created">-</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">🕒 Terakhir Login</span>
-                                <span class="info-value">22/07/2026 10:15</span>
+                                <span class="info-value" id="usr-dt-lastlogin">-</span>
                             </div>
                         </div>
 
                         <!-- Action Buttons Stack -->
                         <div class="user-actions-stack">
-                            <button class="btn-white-outline-full">✏️ Edit User</button>
-                            <button class="btn-white-outline-full">🔓 Reset Password</button>
-                            <button class="btn-red-outline-full">🙅‍♂️ Nonaktifkan Akun</button>
+                            <button type="button" id="btn-edit-user-action" class="btn-white-outline-full">✏️ Edit User</button>
+                            <button type="button" id="btn-reset-password-action" class="btn-white-outline-full">🔓 Reset Password</button>
+                            <button type="button" id="btn-toggle-active-user-action" class="btn-red-outline-full">🙅‍♂️ Nonaktifkan Akun</button>
                         </div>
 
                         <!-- Riwayat Login Terakhir Section -->
@@ -645,6 +478,101 @@
                 <div class="modal-footer" style="margin-top: 10px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
                     <button type="submit" class="btn-jnt-red">👤 Simpan User Ke Firestore</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: EDIT USER -->
+    <div id="modal-edit-user" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3>✏️ Edit Data User</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-edit-user" class="modal-body-form" style="padding: 16px 20px;">
+                <input type="hidden" id="edit-usr-id" value="">
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Username (Tidak dapat diubah)</label>
+                        <input type="text" id="edit-usr-username" readonly style="background-color: #F8FAFC; color: #64748B; font-weight: 700;">
+                    </div>
+                    <div class="form-field">
+                        <label>Nama Lengkap</label>
+                        <input type="text" id="edit-usr-fullname" required>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Email Perusahaan</label>
+                        <input type="email" id="edit-usr-email" required>
+                    </div>
+                    <div class="form-field">
+                        <label>No. Telepon / WA</label>
+                        <input type="tel" id="edit-usr-phone" required>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Role / Akses Jabatan</label>
+                        <select id="edit-usr-role" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                            <option value="Operator">Operator</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>TLC / Cabang Penugasan</label>
+                        <select id="edit-usr-tlc" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                            <option value="TLC Cikande">TLC Cikande</option>
+                            <option value="TLC Serpong">TLC Serpong</option>
+                            <option value="Head Office">Head Office</option>
+                            <option value="Gateway Surabaya">Gateway Surabaya</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-field" style="margin-top: 10px;">
+                    <label>Status Akun</label>
+                    <select id="edit-usr-status" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                        <option value="Aktif">🟢 Aktif</option>
+                        <option value="Nonaktif">🔴 Nonaktif</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 16px;">
+                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red">💾 Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: RESET PASSWORD USER -->
+    <div id="modal-reset-password-user" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3>🔓 Reset Password User</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-reset-password-user" class="modal-body-form" style="padding: 16px 20px;">
+                <input type="hidden" id="reset-usr-username" value="">
+                <p style="font-size: 13px; color: #64748B; margin-bottom: 14px;">
+                    Mengatur ulang kata sandi untuk pengguna <strong id="reset-usr-label-name" style="color: #0F172A;">-</strong>.
+                </p>
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label>Password Baru</label>
+                    <input type="password" id="reset-usr-new-pass" placeholder="Minimal 6 karakter" required minlength="6" style="padding: 10px 12px; font-size: 13px;">
+                </div>
+                <div class="form-field" style="margin-bottom: 16px;">
+                    <label>Konfirmasi Password Baru</label>
+                    <input type="password" id="reset-usr-confirm-pass" placeholder="Ulangi password baru" required minlength="6" style="padding: 10px 12px; font-size: 13px;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
+                    <button type="submit" class="btn-jnt-red">🔑 Simpan Password</button>
                 </div>
             </form>
         </div>

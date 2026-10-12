@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +9,19 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Chart.js for smooth SVG/Canvas line chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="light-body-theme">
     <div id="app-container" class="app-container">
-        
+
         <div class="dashboard-layout">
-            
+
             <!-- SIDEBAR PANEL -->
             <aside class="sidebar-panel">
                 <div class="sidebar-red-header">
@@ -29,13 +32,17 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                            alt="Hamdan Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
                             <span class="profile-name" id="sidebar-user-name">Hamdan</span>
-                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
                         </div>
                         <span class="profile-role">Operator</span>
                         <span class="profile-status">
@@ -48,67 +55,109 @@
                     <ul>
                         <li class="nav-item active">
                             <a href="dashboard.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="incoming.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                                <span class="nav-text">Incoming</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 16 14"></polyline>
+                                </svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="sla-vendor.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path>
+                                </svg>
                                 <span class="nav-text">SLA Vendor</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
                                 <span class="nav-text">Trouble & Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="shift-management.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
                                 <span class="nav-text">Shift Management</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="master.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                    </path>
+                                </svg>
                                 <span class="nav-text">Master Data</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
                                 <span class="nav-text">Report & Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="users.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
                                 <span class="nav-text">User Management</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="settings.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                    </path>
+                                </svg>
                                 <span class="nav-text">Pengaturan</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="profile.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
                                 <span class="nav-text">Profil Saya</span>
                             </a>
                         </li>
@@ -118,14 +167,16 @@
                 <div class="sidebar-footer-graphic">
                     <div class="route-line-svg">
                         <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4" />
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2"
+                                stroke-dasharray="4 4" />
                             <circle cx="30" cy="60" r="5" fill="#E30613" />
                             <circle cx="100" cy="50" r="5" fill="#E30613" />
                             <circle cx="180" cy="25" r="5" fill="#E30613" />
                         </svg>
                     </div>
                     <div class="truck-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80" alt="J&T Express Truck" class="sidebar-truck-img">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80"
+                            alt="J&T Express Truck" class="sidebar-truck-img">
                     </div>
                     <div class="sidebar-system-title">
                         <span class="sys-light">Transportation</span>
@@ -141,11 +192,16 @@
                 <header class="inc-top-nav">
                     <div class="inc-title-group">
                         <button class="hamburger-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
                         </button>
                         <div>
                             <h2 class="inc-main-title" style="font-size: 22px;">Dashboard</h2>
-                            <span class="inc-breadcrumb" style="color: #64748B;">Ringkasan Monitoring Transportasi</span>
+                            <span class="inc-breadcrumb" style="color: #64748B;">Ringkasan Monitoring
+                                Transportasi</span>
                         </div>
                     </div>
 
@@ -154,11 +210,15 @@
                             <span>22 Juli 2026</span>
                         </div>
                         <div class="inc-notif-bell">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
                             <span class="inc-bell-badge">5</span>
                         </div>
                         <div class="inc-user-chip">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                                alt="Hamdan Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
                                 <span class="inc-user-name">Hamdan <span>v</span></span>
                                 <span class="inc-user-role">Operator</span>
@@ -188,33 +248,43 @@
                     <!-- Card 1: TOTAL TRIP -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle red-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
                         </div>
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">TOTAL TRIP</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">245</span>
+                                <span class="inc-kpi-number" id="dash-kpi-total">0</span>
                                 <span class="inc-kpi-unit">Trip</span>
                             </div>
-                            <span class="inc-kpi-sub green">↑ 12% dari kemarin</span>
+                            <span class="inc-kpi-sub green">Real-Time SSOT</span>
                         </div>
                     </div>
 
                     <!-- Card 2: ON TIME -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle green-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
                         </div>
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">ON TIME</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">211</span>
+                                <span class="inc-kpi-number" id="dash-kpi-ontime" style="color: #16A34A;">0</span>
                                 <span class="inc-kpi-unit">Trip</span>
                             </div>
                             <div class="inc-progress-bar-wrap">
-                                <span class="progress-pct green">85.7%</span>
+                                <span class="progress-pct green" id="dash-pct-ontime">0%</span>
                                 <div class="progress-track">
-                                    <div class="progress-fill green" style="width: 85.7%;"></div>
+                                    <div class="progress-fill green" id="dash-bar-ontime" style="width: 0%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -223,18 +293,21 @@
                     <!-- Card 3: NEAR LATE -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle orange-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
                         </div>
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">NEAR LATE</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">10</span>
+                                <span class="inc-kpi-number" id="dash-kpi-nearlate" style="color: #D97706;">0</span>
                                 <span class="inc-kpi-unit">Trip</span>
                             </div>
                             <div class="inc-progress-bar-wrap">
-                                <span class="progress-pct orange">4.1%</span>
+                                <span class="progress-pct orange" id="dash-pct-nearlate">0%</span>
                                 <div class="progress-track">
-                                    <div class="progress-fill orange" style="width: 4.1%;"></div>
+                                    <div class="progress-fill orange" id="dash-bar-nearlate" style="width: 0%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -243,18 +316,25 @@
                     <!-- Card 4: LATE -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle red-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                </path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
                         </div>
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">LATE</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">24</span>
+                                <span class="inc-kpi-number" id="dash-kpi-late" style="color: #DC2626;">0</span>
                                 <span class="inc-kpi-unit">Trip</span>
                             </div>
                             <div class="inc-progress-bar-wrap">
-                                <span class="progress-pct" style="color: #EF4444;">9.8%</span>
+                                <span class="progress-pct" id="dash-pct-late" style="color: #EF4444;">0%</span>
                                 <div class="progress-track">
-                                    <div class="progress-fill" style="width: 9.8%; background-color: #EF4444;"></div>
+                                    <div class="progress-fill" id="dash-bar-late"
+                                        style="width: 0%; background-color: #EF4444;"></div>
                                 </div>
                             </div>
                         </div>
@@ -263,18 +343,23 @@
                     <!-- Card 5: TROUBLE -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle" style="background-color: #F1F5F9; color: #64748B;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                </path>
+                            </svg>
                         </div>
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">TROUBLE</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">8</span>
+                                <span class="inc-kpi-number" id="dash-kpi-trouble">0</span>
                                 <span class="inc-kpi-unit">Trip</span>
                             </div>
                             <div class="inc-progress-bar-wrap">
-                                <span class="progress-pct" style="color: #64748B;">3.3%</span>
+                                <span class="progress-pct" id="dash-pct-trouble" style="color: #64748B;">0%</span>
                                 <div class="progress-track">
-                                    <div class="progress-fill" style="width: 3.3%; background-color: #94A3B8;"></div>
+                                    <div class="progress-fill" id="dash-bar-trouble"
+                                        style="width: 0%; background-color: #94A3B8;"></div>
                                 </div>
                             </div>
                         </div>
@@ -283,18 +368,22 @@
                     <!-- Card 6: LAKA -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle purple-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                            </svg>
                         </div>
                         <div class="inc-kpi-info">
                             <span class="inc-kpi-label">LAKA</span>
                             <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number">2</span>
+                                <span class="inc-kpi-number" id="dash-kpi-laka" style="color: #9333EA;">0</span>
                                 <span class="inc-kpi-unit">Trip</span>
                             </div>
                             <div class="inc-progress-bar-wrap">
-                                <span class="progress-pct" style="color: #9333EA;">0.8%</span>
+                                <span class="progress-pct" id="dash-pct-laka" style="color: #9333EA;">0%</span>
                                 <div class="progress-track">
-                                    <div class="progress-fill" style="width: 0.8%; background-color: #9333EA;"></div>
+                                    <div class="progress-fill" id="dash-bar-laka"
+                                        style="width: 0%; background-color: #9333EA;"></div>
                                 </div>
                             </div>
                         </div>
@@ -303,7 +392,7 @@
 
                 <!-- Middle Widgets Grid (3 Cards Row) -->
                 <div class="dash-middle-grid">
-                    
+
                     <!-- Card 1: Performa SLA Hari Ini (Donut Chart) -->
                     <div class="dash-card-box">
                         <h3 class="dash-card-title">Performa SLA Hari Ini</h3>
@@ -315,16 +404,22 @@
                                 </div>
                             </div>
                             <div class="donut-legend-list">
-                                <div class="leg-row"><span class="leg-dot green-dot"></span><span>On Time</span><strong class="leg-val">211 Trip (85.7%)</strong></div>
-                                <div class="leg-row"><span class="leg-dot yellow-dot"></span><span>Near Late</span><strong class="leg-val">10 Trip (4.1%)</strong></div>
-                                <div class="leg-row"><span class="leg-dot red-dot"></span><span>Late</span><strong class="leg-val">24 Trip (9.8%)</strong></div>
-                                <div class="leg-row"><span class="leg-dot gray-dot"></span><span>Trouble</span><strong class="leg-val">8 Trip (3.3%)</strong></div>
-                                <div class="leg-row"><span class="leg-dot purple-dot"></span><span>Laka</span><strong class="leg-val">2 Trip (0.8%)</strong></div>
+                                <div class="leg-row"><span class="leg-dot green-dot"></span><span>On Time</span><strong
+                                        class="leg-val">211 Trip (85.7%)</strong></div>
+                                <div class="leg-row"><span class="leg-dot yellow-dot"></span><span>Near
+                                        Late</span><strong class="leg-val">10 Trip (4.1%)</strong></div>
+                                <div class="leg-row"><span class="leg-dot red-dot"></span><span>Late</span><strong
+                                        class="leg-val">24 Trip (9.8%)</strong></div>
+                                <div class="leg-row"><span class="leg-dot gray-dot"></span><span>Trouble</span><strong
+                                        class="leg-val">8 Trip (3.3%)</strong></div>
+                                <div class="leg-row"><span class="leg-dot purple-dot"></span><span>Laka</span><strong
+                                        class="leg-val">2 Trip (0.8%)</strong></div>
                             </div>
                         </div>
                         <div class="dash-card-bottom-banner">
                             <span class="banner-icon">📈</span>
-                            <span>Performa on time hari ini lebih baik <strong>5.3%</strong> dibanding rata-rata kemarin.</span>
+                            <span>Performa on time hari ini lebih baik <strong>5.3%</strong> dibanding rata-rata
+                                kemarin.</span>
                             <span class="arrow-right">&gt;</span>
                         </div>
                     </div>
@@ -345,7 +440,7 @@
 
                     <!-- Card 3 Stack: Alert Penting & Cuaca -->
                     <div class="dash-right-stack">
-                        
+
                         <!-- Alert Penting Card -->
                         <div class="alert-important-card">
                             <div class="alert-card-header">
@@ -408,7 +503,7 @@
 
                 <!-- Bottom Widgets Grid (Trip Telat SLA Table + Map Distribusi) -->
                 <div class="dash-bottom-grid">
-                    
+
                     <!-- Left Card: Trip Telat SLA Table -->
                     <div class="dash-card-box flex-3">
                         <div class="dash-card-header">
@@ -416,7 +511,8 @@
                                 <h3 class="dash-card-title">Trip Telat SLA</h3>
                                 <span class="badge-count-red">24</span>
                             </div>
-                            <button class="btn-inc-reset" style="font-size: 11.5px; padding: 4px 10px;">Lihat Semua</button>
+                            <button class="btn-inc-reset" style="font-size: 11.5px; padding: 4px 10px;">Lihat
+                                Semua</button>
                         </div>
 
                         <div class="inc-table-scroll" style="margin-top: 10px;">
@@ -433,63 +529,16 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>DKGX26070200064</strong></td>
-                                        <td>JOG - CDD</td>
-                                        <td>B 9134 PXX</td>
-                                        <td>02/07 05:15</td>
-                                        <td>02/07 21:15</td>
-                                        <td class="text-dim">-</td>
-                                        <td><strong style="color: #DC2626;">2:40</strong></td>
-                                        <td><span class="badge-status" style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2; font-size: 10px;">LATE</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>DBGX26070201095</strong></td>
-                                        <td>SRG FUSO</td>
-                                        <td>B 9041 SXX</td>
-                                        <td>02/07 07:36</td>
-                                        <td>02/07 23:36</td>
-                                        <td class="text-dim">-</td>
-                                        <td><strong style="color: #DC2626;">4:59</strong></td>
-                                        <td><span class="badge-status" style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2; font-size: 10px;">LATE</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>DKGX26070300058</strong></td>
-                                        <td>PKU FUSO</td>
-                                        <td>B 9562 PXW</td>
-                                        <td>03/07 06:41</td>
-                                        <td>03/07 22:41</td>
-                                        <td class="text-dim">-</td>
-                                        <td><strong style="color: #DC2626;">2:25</strong></td>
-                                        <td><span class="badge-status" style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2; font-size: 10px;">LATE</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>DKGX26070300059</strong></td>
-                                        <td>MDN CDD</td>
-                                        <td>B 9011 SXX</td>
-                                        <td>03/07 04:09</td>
-                                        <td>03/07 20:09</td>
-                                        <td class="text-dim">-</td>
-                                        <td><strong style="color: #DC2626;">3:16</strong></td>
-                                        <td><span class="badge-status" style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2; font-size: 10px;">LATE</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>DKGX26070301084</strong></td>
-                                        <td>PLM FUSO</td>
-                                        <td>B 9356 PKK</td>
-                                        <td>03/07 06:26</td>
-                                        <td>03/07 22:26</td>
-                                        <td class="text-dim">-</td>
-                                        <td><strong style="color: #DC2626;">2:10</strong></td>
-                                        <td><span class="badge-status" style="border: 1.5px solid #EF4444; color: #DC2626; background: #FEF2F2; font-size: 10px;">LATE</span></td>
-                                    </tr>
+                                <tbody id="table-dash-sla-body">
+                                    <!-- Populated dynamically by SLACountdownEngine subscriber -->
                                 </tbody>
                             </table>
                         </div>
 
                         <div style="text-align: center; margin-top: 12px;">
-                            <a href="#" style="font-size: 12px; font-weight: 700; color: #2563EB; text-decoration: none;">Lihat Semua Trip Telat &rarr;</a>
+                            <a href="#"
+                                style="font-size: 12px; font-weight: 700; color: #2563EB; text-decoration: none;">Lihat
+                                Semua Trip Telat &rarr;</a>
                         </div>
                     </div>
 
@@ -497,17 +546,19 @@
                     <div class="dash-card-box flex-2">
                         <div class="dash-card-header">
                             <h3 class="dash-card-title">Distribusi Trip per Wilayah</h3>
-                            <button class="btn-inc-reset" style="font-size: 11.5px; padding: 4px 10px;">Lihat Detail</button>
+                            <button class="btn-inc-reset" style="font-size: 11.5px; padding: 4px 10px;">Lihat
+                                Detail</button>
                         </div>
 
                         <div class="indonesia-map-container">
                             <!-- Indonesia Vector SVG Map Background -->
-                            <svg class="indonesia-svg" viewBox="0 0 800 350" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M50 120 Q120 100 220 180 T150 250 Z" fill="#E2E8F0"/>
-                                <path d="M230 220 Q320 200 450 240 T300 250 Z" fill="#CBD5E1"/>
-                                <path d="M400 80 Q480 60 520 160 T430 180 Z" fill="#E2E8F0"/>
-                                <path d="M540 100 Q620 90 600 180 T550 200 Z" fill="#CBD5E1"/>
-                                <path d="M600 210 Q700 200 780 250 T620 280 Z" fill="#E2E8F0"/>
+                            <svg class="indonesia-svg" viewBox="0 0 800 350" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path d="M50 120 Q120 100 220 180 T150 250 Z" fill="#E2E8F0" />
+                                <path d="M230 220 Q320 200 450 240 T300 250 Z" fill="#CBD5E1" />
+                                <path d="M400 80 Q480 60 520 160 T430 180 Z" fill="#E2E8F0" />
+                                <path d="M540 100 Q620 90 600 180 T550 200 Z" fill="#CBD5E1" />
+                                <path d="M600 210 Q700 200 780 250 T620 280 Z" fill="#E2E8F0" />
                             </svg>
 
                             <!-- Region Badge Overlays (EXACT MATCH SCREENSHOT) -->
@@ -553,6 +604,7 @@
     <!-- Firebase Config & Service -->
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
+    <script src="sla-countdown-engine.js"></script>
     <script src="app.js"></script>
     <script>
         // Initialize Trend Line Chart
@@ -608,7 +660,105 @@
                     }
                 });
             }
+
+            // Real-Time Live Data Recalculation for Operational SSOT
+            const updateDashboardStats = () => {
+                const incoming = JNTFirebaseService.getLocalStore('incoming') || [];
+                const slaOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                const troubles = JNTFirebaseService.getLocalStore('troubles') || [];
+
+                const totalTrips = incoming.length;
+                let onTimeCount = 0;
+                let nearLateCount = 0;
+                let lateCount = 0;
+                let troubleCount = 0;
+                let lakaCount = 0;
+
+                slaOutbound.forEach(item => {
+                    if (item.statusSla === 'ON TIME' || item.statusSla === 'BERJALAN') {
+                        onTimeCount++;
+                    } else if (item.statusSla === 'NEAR LATE') {
+                        nearLateCount++;
+                    } else if (item.statusSla === 'TERLAMBAT' || item.statusSla === 'LATE') {
+                        lateCount++;
+                    }
+                });
+
+                troubles.forEach(t => {
+                    if (t.jenis === 'Laka') lakaCount++;
+                    else troubleCount++;
+                });
+
+                const totalVal = Math.max(1, totalTrips);
+
+                const setEl = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val;
+                };
+
+                setEl('dash-kpi-total', totalTrips);
+                setEl('dash-kpi-ontime', onTimeCount);
+                setEl('dash-kpi-nearlate', nearLateCount);
+                setEl('dash-kpi-late', lateCount);
+                setEl('dash-kpi-trouble', troubleCount);
+                setEl('dash-kpi-laka', lakaCount);
+
+                const setPct = (pctId, barId, count) => {
+                    const pct = ((count / totalVal) * 100).toFixed(1);
+                    const pctEl = document.getElementById(pctId);
+                    const barEl = document.getElementById(barId);
+                    if (pctEl) pctEl.textContent = `${pct}%`;
+                    if (barEl) barEl.style.width = `${pct}%`;
+                };
+
+                setPct('dash-pct-ontime', 'dash-bar-ontime', onTimeCount);
+                setPct('dash-pct-nearlate', 'dash-bar-nearlate', nearLateCount);
+                setPct('dash-pct-late', 'dash-bar-late', lateCount);
+                setPct('dash-pct-trouble', 'dash-bar-trouble', troubleCount);
+                setPct('dash-pct-laka', 'dash-bar-laka', lakaCount);
+            };
+
+            JNTFirebaseService.subscribeIncoming(() => updateDashboardStats());
+            JNTFirebaseService.subscribeSLAOutbound(slaList => {
+                updateDashboardStats();
+
+                const tbody = document.getElementById('table-dash-sla-body');
+                if (tbody && Array.isArray(slaList)) {
+                    tbody.innerHTML = slaList.map(item => {
+                        const departureStr = item.jamBerangkat || '';
+                        const slaHours = item.targetSLAHours || 16;
+                        const actualArrival = item.jamSampaiAktual || '';
+
+                        let targetArrivalStr = '-';
+                        if (window.SLACountdownEngine) {
+                            const targetDate = window.SLACountdownEngine.calculateTargetTimestamp(departureStr, slaHours);
+                            if (targetDate) targetArrivalStr = window.SLACountdownEngine.formatTimeOnly(targetDate);
+                        }
+
+                        return `
+                            <tr data-sla-departure="${departureStr}" data-sla-hours="${slaHours}" data-sla-arrival="${actualArrival}">
+                                <td><strong>${item.kodeTugas}</strong></td>
+                                <td>${item.trip || item.namaRute || '-'}</td>
+                                <td>${item.platNomor || '-'}</td>
+                                <td>${departureStr ? (departureStr.split(' ')[1] || departureStr) : '-'}</td>
+                                <td>${targetArrivalStr}</td>
+                                <td><span class="sla-live-countdown">--:--:--</span></td>
+                                <td><strong style="color: ${item.lateMinutes > 0 ? '#DC2626' : '#16A34A'};">${item.lateMinutes > 0 ? (Math.floor(item.lateMinutes / 60) + 'h ' + (item.lateMinutes % 60) + 'm') : '-'}</strong></td>
+                                <td><span class="sla-live-status"></span></td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    if (window.SLACountdownEngine) {
+                        window.SLACountdownEngine.tick();
+                    }
+                }
+            });
+            JNTFirebaseService.subscribeTroubles(() => updateDashboardStats());
+            window.addEventListener('jnt_data_updated', () => updateDashboardStats());
+            updateDashboardStats();
         });
     </script>
 </body>
+
 </html>

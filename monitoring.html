@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J&T Express - Monitoring 4 Jam</title>
+    <title>J&T Express - Monitoring 4 Jam (Control Tower)</title>
     <meta name="description" content="Sistem monitoring posisi armada kendaraan per 4 jam J&T Express.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -50,12 +50,6 @@
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a href="incoming.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                                <span class="nav-text">Incoming</span>
-                            </a>
-                        </li>
                         <li class="nav-item active">
                             <a href="monitoring.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
@@ -94,7 +88,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="users.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 1-0 7.75"></path></svg>
                                 <span class="nav-text">User Management</span>
                             </a>
                         </li>
@@ -138,12 +132,15 @@
                 <!-- Top Header Nav -->
                 <header class="inc-top-nav">
                     <div class="inc-title-group">
-                        <button class="hamburger-btn">
+                        <button class="hamburger-btn" aria-label="Toggle Sidebar">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                         </button>
                         <div>
-                            <h2 class="inc-main-title" style="font-size: 22px;">Monitoring 4 Jam</h2>
-                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Monitoring 4 Jam</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#E30613" stroke-width="2.2" style="width: 22px; height: 22px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <h2 class="inc-main-title" style="font-size: 22px; font-weight: 800; color: #0F172A; margin: 0;">Monitoring 4 Jam</h2>
+                            </div>
+                            <span class="inc-breadcrumb" style="font-size: 12px; color: #64748B;"><span style="color: #94A3B8;">Control Tower</span> / Monitoring 4 Jam Armada</span>
                         </div>
                     </div>
 
@@ -159,7 +156,7 @@
                         <div class="inc-user-chip">
                             <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name">Hamdan <span>v</span></span>
+                                <span class="inc-user-name">Hamdan <span>▾</span></span>
                                 <span class="inc-user-role">Operator</span>
                             </div>
                         </div>
@@ -167,305 +164,202 @@
                 </header>
 
                 <!-- Filter Grid Card -->
-                <div class="inc-filter-card">
-                    <div class="filter-inputs-grid" style="grid-template-columns: repeat(6, 1fr);">
+                <div class="inc-filter-card" style="background: #FFFFFF; border-radius: 16px; padding: 20px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(0,0,0,0.03); margin-bottom: 20px;">
+                    <div class="filter-inputs-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px;">
                         <div class="filter-group">
-                            <label>Tanggal</label>
-                            <input type="text" value="22/07/2026 📅">
+                            <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
+                            <input type="text" id="filter-mon-date" value="22/07/2026 📅" style="font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; width: 100%;">
                         </div>
                         <div class="filter-group">
-                            <label>Rute</label>
-                            <select>
-                                <option>Semua Rute</option>
-                                <option>JKT - PLG</option>
-                                <option>JKT - SRG</option>
+                            <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
+                            <select id="filter-mon-rute" style="font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; width: 100%;">
+                                <option value="">Semua Rute</option>
+                                <option value="JKT - PLG">JKT - PLG</option>
+                                <option value="JKT - SRG">JKT - SRG</option>
+                                <option value="JKT - SUB">JKT - SUB</option>
+                                <option value="JKT - PKU">JKT - PKU</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>TLC</label>
-                            <select>
-                                <option>Semua TLC</option>
-                                <option>JKT</option>
+                            <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">TLC</label>
+                            <select id="filter-mon-tlc" style="font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; width: 100%;">
+                                <option value="">Semua TLC</option>
+                                <option value="JKT">JKT</option>
+                                <option value="PLG">PLG</option>
+                                <option value="SUB">SUB</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Vendor</label>
-                            <select>
-                                <option>Semua Vendor</option>
+                            <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Vendor</label>
+                            <select id="filter-mon-vendor" style="font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; width: 100%;">
+                                <option value="">Semua Vendor</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Status Perjalanan</label>
-                            <select>
-                                <option>Semua Status</option>
-                                <option>ON PROGRESS</option>
-                                <option>SELESAI</option>
-                                <option>WAITING</option>
+                            <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status Perjalanan</label>
+                            <select id="filter-mon-status" style="font-size: 12.5px; font-weight: 600; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; width: 100%;">
+                                <option value="">Semua Status</option>
+                                <option value="ON PROGRESS">ON PROGRESS</option>
+                                <option value="COMPLETED">SELESAI / COMPLETED</option>
+                                <option value="WAITING">WAITING</option>
+                                <option value="KENDALA">KENDALA / TROUBLE</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Cari Kode Tugas / Plat / Driver</label>
+                            <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Search Kode / Plat / Driver</label>
                             <div class="search-input-wrap">
-                                <input type="text" placeholder="Ketik disini...">
+                                <input type="text" id="filter-mon-search" placeholder="Ketik disini..." style="font-size: 12.5px; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; width: 100%;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             </div>
                         </div>
                     </div>
-                    <div class="filter-action-btns">
-                        <button class="btn-inc-reset">🔄 Reset</button>
-                        <button id="btn-add-monitoring" class="btn-inc-add" onclick="document.getElementById('modal-add-monitoring').classList.remove('hidden')" style="background-color: #E30613; cursor: pointer;">📍 Check-in / Update Lokasi 4 Jam</button>
+                    <div class="filter-action-btns" style="display: flex; gap: 10px; align-items: center; justify-content: flex-end; margin-top: 16px;">
+                        <button id="btn-reset-monitoring" class="btn-inc-reset" style="padding: 9px 16px; border-radius: 8px; font-weight: 700;">🔄 Reset Filter</button>
+                        <button id="btn-add-monitoring" class="btn-inc-add" onclick="document.getElementById('modal-add-monitoring').classList.remove('hidden')" style="background: linear-gradient(135deg, #E30613 0%, #C8000A 100%); color: #FFFFFF; font-weight: 700; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(227, 6, 19, 0.25); display: inline-flex; align-items: center; gap: 8px;">
+                            📍 Check-in / Update Lokasi 4 Jam
+                        </button>
                     </div>
                 </div>
 
-                <!-- HEADER WIDGET: SLOT MONITORING AKTIF SAAT INI -->
-                <div class="inc-kpi-grid" style="margin-bottom: 16px;">
+                <!-- KPI CARDS GRID -->
+                <div class="inc-kpi-grid" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                     <!-- Card 1: SLOT MONITORING AKTIF -->
-                    <div class="inc-kpi-card" style="border-left: 4px solid #3B82F6;">
-                        <div class="inc-kpi-icon-circle blue-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <div class="inc-kpi-card" style="border-left: 4px solid #3B82F6; background: #FFFFFF; border-radius: 16px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+                        <div class="inc-kpi-icon-circle blue-light" style="background: #EFF6FF; color: #2563EB; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 22px; height: 22px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">SLOT AKTIF SAAT INI</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" id="lbl-active-slot-time" style="font-size: 20px;">08:00 - 12:00</span>
+                        <div class="inc-kpi-info" style="margin-top: 12px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">SLOT AKTIF SAAT INI</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 4px;">
+                                <span class="inc-kpi-number" id="lbl-active-slot-time" style="font-size: 22px; font-weight: 800; color: #1E40AF;">08:00 - 12:00</span>
                             </div>
-                            <span class="inc-kpi-sub" style="color: #2563EB;">Waktu Lokal Operator</span>
+                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #2563EB; font-weight: 600;">Waktu Lokal Operator</span>
                         </div>
                     </div>
 
                     <!-- Card 2: TOTAL ARMADA AKTIF -->
-                    <div class="inc-kpi-card">
-                        <div class="inc-kpi-icon-circle red-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 3h15v13H1z"></path><path d="M16 8h4l3 3v5h-7V8z"></path><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 16px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
+                        <div class="inc-kpi-icon-circle red-light" style="background: #FEF2F2; color: #E30613; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 22px; height: 22px;"><path d="M1 3h15v13H1z"></path><path d="M16 8h4l3 3v5h-7V8z"></path><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                         </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">TOTAL ARMADA AKTIF</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" id="kpi-total-armada">45</span>
-                                <span class="inc-kpi-unit">Unit</span>
+                        <div class="inc-kpi-info" style="margin-top: 12px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">TOTAL ARMADA AKTIF</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                <span class="inc-kpi-number" id="kpi-total-armada" style="font-size: 24px; font-weight: 800; color: #0F172A;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 12px; color: #64748B; font-weight: 600;">Unit</span>
                             </div>
-                            <span class="inc-kpi-sub" style="color: #64748B;">Incoming SSOT</span>
+                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #64748B;">SLA & Master Armada</span>
                         </div>
                     </div>
 
                     <!-- Card 3: SUDAH UPDATE -->
-                    <div class="inc-kpi-card">
-                        <div class="inc-kpi-icon-circle green-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 16px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
+                        <div class="inc-kpi-icon-circle green-light" style="background: #F0FDF4; color: #16A34A; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 22px; height: 22px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">🟢 SUDAH UPDATE</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" id="kpi-sudah-update" style="color: #16A34A;">38</span>
-                                <span class="inc-kpi-unit">Armada</span>
+                        <div class="inc-kpi-info" style="margin-top: 12px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">🟢 SUDAH UPDATE</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                <span class="inc-kpi-number" id="kpi-sudah-update" style="font-size: 24px; font-weight: 800; color: #16A34A;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
                             </div>
-                            <span class="inc-kpi-sub" style="color: #16A34A;">Tepat Waktu</span>
+                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #16A34A; font-weight: 600;">Tepat Waktu</span>
                         </div>
                     </div>
 
                     <!-- Card 4: BELUM UPDATE -->
-                    <div class="inc-kpi-card" style="border: 1.5px solid #FCD34D;">
-                        <div class="inc-kpi-icon-circle orange-light">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 16px; padding: 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1.5px solid #FCD34D;">
+                        <div class="inc-kpi-icon-circle orange-light" style="background: #FFFBEB; color: #D97706; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 22px; height: 22px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                         </div>
-                        <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">🟡 BELUM UPDATE</span>
-                            <div class="inc-kpi-val-row">
-                                <span class="inc-kpi-number" id="kpi-belum-update" style="color: #D97706;">7</span>
-                                <span class="inc-kpi-unit">Armada</span>
+                        <div class="inc-kpi-info" style="margin-top: 12px;">
+                            <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #D97706; letter-spacing: 0.5px;">🟡 BELUM UPDATE</span>
+                            <div class="inc-kpi-val-row" style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                <span class="inc-kpi-number" id="kpi-belum-update" style="font-size: 24px; font-weight: 800; color: #D97706;">0</span>
+                                <span class="inc-kpi-unit" style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
                             </div>
-                            <span class="inc-kpi-sub" style="color: #D97706;">Perlu Tindakan Check-In</span>
+                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #D97706; font-weight: 600;">Perlu Check-In</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Blue Info Banner -->
-                <div class="inc-info-banner" style="background-color: #EFF6FF; border: 1px solid #BFDBFE;">
-                    <div class="info-icon-circle" style="background-color: #3B82F6;">i</div>
-                    <div class="info-banner-text" style="color: #1E3A8A;">
-                        <strong>Cara Pengisian Monitoring 4 Jam (Check-in Operator)</strong><br>
-                        Input posisi armada setiap periode 4 jam. Jika terjadi kendala darurat, klik tombol 🚨 <strong>Laporkan Incident</strong> untuk otomatis menarik identitas perjalanan ke modul Trouble & Laka.<br>
-                        <span style="font-size: 11px; color: #2563EB;">Slot waktu: 00:00-04:00, 04:00-08:00, 08:00-12:00, 12:00-16:00, 16:00-20:00, 20:00-24:00</span>
+                <!-- Blue Information Banner Card -->
+                <div class="inc-info-banner" style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 16px; padding: 16px; margin-bottom: 20px; display: flex; gap: 14px; align-items: flex-start;">
+                    <div class="info-icon-circle" style="background-color: #2563EB; color: #FFFFFF; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 14px;">ℹ</div>
+                    <div class="info-banner-text" style="color: #1E3A8A; font-size: 12.5px; line-height: 1.5;">
+                        <strong style="font-size: 13.5px; color: #1E40AF; display: block; margin-bottom: 2px;">Cara Pengisian Monitoring 4 Jam (Check-in Operator)</strong>
+                        Input posisi armada setiap periode 4 jam sekali. Jika terjadi kendala darurat, gunakan opsi status 🚨 <strong>Trouble/Laka</strong> untuk otomatis menarik identitas perjalanan ke modul Trouble & Laka.
+                        <div class="slot-time-pills" style="margin-top: 8px;">
+                            <span class="slot-badge-pill">🕒 00:00 - 04:00</span>
+                            <span class="slot-badge-pill">🕒 04:00 - 08:00</span>
+                            <span class="slot-badge-pill">🕒 08:00 - 12:00</span>
+                            <span class="slot-badge-pill">🕒 12:00 - 16:00</span>
+                            <span class="slot-badge-pill">🕒 16:00 - 20:00</span>
+                            <span class="slot-badge-pill">🕒 20:00 - 24:00</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Main Split Layout (Table + Right Side Cards) -->
-                <div class="inc-split-container">
+                <div class="inc-split-container" style="display: flex; gap: 20px; align-items: flex-start;">
                     
-                    <!-- Table Section (Left) -->
-                    <div class="inc-table-card" style="flex: 1;">
-                        <div class="inc-table-header">
-                            <h3 class="inc-table-title">Daftar Monitoring 4 Jam</h3>
+                    <!-- Table Section (Left 74%) -->
+                    <div class="inc-table-card" style="flex: 1; min-width: 0; background: #FFFFFF; border-radius: 16px; border: 1px solid #E2E8F0; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+                        <div class="inc-table-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0;">Daftar Monitoring 4 Jam</h3>
+                                <span class="sla-trip-pill" style="font-size: 11px;">Real-Time Control Tower</span>
+                            </div>
                         </div>
 
-                        <div class="inc-table-scroll">
-                            <table class="inc-data-table monitoring-table">
+                        <div class="inc-table-scroll" style="overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 12px;">
+                            <table class="sla-enterprise-table monitoring-table">
                                 <thead>
                                     <tr>
-                                        <th rowspan="2" class="col-center">No</th>
+                                        <th rowspan="2" style="text-align: center; width: 45px;">No</th>
                                         <th rowspan="2">Kode Tugas</th>
                                         <th rowspan="2">Rute</th>
                                         <th rowspan="2">TLC</th>
                                         <th rowspan="2">Plat Nomor</th>
                                         <th rowspan="2">Driver</th>
-                                        <th colspan="6" class="col-center" style="background-color: #F1F5F9; color: #334155; font-weight: 800;">Posisi Perjalanan (Update per 4 Jam)</th>
-                                        <th rowspan="2" class="col-center">Update Terakhir</th>
-                                        <th rowspan="2" class="col-center">Status</th>
-                                        <th rowspan="2" class="col-center">Aksi</th>
+                                        <th colspan="6" style="text-align: center; background-color: #F1F5F9; color: #1E293B; font-weight: 800; border-bottom: 1px solid #CBD5E1;">Posisi Perjalanan (Update per 4 Jam)</th>
+                                        <th rowspan="2" style="text-align: center;">Update Terakhir</th>
+                                        <th rowspan="2" style="text-align: center;">Status</th>
+                                        <th rowspan="2" style="text-align: center; width: 85px;">Aksi</th>
                                     </tr>
                                     <tr style="background-color: #F8FAFC; text-align: center;">
-                                        <th class="col-center">00-04</th>
-                                        <th class="col-center">04-08</th>
-                                        <th class="col-center">08-12</th>
-                                        <th class="col-center">12-16</th>
-                                        <th class="col-center">16-20</th>
-                                        <th class="col-center">20-24</th>
+                                        <th style="text-align: center; font-size: 10.5px;">00-04</th>
+                                        <th style="text-align: center; font-size: 10.5px;">04-08</th>
+                                        <th style="text-align: center; font-size: 10.5px;">08-12</th>
+                                        <th style="text-align: center; font-size: 10.5px;">12-16</th>
+                                        <th style="text-align: center; font-size: 10.5px;">16-20</th>
+                                        <th style="text-align: center; font-size: 10.5px;">20-24</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="inc-row">
-                                        <td class="col-center">1</td>
-                                        <td><strong>DBGX2607220004</strong></td>
-                                        <td>JKT - PLG</td>
-                                        <td>JKT</td>
-                                        <td>B 9356 PKK</td>
-                                        <td>Yosep P.</td>
-                                        <td class="col-center"><span class="chip-pos green">🟢 Berangkat<br><span class="time-sub">02:10</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Cikampek<br><span class="time-sub">06:25</span></span></td>
-                                        <td class="col-center"><span class="chip-pos active-slot">Tol Cipali<br><span class="time-sub">09:45</span></span></td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>09:45</td>
-                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">2</td>
-                                        <td><strong>DBGX2607220002</strong></td>
-                                        <td>JKT - SRG</td>
-                                        <td>JKT</td>
-                                        <td>B 9134 PKK</td>
-                                        <td>Dian OS</td>
-                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">01:50</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Karawang<br><span class="time-sub">05:40</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Cirebon<br><span class="time-sub">09:15</span></span></td>
-                                        <td class="col-center"><span class="chip-pos active-slot">Brebes<br><span class="time-sub">12:50</span></span></td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>12:50</td>
-                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">3</td>
-                                        <td><strong>DBGX2607220003</strong></td>
-                                        <td>JKT - PKU</td>
-                                        <td>JKT</td>
-                                        <td>B 9562 PXW</td>
-                                        <td>Kohar H.</td>
-                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">02:00</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Cikampek<br><span class="time-sub">05:55</span></span></td>
-                                        <td class="col-center"><span class="chip-pos active-slot">Tol Cipali<br><span class="time-sub">09:30</span></span></td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>09:30</td>
-                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">4</td>
-                                        <td><strong>DBGX2607220001</strong></td>
-                                        <td>JKT - SUB</td>
-                                        <td>JKT</td>
-                                        <td>B 9041 SXX</td>
-                                        <td>Sandy A.</td>
-                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">01:40</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Cikampek<br><span class="time-sub">05:20</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Cirebon<br><span class="time-sub">09:00</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Semarang<br><span class="time-sub">13:10</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Tegal<br><span class="time-sub">16:40</span></span></td>
-                                        <td class="col-center"><span class="chip-pos green">Sampai<br><span class="time-sub">21:10</span></span></td>
-                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>21:10</td>
-                                        <td class="col-center"><span class="badge-status green-outline">SELESAI</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">5</td>
-                                        <td><strong>DBGX2607220005</strong></td>
-                                        <td>JKT - MDN</td>
-                                        <td>JKT</td>
-                                        <td>B 9011 SXX</td>
-                                        <td>Riky A.</td>
-                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">02:15</span></span></td>
-                                        <td class="col-center"><span class="chip-pos">Karawang<br><span class="time-sub">06:00</span></span></td>
-                                        <td class="col-center"><span class="chip-pos active-slot">Cirebon<br><span class="time-sub">09:35</span></span></td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>09:35</td>
-                                        <td class="col-center"><span class="badge-status blue-outline">ON PROGRESS</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">6</td>
-                                        <td><strong>DBGX2607220006</strong></td>
-                                        <td>JKT - CKB</td>
-                                        <td>JKT</td>
-                                        <td>B 9904 TLX</td>
-                                        <td>Asep D.</td>
-                                        <td class="col-center"><span class="chip-pos">Berangkat<br><span class="time-sub">02:05</span></span></td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center" style="font-size: 11px;">22/07/2026<br>02:05</td>
-                                        <td class="col-center"><span class="badge-status orange-outline">WAITING</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">7</td>
-                                        <td><strong>DBGX2607220007</strong></td>
-                                        <td>JKT - BDG</td>
-                                        <td>JKT</td>
-                                        <td>B 9472 KDA</td>
-                                        <td>Tedy R.</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center text-dim">-</td>
-                                        <td class="col-center"><span class="badge-status orange-outline">WAITING</span></td>
-                                        <td class="col-center"><button class="btn-view-eye">✏️</button></td>
-                                    </tr>
+                                    <!-- Dynamic rows generated by subscribeMonitoring4H -->
                                 </tbody>
                             </table>
                         </div>
 
                         <!-- Table Footer Pagination -->
-                        <div class="inc-table-footer">
-                            <span style="font-size: 12px; color: #64748B;">Menampilkan 1 - 7 dari 45 data</span>
-                            <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
+                        <div class="inc-table-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #EEF0F4;">
+                            <span style="font-size: 12px; color: #64748B; font-weight: 500;" id="mon-pagination-info">Menampilkan 0 data</span>
+                            <div style="display: flex; align-items: center; gap: 16px;">
                                 <div class="inc-pagination">
                                     <button class="p-btn">&lt;</button>
                                     <button class="p-btn active">1</button>
                                     <button class="p-btn">2</button>
                                     <button class="p-btn">3</button>
-                                    <button class="p-btn">4</button>
-                                    <button class="p-btn">5</button>
                                     <span class="page-dots">...</span>
-                                    <button class="p-btn">7</button>
                                     <button class="p-btn">&gt;</button>
                                 </div>
                                 <div class="per-page-row" style="font-size: 12px; color: #64748B; display: flex; align-items: center; gap: 6px;">
                                     <span>Tampilkan</span>
-                                    <select class="inc-per-page">
+                                    <select class="inc-per-page" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #CBD5E1; font-weight: 600;">
                                         <option>10</option>
                                         <option>25</option>
+                                        <option>50</option>
                                     </select>
                                     <span>data</span>
                                 </div>
@@ -473,74 +367,77 @@
                         </div>
                     </div>
 
-                    <!-- Right Side Panels (Cards Stack) -->
-                    <div class="inc-detail-card" style="width: 280px; min-width: 280px; gap: 14px;">
+                    <!-- Right Side Panels (Cards Stack - Width 290px) -->
+                    <div class="inc-detail-card" style="width: 290px; min-width: 290px; display: flex; flex-direction: column; gap: 16px;">
                         
                         <!-- Card 1: Ringkasan Hari Ini -->
                         <div class="monitoring-summary-box">
-                            <h4 class="side-card-title">Ringkasan Hari Ini</h4>
+                            <h4 class="side-card-title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                                <span>📊 Ringkasan Hari Ini</span>
+                                <span class="sla-target-badge" style="font-size: 10px;">Live</span>
+                            </h4>
                             <div class="summary-items-list">
                                 <div class="summary-row">
                                     <div class="summary-label-wrap">
-                                        <span class="icon-sq blue-sq">🗺️</span>
-                                        <span>Total Trip</span>
+                                        <span class="icon-sq">🗺️</span>
+                                        <span style="font-weight: 600; color: #475569;">Total Trip</span>
                                     </div>
-                                    <strong style="font-size: 14px;">45</strong>
+                                    <strong style="font-size: 14px; color: #0F172A;" id="summary-total-trip">0</strong>
                                 </div>
                                 <div class="summary-row">
                                     <div class="summary-label-wrap">
-                                        <span class="icon-sq green-sq">🟢</span>
-                                        <span>Selesai</span>
+                                        <span class="icon-sq">🟢</span>
+                                        <span style="font-weight: 600; color: #475569;">Selesai</span>
                                     </div>
-                                    <strong style="color: #16A34A; font-size: 14px;">12</strong>
+                                    <strong style="color: #16A34A; font-size: 14px;" id="summary-selesai">0</strong>
                                 </div>
                                 <div class="summary-row">
                                     <div class="summary-label-wrap">
-                                        <span class="icon-sq blue-sq">🔵</span>
-                                        <span>On Progress</span>
+                                        <span class="icon-sq">🔵</span>
+                                        <span style="font-weight: 600; color: #475569;">On Progress</span>
                                     </div>
-                                    <strong style="color: #2563EB; font-size: 14px;">28</strong>
+                                    <strong style="color: #2563EB; font-size: 14px;" id="summary-onprogress">0</strong>
                                 </div>
                                 <div class="summary-row">
                                     <div class="summary-label-wrap">
-                                        <span class="icon-sq orange-sq">🕒</span>
-                                        <span>Waiting Update</span>
+                                        <span class="icon-sq">🕒</span>
+                                        <span style="font-weight: 600; color: #475569;">Waiting Update</span>
                                     </div>
-                                    <strong style="color: #D97706; font-size: 14px;">5</strong>
+                                    <strong style="color: #D97706; font-size: 14px;" id="summary-waiting">0</strong>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Card 2: Legenda Posisi -->
                         <div class="monitoring-legend-box">
-                            <h4 class="side-card-title">Legenda Posisi</h4>
+                            <h4 class="side-card-title" style="margin-bottom: 10px;">📌 Legenda Posisi</h4>
                             <div class="legend-items-list">
                                 <div class="legend-item">
-                                    <span class="leg-icon green">🟢</span>
+                                    <span class="leg-icon">🟢</span>
                                     <div>
-                                        <strong class="leg-title">Berangkat</strong>
-                                        <span class="leg-desc">Mobil berangkat dari titik awal</span>
+                                        <strong class="leg-title">Berangkat / Gate Out</strong>
+                                        <span class="leg-desc">Armada resmi keluar dari gateway asal</span>
                                     </div>
                                 </div>
                                 <div class="legend-item">
-                                    <span class="leg-icon blue">📍</span>
+                                    <span class="leg-icon">📍</span>
                                     <div>
-                                        <strong class="leg-title">Transit/Posisi</strong>
-                                        <span class="leg-desc">Mobil berada di titik transit</span>
+                                        <strong class="leg-title">Transit / Rest Area</strong>
+                                        <span class="leg-desc">Armada di titik transit atau tempat istirahat</span>
                                     </div>
                                 </div>
                                 <div class="legend-item">
-                                    <span class="leg-icon orange">📍</span>
+                                    <span class="leg-icon">🚚</span>
                                     <div>
                                         <strong class="leg-title">Dalam Perjalanan</strong>
-                                        <span class="leg-desc">Mobil masih dalam perjalanan</span>
+                                        <span class="leg-desc">Armada melaju lancar di rute</span>
                                     </div>
                                 </div>
                                 <div class="legend-item">
-                                    <span class="leg-icon green">🚩</span>
+                                    <span class="leg-icon">🚩</span>
                                     <div>
-                                        <strong class="leg-title">Sampai</strong>
-                                        <span class="leg-desc">Mobil sampai di tujuan akhir</span>
+                                        <strong class="leg-title">Sampai / Gate In</strong>
+                                        <span class="leg-desc">Armada telah tiba di gateway tujuan</span>
                                     </div>
                                 </div>
                             </div>
@@ -548,34 +445,34 @@
 
                         <!-- Card 3: Timeline Slot 4 Jam -->
                         <div class="monitoring-timeline-box">
-                            <h4 class="side-card-title">Timeline Slot 4 Jam</h4>
-                            <div class="slot-timeline-list">
-                                <div class="slot-item">
-                                    <span class="slot-clock">🕒</span>
+                            <h4 class="side-card-title" style="margin-bottom: 10px;">⏱️ Timeline Slot 4 Jam</h4>
+                            <div class="vertical-slot-timeline" id="vertical-slot-timeline-list">
+                                <div class="timeline-slot-node" data-slot="00:00">
                                     <span>00:00 - 04:00</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Slot 1</span>
                                 </div>
-                                <div class="slot-item">
-                                    <span class="slot-clock">🕒</span>
+                                <div class="timeline-slot-node" data-slot="04:00">
                                     <span>04:00 - 08:00</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Slot 2</span>
                                 </div>
-                                <div class="slot-item active-slot-red">
-                                    <span class="slot-clock red">🕒</span>
+                                <div class="timeline-slot-node" data-slot="08:00">
                                     <span>08:00 - 12:00</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Slot 3</span>
                                 </div>
-                                <div class="slot-item">
-                                    <span class="slot-clock">🕒</span>
+                                <div class="timeline-slot-node" data-slot="12:00">
                                     <span>12:00 - 16:00</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Slot 4</span>
                                 </div>
-                                <div class="slot-item">
-                                    <span class="slot-clock">🕒</span>
+                                <div class="timeline-slot-node" data-slot="16:00">
                                     <span>16:00 - 20:00</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Slot 5</span>
                                 </div>
-                                <div class="slot-item">
-                                    <span class="slot-clock">🕒</span>
+                                <div class="timeline-slot-node" data-slot="20:00">
                                     <span>20:00 - 24:00</span>
+                                    <span style="font-size: 10px; color: #94A3B8;">Slot 6</span>
                                 </div>
                             </div>
-                            <span style="font-size: 10.5px; color: #94A3B8; display: block; margin-top: 8px; text-align: center;">* Update setiap 4 jam sekali</span>
+                            <span style="font-size: 11px; color: #94A3B8; display: block; margin-top: 12px; text-align: center;">* Pembaruan posisi wajib setiap 4 jam</span>
                         </div>
 
                     </div>
@@ -594,42 +491,42 @@
 
     <!-- MODAL POPUP: UPDATE POSISI PERJALANAN 4 JAM (SSOT INTEGRATED) -->
     <div id="modal-add-monitoring" class="modal-overlay hidden">
-        <div class="modal-card" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>⏱️ Update Posisi Armada (Monitoring 4 Jam)</h3>
-                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+        <div class="modal-card" style="max-width: 600px; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid #E2E8F0;">
+            <div class="modal-header" style="background: #0F172A; color: #FFFFFF; border-radius: 18px 18px 0 0; padding: 16px 22px;">
+                <h3 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">⏱️ Update Posisi Armada (Monitoring 4 Jam)</h3>
+                <button type="button" class="btn-close-x modal-close-btn" style="color: #FFFFFF; opacity: 0.8;">&times;</button>
             </div>
-            <form id="form-add-monitoring" class="modal-body-form" style="padding: 18px 22px;">
+            <form id="form-add-monitoring" class="modal-body-form" style="padding: 22px;">
                 
                 <!-- SSOT Auto-Pull Kode Tugas -->
-                <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700; color: #1E293B;">Pilih Kode Tugas Armada (Incoming SSOT)</label>
-                    <select id="mon-kode-tugas-select" required style="background-color: #172030; border: 1.5px solid #3B82F6; border-radius: 6px; padding: 11px 14px; color: #FFFFFF; font-size: 14px; font-weight: 700;">
+                <div class="form-field" style="margin-bottom: 16px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 6px;">Pilih Kode Tugas Armada (Data Operasional)</label>
+                    <select id="mon-kode-tugas-select" required style="background-color: #FFFFFF; border: 1.5px solid #2563EB; border-radius: 8px; padding: 11px 14px; color: #0F172A; font-size: 14px; font-weight: 700; width: 100%;">
                         <option value="">-- Pilih Armada Aktif --</option>
                     </select>
-                    <span style="font-size: 11px; color: #64748B; margin-top: 4px; display: block;">* Data otomatis ditarik dari Incoming SSOT tanpa ketik ulang.</span>
+                    <span style="font-size: 11px; color: #64748B; margin-top: 4px; display: block;">* Data otomatis ditarik dari Sistem Operasional & SLA.</span>
                 </div>
 
                 <!-- Auto-populated Meta Fields (Readonly) -->
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Plat Nomor Armada</label>
-                        <input type="text" id="mon-plat" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155; font-weight: 700;">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Plat Nomor Armada</label>
+                        <input type="text" id="mon-plat" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #0F172A; font-weight: 700; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; width: 100%;">
                     </div>
                     <div class="form-field">
-                        <label>Nama Driver</label>
-                        <input type="text" id="mon-driver" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155;">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nama Driver</label>
+                        <input type="text" id="mon-driver" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; width: 100%;">
                     </div>
                 </div>
 
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Rute & TLC</label>
-                        <input type="text" id="mon-rute" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155;">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Rute & TLC</label>
+                        <input type="text" id="mon-rute" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; width: 100%;">
                     </div>
                     <div class="form-field">
-                        <label>Periode Slot Monitoring 4H</label>
-                        <select id="mon-slot-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700;">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Periode Slot Monitoring 4H</label>
+                        <select id="mon-slot-select" required style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px 12px; color: #0F172A; font-weight: 700; width: 100%;">
                             <option value="00:00">🕒 Slot 00:00 - 04:00</option>
                             <option value="04:00">🕒 Slot 04:00 - 08:00</option>
                             <option value="08:00">🕒 Slot 08:00 - 12:00</option>
@@ -642,14 +539,14 @@
 
                 <!-- Input Field: Lokasi Terakhir -->
                 <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700;">Lokasi Terakhir / Posisi Armada Saat Ini</label>
-                    <input type="text" id="mon-posisi-lokasi" placeholder="Contoh: Tol Cipali KM 102 / Rest Area 207 / Gateway" required style="border: 1.5px solid #E2E8F0; padding: 10px 12px; font-size: 13.5px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #0F172A; display: block; margin-bottom: 4px;">Lokasi Terakhir / Posisi Armada Saat Ini</label>
+                    <input type="text" id="mon-posisi-lokasi" placeholder="Contoh: Tol Cipali KM 102 / Rest Area 207 / Gateway" required style="border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; width: 100%;">
                 </div>
 
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Jenis Update Posisi</label>
-                        <select id="mon-jenis-update" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Jenis Update Posisi</label>
+                        <select id="mon-jenis-update" style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px 12px; color: #0F172A; width: 100%;">
                             <option value="Lokasi Normal">🟢 Lokasi Normal (Lancar)</option>
                             <option value="Istirahat">☕ Istirahat / Rest Area</option>
                             <option value="Berhenti">🛑 Berhenti / Macet</option>
@@ -659,8 +556,8 @@
                         </select>
                     </div>
                     <div class="form-field">
-                        <label>Status Perjalanan</label>
-                        <select id="mon-status-perjalanan" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Status Perjalanan</label>
+                        <select id="mon-status-perjalanan" style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px 12px; color: #0F172A; width: 100%;">
                             <option value="ON PROGRESS">🔵 ON PROGRESS (Dalam Perjalanan)</option>
                             <option value="TRANSIT">📍 TRANSIT</option>
                             <option value="COMPLETED">🟢 COMPLETED (Sampai Tujuan)</option>
@@ -670,18 +567,18 @@
                 </div>
 
                 <div class="form-field" style="margin-bottom: 14px;">
-                    <label>Keterangan Tambahan / Detail Posisi</label>
-                    <input type="text" id="mon-keterangan" placeholder="Contoh: Rest Area KM 208, pengisian BBM / ban kempes" style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                    <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Keterangan Tambahan / Detail Posisi</label>
+                    <input type="text" id="mon-keterangan" placeholder="Contoh: Rest Area KM 208, pengisian BBM / ban kempes" style="border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px 12px; font-size: 13px; width: 100%;">
                 </div>
 
-                <div class="form-field" style="margin-bottom: 14px;">
-                    <label>Waktu Input Operator (jamUpdateAktual)</label>
-                    <input type="text" id="mon-jam-update-aktual" readonly style="background-color: #F8FAFC; color: #2563EB; font-weight: 700;">
+                <div class="form-field" style="margin-bottom: 16px;">
+                    <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Waktu Input Operator (jamUpdateAktual)</label>
+                    <input type="text" id="mon-jam-update-aktual" readonly style="background-color: #F8FAFC; color: #2563EB; font-weight: 700; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; width: 100%;">
                 </div>
 
-                <div class="modal-footer" style="margin-top: 14px;">
-                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red">⏱️ Simpan Update Posisi (Firestore)</button>
+                <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 18px; padding-top: 14px; border-top: 1px solid #EEF0F4;">
+                    <button type="button" class="btn-dark-outline modal-close-btn" style="border-radius: 8px; padding: 9px 18px; font-weight: 700;">Batal</button>
+                    <button type="submit" class="btn-jnt-red" style="background: linear-gradient(135deg, #E30613 0%, #C8000A 100%); color: #FFFFFF; font-weight: 700; border: none; padding: 10px 22px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(227, 6, 19, 0.25);">⏱️ Simpan Update Posisi (Firestore)</button>
                 </div>
             </form>
         </div>
@@ -694,18 +591,36 @@
     <!-- Firebase Config & Service -->
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
+    <script src="sla-countdown-engine.js"></script>
     <script src="app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof JNTFirebaseService === 'undefined') return;
 
-            // Set active slot label
+            // Determine Active Slot
             const currentActiveSlot = JNTFirebaseService.determineActiveSlot();
             const slotLabel = JNTFirebaseService.getSlotTimeWindowLabel(currentActiveSlot);
             const activeSlotEl = document.getElementById('lbl-active-slot-time');
             if (activeSlotEl) activeSlotEl.textContent = slotLabel;
 
-            // Helper to fill current time
+            // Highlight Vertical Timeline Active Slot Node
+            const timelineNodes = document.querySelectorAll('#vertical-slot-timeline-list .timeline-slot-node');
+            timelineNodes.forEach(node => {
+                const nodeSlot = node.getAttribute('data-slot');
+                if (nodeSlot === currentActiveSlot) {
+                    node.classList.add('active-slot');
+                    const badgeSpan = node.querySelector('span:last-child');
+                    if (badgeSpan) {
+                        badgeSpan.textContent = 'Aktif 🔴';
+                        badgeSpan.style.color = '#E30613';
+                        badgeSpan.style.fontWeight = '800';
+                    }
+                } else {
+                    node.classList.remove('active-slot');
+                }
+            });
+
+            // Helper to fill current timestamp
             const fillCurrentTime = () => {
                 const now = new Date();
                 const dd = String(now.getDate()).padStart(2, '0');
@@ -734,30 +649,87 @@
                 document.getElementById('modal-add-monitoring').classList.remove('hidden');
             };
 
+            // Synchronized Delete Trip Helper
+            window.deleteMonitoringTrip = async (kodeTugas) => {
+                if (!kodeTugas) return;
+                if (confirm(`Apakah Anda yakin ingin menghapus data perjalanan ${kodeTugas}? Data akan disinkronkan dan dihapus dari Monitoring 4H & SLA Outbound.`)) {
+                    try {
+                        await JNTFirebaseService.deleteSLAOutbound(kodeTugas);
+                        if (typeof window.showToastNotification === 'function') {
+                            window.showToastNotification("🗑️ DELETED", `Data ${kodeTugas} berhasil dihapus dari Monitoring 4H & SLA.`, "info");
+                        } else {
+                            alert(`🗑️ Data ${kodeTugas} berhasil dihapus.`);
+                        }
+                    } catch (err) {
+                        alert('Gagal menghapus data: ' + err.message);
+                    }
+                }
+            };
+
             // Auto-fill meta on selecting Kode Tugas
             const monKodeSelect = document.getElementById('mon-kode-tugas-select');
             monKodeSelect?.addEventListener('change', async (e) => {
                 const kode = e.target.value;
                 if (!kode) return;
 
-                if (window.db) {
-                    const doc = await window.db.collection('incoming').doc(kode).get();
-                    if (doc.exists) {
-                        const data = doc.data();
-                        document.getElementById('mon-plat').value = data.platNomor || '';
-                        document.getElementById('mon-driver').value = data.driver1 || '';
-                        document.getElementById('mon-rute').value = `${data.trip || ''} (${data.namaRute || ''})`;
-                    }
+                const data = await JNTFirebaseService.getDoc('incoming', kode);
+                if (data) {
+                    document.getElementById('mon-plat').value = data.platNomor || '';
+                    document.getElementById('mon-driver').value = data.driver1 || '';
+                    document.getElementById('mon-rute').value = `${data.trip || ''} (${data.namaRute || ''})`;
                 }
             });
 
-            // Subscribe to Firestore monitoring 4H live data
-            JNTFirebaseService.subscribeMonitoring4H((list) => {
+            let rawMonitoringList = [];
+
+            // Apply Filters & Search
+            const applyFilters = () => {
+                const ruteVal = document.getElementById('filter-mon-rute')?.value || '';
+                const tlcVal = document.getElementById('filter-mon-tlc')?.value || '';
+                const vendorVal = document.getElementById('filter-mon-vendor')?.value || '';
+                const statusVal = document.getElementById('filter-mon-status')?.value || '';
+                const searchVal = (document.getElementById('filter-mon-search')?.value || '').toLowerCase().trim();
+
+                const filtered = rawMonitoringList.filter(item => {
+                    const matchRute = !ruteVal || (item.trip || item.namaRute || '').includes(ruteVal);
+                    const matchTlc = !tlcVal || (item.tlc || 'JKT').includes(tlcVal);
+                    const matchVendor = !vendorVal || (item.vendor || '').includes(vendorVal);
+                    const matchStatus = !statusVal || (item.statusPerjalanan === statusVal);
+                    const matchSearch = !searchVal || 
+                        (item.kodeTugas || '').toLowerCase().includes(searchVal) ||
+                        (item.platNomor || '').toLowerCase().includes(searchVal) ||
+                        (item.driver1 || '').toLowerCase().includes(searchVal);
+
+                    return matchRute && matchTlc && matchVendor && matchStatus && matchSearch;
+                });
+
+                renderMonitoringTable(filtered);
+            };
+
+            // Event Listeners for Filters
+            ['filter-mon-rute', 'filter-mon-tlc', 'filter-mon-vendor', 'filter-mon-status'].forEach(id => {
+                document.getElementById(id)?.addEventListener('change', applyFilters);
+            });
+            document.getElementById('filter-mon-search')?.addEventListener('input', applyFilters);
+            document.getElementById('btn-reset-monitoring')?.addEventListener('click', () => {
+                ['filter-mon-rute', 'filter-mon-tlc', 'filter-mon-vendor', 'filter-mon-status'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                const searchInput = document.getElementById('filter-mon-search');
+                if (searchInput) searchInput.value = '';
+                applyFilters();
+            });
+
+            // Render Function
+            const renderMonitoringTable = (list) => {
                 const tbody = document.querySelector('.monitoring-table tbody');
                 if (!tbody) return;
 
                 let updatedCount = 0;
                 let pendingCount = 0;
+                let completedCount = 0;
+                let onProgressCount = 0;
 
                 tbody.innerHTML = list.map((item, idx) => {
                     const slots = item.slots || {};
@@ -765,12 +737,12 @@
                     const renderSlotCell = (slotKey) => {
                         const sData = slots[slotKey];
                         if (!sData || !sData.lokasi) {
-                            return `<td class="col-center text-dim">-</td>`;
+                            return `<td style="text-align: center; color: #94A3B8;">-</td>`;
                         }
                         const isCurrentActive = (slotKey === currentActiveSlot);
                         const chipClass = isCurrentActive ? 'chip-pos active-slot' : (sData.jenisUpdate === 'Lokasi Normal' ? 'chip-pos green' : 'chip-pos');
                         return `
-                            <td class="col-center">
+                            <td style="text-align: center;">
                                 <span class="${chipClass}" title="${sData.keterangan || ''}">
                                     ${sData.lokasi}<br>
                                     <span class="time-sub">${sData.jamUpdateAktual ? sData.jamUpdateAktual.split(' ')[1] || sData.jamUpdateAktual : ''}</span>
@@ -786,40 +758,87 @@
                         pendingCount++;
                     }
 
+                    if (item.statusPerjalanan === 'COMPLETED') completedCount++;
+                    else onProgressCount++;
+
                     const isCompleted = item.statusPerjalanan === 'COMPLETED';
-                    const badgeClass = isCompleted ? 'green-outline' : (item.statusPerjalanan === 'KENDALA' ? 'red' : 'blue-outline');
+                    const badgeClass = isCompleted ? 'on-time' : (item.statusPerjalanan === 'KENDALA' ? 'late' : 'transit');
+                    const statusLabel = item.statusPerjalanan || 'ON PROGRESS';
+
+                    const departureStr = item.jamBerangkat || '';
+                    const slaHours = item.targetSLAOutboundHours || item.targetSLAHours || 16;
+                    const actualArrivalStr = item.jamSampaiAktual || '';
 
                     return `
-                        <tr class="inc-row">
-                            <td class="col-center">${idx + 1}</td>
-                            <td><strong style="color: var(--primary-red);">${item.kodeTugas}</strong></td>
-                            <td>${item.trip || item.namaRute || '-'}</td>
-                            <td>${item.tlc || 'JKT'}</td>
-                            <td><strong>${item.platNomor || '-'}</strong></td>
-                            <td>${item.driver1 || '-'}</td>
+                        <tr data-sla-departure="${departureStr}" data-sla-hours="${slaHours}" data-sla-arrival="${actualArrivalStr}">
+                            <td style="text-align: center; font-weight: 600; color: #64748B;">${idx + 1}</td>
+                            <td><span class="kode-tugas-mono">${item.kodeTugas}</span></td>
+                            <td><span class="sla-trip-pill">${item.trip || item.namaRute || '-'}</span></td>
+                            <td style="font-weight: 600;">${item.tlc || 'JKT'}</td>
+                            <td><strong style="color: #0F172A;">${item.platNomor || '-'}</strong></td>
+                            <td style="font-weight: 500;">${item.driver1 || '-'}</td>
                             ${renderSlotCell("00:00")}
                             ${renderSlotCell("04:00")}
                             ${renderSlotCell("08:00")}
                             ${renderSlotCell("12:00")}
                             ${renderSlotCell("16:00")}
                             ${renderSlotCell("20:00")}
-                            <td class="col-center" style="font-size: 11px;">${item.lastUpdateTime || '-'}</td>
-                            <td class="col-center"><span class="badge-status ${badgeClass}">${item.statusPerjalanan || 'ON PROGRESS'}</span></td>
-                            <td class="col-center">
-                                <button class="btn-view-eye" onclick="openUpdateMonitoringModal('${item.kodeTugas}')" title="Update Checkpoint Lokasi 4H">📍</button>
+                            <td style="text-align: center; font-size: 11px; color: #64748B; font-weight: 500;">${item.lastUpdateTime || '-'}</td>
+                            <td style="text-align: center;">
+                                <div class="sla-live-status">
+                                    <span class="sla-status-pill ${badgeClass}">
+                                        <span class="dot">●</span> ${statusLabel}
+                                    </span>
+                                </div>
+                                <div class="sla-live-countdown" style="margin-top: 3px; font-size: 11px;">--:--:--</div>
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="display: flex; gap: 4px; justify-content: center;">
+                                    <button class="btn-checkin-action" onclick="openUpdateMonitoringModal('${item.kodeTugas}')" title="Update Checkpoint Lokasi 4H">
+                                        📍 Check-in
+                                    </button>
+                                    <button class="btn-sla-action btn-delete" onclick="deleteMonitoringTrip('${item.kodeTugas}')" title="Hapus Monitoring Trip">
+                                        🗑️
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
                 }).join('');
+
+                if (window.SLACountdownEngine) {
+                    window.SLACountdownEngine.tick();
+                }
 
                 // Update KPI Cards
                 const kpiTotal = document.getElementById('kpi-total-armada');
                 const kpiUpdated = document.getElementById('kpi-sudah-update');
                 const kpiPending = document.getElementById('kpi-belum-update');
 
-                if (kpiTotal) kpiTotal.textContent = list.length;
+                if (kpiTotal) kpiTotal.textContent = rawMonitoringList.length;
                 if (kpiUpdated) kpiUpdated.textContent = updatedCount;
                 if (kpiPending) kpiPending.textContent = pendingCount;
+
+                // Update Right Sidebar Summary Card
+                const sumTotal = document.getElementById('summary-total-trip');
+                const sumSelesai = document.getElementById('summary-selesai');
+                const sumOnProgress = document.getElementById('summary-onprogress');
+                const sumWaiting = document.getElementById('summary-waiting');
+
+                if (sumTotal) sumTotal.textContent = rawMonitoringList.length;
+                if (sumSelesai) sumSelesai.textContent = completedCount;
+                if (sumOnProgress) sumOnProgress.textContent = onProgressCount;
+                if (sumWaiting) sumWaiting.textContent = pendingCount;
+
+                // Update Pagination Info
+                const pagInfo = document.getElementById('mon-pagination-info');
+                if (pagInfo) pagInfo.textContent = `Menampilkan 1 - ${list.length} dari ${rawMonitoringList.length} data`;
+            };
+
+            // Subscribe to Firestore Monitoring 4H Live Data
+            JNTFirebaseService.subscribeMonitoring4H((list) => {
+                rawMonitoringList = list || [];
+                applyFilters();
             });
 
             // Submit Form Update Slot Monitoring 4H
@@ -851,8 +870,18 @@
                         statusPerjalanan
                     );
 
-                    alert(`✅ Checkpoint Posisi 4 Jam untuk ${kodeTugas} (Slot ${slotKey}: ${lokasi}) berhasil disimpan di Firestore!`);
                     document.getElementById('modal-add-monitoring').classList.add('hidden');
+
+                    if (typeof window.playSuccessChime === 'function') window.playSuccessChime();
+                    if (typeof window.showToastNotification === 'function') {
+                        window.showToastNotification(
+                            "⏱️ CHECKPOINT MONITORING 4H DISIMPAN",
+                            `Update posisi ${kodeTugas} (Slot ${slotKey}: ${lokasi}) berhasil dicatat.`,
+                            "success"
+                        );
+                    } else {
+                        alert(`✅ Checkpoint Posisi 4 Jam untuk ${kodeTugas} (Slot ${slotKey}: ${lokasi}) berhasil disimpan!`);
+                    }
                 } catch (err) {
                     alert('Terjadi kesalahan saat menyimpan update monitoring: ' + err.message);
                 }

@@ -51,12 +51,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="incoming.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-                                <span class="nav-text">Incoming</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
@@ -171,25 +165,25 @@
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL TRIP MONITORING</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number">128</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-total-trip">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">ON TIME OUTBOUND</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #16A34A;">98.4%</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-ontime-pct" style="color: #16A34A;">0%</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">LATE OUTBOUND</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #DC2626;">2 Unit</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-late-count" style="color: #DC2626;">0 Unit</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL LATE PP</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #D97706;">3 Jam 15 Mnt</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-total-late-pp" style="color: #D97706;">0 Jam 0 Mnt</span></div>
                             </div>
                         </div>
                     </div>
@@ -199,7 +193,7 @@
                             <h3 class="inc-table-title">Rekap Kinerja SLA Vendor per Rute</h3>
                         </div>
                         <div class="inc-table-scroll">
-                            <table class="inc-data-table">
+                            <table class="inc-data-table" id="table-report-sla">
                                 <thead>
                                     <tr>
                                         <th>No</th>
@@ -214,39 +208,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="inc-row">
-                                        <td class="col-center">1</td>
-                                        <td><strong>JAKARTA - YOGYA (JOG CDD)</strong></td>
-                                        <td>JOG CDD</td>
-                                        <td>JAWA</td>
-                                        <td>45</td>
-                                        <td style="color: #16A34A; font-weight: 700;">44</td>
-                                        <td style="color: #DC2626; font-weight: 700;">1</td>
-                                        <td>32 Jam</td>
-                                        <td><span class="badge-status green-outline">97.7%</span></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">2</td>
-                                        <td><strong>JAKARTA - SEMARANG (SRG FUSO)</strong></td>
-                                        <td>SRG FUSO</td>
-                                        <td>JAWA</td>
-                                        <td>38</td>
-                                        <td style="color: #16A34A; font-weight: 700;">38</td>
-                                        <td style="color: #DC2626; font-weight: 700;">0</td>
-                                        <td>30 Jam</td>
-                                        <td><span class="badge-status green-outline">100%</span></td>
-                                    </tr>
-                                    <tr class="inc-row">
-                                        <td class="col-center">3</td>
-                                        <td><strong>JAKARTA - PALEMBANG (PLM FUSO)</strong></td>
-                                        <td>PLM FUSO</td>
-                                        <td>SUMATERA</td>
-                                        <td>22</td>
-                                        <td style="color: #16A34A; font-weight: 700;">21</td>
-                                        <td style="color: #DC2626; font-weight: 700;">1</td>
-                                        <td>48 Jam</td>
-                                        <td><span class="badge-status green-outline">95.4%</span></td>
-                                    </tr>
+                                    <!-- Dynamically updated -->
                                 </tbody>
                             </table>
                         </div>
@@ -259,25 +221,25 @@
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL CHECK-IN 4H</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number">420</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-total">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">CHECK-IN TEPAT WAKTU</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #16A34A;">395</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-ontime" style="color: #16A34A;">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TERLAMBAT CHECK-IN</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #D97706;">25</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-late" style="color: #D97706;">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">KEPATUHAN OPERATOR %</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #2563EB;">94.04%</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-pct" style="color: #2563EB;">100%</span></div>
                             </div>
                         </div>
                     </div>
@@ -289,25 +251,25 @@
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL KEJADIAN TROUBLE</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number">14</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-trouble">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL KEJADIAN LAKA</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #9333EA;">2</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-laka" style="color: #9333EA;">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">DALAM PENANGANAN</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #D97706;">5</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-penanganan" style="color: #D97706;">0</span></div>
                             </div>
                         </div>
                         <div class="inc-kpi-card">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">SUDAH SELESAI</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" style="color: #16A34A;">11</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-selesai" style="color: #16A34A;">0</span></div>
                             </div>
                         </div>
                     </div>
@@ -347,13 +309,13 @@
                                     <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #3B82F6;">
                                     <div>
                                         <h3 class="inc-table-title">Rizky Ramadhan</h3>
-                                        <span style="font-size: 11.5px; color: #64748B;">Role: Operator Pendamping • SLA & Incoming</span>
+                                        <span style="font-size: 11.5px; color: #64748B;">Role: Operator Pendamping • SLA Vendor</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div style="padding: 16px;">
-                                <div class="info-item"><span class="info-label">Input Incoming SSOT</span><span class="info-value font-bold">28 Transaksi</span></div>
+                                <div class="info-item"><span class="info-label">Input Data SLA</span><span class="info-value font-bold">28 Transaksi</span></div>
                                 <div class="info-item"><span class="info-label">Update Jam Sampai SLA</span><span class="info-value font-bold" style="color: #16A34A;">37 Update</span></div>
                                 <div class="info-item"><span class="info-label">Koreksi Data Master</span><span class="info-value font-bold">2 Kali</span></div>
                                 <div class="info-item" style="border-top: 1.5px solid #E2E8F0; padding-top: 10px; margin-top: 8px;">
@@ -465,6 +427,117 @@
             if (activeBtn) activeBtn.classList.add('active');
             if (activePane) activePane.classList.remove('hidden');
         }
+
+        // Real-time synchronization for Reporting KPIs & Table
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof JNTFirebaseService === 'undefined') return;
+
+            // Recalculate SLA KPIs & Table
+            JNTFirebaseService.subscribeSLAOutbound((slaList) => {
+                const total = slaList.length;
+                let ontime = 0;
+                let late = 0;
+                const routeStats = {};
+
+                slaList.forEach(item => {
+                    const st = String(item.status || '').toUpperCase();
+                    if (st === 'ON TIME' || st === 'SAMPAI') ontime++;
+                    else if (st === 'LATE' || st === 'TERLAMBAT') late++;
+
+                    const route = item.route || item.tlc || 'Rute Lainnya';
+                    if (!routeStats[route]) {
+                        routeStats[route] = { route, tlc: item.tlc || '-', wilayah: item.wilayah || 'W1', total: 0, ontime: 0, late: 0, targetSLA: item.targetSLA || '12-24 Jam' };
+                    }
+                    routeStats[route].total++;
+                    if (st === 'ON TIME' || st === 'SAMPAI') routeStats[route].ontime++;
+                    if (st === 'LATE' || st === 'TERLAMBAT') routeStats[route].late++;
+                });
+
+                const totalElem = document.getElementById('rep-kpi-total-trip');
+                const pctElem = document.getElementById('rep-kpi-ontime-pct');
+                const lateElem = document.getElementById('rep-kpi-late-count');
+                const tbody = document.querySelector('#table-report-sla tbody');
+
+                if (totalElem) totalElem.textContent = total;
+                if (pctElem) pctElem.textContent = total > 0 ? Math.round((ontime / total) * 100) + '%' : '0%';
+                if (lateElem) lateElem.textContent = late + ' Unit';
+
+                if (tbody) {
+                    const rows = Object.values(routeStats).map((r, i) => {
+                        const acc = r.total > 0 ? Math.round((r.ontime / r.total) * 100) : 0;
+                        return `<tr>
+                            <td>${i + 1}</td>
+                            <td><strong>${r.route}</strong></td>
+                            <td>${r.tlc}</td>
+                            <td>${r.wilayah}</td>
+                            <td>${r.total}</td>
+                            <td><span style="color:#16A34A; font-weight:700;">${r.ontime}</span></td>
+                            <td><span style="color:#DC2626; font-weight:700;">${r.late}</span></td>
+                            <td>${r.targetSLA}</td>
+                            <td><strong style="color:${acc >= 90 ? '#16A34A' : '#D97706'}">${acc}%</strong></td>
+                        </tr>`;
+                    });
+                    if (rows.length > 0) tbody.innerHTML = rows.join('');
+                }
+            });
+
+            // Recalculate Monitoring 4H KPIs
+            JNTFirebaseService.subscribeMonitoring4H((monList) => {
+                let totalCheckins = 0;
+                let ontimeCheckins = 0;
+                let lateCheckins = 0;
+
+                monList.forEach(m => {
+                    if (m.slots) {
+                        Object.values(m.slots).forEach(slot => {
+                            if (slot && slot.jamUpdate) {
+                                totalCheckins++;
+                                if (slot.status === 'LATE' || slot.keterangan?.includes('LATE')) lateCheckins++;
+                                else ontimeCheckins++;
+                            }
+                        });
+                    }
+                });
+
+                const monTot = document.getElementById('rep-kpi-mon-total');
+                const monOn = document.getElementById('rep-kpi-mon-ontime');
+                const monLate = document.getElementById('rep-kpi-mon-late');
+                const monPct = document.getElementById('rep-kpi-mon-pct');
+
+                if (monTot) monTot.textContent = totalCheckins;
+                if (monOn) monOn.textContent = ontimeCheckins;
+                if (monLate) monLate.textContent = lateCheckins;
+                if (monPct) monPct.textContent = totalCheckins > 0 ? Math.round((ontimeCheckins / totalCheckins) * 100) + '%' : '100%';
+            });
+
+            // Recalculate Trouble & Laka KPIs
+            JNTFirebaseService.subscribeTroubles((trbList) => {
+                let troubleCount = 0;
+                let lakaCount = 0;
+                let penangananCount = 0;
+                let selesaiCount = 0;
+
+                trbList.forEach(t => {
+                    const cat = String(t.kategori || t.tipe || '').toUpperCase();
+                    if (cat.includes('LAKA') || cat.includes('KECELAKAAN')) lakaCount++;
+                    else troubleCount++;
+
+                    const st = String(t.status || '').toUpperCase();
+                    if (st === 'SELESAI' || st === 'SOLVED' || st === 'RESOLVED') selesaiCount++;
+                    else penangananCount++;
+                });
+
+                const trbT = document.getElementById('rep-kpi-trb-trouble');
+                const trbL = document.getElementById('rep-kpi-trb-laka');
+                const trbP = document.getElementById('rep-kpi-trb-penanganan');
+                const trbS = document.getElementById('rep-kpi-trb-selesai');
+
+                if (trbT) trbT.textContent = troubleCount;
+                if (trbL) trbL.textContent = lakaCount;
+                if (trbP) trbP.textContent = penangananCount;
+                if (trbS) trbS.textContent = selesaiCount;
+            });
+        });
     </script>
 </body>
 </html>
