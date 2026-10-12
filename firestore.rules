@@ -2,103 +2,191 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for auth & role verification
+    // -------------------------------------------------------------------------
+    // AUTHENTICATION & IDENTITY HELPERS (SECURE UID PROFILE LOOKUP)
+    // -------------------------------------------------------------------------
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    function userProfileExists() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isUserActive() {
+      return userProfileExists() &&
+        getUserDoc().status == 'Aktif';
+    }
+
     function getUserRole() {
-      return request.auth.token.role;
+      return isUserActive() ? getUserDoc().role : 'UNAUTHORIZED';
     }
 
     function isAdmin() {
-      return isAuthenticated() && (getUserRole() == 'ADMIN' || request.auth.token.email.matches('.*admin.*'));
+      return isUserActive() && getUserRole() == 'ADMIN';
     }
 
     function isSupervisor() {
-      return isAuthenticated() && (getUserRole() == 'SUPERVISOR' || isAdmin());
+      return isUserActive() && (getUserRole() == 'SUPERVISOR' || isAdmin());
     }
 
-    // 1. Audit Logs: Strictly Append-Only (Immutable Audit Trail)
-    // No update or delete allowed under any circumstances
-    match /audit_logs/{logId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.operator != null;
-      allow update, delete: if false;
+    function isOperatorSLA() {
+      return isUserActive() && (getUserRole() == 'OPERATOR_SLA' || isSupervisor());
     }
 
-    // 2. Operational Collections: Real-time TMS Dispatch & Monitoring
-    match /incoming/{docId} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated();
-      allow delete: if isSupervisor(); // Trip cancellation reserved for Supervisor & Admin
+    function isOperatorMonitoring() {
+      return isUserActive() && (getUserRole() == 'OPERATOR_MONITORING' || isSupervisor());
     }
 
-    match /sla_outbound/{docId} {
-      allow read, create, update: if isAuthenticated();
+    function isAnyOperator() {
+      return isOperatorSLA() || isOperatorMonitoring();
+    }
+
+    // -------------------------------------------------------------------------
+    // 1. USER MANAGEMENT & PROFILES (/users/{userId})
+    // -------------------------------------------------------------------------
+    // Regular users can only read their own profile; only Admins can list all users.
+    // Self-updates cannot modify role, status, or UID (no privilege escalation).
+    match /users/{userId} {
+      allow read: if isAdmin() || (isUserActive() && request.auth.uid == userId);
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (
+        isUserActive() &&
+        request.auth.uid == userId &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.status == resource.data.status &&
+        request.resource.data.uid == resource.data.uid
+      );
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. OPERATIONAL: INCOMING & DISPATCH (/incoming/{kodeTugas})
+    // -------------------------------------------------------------------------
+    // Managed by Operator SLA and Supervisors.
+    // Trip cancellation / delete is strictly reserved for Supervisor & Admin.
+    match /incoming/{kodeTugas} {
+      allow read: if isAnyOperator();
+      allow create, update: if isOperatorSLA() &&
+        request.resource.data.kodeTugas is string &&
+        request.resource.data.platNomor is string;
       allow delete: if isSupervisor();
     }
 
-    match /sla_return/{docId} {
-      allow read, create, update: if isAuthenticated();
+    // -------------------------------------------------------------------------
+    // 3. OPERATIONAL: SLA MANAGEMENT (Outbound, Return, Roundtrip)
+    // -------------------------------------------------------------------------
+    // Operator SLA writes SLA calculations; Operator Monitoring can only read.
+    match /sla_outbound/{kodeTugas} {
+      allow read: if isAnyOperator();
+      allow create, update: if isOperatorSLA() && request.resource.data.kodeTugas is string;
       allow delete: if isSupervisor();
     }
 
-    match /sla_roundtrip/{docId} {
-      allow read, create, update: if isAuthenticated();
+    match /sla_return/{kodeTugas} {
+      allow read: if isAnyOperator();
+      allow create, update: if isOperatorSLA() && request.resource.data.kodeTugas is string;
       allow delete: if isSupervisor();
     }
 
-    match /monitoring_4h/{docId} {
-      allow read, create, update: if isAuthenticated();
+    match /sla_roundtrip/{kodeTugas} {
+      allow read: if isAnyOperator();
+      allow create, update: if isOperatorSLA() && request.resource.data.kodeTugas is string;
       allow delete: if isSupervisor();
     }
 
-    // 3. Trouble & Incident Management
-    match /troubles/{docId} {
-      allow read, create, update: if isAuthenticated();
-      allow delete: if false; // Incidents cannot be deleted, must be marked 'SUDAH SELESAI'
+    // -------------------------------------------------------------------------
+    // 4. OPERATIONAL: MONITORING 4 JAM (/monitoring_4h/{kodeTugas})
+    // -------------------------------------------------------------------------
+    // Only Operator Monitoring and Supervisors can update check-in slots.
+    match /monitoring_4h/{kodeTugas} {
+      allow read: if isAnyOperator();
+      allow create, update: if isOperatorMonitoring() && request.resource.data.kodeTugas is string;
+      allow delete: if isSupervisor();
     }
 
-    // 4. Shift Management
-    match /shifts/{docId} {
-      allow read, create, update: if isAuthenticated();
-      allow delete: if false; // Shift records are permanent operational history
+    // -------------------------------------------------------------------------
+    // 5. TROUBLE & LAKA INCIDENT MANAGEMENT (/troubles/{incidentId})
+    // -------------------------------------------------------------------------
+    // Any active operator can report or update trouble tickets.
+    // Deletion is permanently forbidden: records must be closed with 'SUDAH SELESAI'.
+    match /troubles/{incidentId} {
+      allow read: if isAnyOperator();
+      allow create, update: if isAnyOperator() &&
+        request.resource.data.kodeTugas is string &&
+        request.resource.data.jenis is string;
+      allow delete: if false;
     }
 
-    // 5. Master Data Collections: Read by all authenticated users, written by Supervisor/Admin
+    // -------------------------------------------------------------------------
+    // 6. SHIFT MANAGEMENT & OPERATIONAL HANDOVER (/shifts/{shiftId})
+    // -------------------------------------------------------------------------
+    // Shift transitions and handover approvals are reserved for Supervisor & Admin.
+    match /shifts/{shiftId} {
+      allow read: if isAnyOperator();
+      allow create, update: if isSupervisor();
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. MASTER DATA COLLECTIONS (Routes, Fleets, Vendors, Drivers, Reasons)
+    // -------------------------------------------------------------------------
+    // Read by all operational roles; write restricted to Supervisor & Admin.
     match /master_trips/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAnyOperator();
       allow write: if isSupervisor();
     }
 
     match /master_fleets/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAnyOperator();
       allow write: if isSupervisor();
     }
 
     match /master_vendors/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAnyOperator();
       allow write: if isSupervisor();
     }
 
     match /master_drivers/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAnyOperator();
       allow write: if isSupervisor();
     }
 
     match /master_reasons/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if isAnyOperator();
       allow write: if isSupervisor();
     }
 
-    // 6. User Management & Security Profiles: Restricted to Admins
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
+    match /master_routes/{docId} {
+      allow read: if isAnyOperator();
+      allow write: if isSupervisor();
     }
 
-    // Fallback default deny for any unlisted collections
+    match /master_sla/{docId} {
+      allow read: if isAnyOperator();
+      allow write: if isSupervisor();
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. AUDIT LOGS: IMMUTABLE AUDIT TRAIL (/audit_logs/{logId})
+    // -------------------------------------------------------------------------
+    // Read: Only Supervisor & Admin for compliance review.
+    // Create: Allowed for active operators appending legitimate audit actions.
+    // Update/Delete: STRICTLY FORBIDDEN (Rules level immutability).
+    match /audit_logs/{logId} {
+      allow read: if isSupervisor();
+      allow create: if isUserActive() && request.resource.data.operator is string;
+      allow update, delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. DEFAULT DENY FOR ANY UNLISTED COLLECTIONS OR PATHS
+    // -------------------------------------------------------------------------
     match /{document=**} {
       allow read, write: if false;
     }
