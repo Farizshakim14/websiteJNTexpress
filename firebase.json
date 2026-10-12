@@ -1,4 +1,15 @@
 {
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "test_*.js",
+      "*.log",
+      "audit_results.json"
+    ]
+  },
   "firestore": {
     "rules": "firestore.rules"
   },
@@ -9,8 +20,12 @@
     "firestore": {
       "port": 8080
     },
+    "hosting": {
+      "port": 5000
+    },
     "ui": {
-      "enabled": true
+      "enabled": true,
+      "port": 4000
     }
   }
 }
