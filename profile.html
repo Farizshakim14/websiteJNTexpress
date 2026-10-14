@@ -27,12 +27,12 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn" style="cursor: pointer;" title="Lihat Profil Saya">
                     <div class="avatar-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=Developer+Admin&background=E30613&color=fff&size=150&bold=true" alt="Developer Avatar" class="user-avatar-img" id="sidebar-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <span class="profile-name" id="sidebar-user-name">Developer Admin</span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
                         <span class="profile-role">Operator</span>
@@ -152,10 +152,10 @@
                             <span class="inc-bell-badge">5</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn" style="cursor: pointer;" title="Profil Saya">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                            <img src="https://ui-avatars.com/api/?name=Developer+Admin&background=E30613&color=fff&size=100&bold=true" alt="Developer Avatar" class="inc-avatar-img" id="topbar-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name" id="dash-user-name">Hamdan <span>v</span></span>
-                                <span class="inc-user-role">Operator</span>
+                                <span class="inc-user-name" id="dash-user-name">Developer Admin <span>v</span></span>
+                                <span class="inc-user-role">ADMIN</span>
                             </div>
                         </div>
                         <button id="btn-logout" class="btn-inc-reset" style="padding: 6px 12px; font-size: 12px; color: #DC2626; border-color: #FCA5A5; background: #FEF2F2;" title="Keluar Akun">
@@ -172,7 +172,7 @@
 
                     <div class="profile-hero-main">
                         <div class="profile-avatar-wrapper">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Hamdan Profile Photo" class="profile-hero-img" id="profile-avatar-img">
+                            <img src="https://ui-avatars.com/api/?name=Developer+Admin&background=E30613&color=fff&size=300&bold=true" alt="Developer Avatar" class="profile-hero-img" id="profile-avatar-img">
                             <label for="avatar-file-input" class="avatar-edit-badge" title="Ganti Foto Profil">
                                 📷
                                 <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
@@ -181,16 +181,16 @@
 
                         <div class="profile-hero-text">
                             <div class="profile-name-row">
-                                <h1 class="profile-full-name">Hamdan Hamdani</h1>
-                                <span class="badge-role-hero">Operator Utama</span>
+                                <h1 class="profile-full-name" id="hero-fullname">Developer Admin</h1>
+                                <span class="badge-role-hero" id="hero-jabatan">Developer &amp; System Administrator</span>
                                 <span class="badge-status-green">🟢 Active</span>
                             </div>
                             <p class="profile-sub-meta">
-                                <span>🆔 NIK: <strong>JNT-2026-8804</strong></span>
+                                <span>🆔 NIK: <strong id="hero-nik">JNT-DEV-0001</strong></span>
                                 <span class="meta-dot">•</span>
-                                <span>🏢 Penugasan: <strong>TLC Cikande Gateway</strong></span>
+                                <span>🏢 Penugasan: <strong id="hero-tlc">Head Office Jakarta</strong></span>
                                 <span class="meta-dot">•</span>
-                                <span>✉️ Email: <strong>hamdan@jtexpress.co.id</strong></span>
+                                <span>✉️ Email: <strong id="hero-email">developer@jtexpress.co.id</strong></span>
                             </p>
                         </div>
 
@@ -249,29 +249,29 @@
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Nama Lengkap</label>
-                                    <input type="text" id="prof-fullname" value="Hamdan Hamdani">
+                                    <input type="text" id="prof-fullname" value="Developer Admin">
                                 </div>
                                 <div class="form-group-st">
                                     <label>Username</label>
-                                    <input type="text" id="prof-username" value="Hamdan" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" id="prof-username" value="devoleper" readonly style="background-color: #F8FAFC;">
                                 </div>
                             </div>
 
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Email Perusahaan</label>
-                                    <input type="email" id="prof-email" value="hamdan@jtexpress.co.id">
+                                    <input type="email" id="prof-email" value="developer@jtexpress.co.id">
                                 </div>
                                 <div class="form-group-st">
                                     <label>No. Telepon / WhatsApp</label>
-                                    <input type="tel" id="prof-phone" value="0812-3456-7890">
+                                    <input type="tel" id="prof-phone" value="0812-0000-0001">
                                 </div>
                             </div>
 
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Role / Jabatan</label>
-                                    <input type="text" value="Operator Transportasi" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" value="Developer & System Administrator" readonly style="background-color: #F8FAFC;">
                                 </div>
                                 <div class="form-group-st">
                                     <label>Cabang / TLC Utama</label>
@@ -291,7 +291,7 @@
                                 </div>
                                 <div class="form-group-st">
                                     <label>Tanggal Bergabung</label>
-                                    <input type="text" value="10 Juni 2024 (2 Tahun 1 Bulan)" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" value="1 Januari 2026" readonly style="background-color: #F8FAFC;">
                                 </div>
                             </div>
 
@@ -442,5 +442,57 @@
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
     <script src="app.js"></script>
+    <!-- Profile Dynamic Loader -->
+    <script>
+    (function() {
+        // Populate profile from sessionStorage
+        var ss = sessionStorage;
+        var fullname = ss.getItem('jnt_active_username') || 'Developer Admin';
+        var role = ss.getItem('jnt_user_role') || 'ADMIN';
+        var nik = ss.getItem('jnt_user_nik') || 'JNT-DEV-0001';
+        var tlc = ss.getItem('jnt_user_tlc') || 'Head Office Jakarta';
+        var email = ss.getItem('jnt_user_email') || 'developer@jtexpress.co.id';
+        var phone = ss.getItem('jnt_user_phone') || '0812-0000-0001';
+        var jabatan = ss.getItem('jnt_user_jabatan') || 'Developer & System Administrator';
+        var departemen = ss.getItem('jnt_user_departemen') || 'IT & Development';
+        var bergabung = ss.getItem('jnt_user_bergabung') || '1 Januari 2026';
+        var username = ss.getItem('jnt_username_login') || 'devoleper';
+        var avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullname) + '&background=E30613&color=fff&size=300&bold=true';
+
+        // Hero section
+        var heroName = document.getElementById('hero-fullname');
+        if (heroName) heroName.textContent = fullname;
+        var heroJabatan = document.getElementById('hero-jabatan');
+        if (heroJabatan) heroJabatan.textContent = jabatan;
+        var heroNik = document.getElementById('hero-nik');
+        if (heroNik) heroNik.textContent = nik;
+        var heroTlc = document.getElementById('hero-tlc');
+        if (heroTlc) heroTlc.textContent = tlc;
+        var heroEmail = document.getElementById('hero-email');
+        if (heroEmail) heroEmail.textContent = email;
+
+        // Avatar images
+        var profAvatar = document.getElementById('profile-avatar-img');
+        if (profAvatar) profAvatar.src = avatarUrl;
+        var sidebarAvatar = document.getElementById('sidebar-avatar-img');
+        if (sidebarAvatar) sidebarAvatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullname) + '&background=E30613&color=fff&size=150&bold=true';
+        var topbarAvatar = document.getElementById('topbar-avatar-img');
+        if (topbarAvatar) topbarAvatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullname) + '&background=E30613&color=fff&size=100&bold=true';
+
+        // Form fields
+        var fFullname = document.getElementById('prof-fullname');
+        if (fFullname) fFullname.value = fullname;
+        var fUsername = document.getElementById('prof-username');
+        if (fUsername) fUsername.value = username;
+        var fEmail = document.getElementById('prof-email');
+        if (fEmail) fEmail.value = email;
+        var fPhone = document.getElementById('prof-phone');
+        if (fPhone) fPhone.value = phone;
+
+        // Topbar name display
+        var dashName = document.getElementById('dash-user-name');
+        if (dashName) dashName.innerHTML = fullname + ' <span>v</span>';
+    })();
+    </script>
 </body>
 </html>

@@ -1,69 +1,120 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J&T Express - Login</title>
-    <meta name="description" content="Sistem monitoring operasional transportasi untuk mendukung ketepatan waktu pengiriman dan kualitas layanan J&T Express.">
+    <title>J&T Express — Login TMS</title>
+    <meta name="description"
+        content="Login ke Transportation Monitoring System J&T Express untuk memantau operasional transportasi secara real-time.">
+    <meta name="robots" content="noindex, nofollow">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Login page scroll lock: terapkan kelas segera sebelum render -->
+    <script>document.documentElement.classList.add('login-page-root');</script>
 </head>
-<body>
-    <!-- Main App Container -->
+
+<body class="login-page">
     <div id="app-container" class="app-container">
-        
-        <!-- PURE LOGIN SECTION -->
-        <section id="login-section" class="login-section">
-            
+
+        <!-- LOGIN SECTION -->
+        <section id="login-section" class="login-section" aria-label="Halaman Login">
+
             <!-- Left Banner Panel -->
-            <div class="banner-panel">
-                <img src="assets/login.png" alt="J&T Express Transportation Monitoring System" class="banner-image">
+            <div class="banner-panel" aria-hidden="true">
+                <img src="assets/login.png" alt="" class="banner-image" loading="eager">
+                <!-- Overlay gradient untuk readability -->
+                <div class="banner-overlay"></div>
+                <!-- Brand overlay at bottom of banner -->
+                <div class="banner-brand-info">
+                    <div class="banner-logo-mark">
+                        <span class="banner-jnt">J&T</span>
+                        <span class="banner-express-word">EXPRESS</span>
+                    </div>
+                    <p class="banner-tagline">Transportation Monitoring System</p>
+                    <div class="banner-feature-pills">
+                        <span class="banner-pill">📦 Real-time Tracking</span>
+                        <span class="banner-pill">📊 SLA Monitoring</span>
+                        <span class="banner-pill">🚛 Fleet Management</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Right Login Form Panel -->
             <div class="form-panel">
-                
+
                 <!-- Background Map Watermark -->
                 <div class="map-watermark" aria-hidden="true">
                     <svg viewBox="0 0 1000 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <g opacity="0.12" fill="#94A3B8">
+                        <g opacity="0.08" fill="#94A3B8">
+                            <circle cx="100" cy="150" r="3" />
                             <circle cx="150" cy="180" r="3" />
                             <circle cx="160" cy="185" r="3" />
                             <circle cx="170" cy="190" r="3" />
                             <circle cx="180" cy="195" r="3" />
+                            <circle cx="240" cy="120" r="3" />
                             <circle cx="280" cy="140" r="3.5" />
                             <circle cx="295" cy="135" r="3.5" />
                             <circle cx="310" cy="130" r="3.5" />
                             <circle cx="380" cy="180" r="3.5" />
                             <circle cx="395" cy="175" r="3.5" />
                             <circle cx="410" cy="185" r="3.5" />
+                            <circle cx="500" cy="200" r="2.5" />
+                            <circle cx="560" cy="160" r="2.5" />
+                            <circle cx="620" cy="220" r="3" />
+                            <circle cx="700" cy="180" r="2" />
+                            <circle cx="780" cy="140" r="2.5" />
+                            <circle cx="850" cy="190" r="2" />
+                            <circle cx="920" cy="170" r="2.5" />
                         </g>
                     </svg>
                 </div>
 
-                <!-- Diagonal Red Accent Graphic Shape in Bottom Right -->
+                <!-- Diagonal Red Accent -->
                 <div class="red-diagonal-accent" aria-hidden="true">
-                    <svg viewBox="0 0 500 500" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                        <polygon points="500,180 500,500 180,500" fill="#E30613" />
+                    <svg viewBox="0 0 500 500" fill="none" preserveAspectRatio="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="500,200 500,500 200,500" fill="#E30613" opacity="0.08" />
+                        <polygon points="500,300 500,500 300,500" fill="#E30613" opacity="0.08" />
                     </svg>
                 </div>
 
                 <!-- Login Box Card -->
-                <div class="login-card">
+                <div class="login-card" role="main">
+
+                    <!-- Logo / Brand Header -->
+                    <div class="login-brand-header">
+                        <div class="login-logo-badge">
+                            <span class="logo-jnt-text">J&T</span>
+                        </div>
+                        <div class="login-brand-meta">
+                            <span class="login-brand-name">J&T Express</span>
+                            <span class="login-brand-product">Transportation Monitoring System</span>
+                        </div>
+                    </div>
+
                     <div class="login-header">
-                        <h1 class="login-title">Login</h1>
+                        <h1 class="login-title">Masuk ke Sistem</h1>
                         <p class="login-subtitle">
-                            Selamat datang di Transportation Monitoring System<br>J&T Express
+                            Gunakan kredensial akun TMS Anda yang telah terdaftar
                         </p>
                     </div>
 
+                    <!-- System Status Badge -->
+                    <div id="system-status-bar" class="system-status-bar" aria-live="polite">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span class="status-label" id="status-label">Memeriksa koneksi sistem...</span>
+                    </div>
+
                     <!-- Alert Box -->
-                    <div id="alert-box" class="alert-box hidden" role="alert">
-                        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <div id="alert-box" class="alert-box hidden" role="alert" aria-atomic="true">
+                        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            aria-hidden="true" width="18" height="18">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -72,81 +123,170 @@
                     </div>
 
                     <!-- Login Form -->
-                    <form id="login-form" novalidate>
+                    <form id="login-form" novalidate autocomplete="on">
                         <div class="form-group">
                             <label for="username-input" class="form-label">Username</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <div class="input-wrapper" id="username-wrapper">
+                                <span class="input-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="18" height="18">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
                                 </span>
-                                <input type="text" id="username-input" name="username" class="form-input" placeholder="Masukkan username" required>
+                                <input type="text" id="username-input" name="username" class="form-input"
+                                    placeholder="Masukkan username" required autocomplete="username" spellcheck="false"
+                                    aria-required="true" aria-describedby="username-hint">
                             </div>
+                            <span id="username-hint" class="field-hint hidden" aria-live="polite"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="password-input" class="form-label">Password</label>
-                            <div class="input-wrapper">
-                                <span class="input-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <div class="input-wrapper" id="password-wrapper">
+                                <span class="input-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="18" height="18">
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                     </svg>
                                 </span>
-                                <input type="password" id="password-input" name="password" class="form-input" placeholder="Masukkan password" required>
-                                <button type="button" id="toggle-password" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <svg id="eye-off-icon" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <input type="password" id="password-input" name="password" class="form-input"
+                                    placeholder="Masukkan password" required autocomplete="current-password"
+                                    aria-required="true" aria-describedby="password-hint">
+                                <button type="button" id="toggle-password" class="password-toggle-btn"
+                                    aria-label="Tampilkan password" aria-pressed="false"
+                                    title="Tampilkan / sembunyikan password">
+                                    <!-- Eye-off (default: password hidden) -->
+                                    <svg id="eye-off-icon" class="eye-icon" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" width="18" height="18"
+                                        aria-hidden="true">
+                                        <path
+                                            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                        </path>
                                         <line x1="1" y1="1" x2="23" y2="23"></line>
                                     </svg>
-                                    <svg id="eye-icon" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <!-- Eye-on (shown when password visible) -->
+                                    <svg id="eye-icon" class="eye-icon hidden" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" width="18" height="18"
+                                        aria-hidden="true">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
                                 </button>
                             </div>
+                            <span id="password-hint" class="field-hint hidden" aria-live="polite"></span>
                         </div>
 
-                        <div class="form-options">
-                            <label class="checkbox-container">
-                                <input type="checkbox" id="remember-me" name="remember" checked>
-                                <span class="custom-checkbox">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <!-- Remember Me & Forgot Password row -->
+                        <div class="form-options-row">
+                            <label class="checkbox-container" for="remember-me">
+                                <input type="checkbox" id="remember-me" name="remember"
+                                    aria-label="Ingat username saya di perangkat ini">
+                                <span class="custom-checkbox" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                        width="12" height="12">
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                 </span>
-                                <span class="checkbox-label">Ingat saya</span>
+                                <span class="checkbox-label">Ingat username</span>
                             </label>
+                            <button type="button" class="forgot-link" id="btn-forgot-help"
+                                aria-label="Bantuan lupa password">
+                                Lupa password?
+                            </button>
                         </div>
 
-                        <button type="submit" id="btn-login" class="btn-login">
-                            <span class="btn-text-content">
-                                <svg class="login-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <!-- Login Button -->
+                        <button type="submit" id="btn-login" class="btn-login" aria-live="polite">
+                            <span class="btn-text-content" id="btn-login-text">
+                                <svg class="login-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" width="18" height="18" aria-hidden="true">
                                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                                     <polyline points="10 17 15 12 10 7"></polyline>
                                     <line x1="15" y1="12" x2="3" y2="12"></line>
                                 </svg>
-                                <span>Login</span>
+                                <span>Masuk</span>
                             </span>
-                            <span class="btn-spinner hidden"></span>
+                            <span class="btn-spinner hidden" aria-hidden="true"></span>
                         </button>
                     </form>
 
-                    <div class="card-footer" style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
-                        <button type="button" id="btn-activate-account" style="background: none; border: none; color: #2563EB; font-size: 12px; cursor: pointer; text-decoration: underline;">
-                            🔑 Aktivasi Akun Lama / Reset Password
-                        </button>
-                        <button type="button" id="demo-fill-btn" class="demo-chip">
-                            💡 Isi Demo: admin / admin123
-                        </button>
-                        <p>&copy; 2026 J&T Express. Hak cipta dilindungi.</p>
+                    <!-- Card Footer -->
+                    <div class="card-footer">
+                        <div class="footer-divider">
+                            <span></span>
+                            <span class="footer-divider-text">Informasi Sistem</span>
+                            <span></span>
+                        </div>
+                        <div class="footer-info-row">
+                            <span class="footer-info-item" id="footer-auth-mode">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                    height="13" aria-hidden="true">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
+                                Mode: Lokal
+                            </span>
+                            <span class="footer-info-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
+                                    height="13" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                v5.0 — 2026
+                            </span>
+                        </div>
+                        <p class="footer-copyright">&copy; 2026 J&T Express. Hak cipta dilindungi.</p>
+                    </div>
+
+                </div><!-- /login-card -->
+            </div><!-- /form-panel -->
+        </section>
+
+    </div>
+
+    <!-- Forgot Password / Help Modal -->
+    <div id="forgot-modal-overlay" class="login-modal-overlay hidden" role="dialog" aria-modal="true"
+        aria-labelledby="forgot-modal-title">
+        <div class="login-modal-box">
+            <div class="login-modal-header">
+                <h2 id="forgot-modal-title" class="login-modal-title">Bantuan Login</h2>
+                <button type="button" class="login-modal-close" id="btn-close-forgot" aria-label="Tutup">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18"
+                        height="18">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="login-modal-body">
+                <div class="help-icon-wrap" aria-hidden="true">🔐</div>
+                <p class="help-title">Tidak bisa masuk ke sistem?</p>
+                <p class="help-desc">
+                    Hubungi Administrator IT J&T Express untuk reset password atau aktivasi akun Anda.
+                </p>
+                <div class="help-contact-row">
+                    <div class="help-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16" aria-hidden="true">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                            </path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>it-support@jtexpress.co.id</span>
+                    </div>
+                    <div class="help-contact-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                            height="16" aria-hidden="true">
+                            <path
+                                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 14.92z">
+                            </path>
+                        </svg>
+                        <span>Ext. 1000 (IT Helpdesk)</span>
                     </div>
                 </div>
             </div>
-        </section>
-
+        </div>
     </div>
 
     <!-- Firebase SDK Compat CDN -->
@@ -159,4 +299,5 @@
     <!-- JavaScript Script -->
     <script src="app.js"></script>
 </body>
+
 </html>

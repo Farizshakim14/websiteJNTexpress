@@ -6,58 +6,68 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 1. AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC)
+    // LOCAL ACCOUNT SYSTEM (No Firebase Auth required)
     // ----------------------------------------------------
+
+    // ===== LOCAL ACCOUNTS SEED (Hanya inisialisasi sekali — tidak pernah menimpa akun runtime) =====
+    // FIX BUG-5: Sebelumnya LOCAL_ACCOUNTS di-overwrite setiap halaman dibuka, menghapus akun runtime.
+    // Sekarang hanya diisi jika belum ada data — akun yang dibuat administrator di users.html tetap terjaga.
+    const LOCAL_ACCOUNTS_SEED = [
+        {
+            username: 'devoleper',
+            email: 'devoleper',
+            password: 'dev123',
+            fullname: 'Developer Admin',
+            role: 'ADMIN',
+            status: 'Aktif',
+            uid: 'dev-001',
+            nik: 'JNT-DEV-0001',
+            jabatan: 'Developer & System Administrator',
+            tlc: 'Head Office Jakarta',
+            departemen: 'IT & Development',
+            phone: '0812-0000-0001',
+            emailPerusahaan: 'developer@jtexpress.co.id',
+            bergabung: '1 Januari 2026'
+        }
+    ];
+
+    // Hanya inisialisasi jika belum ada data — jangan pernah timpa akun yang sudah ada
+    if (!localStorage.getItem('jnt_local_accounts')) {
+        localStorage.setItem('jnt_local_accounts', JSON.stringify(LOCAL_ACCOUNTS_SEED));
+    }
+
     const path = window.location.pathname;
     const pageName = path.split('/').pop() || 'index.html';
 
     const publicPages = ['index.html', 'login.html', ''];
     const isLoggedIn = sessionStorage.getItem('jnt_is_logged_in') === 'true';
-    let activeUsername = sessionStorage.getItem('jnt_active_username') || 'Hamdan';
-    let activeRole = sessionStorage.getItem('jnt_user_role') || 'ADMIN'; // Default ADMIN, customizable per user
 
+    // FIX BUG-2: Hapus fallback 'ADMIN' dan 'Developer Admin'.
+    // Nilai null berarti tidak ada sesi — jangan pernah berasumsi role apapun.
+    const activeUsername = sessionStorage.getItem('jnt_active_username') || null;
+    const activeRole    = sessionStorage.getItem('jnt_user_role')       || null;
+
+    // Guard 1: Pengguna tidak login → redirect ke halaman login
     if (!isLoggedIn && !publicPages.includes(pageName)) {
         window.location.href = 'index.html';
         return;
     }
 
+    // Guard 2: Pengguna sudah login → jangan izinkan akses ke halaman publik
     if (isLoggedIn && publicPages.includes(pageName)) {
         window.location.href = 'dashboard.html';
         return;
     }
 
-    // Strict Firebase Auth Session Guard: Verify actual Firebase Auth identity
-    if (typeof window.auth !== 'undefined' && window.auth) {
-        window.auth.onAuthStateChanged(async (firebaseUser) => {
-            if (!publicPages.includes(pageName)) {
-                if (!firebaseUser && !isLoggedIn) {
-                    sessionStorage.clear();
-                    window.location.href = 'index.html';
-                    return;
-                }
-                if (firebaseUser && typeof JNTFirebaseService !== 'undefined') {
-                    try {
-                        const profile = await JNTFirebaseService.getUserProfileByUid(firebaseUser.uid);
-                        if (profile) {
-                            if ((profile.status || 'Aktif').toLowerCase() === 'nonaktif' || (profile.status || '').toLowerCase() === 'inactive') {
-                                alert('⚠️ Akun Anda dinonaktifkan oleh Administrator.');
-                                await JNTFirebaseService.logoutFirebaseAuth();
-                                window.location.href = 'index.html';
-                                return;
-                            }
-                            sessionStorage.setItem('jnt_user_role', profile.role);
-                            sessionStorage.setItem('jnt_active_username', profile.fullname || profile.username);
-                            sessionStorage.setItem('jnt_user_uid', profile.uid || firebaseUser.uid);
-                            activeUsername = profile.fullname || profile.username;
-                            activeRole = profile.role;
-                        }
-                    } catch (e) {
-                        console.warn("[AUTH GUARD] Profile sync check:", e.message);
-                    }
-                }
-            } else if (publicPages.includes(pageName) && firebaseUser && isLoggedIn) {
-                window.location.href = 'dashboard.html';
-            }
-        });
+    // Guard 3: Sesi tidak lengkap (login=true tapi role/username hilang atau kosong).
+    // Ini terjadi jika sessionStorage dimanipulasi secara parsial melalui DevTools.
+    // Tindakan: batalkan sesi sepenuhnya dan minta login ulang.
+    const VALID_ROLES = ['ADMIN', 'SUPERVISOR', 'OPERATOR_SLA', 'OPERATOR_MONITORING'];
+    if (isLoggedIn && (!activeRole || !activeUsername || !VALID_ROLES.includes(activeRole))) {
+        console.warn('[AUTH GUARD] Sesi tidak valid atau role tidak dikenal. Membersihkan sesi dan redirect ke login.');
+        sessionStorage.clear();
+        window.location.href = 'index.html';
+        return;
     }
 
     // ----------------------------------------------------
@@ -65,61 +75,107 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     const loginForm = document.getElementById('login-form');
     const togglePasswordBtn = document.getElementById('toggle-password');
-    const demoFillBtn = document.getElementById('demo-fill-btn');
     const alertBox = document.getElementById('alert-box');
     const alertMessage = document.getElementById('alert-message');
 
+    // ── System Status Badge ──────────────────────────────────────────────────
+    // Detects whether Firebase is live or in local-only mode and updates the
+    // status bar in the login card. No credentials are exposed.
+    (function updateSystemStatusBar() {
+        const dotEl   = document.getElementById('status-dot');
+        const labelEl = document.getElementById('status-label');
+        const footerAuthEl = document.getElementById('footer-auth-mode');
+        if (!dotEl || !labelEl) return;
+
+        const isPlaceholder = typeof window.isFirebaseConfigPlaceholder === 'function'
+            ? window.isFirebaseConfigPlaceholder()
+            : true; // assume placeholder if function not available yet
+
+        if (isPlaceholder) {
+            dotEl.className   = 'status-dot local';
+            labelEl.textContent = 'Mode lokal aktif — autentikasi berbasis akun sistem';
+            if (footerAuthEl) footerAuthEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Mode: Lokal`;
+        } else {
+            dotEl.className   = 'status-dot online';
+            labelEl.textContent = 'Sistem terhubung — Firebase Authentication aktif';
+            if (footerAuthEl) footerAuthEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Mode: Firebase`;
+        }
+    })();
+
+    // ── Remember Me: restore saved username (never password) ─────────────────
+    // Saves only the username (not password) to localStorage if the box is checked.
+    const rememberMeBox  = document.getElementById('remember-me');
+    const usernameInput  = document.getElementById('username-input');
+    const savedUsername  = localStorage.getItem('jnt_remember_username');
+    if (savedUsername && usernameInput) {
+        usernameInput.value = savedUsername;
+        if (rememberMeBox) rememberMeBox.checked = true;
+    } else {
+        if (rememberMeBox) rememberMeBox.checked = false;
+    }
+
+    // ── Password toggle with aria-pressed ────────────────────────────────────
     if (togglePasswordBtn) {
         togglePasswordBtn.addEventListener('click', () => {
-            const pwdInput = document.getElementById('password-input');
-            const eyeIcon = document.getElementById('eye-icon');
+            const pwdInput   = document.getElementById('password-input');
+            const eyeIcon    = document.getElementById('eye-icon');
             const eyeOffIcon = document.getElementById('eye-off-icon');
+            if (!pwdInput) return;
 
-            if (pwdInput) {
-                if (pwdInput.type === 'password') {
-                    pwdInput.type = 'text';
-                    if (eyeIcon) eyeIcon.classList.remove('hidden');
-                    if (eyeOffIcon) eyeOffIcon.classList.add('hidden');
-                } else {
-                    pwdInput.type = 'password';
-                    if (eyeIcon) eyeIcon.classList.add('hidden');
-                    if (eyeOffIcon) eyeOffIcon.classList.remove('hidden');
-                }
-            }
+            const isHidden = pwdInput.type === 'password';
+            pwdInput.type  = isHidden ? 'text' : 'password';
+            togglePasswordBtn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+            togglePasswordBtn.setAttribute('aria-label',
+                isHidden ? 'Sembunyikan password' : 'Tampilkan password');
+
+            if (eyeIcon)    eyeIcon.classList.toggle('hidden', !isHidden);
+            if (eyeOffIcon) eyeOffIcon.classList.toggle('hidden',  isHidden);
         });
     }
 
-    if (demoFillBtn) {
-        demoFillBtn.addEventListener('click', () => {
-            const userInput = document.getElementById('username-input');
-            const pwdInput = document.getElementById('password-input');
-            if (userInput) userInput.value = 'admin';
-            if (pwdInput) pwdInput.value = 'admin123';
-            if (alertBox) alertBox.classList.add('hidden');
+    // ── Forgot Password / Help Modal ─────────────────────────────────────────
+    const forgotModal     = document.getElementById('forgot-modal-overlay');
+    const btnForgot       = document.getElementById('btn-forgot-help');
+    const btnCloseForgot  = document.getElementById('btn-close-forgot');
+
+    function openForgotModal() {
+        if (forgotModal) {
+            forgotModal.classList.remove('hidden');
+            document.getElementById('btn-close-forgot')?.focus();
+        }
+    }
+    function closeForgotModal() {
+        if (forgotModal) {
+            forgotModal.classList.add('hidden');
+            btnForgot?.focus();
+        }
+    }
+    if (btnForgot)      btnForgot.addEventListener('click', openForgotModal);
+    if (btnCloseForgot) btnCloseForgot.addEventListener('click', closeForgotModal);
+    if (forgotModal) {
+        forgotModal.addEventListener('click', (e) => {
+            if (e.target === forgotModal) closeForgotModal();
+        });
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !forgotModal.classList.contains('hidden')) closeForgotModal();
         });
     }
 
+    // ── Legacy activate-account button (kept for backward compat) ────────────
     const btnActivateAccount = document.getElementById('btn-activate-account');
     if (btnActivateAccount) {
         btnActivateAccount.addEventListener('click', async () => {
-            const identifier = prompt("Masukkan Username atau Email akun lama Anda:");
+            const identifier = prompt('Masukkan Username atau Email akun lama Anda:');
             if (!identifier) return;
-            const newPass = prompt("Masukkan Password baru untuk akun Anda (min. 6 karakter):");
-            if (!newPass || newPass.length < 6) {
-                alert("Password minimal 6 karakter.");
-                return;
-            }
+            const newPass = prompt('Masukkan Password baru untuk akun Anda (min. 6 karakter):');
+            if (!newPass || newPass.length < 6) { alert('Password minimal 6 karakter.'); return; }
             try {
-                if (typeof JNTFirebaseService === 'undefined') {
-                    throw new Error("Layanan Firebase TMS belum diinisialisasi.");
-                }
-                alert("⏳ Memproses aktivasi akun ke Firebase Authentication...");
+                if (typeof JNTFirebaseService === 'undefined') throw new Error('Layanan Firebase TMS belum diinisialisasi.');
+                alert('⏳ Memproses aktivasi akun ke Firebase Authentication...');
                 await JNTFirebaseService.activateLegacyUser(identifier.trim(), newPass.trim());
-                alert(`✅ Akun "${identifier}" berhasil diaktifkan di Firebase Authentication!\nSilakan login menggunakan password baru Anda.`);
-                const userInput = document.getElementById('username-input');
-                const pwdInput = document.getElementById('password-input');
-                if (userInput) userInput.value = identifier.trim();
-                if (pwdInput) pwdInput.value = newPass.trim();
+                alert(`✅ Akun berhasil diaktifkan. Silakan login.`);
+                if (usernameInput) usernameInput.value = identifier.trim();
             } catch (err) {
                 alert(`❌ Aktivasi gagal: ${err.message}`);
             }
@@ -127,90 +183,158 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const usernameInput = document.getElementById('username-input');
-            const passwordInput = document.getElementById('password-input');
-            const btnLogin = document.getElementById('btn-login');
-            const btnSpinner = btnLogin ? btnLogin.querySelector('.btn-spinner') : null;
-            const btnText = btnLogin ? btnLogin.querySelector('.btn-text-content') : null;
+        // Guard: track submission state to prevent double-submit
+        let _loginInProgress = false;
 
-            const username = usernameInput ? usernameInput.value.trim() : '';
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (_loginInProgress) return; // prevent double-submit
+
+            const passwordInput = document.getElementById('password-input');
+            const btnLogin      = document.getElementById('btn-login');
+            const btnSpinner    = btnLogin ? btnLogin.querySelector('.btn-spinner')      : null;
+            const btnText       = btnLogin ? btnLogin.querySelector('.btn-text-content') : null;
+            const uInput        = document.getElementById('username-input');
+
+            // Hide any previous error
+            if (alertBox) alertBox.classList.add('hidden');
+
+            const username = uInput        ? uInput.value.trim()        : '';
             const password = passwordInput ? passwordInput.value.trim() : '';
 
-            if (!username || !password) {
-                if (alertBox) {
-                    if (alertMessage) alertMessage.textContent = 'Harap isi username dan password!';
-                    alertBox.classList.remove('hidden');
-                }
+            // Validate fields
+            if (!username) {
+                if (alertBox && alertMessage) { alertMessage.textContent = 'Harap masukkan username Anda.'; alertBox.classList.remove('hidden'); }
+                uInput?.focus();
+                return;
+            }
+            if (!password) {
+                if (alertBox && alertMessage) { alertMessage.textContent = 'Harap masukkan password Anda.'; alertBox.classList.remove('hidden'); }
+                passwordInput?.focus();
                 return;
             }
 
+            // Show loading state — prevent double submit
+            _loginInProgress = true;
             if (btnSpinner) btnSpinner.classList.remove('hidden');
-            if (btnText) btnText.style.opacity = '0.5';
-            if (btnLogin) btnLogin.disabled = true;
+            if (btnText)    btnText.style.opacity = '0.5';
+            if (btnLogin)   { btnLogin.disabled = true; btnLogin.setAttribute('aria-busy', 'true'); }
 
-            try {
-                if (typeof JNTFirebaseService === 'undefined') {
-                    throw new Error("Layanan Firebase TMS belum diinisialisasi.");
-                }
+            // Authenticate after brief UX delay
+            setTimeout(() => {
+                // === LOCAL AUTHENTICATION ===
+                const accounts = JSON.parse(localStorage.getItem('jnt_local_accounts') || '[]');
+                const matched  = accounts.find(acc =>
+                    (acc.username === username || acc.email === username) &&
+                    acc.password  === password &&
+                    acc.status    === 'Aktif'
+                );
 
-                // Strictly authenticate via Firebase Authentication
-                const authResult = await JNTFirebaseService.loginWithFirebaseAuth(username, password);
-                const { user, profile } = authResult;
-
-                sessionStorage.setItem('jnt_is_logged_in', 'true');
-                sessionStorage.setItem('jnt_active_username', profile.fullname || profile.username);
-                sessionStorage.setItem('jnt_user_role', profile.role);
-                sessionStorage.setItem('jnt_user_uid', profile.uid || user.uid);
-
-                window.location.href = 'dashboard.html';
-            } catch (err) {
-                console.error("Login error:", err);
-                let displayMsg = 'Username/Email atau password salah!';
-                if (err.code === 'LEGACY_ACCOUNT_NEEDS_ACTIVATION') {
-                    const legacyMsg = `⚠️ Akun "${username}" terdaftar pada sistem lama, namun belum diaktifkan di Firebase Authentication.\n\nApakah Anda ingin mengaktifkan akun ini sekarang dengan password yang Anda masukkan?`;
-                    if (confirm(legacyMsg)) {
-                        try {
-                            await JNTFirebaseService.activateLegacyUser(username, password);
-                            alert(`✅ Akun "${username}" berhasil diaktifkan di Firebase Authentication! Silakan klik Login kembali.`);
-                            return;
-                        } catch (actErr) {
-                            displayMsg = `Aktivasi akun gagal: ${actErr.message}`;
-                        }
+                if (matched) {
+                    // ── Remember Me: save username only, never password ──
+                    const rememberBox = document.getElementById('remember-me');
+                    if (rememberBox && rememberBox.checked) {
+                        localStorage.setItem('jnt_remember_username', username);
                     } else {
-                        displayMsg = 'Akun belum diaktifkan di Firebase Authentication. Hubungi Administrator.';
+                        localStorage.removeItem('jnt_remember_username');
                     }
-                } else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                    displayMsg = 'Password yang Anda masukkan salah!';
-                } else if (err.code === 'auth/user-not-found') {
-                    displayMsg = 'Akun tidak terdaftar di sistem TMS!';
-                } else if (err.message) {
-                    displayMsg = err.message;
-                }
 
-                if (alertBox) {
-                    if (alertMessage) alertMessage.textContent = displayMsg;
-                    alertBox.classList.remove('hidden');
+                    // Set session
+                    sessionStorage.setItem('jnt_is_logged_in',    'true');
+                    sessionStorage.setItem('jnt_active_username', matched.fullname);
+                    sessionStorage.setItem('jnt_user_role',       matched.role);
+                    sessionStorage.setItem('jnt_user_uid',        matched.uid);
+                    sessionStorage.setItem('jnt_user_email',      matched.emailPerusahaan);
+                    sessionStorage.setItem('jnt_user_phone',      matched.phone || '');
+                    sessionStorage.setItem('jnt_user_nik',        matched.nik || '');
+                    sessionStorage.setItem('jnt_user_jabatan',    matched.jabatan || '');
+                    sessionStorage.setItem('jnt_user_tlc',        matched.tlc || '');
+                    sessionStorage.setItem('jnt_user_departemen', matched.departemen || '');
+                    sessionStorage.setItem('jnt_user_bergabung',  matched.bergabung || '');
+                    sessionStorage.setItem('jnt_username_login',  matched.username);
+
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // ── Login failed: safe, non-technical error messages ──
+                    _loginInProgress = false;
+                    let displayMsg = 'Username atau password salah. Periksa kembali dan coba lagi.';
+                    const userExists = accounts.find(acc => acc.username === username || acc.email === username);
+                    if (userExists && userExists.status !== 'Aktif') {
+                        displayMsg = 'Akun Anda tidak aktif. Hubungi Administrator untuk bantuan.';
+                    }
+
+                    if (alertBox) {
+                        if (alertMessage) alertMessage.textContent = displayMsg;
+                        alertBox.classList.remove('hidden');
+                    }
+
+                    if (btnSpinner) btnSpinner.classList.add('hidden');
+                    if (btnText) btnText.style.opacity = '1';
+                    if (btnLogin) btnLogin.disabled = false;
                 }
-            } finally {
-                if (btnSpinner) btnSpinner.classList.add('hidden');
-                if (btnText) btnText.style.opacity = '1';
-                if (btnLogin) btnLogin.disabled = false;
-            }
+            }, 800); // 800ms loading simulation
         });
     }
 
-    // Dynamic User Banner Updates
-    const userNameEls = document.querySelectorAll('#sidebar-user-name, #topbar-user-name, #dash-user-name');
-    userNameEls.forEach(el => {
-        if (el) el.textContent = activeUsername;
-    });
+    // ===================================================================
+    // GLOBAL USER IDENTITY SYNC — Runs on every page after login
+    // Updates ALL user-related UI elements from sessionStorage so every
+    // page is consistent with the currently logged-in account.
+    // ===================================================================
+    (function syncUserIdentityAcrossAllPages() {
+        // FIX BUG-2 (UI): Hapus fallback hardcoded ke 'Developer Admin' / 'ADMIN'.
+        // Jika sesi tidak ada, tampilkan string kosong — jangan inject nilai privilege default.
+        const fullname  = sessionStorage.getItem('jnt_active_username') || '';
+        const role      = sessionStorage.getItem('jnt_user_role')       || '';
+        if (!fullname && !role) return; // Jika tidak ada sesi aktif, jangan update UI
+        const avatarUrl = 'https://ui-avatars.com/api/?name='
+            + encodeURIComponent(fullname)
+            + '&background=E30613&color=fff&bold=true&size=150';
 
-    const userRoleEls = document.querySelectorAll('.profile-role, .inc-user-role');
-    userRoleEls.forEach(el => {
-        if (el) el.textContent = activeRole;
-    });
+        // 1. Sidebar: username text
+        document.querySelectorAll('#sidebar-user-name').forEach(el => {
+            el.textContent = fullname;
+        });
+
+        // 2. Sidebar: role/jabatan badge
+        document.querySelectorAll('.profile-role').forEach(el => {
+            el.textContent = role;
+        });
+
+        // 3. Sidebar: avatar image
+        document.querySelectorAll('.user-avatar-img').forEach(img => {
+            img.src = avatarUrl + '&size=150';
+            img.alt = fullname + ' Avatar';
+        });
+
+        // 4. Topbar chip: username text (handles multiple selectors used across pages)
+        document.querySelectorAll(
+            '#topbar-user-name, #dash-user-name, .inc-user-name'
+        ).forEach(el => {
+            // preserve the ▾ / v chevron span inside if present
+            const chevron = el.querySelector('span');
+            el.textContent = fullname;
+            if (chevron) {
+                el.appendChild(chevron);
+            } else {
+                const v = document.createElement('span');
+                v.textContent = 'v';
+                el.appendChild(v);
+            }
+        });
+
+        // 5. Topbar chip: role text
+        document.querySelectorAll('.inc-user-role').forEach(el => {
+            el.textContent = role;
+        });
+
+        // 6. Topbar chip: avatar image
+        document.querySelectorAll('.inc-avatar-img').forEach(img => {
+            img.src = avatarUrl + '&size=100';
+            img.alt = fullname + ' Avatar';
+        });
+    })();
+
 
     // PERMISSION MATRIX ROUTE GUARD
     const rolePermissions = {
@@ -224,6 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const restrictedPagesForMonitoring = ['master.html', 'users.html', 'settings.html'];
     const restrictedPagesForSupervisor = ['master.html', 'users.html', 'settings.html'];
 
+    // RBAC — Pembatasan akses berdasarkan role
+    // Catatan: Guard 3 di atas sudah memastikan activeRole adalah nilai yang valid.
+    // Blok ini hanya membatasi halaman spesifik per role yang lebih rendah.
     if (activeRole === 'SUPERVISOR' && restrictedPagesForSupervisor.includes(pageName)) {
         alert(`⚠️ Akses Dibatasi: Peran SUPERVISOR tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
         window.location.href = 'dashboard.html';
@@ -245,15 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reusable Authentic Logout Trigger
     function performLogout() {
         if (confirm('Konfirmasi Keluar: Apakah Anda yakin ingin keluar dari sistem?')) {
-            if (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.logoutFirebaseAuth) {
-                JNTFirebaseService.logoutFirebaseAuth().catch(e => console.warn(e));
-            } else if (typeof window.auth !== 'undefined' && window.auth) {
-                window.auth.signOut().catch(e => console.warn(e));
-            }
             sessionStorage.clear();
-            if (typeof localStorage !== 'undefined' && typeof localStorage.removeItem === 'function') {
-                localStorage.removeItem('jnt_auth_user');
-            }
             window.location.href = 'index.html';
         }
     }
@@ -2739,8 +2858,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
+                    // FIX BUG-3: Jangan simpan password plaintext ke Firestore.
+                    // Gunakan SHA-256 hash (konsisten dengan users.html password reset).
+                    let passHash = null;
+                    if (typeof crypto !== 'undefined' && crypto.subtle) {
+                        const hashBuffer = await crypto.subtle.digest(
+                            'SHA-256',
+                            new TextEncoder().encode(newPass)
+                        );
+                        passHash = Array.from(new Uint8Array(hashBuffer))
+                            .map(b => b.toString(16).padStart(2, '0'))
+                            .join('');
+                    }
                     await JNTFirebaseService.saveUserProfile(activeUsername, {
-                        pass: newPass,
+                        passwordHash: passHash,
                         passwordUpdated: new Date().toISOString()
                     });
 
