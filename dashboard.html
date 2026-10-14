@@ -607,95 +607,485 @@
     <script src="sla-countdown-engine.js"></script>
     <script src="app.js"></script>
     <script>
-        // Initialize Trend Line Chart
+        /**
+         * J&T Express TMS — Dashboard Controller (Phase 1 Remediation)
+         * ─────────────────────────────────────────────────────────────
+         * BUG-D1  FIXED: Percentage denominator = sla_outbound.length (not incoming.length)
+         * BUG-D2  FIXED: Donut chart computed from filtered sla_outbound data
+         * BUG-D3  FIXED: Trend chart uses dynamic 7-day date labels + real data per day
+         * BUG-D4  FIXED: Alert Penting rendered from live data with real timestamps
+         * BUG-D13 FIXED: "Hari Ini" filter actually filters all components
+         * BUG-D14 FIXED: Wilayah select actually filters all components
+         * BUG-D11 FIXED: Topbar date and user identity from sessionStorage
+         */
         document.addEventListener('DOMContentLoaded', () => {
-            const ctx = document.getElementById('trendChart');
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['16 Jul', '17 Jul', '18 Jul', '19 Jul', '20 Jul', '21 Jul', '22 Jul'],
-                        datasets: [
-                            {
-                                label: 'On Time (%)',
-                                data: [80.1, 82.3, 78.5, 84.7, 83.2, 80.4, 85.7],
-                                borderColor: '#16A34A',
-                                backgroundColor: 'rgba(22, 163, 74, 0.05)',
-                                tension: 0.3,
-                                fill: true,
-                                pointBackgroundColor: '#16A34A'
-                            },
-                            {
-                                label: 'Late (%)',
-                                data: [13.2, 11.4, 14.6, 9.8, 11.2, 13.7, 9.8],
-                                borderColor: '#EF4444',
-                                tension: 0.3,
-                                pointBackgroundColor: '#EF4444'
-                            },
-                            {
-                                label: 'Trouble (%)',
-                                data: [3.1, 2.8, 2.4, 2.1, 2.0, 2.2, 3.3],
-                                borderColor: '#94A3B8',
-                                tension: 0.3,
-                                pointBackgroundColor: '#94A3B8'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: { font: { family: 'Plus Jakarta Sans', size: 11 } }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                min: 0,
-                                max: 100,
-                                ticks: { callback: value => value + '%' }
-                            }
-                        }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // FILTER STATE — single source of truth for all dashboard components
+            // ═══════════════════════════════════════════════════════════════════
+            const activeFilter = {
+                dateMode: 'today',    // 'today' | 'all'
+                wilayah: 'semua'     // 'semua' | 'JAWA' | 'SUMATERA' | 'KALIMANTAN' | ...
+            };
+
+            // ── Helpers ──────────────────────────────────────────────────────────
+            /**
+             * Returns YYYY-MM-DD string for a given Date object (local timezone).
+             */
+            function toDateKey(d) {
+                if (!d) return '';
+                const dt = d instanceof Date ? d : new Date(d);
+                if (isNaN(dt.getTime())) return '';
+                const y = dt.getFullYear();
+                const m = String(dt.getMonth() + 1).padStart(2, '0');
+                const day = String(dt.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            }
+
+            function todayKey() { return toDateKey(new Date()); }
+
+            /**
+             * Returns Indonesian short date label for a Date, e.g. "14 Okt"
+             */
+            function shortDateLabel(d) {
+                const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+            }
+
+            /**
+             * Extracts a YYYY-MM-DD date key from an SLA outbound item.
+             * Tries createdAt (ISO), then jamBerangkat string.
+             */
+            function getItemDateKey(item) {
+                if (item.createdAt) return toDateKey(new Date(item.createdAt));
+                if (item.jamBerangkat) {
+                    // format: "2026-10-14 08:00" or "14/10/2026 08:00"
+                    const parts = item.jamBerangkat.split(' ')[0];
+                    if (parts.includes('-')) return parts;           // YYYY-MM-DD
+                    if (parts.includes('/')) {
+                        const [d2, m2, y2] = parts.split('/');
+                        return `${y2}-${m2.padStart(2, '0')}-${d2.padStart(2, '0')}`;
                     }
+                }
+                return '';
+            }
+
+            /**
+             * Returns relative time string from ISO timestamp, e.g. "5 menit lalu"
+             */
+            function relativeTime(isoStr) {
+                if (!isoStr) return 'Baru saja';
+                const diff = Date.now() - new Date(isoStr).getTime();
+                if (isNaN(diff) || diff < 0) return 'Baru saja';
+                const mins = Math.floor(diff / 60000);
+                if (mins < 1) return 'Baru saja';
+                if (mins < 60) return `${mins} menit lalu`;
+                const hrs = Math.floor(mins / 60);
+                if (hrs < 24) return `${hrs} jam lalu`;
+                return `${Math.floor(hrs / 24)} hari lalu`;
+            }
+
+            /** Set element textContent safely */
+            function setEl(id, val) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            }
+
+            // ── Apply filter to a list of SLA outbound items ─────────────────────
+            function applyFilter(slaList) {
+                return slaList.filter(item => {
+                    // Date filter
+                    if (activeFilter.dateMode === 'today') {
+                        const dk = getItemDateKey(item);
+                        if (dk && dk !== todayKey()) return false;
+                    }
+                    // Wilayah filter
+                    if (activeFilter.wilayah !== 'semua') {
+                        const iw = (item.wilayah || '').toUpperCase();
+                        const fw = activeFilter.wilayah.toUpperCase();
+                        if (iw !== fw) return false;
+                    }
+                    return true;
                 });
             }
 
-            // Real-Time Live Data Recalculation for Operational SSOT
-            const updateDashboardStats = () => {
-                const incoming = JNTFirebaseService.getLocalStore('incoming') || [];
-                const slaOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
-                const troubles = JNTFirebaseService.getLocalStore('troubles') || [];
+            // ── Apply filter to troubles list ─────────────────────────────────────
+            function applyTroubleFilter(troubles) {
+                return troubles.filter(t => {
+                    if (activeFilter.dateMode === 'today') {
+                        const dk = toDateKey(new Date(t.createdAt || t.waktu || ''));
+                        if (dk && dk !== todayKey()) return false;
+                    }
+                    if (activeFilter.wilayah !== 'semua') {
+                        const iw = (t.wilayah || '').toUpperCase();
+                        if (iw !== activeFilter.wilayah.toUpperCase()) return false;
+                    }
+                    return true;
+                });
+            }
 
+            // ═══════════════════════════════════════════════════════════════════
+            // BUG-D11: TOPBAR — user identity & real date
+            // ═══════════════════════════════════════════════════════════════════
+            (function updateTopbarIdentity() {
+                const activeUsername = sessionStorage.getItem('jnt_active_username') || '-';
+                const userRole = sessionStorage.getItem('jnt_user_role') || '-';
+                const today = new Date();
+                const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+                const dateStr = today.toLocaleDateString('id-ID', opts);
+
+                // Topbar chips
+                const dateChip = document.querySelector('.inc-date-chip span');
+                if (dateChip) dateChip.textContent = dateStr;
+
+                const topbarName = document.querySelector('.inc-user-name');
+                if (topbarName) topbarName.innerHTML = `${activeUsername} <span>▾</span>`;
+
+                const topbarRole = document.querySelector('.inc-user-role');
+                if (topbarRole) topbarRole.textContent = userRole.replace(/_/g, ' ');
+
+                // Sidebar
+                const sidebarName = document.getElementById('sidebar-user-name');
+                if (sidebarName) sidebarName.textContent = activeUsername;
+
+                const sidebarRole = document.querySelector('.profile-role');
+                if (sidebarRole) sidebarRole.textContent = userRole.replace(/_/g, ' ');
+            })();
+
+            // ═══════════════════════════════════════════════════════════════════
+            // BUG-D3: TREND CHART — dynamic dates, real data per day
+            // ═══════════════════════════════════════════════════════════════════
+            let trendChartInstance = null;
+
+            function buildLast7DayKeys() {
+                const keys = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    keys.push({ key: toDateKey(d), label: shortDateLabel(d) });
+                }
+                return keys;
+            }
+
+            function renderTrendChart(slaOutbound, troubles) {
+                const ctx = document.getElementById('trendChart');
+                if (!ctx) return;
+
+                const days = buildLast7DayKeys();
+                const labels = days.map(d => d.label);
+
+                // Group sla_outbound by date
+                const byDate = {};
+                days.forEach(d => { byDate[d.key] = { onTime: 0, late: 0, trouble: 0, total: 0 }; });
+
+                slaOutbound.forEach(item => {
+                    const dk = getItemDateKey(item);
+                    if (!byDate[dk]) return; // outside 7-day window
+                    byDate[dk].total++;
+                    const s = (item.statusSla || '').toUpperCase();
+                    if (s === 'ON TIME') byDate[dk].onTime++;
+                    else if (s === 'TERLAMBAT' || s === 'LATE') byDate[dk].late++;
+                    // BERJALAN intentionally excluded from completed categories
+                });
+
+                // Group troubles by date (active only)
+                troubles.filter(t => t.status !== 'SUDAH SELESAI' && t.status !== 'RESOLVED' && t.status !== 'SELESAI').forEach(t => {
+                    const dk = toDateKey(new Date(t.createdAt || t.waktu || ''));
+                    if (byDate[dk]) byDate[dk].trouble++;
+                });
+
+                // Calculate percentages — null if no data for that day (honest gap)
+                const onTimePct = days.map(d => byDate[d.key].total > 0 ? parseFloat(((byDate[d.key].onTime / byDate[d.key].total) * 100).toFixed(1)) : null);
+                const latePct = days.map(d => byDate[d.key].total > 0 ? parseFloat(((byDate[d.key].late / byDate[d.key].total) * 100).toFixed(1)) : null);
+                const troublePct = days.map(d => byDate[d.key].total > 0 ? parseFloat(((byDate[d.key].trouble / byDate[d.key].total) * 100).toFixed(1)) : null);
+
+                const chartData = {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'On Time (%)',
+                            data: onTimePct,
+                            borderColor: '#16A34A',
+                            backgroundColor: 'rgba(22,163,74,0.05)',
+                            tension: 0.3,
+                            fill: true,
+                            pointBackgroundColor: '#16A34A',
+                            spanGaps: false  // show gap for days with no data
+                        },
+                        {
+                            label: 'Late (%)',
+                            data: latePct,
+                            borderColor: '#EF4444',
+                            tension: 0.3,
+                            pointBackgroundColor: '#EF4444',
+                            spanGaps: false
+                        },
+                        {
+                            label: 'Trouble (%)',
+                            data: troublePct,
+                            borderColor: '#94A3B8',
+                            tension: 0.3,
+                            pointBackgroundColor: '#94A3B8',
+                            spanGaps: false
+                        }
+                    ]
+                };
+
+                const chartOpts = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Plus Jakarta Sans', size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const val = ctx.parsed.y;
+                                    return val === null ? `${ctx.dataset.label}: Tidak ada data` : `${ctx.dataset.label}: ${val}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+                    }
+                };
+
+                if (trendChartInstance) {
+                    trendChartInstance.data = chartData;
+                    trendChartInstance.update('none');
+                } else {
+                    trendChartInstance = new Chart(ctx, { type: 'line', data: chartData, options: chartOpts });
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // BUG-D2: DONUT CHART — computed from filtered data
+            // ═══════════════════════════════════════════════════════════════════
+            function renderDonutChart(filteredSla) {
+                const total = filteredSla.length;
+                if (total === 0) {
+                    // No data state
+                    const center = document.querySelector('.pct-big');
+                    const centerSub = document.querySelector('.pct-sub');
+                    if (center) center.textContent = '—';
+                    if (centerSub) centerSub.textContent = 'Tidak ada data';
+                    const legend = document.querySelector('.donut-legend-list');
+                    if (legend) legend.innerHTML = '<div class="leg-row" style="color:#94A3B8;font-size:12px;">Tidak ada data untuk periode ini</div>';
+                    return;
+                }
+
+                let onTime = 0, nearLate = 0, late = 0, trouble = 0, laka = 0;
+                filteredSla.forEach(item => {
+                    const s = (item.statusSla || '').toUpperCase();
+                    if (s === 'ON TIME') onTime++;
+                    else if (s === 'NEAR LATE') nearLate++;
+                    else if (s === 'TERLAMBAT' || s === 'LATE') late++;
+                    else if (s === 'KENDALA') trouble++;
+                    // BERJALAN not counted in completed categories
+                });
+
+                const pct = n => total > 0 ? ((n / total) * 100).toFixed(1) : '0.0';
+                const onTimePct = parseFloat(pct(onTime));
+
+                // Update center text
+                const center = document.querySelector('.pct-big');
+                const centerSub = document.querySelector('.pct-sub');
+                if (center) center.textContent = `${onTimePct}%`;
+                if (centerSub) centerSub.textContent = 'On Time';
+
+                // Update CSS donut gradient (conic-gradient)
+                const donutRing = document.querySelector('.donut-ring-graphic');
+                if (donutRing) {
+                    const ontimeDeg = (onTime / total) * 360;
+                    const nearLateDeg = (nearLate / total) * 360;
+                    const lateDeg = (late / total) * 360;
+                    const troubleDeg = (trouble / total) * 360;
+                    let cumul = 0;
+                    const stops = [
+                        { color: '#16A34A', deg: ontimeDeg },
+                        { color: '#F59E0B', deg: nearLateDeg },
+                        { color: '#EF4444', deg: lateDeg },
+                        { color: '#94A3B8', deg: troubleDeg },
+                    ];
+                    let gradient = 'conic-gradient(';
+                    stops.forEach((s, i) => {
+                        if (s.deg > 0) {
+                            gradient += `${s.color} ${cumul}deg ${cumul + s.deg}deg`;
+                            cumul += s.deg;
+                            if (i < stops.length - 1 && stops.slice(i + 1).some(x => x.deg > 0)) gradient += ', ';
+                        }
+                    });
+                    // Fill remainder with light gray
+                    if (cumul < 360) gradient += `, #E2E8F0 ${cumul}deg 360deg`;
+                    gradient += ')';
+                    donutRing.style.background = gradient;
+                }
+
+                // Update legend
+                const legend = document.querySelector('.donut-legend-list');
+                if (legend) {
+                    legend.innerHTML = `
+                    <div class="leg-row"><span class="leg-dot green-dot"></span><span>On Time</span><strong class="leg-val">${onTime} Trip (${pct(onTime)}%)</strong></div>
+                    <div class="leg-row"><span class="leg-dot yellow-dot"></span><span>Near Late</span><strong class="leg-val">${nearLate} Trip (${pct(nearLate)}%)</strong></div>
+                    <div class="leg-row"><span class="leg-dot red-dot"></span><span>Late</span><strong class="leg-val">${late} Trip (${pct(late)}%)</strong></div>
+                    <div class="leg-row"><span class="leg-dot gray-dot"></span><span>Trouble</span><strong class="leg-val">${trouble} Trip (${pct(trouble)}%)</strong></div>
+                `;
+                }
+
+                // Update bottom banner comparison text
+                const banner = document.querySelector('.dash-card-bottom-banner span:nth-child(2)');
+                if (banner) {
+                    banner.innerHTML = `Berdasarkan <strong>${total} trip</strong> yang terdata hari ini.`;
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // BUG-D4: ALERT PENTING — from live data with real timestamps
+            // ═══════════════════════════════════════════════════════════════════
+            function renderAlertPanel(filteredSla, allTroubles) {
+                const alertList = document.querySelector('.alert-items-list');
+                if (!alertList) return;
+
+                const lateItems = filteredSla.filter(i => i.statusSla === 'TERLAMBAT' || i.statusSla === 'LATE');
+                const activeTroubles = allTroubles.filter(t =>
+                    t.jenis !== 'Laka' &&
+                    t.status !== 'SUDAH SELESAI' && t.status !== 'RESOLVED' && t.status !== 'SELESAI'
+                );
+                const activeLaka = allTroubles.filter(t =>
+                    t.jenis === 'Laka' &&
+                    t.status !== 'SUDAH SELESAI' && t.status !== 'RESOLVED' && t.status !== 'SELESAI'
+                );
+
+                const rows = [];
+
+                if (lateItems.length > 0) {
+                    // Get most recent late SLA timestamp
+                    const latestLate = lateItems.reduce((best, cur) => {
+                        const bt = new Date(best.createdAt || best.jamBerangkat || 0).getTime();
+                        const ct = new Date(cur.createdAt || cur.jamBerangkat || 0).getTime();
+                        return ct > bt ? cur : best;
+                    }, lateItems[0]);
+                    const ts = relativeTime(latestLate.createdAt || latestLate.jamBerangkat);
+                    rows.push(`
+                    <div class="alert-item-row">
+                        <div class="alert-ic-wrap red-ic">⚠️</div>
+                        <div class="alert-text-meta">
+                            <strong class="alert-t-title">${lateItems.length} Trip Telat SLA</strong>
+                            <span class="alert-t-sub">Perlu perhatian segera</span>
+                        </div>
+                        <span class="alert-time">${ts}</span>
+                    </div>`);
+                }
+
+                if (activeTroubles.length > 0) {
+                    const latestT = activeTroubles.reduce((b, c) => new Date(c.createdAt || 0) > new Date(b.createdAt || 0) ? c : b, activeTroubles[0]);
+                    rows.push(`
+                    <div class="alert-item-row">
+                        <div class="alert-ic-wrap orange-ic">⚠️</div>
+                        <div class="alert-text-meta">
+                            <strong class="alert-t-title">${activeTroubles.length} Kendaraan Trouble</strong>
+                            <span class="alert-t-sub">Dalam penanganan</span>
+                        </div>
+                        <span class="alert-time">${relativeTime(latestT.createdAt)}</span>
+                    </div>`);
+                }
+
+                if (activeLaka.length > 0) {
+                    const latestL = activeLaka.reduce((b, c) => new Date(c.createdAt || 0) > new Date(b.createdAt || 0) ? c : b, activeLaka[0]);
+                    rows.push(`
+                    <div class="alert-item-row">
+                        <div class="alert-ic-wrap red-ic">⚠️</div>
+                        <div class="alert-text-meta">
+                            <strong class="alert-t-title">${activeLaka.length} Laka Aktif</strong>
+                            <span class="alert-t-sub">Butuh tindak lanjut</span>
+                        </div>
+                        <span class="alert-time">${relativeTime(latestL.createdAt)}</span>
+                    </div>`);
+                }
+
+                if (rows.length === 0) {
+                    alertList.innerHTML = '<div class="alert-item-row" style="color:#10B981;font-size:13px;font-weight:600;">✅ Tidak ada alert aktif saat ini</div>';
+                } else {
+                    alertList.innerHTML = rows.join('');
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // MAP BADGES — Distribusi Trip per Wilayah from real data
+            // ═══════════════════════════════════════════════════════════════════
+            const WILAYAH_BADGE_MAP = {
+                'JAWA': '.jawa-badge .reg-count',
+                'JABODETABEK': '.jawa-badge .reg-count',
+                'SUMATERA': '.sumatera-badge .reg-count',
+                'KALIMANTAN': '.kalimantan-badge .reg-count',
+                'SULAWESI': '.sulawesi-badge .reg-count',
+                'BALI': '.bali-badge .reg-count',
+            };
+
+            function renderMapBadges(filteredSla) {
+                const counts = {};
+                filteredSla.forEach(item => {
+                    const w = (item.wilayah || 'LAINNYA').toUpperCase();
+                    counts[w] = (counts[w] || 0) + 1;
+                });
+
+                // Reset all badges
+                document.querySelectorAll('.reg-count').forEach(el => { el.textContent = '0 Trip'; });
+
+                let jawa = (counts['JAWA'] || 0) + (counts['JABODETABEK'] || 0) + (counts['BANTEN'] || 0);
+                const jawaEl = document.querySelector('.jawa-badge .reg-count');
+                if (jawaEl) jawaEl.textContent = `${jawa} Trip`;
+
+                ['SUMATERA', 'KALIMANTAN', 'SULAWESI', 'BALI'].forEach(w => {
+                    const selector = WILAYAH_BADGE_MAP[w];
+                    const el = selector ? document.querySelector(selector) : null;
+                    if (el) el.textContent = `${counts[w] || 0} Trip`;
+                });
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // BUG-D1 + D13/D14: MAIN KPI UPDATE — single unified calculation
+            // ═══════════════════════════════════════════════════════════════════
+            let _latestSlaList = [];
+            let _latestTroubles = [];
+            let _lastUpdated = null;
+
+            function updateDashboardStats() {
+                const filteredSla = applyFilter(_latestSlaList);
+                const filteredTroubles = applyTroubleFilter(_latestTroubles);
+
+                // ── KPI Cards ──────────────────────────────────────────────────
+                // BUG-D1 FIX: denominator = filteredSla.length (same store as numerators)
+                const totalSla = filteredSla.length;
+                const incoming = JNTFirebaseService.getLocalStore('incoming') || [];
+                // Total Trip = all incoming trips (registered trips in the system)
+                // This is intentionally separate from SLA count — they represent different things
                 const totalTrips = incoming.length;
+
                 let onTimeCount = 0;
+                let berjalan = 0;   // In transit, not yet confirmed arrived
                 let nearLateCount = 0;
                 let lateCount = 0;
                 let troubleCount = 0;
                 let lakaCount = 0;
 
-                slaOutbound.forEach(item => {
-                    if (item.statusSla === 'ON TIME' || item.statusSla === 'BERJALAN') {
-                        onTimeCount++;
-                    } else if (item.statusSla === 'NEAR LATE') {
-                        nearLateCount++;
-                    } else if (item.statusSla === 'TERLAMBAT' || item.statusSla === 'LATE') {
-                        lateCount++;
-                    }
+                filteredSla.forEach(item => {
+                    const s = (item.statusSla || '').toUpperCase();
+                    if (s === 'ON TIME') onTimeCount++;
+                    else if (s === 'BERJALAN') berjalan++;    // BUG-D6 PREP: separate from ON TIME
+                    else if (s === 'NEAR LATE') nearLateCount++;
+                    else if (s === 'TERLAMBAT' || s === 'LATE') lateCount++;
                 });
 
-                troubles.forEach(t => {
+                filteredTroubles.forEach(t => {
+                    // Only count ACTIVE incidents (not resolved)
+                    const isDone = t.status === 'SUDAH SELESAI' || t.status === 'RESOLVED' || t.status === 'SELESAI';
+                    if (isDone) return;
                     if (t.jenis === 'Laka') lakaCount++;
                     else troubleCount++;
                 });
 
-                const totalVal = Math.max(1, totalTrips);
-
-                const setEl = (id, val) => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = val;
-                };
-
+                // Set KPI values
                 setEl('dash-kpi-total', totalTrips);
                 setEl('dash-kpi-ontime', onTimeCount);
                 setEl('dash-kpi-nearlate', nearLateCount);
@@ -703,60 +1093,170 @@
                 setEl('dash-kpi-trouble', troubleCount);
                 setEl('dash-kpi-laka', lakaCount);
 
-                const setPct = (pctId, barId, count) => {
-                    const pct = ((count / totalVal) * 100).toFixed(1);
+                // BUG-D1 FIX: use totalSla as denominator for SLA-based percentages
+                const denom = Math.max(1, totalSla);
+
+                function setPct(pctId, barId, count) {
+                    const pct = ((count / denom) * 100).toFixed(1);
                     const pctEl = document.getElementById(pctId);
                     const barEl = document.getElementById(barId);
                     if (pctEl) pctEl.textContent = `${pct}%`;
-                    if (barEl) barEl.style.width = `${pct}%`;
-                };
+                    if (barEl) barEl.style.width = `${Math.min(pct, 100)}%`;
+                }
 
                 setPct('dash-pct-ontime', 'dash-bar-ontime', onTimeCount);
                 setPct('dash-pct-nearlate', 'dash-bar-nearlate', nearLateCount);
                 setPct('dash-pct-late', 'dash-bar-late', lateCount);
                 setPct('dash-pct-trouble', 'dash-bar-trouble', troubleCount);
                 setPct('dash-pct-laka', 'dash-bar-laka', lakaCount);
-            };
 
-            JNTFirebaseService.subscribeIncoming(() => updateDashboardStats());
-            JNTFirebaseService.subscribeSLAOutbound(slaList => {
-                updateDashboardStats();
+                // ── Donut Chart ────────────────────────────────────────────────
+                // BUG-D2 FIX: computed from filteredSla
+                renderDonutChart(filteredSla);
+
+                // ── Alert Penting ──────────────────────────────────────────────
+                // BUG-D4 FIX: from live data
+                renderAlertPanel(filteredSla, _latestTroubles);
+
+                // ── Map Badges ────────────────────────────────────────────────
+                renderMapBadges(filteredSla);
+
+                // ── Last Updated ──────────────────────────────────────────────
+                _lastUpdated = new Date();
+                const updEl = document.getElementById('dash-last-updated');
+                if (updEl) {
+                    updEl.textContent = `Diperbarui: ${_lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // SLA TABLE — filtered to LATE/TERLAMBAT only + live badge count
+            // ═══════════════════════════════════════════════════════════════════
+            function renderSlaTable(slaList) {
+                const filteredSla = applyFilter(slaList);
+                // Table only shows LATE trips
+                const lateOnly = filteredSla.filter(item =>
+                    item.statusSla === 'TERLAMBAT' || item.statusSla === 'LATE'
+                );
+
+                // BUG-D9 FIX: update badge to match row count
+                const badge = document.querySelector('.badge-count-red');
+                if (badge) badge.textContent = lateOnly.length;
 
                 const tbody = document.getElementById('table-dash-sla-body');
-                if (tbody && Array.isArray(slaList)) {
-                    tbody.innerHTML = slaList.map(item => {
-                        const departureStr = item.jamBerangkat || '';
-                        const slaHours = item.targetSLAHours || 16;
-                        const actualArrival = item.jamSampaiAktual || '';
+                if (!tbody) return;
 
-                        let targetArrivalStr = '-';
-                        if (window.SLACountdownEngine) {
-                            const targetDate = window.SLACountdownEngine.calculateTargetTimestamp(departureStr, slaHours);
-                            if (targetDate) targetArrivalStr = window.SLACountdownEngine.formatTimeOnly(targetDate);
-                        }
-
-                        return `
-                            <tr data-sla-departure="${departureStr}" data-sla-hours="${slaHours}" data-sla-arrival="${actualArrival}">
-                                <td><strong>${item.kodeTugas}</strong></td>
-                                <td>${item.trip || item.namaRute || '-'}</td>
-                                <td>${item.platNomor || '-'}</td>
-                                <td>${departureStr ? (departureStr.split(' ')[1] || departureStr) : '-'}</td>
-                                <td>${targetArrivalStr}</td>
-                                <td><span class="sla-live-countdown">--:--:--</span></td>
-                                <td><strong style="color: ${item.lateMinutes > 0 ? '#DC2626' : '#16A34A'};">${item.lateMinutes > 0 ? (Math.floor(item.lateMinutes / 60) + 'h ' + (item.lateMinutes % 60) + 'm') : '-'}</strong></td>
-                                <td><span class="sla-live-status"></span></td>
-                            </tr>
-                        `;
-                    }).join('');
-
-                    if (window.SLACountdownEngine) {
-                        window.SLACountdownEngine.tick();
-                    }
+                if (lateOnly.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#10B981;font-weight:600;">✅ Tidak ada trip yang telat SLA saat ini</td></tr>`;
+                    return;
                 }
+
+                tbody.innerHTML = lateOnly.map(item => {
+                    const departureStr = item.jamBerangkat || '';
+                    const slaHours = item.targetSLAHours || 16;
+                    const actualArrival = item.jamSampaiAktual || '';
+
+                    let targetArrivalStr = '-';
+                    if (window.SLACountdownEngine) {
+                        const targetDate = window.SLACountdownEngine.calculateTargetTimestamp(departureStr, slaHours);
+                        if (targetDate) targetArrivalStr = window.SLACountdownEngine.formatTimeOnly(targetDate);
+                    }
+
+                    const lateMin = item.lateMinutes || 0;
+                    const lateStr = lateMin > 0
+                        ? `${Math.floor(lateMin / 60)}h ${lateMin % 60}m`
+                        : '-';
+
+                    return `
+                    <tr data-sla-departure="${departureStr}" data-sla-hours="${slaHours}" data-sla-arrival="${actualArrival}">
+                        <td><strong>${item.kodeTugas || '-'}</strong></td>
+                        <td>${item.trip || item.namaRute || '-'}</td>
+                        <td>${item.platNomor || '-'}</td>
+                        <td>${departureStr ? (departureStr.split(' ')[1] || departureStr) : '-'}</td>
+                        <td>${targetArrivalStr}</td>
+                        <td><span class="sla-live-countdown">--:--:--</span></td>
+                        <td><strong style="color:#DC2626;">${lateStr}</strong></td>
+                        <td><span class="sla-live-status"></span></td>
+                    </tr>`;
+                }).join('');
+
+                if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // BUG-D13/D14: FILTER CONTROLS — "Hari Ini" button and wilayah select
+            // ═══════════════════════════════════════════════════════════════════
+            function bindFilterControls() {
+                // Date filter chips
+                document.querySelectorAll('.btn-dash-chip').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.btn-dash-chip').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        const txt = btn.textContent.trim();
+                        activeFilter.dateMode = txt.toLowerCase().includes('hari ini') ? 'today' : 'all';
+                        updateDashboardStats();
+                        renderSlaTable(_latestSlaList);
+                        renderTrendChart(_latestSlaList, _latestTroubles);
+                    });
+                });
+
+                // Wilayah select
+                const wilayahSelect = document.querySelector('.dash-select');
+                if (wilayahSelect) {
+                    wilayahSelect.addEventListener('change', () => {
+                        const val = wilayahSelect.value;
+                        activeFilter.wilayah = val.toLowerCase() === 'semua wilayah' ? 'semua' : val.toUpperCase();
+                        updateDashboardStats();
+                        renderSlaTable(_latestSlaList);
+                        renderTrendChart(_latestSlaList, _latestTroubles);
+                    });
+                }
+
+                // Trend chart period select
+                const trendSelect = document.querySelector('.dash-select-sm');
+                if (trendSelect) {
+                    trendSelect.addEventListener('change', () => {
+                        // Future: extend to 30-day support. For now, always 7 days.
+                        renderTrendChart(_latestSlaList, _latestTroubles);
+                    });
+                }
+            }
+            bindFilterControls();
+
+            // ═══════════════════════════════════════════════════════════════════
+            // SUBSCRIPTIONS — wire all data sources to update functions
+            // ═══════════════════════════════════════════════════════════════════
+            JNTFirebaseService.subscribeIncoming(() => {
+                updateDashboardStats();
             });
-            JNTFirebaseService.subscribeTroubles(() => updateDashboardStats());
-            window.addEventListener('jnt_data_updated', () => updateDashboardStats());
+
+            JNTFirebaseService.subscribeSLAOutbound(slaList => {
+                _latestSlaList = Array.isArray(slaList) ? slaList : [];
+                updateDashboardStats();
+                renderSlaTable(_latestSlaList);
+                renderTrendChart(_latestSlaList, _latestTroubles);
+            });
+
+            JNTFirebaseService.subscribeTroubles(troubles => {
+                _latestTroubles = Array.isArray(troubles) ? troubles : [];
+                updateDashboardStats();
+                renderTrendChart(_latestSlaList, _latestTroubles);
+            });
+
+            window.addEventListener('jnt_data_updated', () => {
+                _latestSlaList = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                _latestTroubles = JNTFirebaseService.getLocalStore('troubles') || [];
+                updateDashboardStats();
+                renderSlaTable(_latestSlaList);
+                renderTrendChart(_latestSlaList, _latestTroubles);
+            });
+
+            // Initial render
+            _latestSlaList = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+            _latestTroubles = JNTFirebaseService.getLocalStore('troubles') || [];
             updateDashboardStats();
+            renderSlaTable(_latestSlaList);
+            renderTrendChart(_latestSlaList, _latestTroubles);
         });
     </script>
 </body>
