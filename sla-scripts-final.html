@@ -1,0 +1,310 @@
+﻿
+    <!-- Firebase SDK Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Config & Logic -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="sla-countdown-engine.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // ── TAB NAVIGATION ────────────────────────────────────────────────────
+        function switchSlaTab(tabName) {
+            document.querySelectorAll('.sla-tab-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById('tab-btn-sla-' + tabName);
+            if (activeBtn) activeBtn.classList.add('active');
+            ['outbound', 'return', 'roundtrip'].forEach(sec => {
+                const section = document.getElementById('section-sla-' + sec);
+                if (section) section.classList.add('hidden');
+            });
+            const targetSection = document.getElementById('section-sla-' + tabName);
+            if (targetSection) targetSection.classList.remove('hidden');
+        }
+
+        // ── UTILITY FUNCTIONS ─────────────────────────────────────────────────
+        function parseCustomDate(str) {
+            if (!str) return null;
+            const parts = str.trim().split(' ');
+            if (parts.length < 2) return null;
+            const dParts = parts[0].split('/');
+            const tParts = parts[1].split(':');
+            return new Date(
+                dParts[2] ? parseInt(dParts[2]) : 2026,
+                parseInt(dParts[1]) - 1,
+                parseInt(dParts[0]),
+                parseInt(tParts[0]),
+                parseInt(tParts[1])
+            );
+        }
+
+        function formatDuration(minutes) {
+            if (isNaN(minutes) || minutes <= 0) return "0h 00m";
+            const h = Math.floor(minutes / 60), m = minutes % 60;
+            return h + "h " + (m < 10 ? '0' : '') + m + "m";
+        }
+
+        function formatDateTimeHierarchy(str) {
+            if (!str) return '<span class="text-dim">Belum Sampai</span>';
+            const parts = str.trim().split(' ');
+            if (parts.length < 2) return '<div>' + str + '</div>';
+            return '<div class="date-hierarchy"><span class="date-part">' + parts[0] + '</span><span class="time-part">' + parts[1] + '</span></div>';
+        }
+
+        function formatLateDisplay(minutes) {
+            if (isNaN(minutes) || minutes <= 0) return '<span style="color:#16A34A;font-weight:700;">0h 00m</span>';
+            const h = Math.floor(minutes / 60), m = minutes % 60;
+            return '<span style="color:#DC2626;font-weight:700;">' + h + 'h ' + (m < 10 ? '0' : '') + m + 'm</span>';
+        }
+
+        function updateSLAOutboundKPIs(list) {
+            let onTime = 0, late = 0, transit = 0;
+            list.forEach(function(i) {
+                if (i.statusSla === 'ON TIME') onTime++;
+                else if (i.lateMinutes > 0 || i.statusSla === 'LATE') late++;
+                else transit++;
+            });
+            const total = list.length;
+            const onTimePct = total > 0 ? Math.round((onTime / total) * 100) : 0;
+            const latePct   = total > 0 ? Math.round((late  / total) * 100) : 0;
+            function set(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+            set('kpi-total-trip',    total);
+            set('kpi-ontime-count',  onTime);
+            set('kpi-ontime-pct',    onTimePct + '%');
+            set('kpi-late-count',    late);
+            set('kpi-late-pct',      latePct + '%');
+            set('kpi-transit-count', transit);
+        }
+
+        // ── SMART DOM DIFFING ──────────────────────────────────────────────────
+        // Mencegah full re-render (penyebab kedap-kedip).
+        // Hanya update/tambah/hapus baris yang benar-benar berubah.
+        function smartUpdateTbody(tbody, list, getKey, buildRowFn, getRowAttrs) {
+            if (!tbody) return;
+            var existingRows = new Map();
+            tbody.querySelectorAll('tr[data-row-key]').forEach(function(tr) {
+                existingRows.set(tr.getAttribute('data-row-key'), tr);
+            });
+            var newKeys = new Set();
+            list.forEach(function(item, idx) {
+                var key     = getKey(item);
+                newKeys.add(key);
+                var newHTML = buildRowFn(item);
+                var attrs   = getRowAttrs ? getRowAttrs(item) : {};
+                if (existingRows.has(key)) {
+                    var existingTr = existingRows.get(key);
+                    Object.keys(attrs).forEach(function(k) {
+                        if (existingTr.getAttribute(k) !== String(attrs[k])) existingTr.setAttribute(k, attrs[k]);
+                    });
+                    var curInner = existingTr.innerHTML.replace(/\s+/g,' ').trim();
+                    var newInner = newHTML.replace(/\s+/g,' ').trim();
+                    if (curInner !== newInner) existingTr.innerHTML = newHTML;
+                    if (tbody.children[idx] !== existingTr) tbody.insertBefore(existingTr, tbody.children[idx] || null);
+                } else {
+                    var tr = document.createElement('tr');
+                    tr.setAttribute('data-row-key', key);
+                    Object.keys(attrs).forEach(function(k) { tr.setAttribute(k, attrs[k]); });
+                    tr.innerHTML = newHTML;
+                    tbody.insertBefore(tr, tbody.children[idx] || null);
+                }
+            });
+            existingRows.forEach(function(tr, key) {
+                if (!newKeys.has(key)) tbody.removeChild(tr);
+            });
+        }
+
+        // ── ROW BUILDERS ──────────────────────────────────────────────────────
+        function buildOutboundRowHTML(i) {
+            var targetHours = i.targetSLAHours || 16;
+            return '<td><span class="kode-tugas-mono">' + i.kodeTugas + '</span></td>' +
+                '<td><span class="sla-trip-pill">' + (i.trip || '-') + '</span></td>' +
+                '<td><strong>' + (i.platNomor || '-') + '</strong></td>' +
+                '<td>' + formatDateTimeHierarchy(i.jamBerangkat) + '</td>' +
+                '<td><span class="sla-target-badge">' + targetHours + 'h Target</span></td>' +
+                '<td>' + formatDateTimeHierarchy(i.jamSampaiAktual) + '</td>' +
+                '<td><span class="sla-live-countdown">--:--:--</span></td>' +
+                '<td>' + formatLateDisplay(i.lateMinutes) + '</td>' +
+                '<td>' + (i.alasan || '-') + '</td>' +
+                '<td><span class="sla-live-status"></span></td>' +
+                '<td class="text-center"><div class="sla-action-buttons">' +
+                '<button class="btn-sla-action btn-edit" onclick="openUpdateOutboundModal(\'' + i.kodeTugas + '\')" title="Edit">&#9999;&#65039;</button>' +
+                '<button class="btn-sla-action btn-delete" onclick="openDeleteOutboundModal(\'' + i.kodeTugas + '\')" title="Hapus">&#128465;&#65039;</button>' +
+                '</div></td>';
+        }
+
+        function buildReturnRowHTML(i) {
+            var isLate = i.totalTelatMinutes > 0;
+            return '<td><strong style="color:#2563EB;">' + i.kodeTugasBalikan + '</strong></td>' +
+                '<td><strong>' + i.kodeTugasAsal + '</strong></td>' +
+                '<td>' + i.jamBerangkatGateway + '</td>' +
+                '<td>' + i.jamSampaiJKT999 + '</td>' +
+                '<td><strong>' + (i.targetSLABalikanHours || 16) + ' Jam</strong></td>' +
+                '<td><strong>' + formatDuration(i.durasiBalikanMinutes) + '</strong></td>' +
+                '<td><strong style="color:' + (isLate ? '#DC2626' : '#16A34A') + ';">' + formatDuration(i.totalTelatMinutes) + '</strong></td>' +
+                '<td>' + (i.alasan || '-') + '</td>' +
+                '<td class="text-center"><button class="btn-table-action" onclick="alert(\'Trip Balikan: ' + i.kodeTugasBalikan + '\')">&#128065;&#65039;</button></td>';
+        }
+
+        function buildRoundtripRowHTML(i) {
+            var bc = i.statusRoundtrip === 'ON TIME PP' ? 'green' : (i.statusRoundtrip === 'LATE PP' ? 'red' : 'yellow-outline');
+            return '<td><strong style="color:var(--primary-red);">' + i.kodeTugas + '</strong></td>' +
+                '<td><span class="badge-status blue-outline">' + (i.trip || '-') + '</span></td>' +
+                '<td><span class="badge-status gray">' + (i.wilayah || 'JAWA') + '</span></td>' +
+                '<td><strong>' + (i.targetSLAPP || 32) + ' Jam (PP)</strong></td>' +
+                '<td>' + formatDuration(i.durasiBerangkatMinutes) + '</td>' +
+                '<td>' + formatDuration(i.durasiBalikanMinutes) + '</td>' +
+                '<td><strong>' + formatDuration(i.totalDurasiPPMinutes) + '</strong></td>' +
+                '<td><strong style="color:' + (i.totalLatePPMinutes > 0 ? '#DC2626' : '#16A34A') + ';">' + formatDuration(i.totalLatePPMinutes) + '</strong></td>' +
+                '<td><span class="badge-status ' + bc + '">' + i.statusRoundtrip + '</span></td>' +
+                '<td>' + (i.keterangan || '-') + '</td>';
+        }
+
+        // ── SUBSCRIPTIONS & EVENT HANDLERS ────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof JNTFirebaseService !== 'undefined') {
+
+                // 1. Subscribe Outbound SLA
+                JNTFirebaseService.subscribeSLAOutbound(function(list) {
+                    var tbody       = document.querySelector('#table-sla-outbound tbody');
+                    var selectOpt   = document.getElementById('sla-out-kode-tugas');
+                    var selectRetOpt= document.getElementById('sla-ret-kode-tugas-asal');
+
+                    if (selectOpt)    selectOpt.innerHTML    = list.map(function(i){ return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + (i.trip || i.namaRute) + ')</option>'; }).join('');
+                    if (selectRetOpt) selectRetOpt.innerHTML = list.map(function(i){ return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + i.trip + ')</option>'; }).join('');
+
+                    updateSLAOutboundKPIs(list);
+
+                    smartUpdateTbody(tbody, list,
+                        function(i){ return i.kodeTugas; },
+                        buildOutboundRowHTML,
+                        function(i){ return { 'data-sla-departure': i.jamBerangkat || '', 'data-sla-hours': i.targetSLAHours || 16, 'data-sla-arrival': i.jamSampaiAktual || '' }; }
+                    );
+                    if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
+                });
+
+                // 2. Subscribe Return SLA
+                JNTFirebaseService.subscribeSLAReturn(function(list) {
+                    var tbody = document.querySelector('#table-sla-return tbody');
+                    smartUpdateTbody(tbody, list, function(i){ return i.kodeTugasBalikan; }, buildReturnRowHTML, null);
+                });
+
+                // 3. Subscribe Roundtrip SLA
+                JNTFirebaseService.subscribeSLARoundtrip(function(list) {
+                    var tbody = document.querySelector('#table-sla-roundtrip tbody');
+                    smartUpdateTbody(tbody, list, function(i){ return i.kodeTugas; }, buildRoundtripRowHTML, null);
+                });
+            }
+
+            // ── MODAL HELPERS ──────────────────────────────────────────────────
+            window.openAddMobilKeluarModal = function() {
+                var now = new Date();
+                var pad = function(n){ return String(n).padStart(2,'0'); };
+                var str = pad(now.getDate()) + '/' + pad(now.getMonth()+1) + '/' + now.getFullYear() + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+                var jamEl  = document.getElementById('sla-new-jam-berangkat');
+                var kodeEl = document.getElementById('sla-new-kode-tugas');
+                if (jamEl)  jamEl.value  = str;
+                if (kodeEl) kodeEl.value = 'DBGX26' + pad(now.getMonth()+1) + pad(now.getDate()) + Math.floor(1000 + Math.random() * 9000);
+                document.getElementById('modal-add-mobil-keluar').classList.remove('hidden');
+            };
+
+            var formKeluar = document.getElementById('form-add-mobil-keluar');
+            if (formKeluar) formKeluar.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var raw = function(v){ return (document.getElementById(v) ? document.getElementById(v).value.trim() : ''); };
+                var kodeTugas   = raw('sla-new-kode-tugas');
+                var rawTrip     = raw('sla-new-trip');
+                var trip        = rawTrip.includes(' \u2014 ') ? rawTrip.split(' \u2014 ')[0].trim() : rawTrip;
+                var platNomor   = raw('sla-new-plat');
+                var vendor      = raw('sla-new-vendor') || 'PT J&T Logistics';
+                var driver1     = raw('sla-new-driver');
+                var driverPhone = raw('sla-new-driver-phone');
+                var jamBerangkat= raw('sla-new-jam-berangkat');
+                var awbEl       = document.getElementById('sla-new-awb');
+                var totalAwb    = awbEl ? parseInt(awbEl.value) || 5000 : 5000;
+                var inputBy     = sessionStorage.getItem('jnt_active_username') || 'Operator';
+                try {
+                    await JNTFirebaseService.addIncomingTrip({ kodeTugas: kodeTugas, trip: trip, platNomor: platNomor, vendor: vendor, driver1: driver1, driverPhone: driverPhone, jamBerangkat: jamBerangkat, totalAwb: totalAwb, sisaAwb: 0, status: 'SEDANG DIPROSES', inputBy: inputBy });
+                    document.getElementById('modal-add-mobil-keluar').classList.add('hidden');
+                    document.getElementById('form-add-mobil-keluar').reset();
+                    if (typeof window.showSLASuccessModal === 'function') {
+                        window.showSLASuccessModal({ actionType: 'Input Keberangkatan Mobil & SLA Outbound', kodeTugas: kodeTugas, platNomor: platNomor, trip: trip, driver: driver1, vendor: vendor, jamBerangkat: jamBerangkat, totalAwb: totalAwb, inputBy: inputBy });
+                    } else { alert('Mobil Keluar ' + kodeTugas + ' (' + platNomor + ') berhasil dicatat!'); }
+                } catch(err) { alert(err.message || 'Terjadi kesalahan saat menyimpan data.'); }
+            });
+
+            window.openUpdateOutboundModal = async function(kodeTugas) {
+                var selectOpt = document.getElementById('sla-out-kode-tugas');
+                if (selectOpt && kodeTugas) selectOpt.value = kodeTugas;
+                var outData = (await JNTFirebaseService.getDoc('sla_outbound', kodeTugas)) || {};
+                var jamEl = document.getElementById('sla-out-jam-sampai');
+                var alEl  = document.getElementById('sla-out-alasan');
+                if (jamEl) jamEl.value = outData.jamSampaiAktual || '';
+                if (alEl && outData.alasan) alEl.value = outData.alasan;
+                document.getElementById('modal-update-sla-outbound').classList.remove('hidden');
+            };
+
+            var pendingDeleteKodeTugas = null;
+            window.openDeleteOutboundModal = function(kodeTugas) {
+                pendingDeleteKodeTugas = kodeTugas;
+                var kodeEl = document.getElementById('delete-target-kode-tugas');
+                if (kodeEl) kodeEl.textContent = kodeTugas;
+                document.getElementById('modal-confirm-delete-sla').classList.remove('hidden');
+            };
+
+            var btnDelete = document.getElementById('btn-confirm-delete-sla-submit');
+            if (btnDelete) btnDelete.addEventListener('click', async function() {
+                if (!pendingDeleteKodeTugas) return;
+                try {
+                    await JNTFirebaseService.deleteSLAOutbound(pendingDeleteKodeTugas);
+                    document.getElementById('modal-confirm-delete-sla').classList.add('hidden');
+                    if (typeof window.showToastNotification === 'function') window.showToastNotification('DELETED', 'Data SLA Outbound ' + pendingDeleteKodeTugas + ' berhasil dihapus.', 'info');
+                } catch(err) { console.warn('Delete SLA error:', err.message); }
+            });
+
+            var formUpdateOutbound = document.getElementById('form-update-sla-outbound');
+            if (formUpdateOutbound) formUpdateOutbound.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var kodeTugas         = document.getElementById('sla-out-kode-tugas').value;
+                var jamSampaiAktualStr= document.getElementById('sla-out-jam-sampai').value.trim();
+                var alasan            = document.getElementById('sla-out-alasan').value;
+                var incData           = (await JNTFirebaseService.getDoc('incoming', kodeTugas)) || {};
+                var dBerangkat        = parseCustomDate(incData.jamBerangkat);
+                var dSampai           = parseCustomDate(jamSampaiAktualStr);
+                var durasiMin         = 0;
+                if (dBerangkat && dSampai && dSampai > dBerangkat) durasiMin = Math.round((dSampai - dBerangkat) / 60000);
+                var targetHours = incData.targetSLAOutboundHours || 16;
+                var lateMin     = Math.max(0, durasiMin - targetHours * 60);
+                var statusSla   = lateMin > 0 ? 'LATE' : 'ON TIME';
+                await JNTFirebaseService.saveSLAOutbound(kodeTugas, { jamSampaiAktual: jamSampaiAktualStr, durasiBerangkatMinutes: durasiMin, lateMinutes: lateMin, statusSla: statusSla, alasan: alasan });
+                await JNTFirebaseService.updateIncomingTrip(kodeTugas, { status: 'SUDAH SELESAI' });
+                document.getElementById('modal-update-sla-outbound').classList.add('hidden');
+                if (typeof window.showSLASuccessModal === 'function') {
+                    window.showSLASuccessModal({ actionType: 'Update Jam Sampai Gateway (Status: ' + statusSla + ')', kodeTugas: kodeTugas, platNomor: incData.platNomor || '-', trip: incData.trip || '-', driver: incData.driver1 || '-', vendor: incData.vendor || 'PT J&T Logistics', jamBerangkat: jamSampaiAktualStr, targetSLAHours: targetHours, totalAwb: incData.totalAwb || 0, inputBy: sessionStorage.getItem('jnt_active_username') || 'Operator' });
+                } else { alert('Update SLA Outbound ' + kodeTugas + ' berhasil! Status: ' + statusSla); }
+            });
+
+            var formReturn = document.getElementById('form-add-sla-return');
+            if (formReturn) formReturn.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                var kodeAsal               = document.getElementById('sla-ret-kode-tugas-asal').value;
+                var kodeBalikan            = document.getElementById('sla-ret-kode-balikan').value.trim();
+                var jamBerangkatGatewayStr = document.getElementById('sla-ret-jam-berangkat').value.trim();
+                var jamSampaiJKT999Str     = document.getElementById('sla-ret-jam-sampai').value.trim();
+                var alasan                 = document.getElementById('sla-ret-alasan').value;
+                var incData                = (await JNTFirebaseService.getDoc('incoming', kodeAsal)) || {};
+                var targetHours            = incData.targetSLAReturnHours || 16;
+                var dBerg = parseCustomDate(jamBerangkatGatewayStr);
+                var dSamp = parseCustomDate(jamSampaiJKT999Str);
+                var durasiMin = 0;
+                if (dBerg && dSamp && dSamp > dBerg) durasiMin = Math.round((dSamp - dBerg) / 60000);
+                var lateMin = Math.max(0, durasiMin - targetHours * 60);
+                await JNTFirebaseService.saveSLAReturn(kodeAsal, { kodeTugasBalikan: kodeBalikan, kodeTugasAsal: kodeAsal, jamBerangkatGateway: jamBerangkatGatewayStr, jamSampaiJKT999: jamSampaiJKT999Str, targetSLABalikanHours: targetHours, durasiBalikanMinutes: durasiMin, totalTelatMinutes: lateMin, alasan: alasan });
+                document.getElementById('modal-add-sla-return').classList.add('hidden');
+                if (typeof window.showSLASuccessModal === 'function') {
+                    window.showSLASuccessModal({ actionType: 'Input Perjalanan Balikan SLA', kodeTugas: kodeBalikan, platNomor: incData.platNomor || '-', trip: 'Balikan Asal: ' + kodeAsal, driver: incData.driver1 || '-', vendor: incData.vendor || 'PT J&T Logistics', jamBerangkat: jamBerangkatGatewayStr, targetSLAHours: targetHours, totalAwb: incData.totalAwb || 0, inputBy: sessionStorage.getItem('jnt_active_username') || 'Operator' });
+                } else { alert('Perjalanan Balikan ' + kodeBalikan + ' tersimpan!'); }
+            });
+        });
+    </script>
+</body>
+</html>

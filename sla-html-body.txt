@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J&amp;T Express - SLA Monitoring Vendor (3-Tab)</title>
+    <meta name="description" content="Sistem monitoring SLA Berangkat, SLA Balikan, dan SLA Roundtrip PP J&amp;T Express.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-body-theme">
+    <div id="app-container" class="app-container">
+        <div class="dashboard-layout">
+            
+            <!-- SIDEBAR PANEL -->
+            <aside class="sidebar-panel">
+                <div class="sidebar-red-header">
+                    <div class="sidebar-logo-container">
+                        <span class="jnt-logo-text">J&amp;T<span class="express-tag">EXPRESS</span></span>
+                    </div>
+                </div>
+
+                <div class="sidebar-user-card" id="sidebar-user-card-btn">
+                    <div class="avatar-wrapper">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="User Avatar" class="user-avatar-img">
+                        <span class="online-indicator-dot"></span>
+                    </div>
+                    <div class="user-profile-meta">
+                        <div class="user-name-row">
+                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <span class="profile-role">Operator SLA</span>
+                        <span class="profile-status">
+                            <span class="green-arrow">&#8593;</span> Online
+                        </span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="nav-item">
+                            <a href="dashboard.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="monitoring.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <span class="nav-text">Monitoring 4 Jam</span>
+                            </a>
+                        </li>
+                        <li class="nav-item active">
+                            <a href="sla-vendor.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <span class="nav-text">SLA Vendor</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="trouble.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <span class="nav-text">Trouble &amp; Laka</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="shift-management.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="nav-text">Shift Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="master.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                                <span class="nav-text">Master Data</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="report.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="nav-text">Report &amp; Export</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="users.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <span class="nav-text">User Management</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="settings.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span class="nav-text">Pengaturan</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="profile.html" class="nav-link">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span class="nav-text">Profil Saya</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-footer-graphic">
+                    <div class="route-line-svg">
+                        <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4"/>
+                            <circle cx="30" cy="60" r="5" fill="#E30613"/>
+                            <circle cx="100" cy="50" r="5" fill="#E30613"/>
+                            <circle cx="180" cy="25" r="5" fill="#E30613"/>
+                        </svg>
+                    </div>
+                    <div class="truck-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80" alt="J&amp;T Express Truck" class="sidebar-truck-img">
+                    </div>
+                    <div class="sidebar-system-title">
+                        <span class="sys-light">Transportation</span>
+                        <span class="sys-bold">Monitoring System</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN BODY -->
+            <main class="main-incoming-body">
+                
+                <header class="inc-top-nav sla-header-modern">
+                    <div class="inc-title-group">
+                        <button class="hamburger-btn" aria-label="Toggle menu">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <div class="header-text-block">
+                            <h1 class="header-main-title">
+                                <span class="header-title-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                </span> SLA Vendor Monitoring
+                            </h1>
+                            <p class="header-subtitle">Monitoring real-time ketepatan waktu &amp; performa armada vendor transport</p>
+                        </div>
+                    </div>
+
+                    <div class="inc-top-right">
+                        <div class="inc-date-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; margin-right: 6px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            <span id="sla-header-date">15 Oktober 2026</span>
+                        </div>
+                        <div class="inc-user-chip" id="topbar-user-chip-btn">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User Avatar" class="inc-avatar-img">
+                            <div class="inc-user-meta">
+                                <span class="inc-user-name">Hamdan</span>
+                                <span class="inc-user-role">Operator SLA</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Mini KPI Summary Section -->
+                <div class="sla-kpi-grid" style="margin: 20px 0 16px 0;">
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon total">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><rect x="1" y="3" width="15" height="13" rx="2"></rect><path d="M16 8h4l3 5v3h-7V8z"></path><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                        </div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">TOTAL TRIP</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-total-trip">0</span>
+                                <span class="sla-kpi-badge neutral">Hari ini</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon success">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">ON TIME</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-ontime-count">0</span>
+                                <span class="sla-kpi-badge green" id="kpi-ontime-pct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon danger">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        </div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">LATE</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-late-count">0</span>
+                                <span class="sla-kpi-badge red" id="kpi-late-pct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sla-kpi-card">
+                        <div class="sla-kpi-icon warning">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        </div>
+                        <div class="sla-kpi-content">
+                            <span class="sla-kpi-title">IN TRANSIT</span>
+                            <div class="sla-kpi-val-group">
+                                <span class="sla-kpi-number" id="kpi-transit-count">0</span>
+                                <span class="sla-kpi-badge blue">Monitoring</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 SLA Segmented Navigation -->
+                <div class="sla-segmented-tabs">
+                    <button class="sla-tab-btn active" id="tab-btn-sla-outbound" onclick="switchSlaTab('outbound')">
+                        &#128666; SLA Berangkat <span class="tab-sub">JKT &rarr; Gateway</span>
+                    </button>
+                    <button class="sla-tab-btn" id="tab-btn-sla-return" onclick="switchSlaTab('return')">
+                        &#128260; SLA Balikan <span class="tab-sub">Gateway &rarr; JKT999</span>
+                    </button>
+                    <button class="sla-tab-btn" id="tab-btn-sla-roundtrip" onclick="switchSlaTab('roundtrip')">
+                        &#128204; SLA Roundtrip <span class="tab-sub">Pulang-Pergi PP</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: SLA BERANGKAT -->
+                <div id="section-sla-outbound" class="sla-table-card-redesign">
+                    <div class="sla-card-header-bar">
+                        <div class="sla-card-title-group">
+                            <h3 class="sla-card-title">Perhitungan SLA Berangkat (Outbound Trip)</h3>
+                            <span class="sla-card-badge">&#9679; LIVE MONITORING</span>
+                        </div>
+                        <div class="sla-card-actions">
+                            <button class="btn-sla-primary-action" onclick="openAddMobilKeluarModal()">
+                                &#128666; Input Keberangkatan
+                            </button>
+                            <button class="btn-sla-secondary-action" onclick="document.getElementById('modal-update-sla-outbound').classList.remove('hidden')">
+                                &#9999;&#65039; Update SLA
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="sla-enterprise-table" id="table-sla-outbound">
+                            <thead>
+                                <tr>
+                                    <th>Kode Tugas</th>
+                                    <th>Trip</th>
+                                    <th>Plat Nomor</th>
+                                    <th>Jam Berangkat</th>
+                                    <th>Target SLA</th>
+                                    <th>Jam Sampai</th>
+                                    <th>Durasi Aktual</th>
+                                    <th>Telat SLA</th>
+                                    <th>Alasan</th>
+                                    <th>Status SLA</th>
+                                    <th class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 2: SLA BALIKAN -->
+                <div id="section-sla-return" class="sla-table-card-redesign hidden">
+                    <div class="sla-card-header-bar">
+                        <div class="sla-card-title-group">
+                            <h3 class="sla-card-title">Perhitungan SLA Balikan (Return Trip)</h3>
+                            <span class="sla-card-badge" style="background:#EFF6FF; border-color:#BFDBFE; color:#2563EB;">&#9679; RETURN TRIP</span>
+                        </div>
+                        <button class="btn-sla-primary-action" onclick="document.getElementById('modal-add-sla-return').classList.remove('hidden')">
+                            <span>+</span> Input Perjalanan Balikan
+                        </button>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="sla-enterprise-table" id="table-sla-return">
+                            <thead>
+                                <tr>
+                                    <th>Kode Balikan</th>
+                                    <th>Kode Asal</th>
+                                    <th>Berangkat Gateway</th>
+                                    <th>Sampai JKT999</th>
+                                    <th>Target SLA</th>
+                                    <th>Durasi Balikan</th>
+                                    <th>Total Telat</th>
+                                    <th>Alasan</th>
+                                    <th class="text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: SLA ROUNDTRIP (PP) -->
+                <div id="section-sla-roundtrip" class="sla-table-card-redesign hidden">
+                    <div class="sla-card-header-bar">
+                        <div class="sla-card-title-group">
+                            <h3 class="sla-card-title">Perhitungan SLA Roundtrip (Pulang-Pergi PP)</h3>
+                            <span class="sla-card-badge" style="background:#FAF5FF; border-color:#E9D5FF; color:#9333EA;">&#9679; ROUNDTRIP PP</span>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-scroll">
+                        <table class="sla-enterprise-table" id="table-sla-roundtrip">
+                            <thead>
+                                <tr>
+                                    <th>Kode Tugas</th>
+                                    <th>Trip</th>
+                                    <th>Wilayah</th>
+                                    <th>Target SLA PP</th>
+                                    <th>Durasi Berangkat</th>
+                                    <th>Durasi Balikan</th>
+                                    <th>Total Durasi PP</th>
+                                    <th>Total Late PP</th>
+                                    <th>Status Roundtrip</th>
+                                    <th>Keterangan PP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Live Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP 0: INPUT MOBIL KELUAR (PEMBERANGKATAN SLA) -->
+    <div id="modal-add-mobil-keluar" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 600px; scrollbar-width: none; -ms-overflow-style: none;">
+            <div class="modal-header">
+                <h3>&#128666; Input Mobil Keluar (Pemberangkatan SLA)</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-mobil-keluar" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Kode Tugas Armada</label>
+                        <input type="text" id="sla-new-kode-tugas" placeholder="Contoh: DBGX2609300001" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Pilih / Ketik Trip Master</label>
+                        <input type="text" id="sla-new-trip" list="sla-trip-datalist" placeholder="Ketik atau Pilih Trip (Contoh: BDO CDD, MES FUSO)..." required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
+                        <datalist id="sla-trip-datalist">
+                            <option value="BDO CDD">BDO CDD &mdash; JAKARTA - BANDUNG (Target 4.5 Jam)</option>
+                            <option value="BDO FUSO">BDO FUSO &mdash; JAKARTA - BANDUNG (Target 5.5 Jam)</option>
+                            <option value="TKG CDD">TKG CDD &mdash; JAKARTA - LAMPUNG (Target 11 Jam)</option>
+                            <option value="TKG FUSO">TKG FUSO &mdash; JAKARTA - LAMPUNG (Target 13.5 Jam)</option>
+                            <option value="SRG CDD">SRG CDD &mdash; JAKARTA - SEMARANG (Target 12.5 Jam)</option>
+                            <option value="SRG FUSO">SRG FUSO &mdash; JAKARTA - SEMARANG (Target 14 Jam)</option>
+                            <option value="PLM CDD">PLM CDD &mdash; JAKARTA - PALEMBANG (Target 20 Jam)</option>
+                            <option value="PLM FUSO">PLM FUSO &mdash; JAKARTA - PALEMBANG (Target 20 Jam)</option>
+                            <option value="SOC CDD">SOC CDD &mdash; JAKARTA - SOLO (Target 14.5 Jam)</option>
+                            <option value="SOC FUSO">SOC FUSO &mdash; JAKARTA - SOLO (Target 14.5 Jam)</option>
+                            <option value="JOG CDD">JOG CDD &mdash; JAKARTA - YOGYAKARTA (Target 16 Jam)</option>
+                            <option value="JOG FUSO">JOG FUSO &mdash; JAKARTA - YOGYAKARTA (Target 20 Jam)</option>
+                            <option value="SUB CDD">SUB CDD &mdash; JAKARTA - SURABAYA (Target 19 Jam)</option>
+                            <option value="SUB FUSO">SUB FUSO &mdash; JAKARTA - SURABAYA (Target 23 Jam)</option>
+                            <option value="MES CDD">MES CDD &mdash; JAKARTA - MEDAN (Target 71 Jam)</option>
+                            <option value="MES FUSO">MES FUSO &mdash; JAKARTA - MEDAN (Target 71 Jam)</option>
+                            <option value="DPS CDD">DPS CDD &mdash; JAKARTA - DENPASAR (Target 40 Jam)</option>
+                            <option value="DPS FUSO">DPS FUSO &mdash; JAKARTA - DENPASAR (Target 41 Jam)</option>
+                        </datalist>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Plat Nomor Armada</label>
+                        <input type="text" id="sla-new-plat" placeholder="Contoh: B 9134 PXX" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Nama Vendor / Pemilik Armada</label>
+                        <input type="text" id="sla-new-vendor" list="sla-vendor-datalist" placeholder="Pilih atau Ketik Nama Vendor..." required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
+                        <datalist id="sla-vendor-datalist">
+                            <option value="PT. SERIKAT HANTAR EKSPEDISI (SERYU)">PT. SERIKAT HANTAR EKSPEDISI (SERYU)</option>
+                            <option value="PT. ASIA PASIFIK LOGISTIK (APL)">PT. ASIA PASIFIK LOGISTIK (APL)</option>
+                            <option value="PT. KENCANA LOGISTIK SAMUDERA (KLS)">PT. KENCANA LOGISTIK SAMUDERA (KLS)</option>
+                            <option value="PT. JET TRANSPORT SERVICES (JTS)">PT. JET TRANSPORT SERVICES (JTS)</option>
+                            <option value="PT CHIJUN SMART FREIGHT (CHIJUN)">PT CHIJUN SMART FREIGHT (CHIJUN)</option>
+                            <option value="PT. PESONA ABADI LOGISTIK (PAL)">PT. PESONA ABADI LOGISTIK (PAL)</option>
+                            <option value="PT ANUGERAH BERSATU (AB)">PT ANUGERAH BERSATU (AB)</option>
+                            <option value="PT. MEDIA TRANS INDO (MTI)">PT. MEDIA TRANS INDO (MTI)</option>
+                        </datalist>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Driver Utama</label>
+                        <input type="text" id="sla-new-driver" placeholder="Contoh: Nasrul F." required>
+                    </div>
+                    <div class="form-field">
+                        <label>No. WhatsApp / HP Driver</label>
+                        <input type="text" id="sla-new-driver-phone" placeholder="Contoh: 0812-3456-7890" required>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Jam Berangkat (Mobil Keluar)</label>
+                        <input type="text" id="sla-new-jam-berangkat" placeholder="DD/MM/YYYY HH:mm" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Total AWB / Paket</label>
+                        <input type="number" id="sla-new-awb" placeholder="Contoh: 6500" value="5000">
+                    </div>
+                </div>
+                <div class="modal-footer-btns" style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                    <button type="button" class="btn-modal-secondary modal-close-btn">&#10005; Batal</button>
+                    <button type="submit" class="btn-modal-danger">&#128640; Catat Mobil Keluar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP 1: UPDATE JAM SAMPAI OUTBOUND -->
+    <div id="modal-update-sla-outbound" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>&#9999;&#65039; Update Jam Sampai Gateway (Outbound)</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-update-sla-outbound" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-field">
+                    <label>Pilih Kode Tugas Armada</label>
+                    <select id="sla-out-kode-tugas" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                        <!-- Dynamically populated -->
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Jam Sampai Aktual di Gateway</label>
+                    <input type="text" id="sla-out-jam-sampai" placeholder="Contoh: 22/07/2026 21:15" required>
+                </div>
+                <div class="form-field">
+                    <label>Alasan Keterlambatan (Jika Ada)</label>
+                    <select id="sla-out-alasan" style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                        <option value="Lancar">Lancar (Tepat Waktu)</option>
+                        <option value="Ban Pecah / Kerusakan Ban">Ban Pecah / Kerusakan Ban</option>
+                        <option value="Mogok / Mesin Overheat">Mogok / Mesin Overheat</option>
+                        <option value="Kemacetan Parah Jalur Tol">Kemacetan Parah Jalur Tol</option>
+                        <option value="Antrean Panjang Pelabuhan">Antrean Panjang Pelabuhan</option>
+                        <option value="Cuaca Buruk / Hujan Deras">Cuaca Buruk / Hujan Deras</option>
+                    </select>
+                </div>
+                <div class="modal-footer-btns" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                    <button type="button" class="btn-modal-secondary modal-close-btn">&#10005; Batal</button>
+                    <button type="submit" class="btn-modal-primary">&#128190; Simpan Update SLA</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP 2: INPUT SLA BALIKAN -->
+    <div id="modal-add-sla-return" class="modal-overlay hidden">
+        <div class="modal-card" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3>&#128260; Input Perjalanan Balikan (Gateway &rarr; JKT999)</h3>
+                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+            </div>
+            <form id="form-add-sla-return" class="modal-body-form" style="padding: 16px 20px;">
+                <div class="form-field">
+                    <label>Kode Tugas Asal (Outbound)</label>
+                    <select id="sla-ret-kode-tugas-asal" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                        <!-- Dynamically populated -->
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Kode Tugas Balikan</label>
+                    <input type="text" id="sla-ret-kode-balikan" placeholder="Contoh: DBGX260723RET01" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Jam Berangkat Gateway</label>
+                        <input type="text" id="sla-ret-jam-berangkat" placeholder="Contoh: 23/07/2026 08:00" required>
+                    </div>
+                    <div class="form-field">
+                        <label>Jam Sampai JKT999</label>
+                        <input type="text" id="sla-ret-jam-sampai" placeholder="Contoh: 24/07/2026 01:00" required>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label>Alasan Keterlambatan Balikan (Jika Ada)</label>
+                    <select id="sla-ret-alasan" style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                        <option value="Lancar">Lancar (Tepat Waktu)</option>
+                        <option value="Mogok / Mesin Overheat">Mogok / Mesin Overheat</option>
+                        <option value="Kemacetan Parah Jalur Tol">Kemacetan Parah Jalur Tol</option>
+                        <option value="Antrean Pelabuhan">Antrean Pelabuhan</option>
+                    </select>
+                </div>
+                <div class="modal-footer-btns" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+                    <button type="button" class="btn-modal-secondary modal-close-btn">&#10005; Batal</button>
+                    <button type="submit" class="btn-modal-primary">&#128190; Simpan Perjalanan Balikan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION: DELETE SLA OUTBOUND -->
+    <div id="modal-confirm-delete-sla" class="modal-overlay hidden">
+        <div class="modal-card modal-card-bounce" style="max-width: 440px; text-align: center; padding: 24px 28px;">
+            <div class="delete-icon-badge">
+                <span style="font-size: 28px;">&#9888;&#65039;</span>
+            </div>
+            
+            <h3 style="font-size: 20px; font-weight: 800; color: #FFFFFF; margin-bottom: 6px; margin-top: 12px;">
+                Hapus Data SLA?
+            </h3>
+            <p style="font-size: 13.5px; color: #94A3B8; margin-bottom: 16px;">
+                Apakah Anda yakin ingin menghapus data SLA untuk kode tugas:
+            </p>
+
+            <div style="background: rgba(227, 6, 19, 0.1); border: 1px solid rgba(227, 6, 19, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 18px;">
+                <strong id="delete-target-kode-tugas" style="color: #E30613; font-size: 16px; letter-spacing: 0.5px;">-</strong>
+                <div style="font-size: 12px; color: #94A3B8; margin-top: 4px;">Data SLA outbound ini akan dihapus dari daftar monitoring.</div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn-modal-secondary modal-close-btn" style="flex: 1;">
+                    &#10005; Batal
+                </button>
+                <button type="button" id="btn-confirm-delete-sla-submit" class="btn-modal-danger" style="flex: 1;">
+                    &#128465;&#65039; Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+
