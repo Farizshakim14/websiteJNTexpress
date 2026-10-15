@@ -35,7 +35,7 @@
                             <span class="profile-name" id="sidebar-user-name">Developer Admin</span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
-                        <span class="profile-role">Operator</span>
+                        <span class="profile-role" id="sidebar-user-role">-</span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -445,53 +445,218 @@
     <!-- Profile Dynamic Loader -->
     <script>
     (function() {
-        // Populate profile from sessionStorage
         var ss = sessionStorage;
-        var fullname = ss.getItem('jnt_active_username') || 'Developer Admin';
-        var role = ss.getItem('jnt_user_role') || 'ADMIN';
-        var nik = ss.getItem('jnt_user_nik') || 'JNT-DEV-0001';
-        var tlc = ss.getItem('jnt_user_tlc') || 'Head Office Jakarta';
-        var email = ss.getItem('jnt_user_email') || 'developer@jtexpress.co.id';
-        var phone = ss.getItem('jnt_user_phone') || '0812-0000-0001';
-        var jabatan = ss.getItem('jnt_user_jabatan') || 'Developer & System Administrator';
-        var departemen = ss.getItem('jnt_user_departemen') || 'IT & Development';
-        var bergabung = ss.getItem('jnt_user_bergabung') || '1 Januari 2026';
-        var username = ss.getItem('jnt_username_login') || 'devoleper';
-        var avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullname) + '&background=E30613&color=fff&size=300&bold=true';
 
-        // Hero section
-        var heroName = document.getElementById('hero-fullname');
-        if (heroName) heroName.textContent = fullname;
-        var heroJabatan = document.getElementById('hero-jabatan');
-        if (heroJabatan) heroJabatan.textContent = jabatan;
-        var heroNik = document.getElementById('hero-nik');
-        if (heroNik) heroNik.textContent = nik;
-        var heroTlc = document.getElementById('hero-tlc');
-        if (heroTlc) heroTlc.textContent = tlc;
-        var heroEmail = document.getElementById('hero-email');
-        if (heroEmail) heroEmail.textContent = email;
+        // ── Baca semua data dari sessionStorage ──────────────────────────────
+        var fullname    = ss.getItem('jnt_active_username')  || 'Developer Admin';
+        var role        = ss.getItem('jnt_user_role')        || 'ADMIN';
+        var nik         = ss.getItem('jnt_user_nik')         || 'JNT-DEV-0001';
+        var tlc         = ss.getItem('jnt_user_tlc')         || 'Head Office Jakarta';
+        var email       = ss.getItem('jnt_user_email')       || 'developer@jtexpress.co.id';
+        var phone       = ss.getItem('jnt_user_phone')       || '0812-0000-0001';
+        var jabatan     = ss.getItem('jnt_user_jabatan')     || 'Developer & System Administrator';
+        var departemen  = ss.getItem('jnt_user_departemen')  || 'IT & Development';
+        var bergabung   = ss.getItem('jnt_user_bergabung')   || '1 Januari 2026';
+        var username    = ss.getItem('jnt_username_login')   || 'devoleper';
 
-        // Avatar images
-        var profAvatar = document.getElementById('profile-avatar-img');
-        if (profAvatar) profAvatar.src = avatarUrl;
-        var sidebarAvatar = document.getElementById('sidebar-avatar-img');
-        if (sidebarAvatar) sidebarAvatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullname) + '&background=E30613&color=fff&size=150&bold=true';
-        var topbarAvatar = document.getElementById('topbar-avatar-img');
-        if (topbarAvatar) topbarAvatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fullname) + '&background=E30613&color=fff&size=100&bold=true';
+        var makeAvatar = function(name, size) {
+            return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name)
+                 + '&background=E30613&color=fff&size=' + size + '&bold=true';
+        };
 
-        // Form fields
-        var fFullname = document.getElementById('prof-fullname');
-        if (fFullname) fFullname.value = fullname;
-        var fUsername = document.getElementById('prof-username');
-        if (fUsername) fUsername.value = username;
-        var fEmail = document.getElementById('prof-email');
-        if (fEmail) fEmail.value = email;
-        var fPhone = document.getElementById('prof-phone');
-        if (fPhone) fPhone.value = phone;
+        // ── Helper: set element text / value ─────────────────────────────────
+        function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+        function setVal(id, val)  { var el = document.getElementById(id); if (el) el.value = val; }
+        function setSrc(id, url)  { var el = document.getElementById(id); if (el) el.src  = url; }
+
+        // ── Hero Section ─────────────────────────────────────────────────────
+        setText('hero-fullname', fullname);
+        setText('hero-jabatan',  jabatan);
+        setText('hero-nik',      nik);
+        setText('hero-tlc',      tlc);
+        setText('hero-email',    email);
+
+        // ── Avatar Images ────────────────────────────────────────────────────
+        setSrc('profile-avatar-img', makeAvatar(fullname, 300));
+        setSrc('sidebar-avatar-img', makeAvatar(fullname, 150));
+        setSrc('topbar-avatar-img',  makeAvatar(fullname, 100));
+
+        // ── Sidebar: username & role ──────────────────────────────────────────
+        setText('sidebar-user-name', fullname);
+        document.querySelectorAll('.profile-role').forEach(function(el) { el.textContent = role; });
+
+        // ── Form Fields ───────────────────────────────────────────────────────
+        setVal('prof-fullname', fullname);
+        setVal('prof-username', username);
+        setVal('prof-email',    email);
+        setVal('prof-phone',    phone);
+
+        // Role / Jabatan field (readonly)
+        var roleField = document.querySelector('input[value="Developer & System Administrator"]');
+        if (roleField) roleField.value = jabatan;
+
+        // TLC select
+        var tlcSel = document.getElementById('prof-tlc');
+        if (tlcSel) {
+            var found = false;
+            for (var i = 0; i < tlcSel.options.length; i++) {
+                if (tlcSel.options[i].value === tlc || tlcSel.options[i].text === tlc) {
+                    tlcSel.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                var opt = document.createElement('option');
+                opt.value = tlc;
+                opt.textContent = tlc;
+                opt.selected = true;
+                tlcSel.appendChild(opt);
+            }
+        }
+
+        // Departemen field (readonly)
+        var deptFields = document.querySelectorAll('input[readonly]');
+        deptFields.forEach(function(f) {
+            if (f.value && f.value.includes('Logistik')) f.value = departemen;
+        });
+
+        // Tanggal bergabung
+        var bergFields = document.querySelectorAll('input[readonly]');
+        bergFields.forEach(function(f) {
+            if (f.value && f.value.includes('Januari')) f.value = bergabung;
+        });
 
         // Topbar name display
         var dashName = document.getElementById('dash-user-name');
-        if (dashName) dashName.innerHTML = fullname + ' <span>v</span>';
+        if (dashName) dashName.innerHTML = fullname + ' <span style="font-size:10px;">▾</span>';
+
+        // ── SIMPAN PERUBAHAN PROFIL ───────────────────────────────────────────
+        var profileForm = document.getElementById('profile-info-form');
+        if (profileForm) {
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                var newFullname = (document.getElementById('prof-fullname')?.value || '').trim();
+                var newEmail    = (document.getElementById('prof-email')?.value    || '').trim();
+                var newPhone    = (document.getElementById('prof-phone')?.value    || '').trim();
+                var newTlc      = (document.getElementById('prof-tlc')?.value      || '').trim();
+
+                if (!newFullname) { alert('❌ Nama lengkap tidak boleh kosong.'); return; }
+                if (!newEmail)    { alert('❌ Email tidak boleh kosong.'); return; }
+
+                // Update sessionStorage
+                ss.setItem('jnt_active_username', newFullname);
+                ss.setItem('jnt_user_email',      newEmail);
+                ss.setItem('jnt_user_phone',       newPhone);
+                ss.setItem('jnt_user_tlc',         newTlc);
+
+                // Update localStorage accounts
+                try {
+                    var accounts = JSON.parse(localStorage.getItem('jnt_local_accounts') || '[]');
+                    var idx = accounts.findIndex(function(a) {
+                        return a.username === username || a.uid === ss.getItem('jnt_user_uid');
+                    });
+                    if (idx !== -1) {
+                        accounts[idx].fullname        = newFullname;
+                        accounts[idx].emailPerusahaan = newEmail;
+                        accounts[idx].phone           = newPhone;
+                        accounts[idx].tlc             = newTlc;
+                        localStorage.setItem('jnt_local_accounts', JSON.stringify(accounts));
+                    }
+                } catch(err) { console.warn('Gagal update localStorage:', err); }
+
+                // Update UI langsung
+                setText('hero-fullname', newFullname);
+                setText('hero-email',    newEmail);
+                setText('sidebar-user-name', newFullname);
+                setSrc('profile-avatar-img', makeAvatar(newFullname, 300));
+                setSrc('sidebar-avatar-img', makeAvatar(newFullname, 150));
+                setSrc('topbar-avatar-img',  makeAvatar(newFullname, 100));
+
+                // Sinkronkan topbar chip, dropdown & sidebar global (app.js)
+                window.dispatchEvent(new CustomEvent('jnt:user-updated'));
+
+                // Tampilkan notifikasi sukses
+                var toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#10B981;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(16,185,129,0.4);animation:fadeInUp 0.3s ease;';
+                toast.textContent = '✅ Profil berhasil diperbarui!';
+                document.body.appendChild(toast);
+                setTimeout(function() { toast.style.opacity='0'; setTimeout(function(){toast.remove();},400); }, 3000);
+            });
+        }
+
+        // ── UBAH PASSWORD ─────────────────────────────────────────────────────
+        var passForm = document.getElementById('change-pass-form');
+        if (passForm) {
+            passForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                var currentPass = (document.getElementById('current-pass')?.value || '').trim();
+                var newPass     = (document.getElementById('new-pass')?.value     || '').trim();
+                var confirmPass = (document.getElementById('confirm-pass')?.value || '').trim();
+
+                if (!currentPass || !newPass || !confirmPass) {
+                    alert('❌ Semua field password harus diisi.'); return;
+                }
+                if (newPass.length < 6) {
+                    alert('❌ Password baru minimal 6 karakter.'); return;
+                }
+                if (newPass !== confirmPass) {
+                    alert('❌ Konfirmasi password tidak cocok.'); return;
+                }
+
+                // Verifikasi password lama dari localStorage
+                try {
+                    var accounts = JSON.parse(localStorage.getItem('jnt_local_accounts') || '[]');
+                    var idx = accounts.findIndex(function(a) {
+                        return a.username === username || a.uid === ss.getItem('jnt_user_uid');
+                    });
+                    if (idx === -1) { alert('❌ Akun tidak ditemukan.'); return; }
+                    if (accounts[idx].password !== currentPass) {
+                        alert('❌ Password saat ini salah. Silakan coba lagi.'); return;
+                    }
+
+                    // Update password
+                    accounts[idx].password = newPass;
+                    localStorage.setItem('jnt_local_accounts', JSON.stringify(accounts));
+
+                    // Mirror (hash) ke Firestore di background via app.js
+                    window.dispatchEvent(new CustomEvent('jnt:password-changed', { detail: { newPass: newPass } }));
+
+                    // Reset form
+                    passForm.reset();
+
+                    var toast2 = document.createElement('div');
+                    toast2.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563EB;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(37,99,235,0.4);';
+                    toast2.textContent = '🔑 Password berhasil diperbarui!';
+                    document.body.appendChild(toast2);
+                    setTimeout(function() { toast2.style.opacity='0'; setTimeout(function(){toast2.remove();},400); }, 3000);
+
+                } catch(err) {
+                    alert('❌ Gagal mengubah password: ' + err.message);
+                }
+            });
+        }
+
+        // ── TOMBOL EDIT PROFIL (scroll ke form) ──────────────────────────────
+        var btnEdit = document.getElementById('btn-edit-profile');
+        if (btnEdit) {
+            btnEdit.addEventListener('click', function() {
+                var form = document.getElementById('profile-info-form');
+                if (form) {
+                    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    var firstInput = form.querySelector('input:not([readonly])');
+                    if (firstInput) setTimeout(function(){ firstInput.focus(); }, 400);
+                }
+            });
+        }
+
+        // ── CSS toast animation ───────────────────────────────────────────────
+        var style = document.createElement('style');
+        style.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}';
+        document.head.appendChild(style);
+
     })();
     </script>
 </body>

@@ -57,6 +57,10 @@ a svg,
     flex-shrink: 0;
 }
 
+html {
+    font-size: 13px;
+}
+
 html,
 body {
     height: 100%;
@@ -870,8 +874,9 @@ body.login-page .app-container {
 
 /* Sidebar Styles (STAY FIXED ON THE LEFT) */
 .sidebar-panel {
-    width: 250px;
-    min-width: 250px;
+    width: 195px;
+    min-width: 195px;
+    font-size: 12px; /* Base font size untuk semua elemen sidebar */
     background-color: var(--bg-dark-sidebar);
     border-right: 1px solid var(--border-dark);
     display: flex;
@@ -884,29 +889,30 @@ body.login-page .app-container {
     flex-shrink: 0;
     overflow-y: auto;
     z-index: 50;
+    transition: width 0.25s ease;
 }
 
 .sidebar-red-header {
     background-color: var(--primary-red);
-    padding: 22px 20px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .jnt-logo-text {
-    font-size: 26px;
+    font-size: 17px;
     font-weight: 900;
     color: #FFFFFF;
     font-style: italic;
     letter-spacing: -1px;
     display: inline-flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 3px;
 }
 
 .express-tag {
-    font-size: 18px;
+    font-size: 11px;
     font-weight: 800;
     color: #FFFFFF;
     font-style: italic;
@@ -915,18 +921,20 @@ body.login-page .app-container {
 .sidebar-user-card {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    margin: 16px 14px 10px 14px;
+    gap: 8px;
+    padding: 8px 10px;
+    margin: 8px 8px 4px 8px;
     background-color: #172030;
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid var(--border-dark);
+    cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 .avatar-wrapper {
     position: relative;
-    width: 44px;
-    height: 44px;
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
 }
 
@@ -940,10 +948,10 @@ body.login-page .app-container {
 
 .online-indicator-dot {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 10px;
-    height: 10px;
+    bottom: 1px;
+    right: 1px;
+    width: 8px;
+    height: 8px;
     background-color: #10B981;
     border: 2px solid var(--bg-dark-sidebar);
     border-radius: 50%;
@@ -952,45 +960,52 @@ body.login-page .app-container {
 .user-profile-meta {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .user-name-row {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
 }
 
 .profile-name {
-    font-size: 15px;
+    font-size: 11.5px;
     font-weight: 700;
     color: var(--text-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .chevron-down-icon {
-    width: 16px;
-    height: 16px;
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
     color: var(--text-muted);
 }
 
 .profile-role {
-    font-size: 12.5px;
-    font-weight: 600;
+    font-size: 9.5px;
+    font-weight: 700;
     color: var(--primary-red);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .profile-status {
-    font-size: 12px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--green-accent);
     display: flex;
     align-items: center;
-    gap: 4px;
-    margin-top: 2px;
+    gap: 3px;
+    margin-top: 1px;
 }
 
 .sidebar-nav {
     flex: 1;
-    padding: 10px 12px;
+    padding: 4px 6px;
     overflow-y: auto;
 }
 
@@ -998,25 +1013,28 @@ body.login-page .app-container {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 1px;
 }
 
 .nav-link {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 11px 16px;
-    border-radius: 10px;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 7px;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 11.5px;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nav-icon {
-    width: 18px;
-    height: 18px;
+    width: 13px;
+    height: 13px;
     flex-shrink: 0;
 }
 
@@ -1043,7 +1061,7 @@ body.login-page .app-container {
 }
 
 .sidebar-footer-graphic {
-    padding: 16px 14px;
+    padding: 10px 10px;
     position: relative;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(16, 22, 34, 0) 0%, rgba(227, 6, 19, 0.15) 100%);
@@ -1052,14 +1070,14 @@ body.login-page .app-container {
 
 .route-line-svg {
     width: 100%;
-    height: 60px;
+    height: 44px;
     opacity: 0.8;
 }
 
 .truck-image-wrapper {
     width: 100%;
-    height: 100px;
-    margin-top: -30px;
+    height: 72px;
+    margin-top: -20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1069,25 +1087,25 @@ body.login-page .app-container {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 6px;
     opacity: 0.9;
 }
 
 .sidebar-system-title {
-    margin-top: 8px;
+    margin-top: 6px;
     text-align: left;
     display: flex;
     flex-direction: column;
 }
 
 .sys-light {
-    font-size: 12px;
+    font-size: 10px;
     color: var(--text-muted);
     font-weight: 500;
 }
 
 .sys-bold {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 800;
     color: var(--text-white);
 }
@@ -5250,7 +5268,7 @@ body.light-body-theme {
 }
 
 .sla-enterprise-table tbody tr {
-    transition: background-color 0.15s ease;
+    /* Tidak pakai transition — menyebabkan flicker saat row di-reorder */
     height: 58px;
 }
 
@@ -5371,6 +5389,16 @@ body.light-body-theme {
     display: inline-block;
     white-space: nowrap;
     text-align: center;
+    /* Anti-flicker: isolasi repaint di layer sendiri */
+    will-change: contents;
+    contain: content;
+    min-width: 82px;
+}
+
+.sla-live-status {
+    /* Anti-flicker: isolasi repaint status pill */
+    contain: content;
+    display: inline-block;
 }
 
 .sla-live-countdown.sla-rem-green {
@@ -6058,6 +6086,7 @@ body.dark-body-theme .inc-kpi-number {
     box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
     z-index: 1000;
     min-width: 220px;
+    max-width: min(280px, calc(100vw - 24px));
     display: none;
 }
 
@@ -6084,7 +6113,10 @@ body.dark-body-theme .topbar-user-dropdown {
 }
 
 .dropdown-user-header {
-    padding: 10px 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 10px;
     border-bottom: 1px solid #E2E8F0;
     margin-bottom: 6px;
 }
@@ -6093,22 +6125,71 @@ body.dark-body-theme .dropdown-user-header {
     border-color: #1E2A3C;
 }
 
+.dropdown-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 3px #FECACA;
+}
+
+.dropdown-user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
 .dropdown-user-header strong {
     display: block;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: #0F172A;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 body.dark-body-theme .dropdown-user-header strong {
     color: #F8FAFC;
 }
 
-.dropdown-user-header span {
-    font-size: 11.5px;
+.dropdown-user-header .dropdown-user-email {
+    display: block;
+    font-size: 11px;
     color: #64748B;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-user-header .dropdown-user-role-badge {
+    align-self: flex-start;
     display: inline-block;
-    margin-top: 2px;
+    margin-top: 4px;
+    padding: 1px 7px;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #B91C1C;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 999px;
+}
+
+body.dark-body-theme .dropdown-user-header .dropdown-user-role-badge {
+    color: #FCA5A5;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.inc-user-name .inc-user-chevron {
+    font-size: 10px;
+    margin-left: 4px;
+    color: #64748B;
 }
 
 .dropdown-nav-item {
@@ -6176,8 +6257,14 @@ body.dark-body-theme .dropdown-nav-item.logout-item:hover {
 /* ── LARGE DESKTOP (1400px+): give sidebar & topbar more breathing room ── */
 @media (min-width: 1400px) {
     .sidebar-panel {
-        width: 270px;
-        min-width: 270px;
+        width: 210px;
+        min-width: 210px;
+    }
+    .jnt-logo-text {
+        font-size: 18px;
+    }
+    .express-tag {
+        font-size: 12px;
     }
     .dash-kpi-grid-6 {
         grid-template-columns: repeat(6, 1fr);
@@ -6225,24 +6312,35 @@ body.dark-body-theme .dropdown-nav-item.logout-item:hover {
 /* ── TABLET LANDSCAPE (≤1024px): sidebar still visible but narrower ── */
 @media (max-width: 1024px) {
     .sidebar-panel {
-        width: 220px;
-        min-width: 220px;
+        width: 190px;
+        min-width: 190px;
     }
     .sidebar-nav .nav-link {
-        padding: 10px 12px;
-        font-size: 13px;
+        padding: 7px 10px;
+        font-size: 11.5px;
+        gap: 8px;
+    }
+    .sidebar-nav .nav-icon {
+        width: 14px;
+        height: 14px;
     }
     .jnt-logo-text {
-        font-size: 22px;
+        font-size: 17px;
     }
     .express-tag {
-        font-size: 16px;
+        font-size: 11px;
+    }
+    .profile-name {
+        font-size: 11.5px;
+    }
+    .profile-role {
+        font-size: 9.5px;
     }
     .inc-top-right {
         gap: 10px;
     }
     .inc-date-chip {
-        display: none; /* hide date on mid screens, show on larger */
+        display: none;
     }
     .dash-kpi-grid-6 {
         grid-template-columns: repeat(3, 1fr);

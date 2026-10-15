@@ -1132,9 +1132,47 @@
             // ═══════════════════════════════════════════════════════════════════
             // SLA TABLE — filtered to LATE/TERLAMBAT only + live badge count
             // ═══════════════════════════════════════════════════════════════════
+            // Smart DOM diffing untuk tabel dashboard - cegah full re-render
+            // Gunakan hash bukan innerHTML agar sla-live-countdown tidak trigger false mismatch
+            function _dashSmartUpdateTbody(tbody, list, getKey, buildRowFn, getRowAttrs, getContentHash) {
+                if (!tbody) return;
+                const existingRows = new Map();
+                tbody.querySelectorAll('tr[data-row-key]').forEach(function(tr) {
+                    existingRows.set(tr.getAttribute('data-row-key'), tr);
+                });
+                const newKeys = new Set();
+                list.forEach(function(item, idx) {
+                    const key     = getKey(item);
+                    newKeys.add(key);
+                    const attrs   = getRowAttrs ? getRowAttrs(item) : {};
+                    const newHash = getContentHash ? String(getContentHash(item)) : key;
+                    if (existingRows.has(key)) {
+                        const existingTr = existingRows.get(key);
+                        Object.keys(attrs).forEach(function(k) {
+                            if (existingTr.getAttribute(k) !== String(attrs[k])) existingTr.setAttribute(k, attrs[k]);
+                        });
+                        const curHash = existingTr.getAttribute('data-content-hash') || '';
+                        if (curHash !== newHash) {
+                            existingTr.innerHTML = buildRowFn(item);
+                            existingTr.setAttribute('data-content-hash', newHash);
+                        }
+                        if (tbody.children[idx] !== existingTr) tbody.insertBefore(existingTr, tbody.children[idx] || null);
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-row-key', key);
+                        tr.setAttribute('data-content-hash', newHash);
+                        Object.keys(attrs).forEach(function(k) { tr.setAttribute(k, attrs[k]); });
+                        tr.innerHTML = buildRowFn(item);
+                        tbody.insertBefore(tr, tbody.children[idx] || null);
+                    }
+                });
+                existingRows.forEach(function(tr, key) {
+                    if (!newKeys.has(key)) tbody.removeChild(tr);
+                });
+            }
+
             function renderSlaTable(slaList) {
                 const filteredSla = applyFilter(slaList);
-                // Table only shows LATE trips
                 const lateOnly = filteredSla.filter(item =>
                     item.statusSla === 'TERLAMBAT' || item.statusSla === 'LATE'
                 );
@@ -1147,38 +1185,59 @@
                 if (!tbody) return;
 
                 if (lateOnly.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:#10B981;font-weight:600;">✅ Tidak ada trip yang telat SLA saat ini</td></tr>`;
+                    // Hapus semua baris keyed, lalu tampilkan pesan kosong
+                    tbody.querySelectorAll('tr[data-row-key]').forEach(tr => tbody.removeChild(tr));
+                    if (!tbody.querySelector('tr.empty-msg')) {
+                        const emptyTr = document.createElement('tr');
+                        emptyTr.className = 'empty-msg';
+                        emptyTr.innerHTML = '<td colspan="8" style="text-align:center;padding:20px;color:#10B981;font-weight:600;">✅ Tidak ada trip yang telat SLA saat ini</td>';
+                        tbody.appendChild(emptyTr);
+                    }
                     return;
                 }
 
-                tbody.innerHTML = lateOnly.map(item => {
-                    const departureStr = item.jamBerangkat || '';
-                    const slaHours = item.targetSLAHours || 16;
-                    const actualArrival = item.jamSampaiAktual || '';
+                // Hapus pesan kosong jika ada
+                const emptyMsg = tbody.querySelector('tr.empty-msg');
+                if (emptyMsg) tbody.removeChild(emptyMsg);
 
-                    let targetArrivalStr = '-';
-                    if (window.SLACountdownEngine) {
-                        const targetDate = window.SLACountdownEngine.calculateTargetTimestamp(departureStr, slaHours);
-                        if (targetDate) targetArrivalStr = window.SLACountdownEngine.formatTimeOnly(targetDate);
+                _dashSmartUpdateTbody(
+                    tbody, lateOnly,
+                    function(item) { return item.kodeTugas; },
+                    function(item) {
+                        const departureStr  = item.jamBerangkat    || '';
+                        const slaHours      = item.targetSLAHours  || 16;
+                        const actualArrival = item.jamSampaiAktual || '';
+                        let targetArrivalStr = '-';
+                        if (window.SLACountdownEngine) {
+                            const targetDate = window.SLACountdownEngine.calculateTargetTimestamp(departureStr, slaHours);
+                            if (targetDate) targetArrivalStr = window.SLACountdownEngine.formatTimeOnly(targetDate);
+                        }
+                        const lateMin = item.lateMinutes || 0;
+                        const lateStr = lateMin > 0 ? Math.floor(lateMin/60) + 'h ' + (lateMin%60) + 'm' : '-';
+                        return '<td><strong>' + (item.kodeTugas||'-') + '</strong></td>' +
+                            '<td>' + (item.trip||item.namaRute||'-') + '</td>' +
+                            '<td>' + (item.platNomor||'-') + '</td>' +
+                            '<td>' + (departureStr ? (departureStr.split(' ')[1]||departureStr) : '-') + '</td>' +
+                            '<td>' + targetArrivalStr + '</td>' +
+                            '<td><span class="sla-live-countdown">--:--:--</span></td>' +
+                            '<td><strong style="color:#DC2626;">' + lateStr + '</strong></td>' +
+                            '<td><span class="sla-live-status"></span></td>';
+                    },
+                    function(item) {
+                        return {
+                            'data-sla-departure': item.jamBerangkat    || '',
+                            'data-sla-hours':     item.targetSLAHours  || 16,
+                            'data-sla-arrival':   item.jamSampaiAktual || ''
+                        };
+                    },
+                    function(item) {
+                        // Hash statis dari data (bukan countdown) — cegah false mismatch setiap detik
+                        return (item.kodeTugas||'') + '|' + (item.jamBerangkat||'') + '|' +
+                               (item.targetSLAHours||16) + '|' + (item.jamSampaiAktual||'') + '|' +
+                               (item.lateMinutes||0) + '|' + (item.statusSla||'') + '|' +
+                               (item.trip||item.namaRute||'') + '|' + (item.platNomor||'');
                     }
-
-                    const lateMin = item.lateMinutes || 0;
-                    const lateStr = lateMin > 0
-                        ? `${Math.floor(lateMin / 60)}h ${lateMin % 60}m`
-                        : '-';
-
-                    return `
-                    <tr data-sla-departure="${departureStr}" data-sla-hours="${slaHours}" data-sla-arrival="${actualArrival}">
-                        <td><strong>${item.kodeTugas || '-'}</strong></td>
-                        <td>${item.trip || item.namaRute || '-'}</td>
-                        <td>${item.platNomor || '-'}</td>
-                        <td>${departureStr ? (departureStr.split(' ')[1] || departureStr) : '-'}</td>
-                        <td>${targetArrivalStr}</td>
-                        <td><span class="sla-live-countdown">--:--:--</span></td>
-                        <td><strong style="color:#DC2626;">${lateStr}</strong></td>
-                        <td><span class="sla-live-status"></span></td>
-                    </tr>`;
-                }).join('');
+                );
 
                 if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
             }

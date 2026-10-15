@@ -1,7 +1,106 @@
 /**
  * J&T Express - Transportation Monitoring System
  * App Controller & UI Interactivity Logic (v5 — Full Security Hardening, RBAC Permission Matrix, Notification Center & Backup Engine)
+ * ⚡ FIREBASE-ONLY MODE: Semua data input langsung ke Firestore. Tidak ada penyimpanan lokal di device.
  */
+
+// ============================================================
+// ⚡ FIREBASE-ONLY: AUTO-CLEANUP DATA OPERASIONAL LAMA
+// Bersihkan data operasional lama dari localStorage jika ada.
+// Hanya hapus key data operasional, bukan preferensi UI.
+// ============================================================
+(function cleanupLegacyLocalStorage() {
+    const operationalKeys = [
+        'jnt_store_incoming',
+        'jnt_store_sla_outbound',
+        'jnt_store_sla_return',
+        'jnt_store_sla_roundtrip',
+        'jnt_store_monitoring_4h',
+        'jnt_store_troubles',
+        'jnt_store_audit_log',
+        'jnt_store_shifts',
+        'jnt_store_users',
+        'jnt_sync_queue',
+        'jnt_conflicts',
+        'jnt_global_data_pulse',
+        'jnt_seed_version'
+    ];
+    operationalKeys.forEach(key => {
+        try { localStorage.removeItem(key); } catch (e) {}
+    });
+    console.log('[FIREBASE-ONLY] Auto-cleanup: data operasional lama di localStorage telah dibersihkan.');
+})();
+
+// ============================================================
+// ⚡ FIREBASE-ONLY: BANNER NOTIFIKASI OFFLINE
+// Tampilkan banner merah di atas halaman jika internet terputus.
+// ============================================================
+(function initOfflineBanner() {
+    const BANNER_ID = 'jnt-offline-banner';
+    function createBanner() {
+        if (document.getElementById(BANNER_ID)) return;
+        const banner = document.createElement('div');
+        banner.id = BANNER_ID;
+        banner.style.cssText = [
+            'position: fixed',
+            'top: 0',
+            'left: 0',
+            'right: 0',
+            'z-index: 99999',
+            'background: linear-gradient(90deg, #DC2626, #B91C1C)',
+            'color: #FFFFFF',
+            'text-align: center',
+            'padding: 10px 20px',
+            'font-family: "Plus Jakarta Sans", sans-serif',
+            'font-size: 13.5px',
+            'font-weight: 700',
+            'letter-spacing: 0.02em',
+            'box-shadow: 0 3px 12px rgba(185,28,28,0.5)',
+            'display: flex',
+            'align-items: center',
+            'justify-content: center',
+            'gap: 10px',
+            'animation: jnt-slide-down 0.3s ease'
+        ].join('; ');
+        banner.innerHTML = '⚠️ TIDAK ADA KONEKSI INTERNET — Input data tidak dapat disimpan. Hubungkan ke internet untuk melanjutkan.';
+
+        // Inject keyframe animation
+        if (!document.getElementById('jnt-offline-banner-style')) {
+            const style = document.createElement('style');
+            style.id = 'jnt-offline-banner-style';
+            style.textContent = '@keyframes jnt-slide-down { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }';
+            document.head.appendChild(style);
+        }
+
+        document.body.insertBefore(banner, document.body.firstChild);
+        // Geser konten agar tidak tertutup banner
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) appContainer.style.paddingTop = '44px';
+    }
+
+    function removeBanner() {
+        const banner = document.getElementById(BANNER_ID);
+        if (banner) {
+            banner.style.animation = 'jnt-slide-down 0.3s ease reverse';
+            setTimeout(() => {
+                banner.remove();
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) appContainer.style.paddingTop = '';
+            }, 300);
+        }
+    }
+
+    // Cek status awal
+    if (!navigator.onLine) {
+        document.addEventListener('DOMContentLoaded', createBanner, { once: true });
+        if (document.readyState !== 'loading') createBanner();
+    }
+
+    window.addEventListener('offline', createBanner);
+    window.addEventListener('online', removeBanner);
+    window.addEventListener('jnt_network_offline', createBanner);
+    window.addEventListener('jnt_network_online', removeBanner);
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
@@ -253,7 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.setItem('jnt_user_bergabung',  matched.bergabung || '');
                     sessionStorage.setItem('jnt_username_login',  matched.username);
 
-                    window.location.href = 'dashboard.html';
+                    // ⚡ FIREBASE-ONLY: Sign in anonymously ke Firebase Auth
+                    // agar request.auth != null dan Firestore rules terpenuhi.
+                    if (typeof window.ensureFirebaseAuth === 'function') {
+                        window.ensureFirebaseAuth().finally(() => {
+                            window.location.href = 'dashboard.html';
+                        });
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+
                 } else {
                     // ── Login failed: safe, non-technical error messages ──
                     _loginInProgress = false;
@@ -280,60 +388,99 @@ document.addEventListener('DOMContentLoaded', () => {
     // GLOBAL USER IDENTITY SYNC — Runs on every page after login
     // Updates ALL user-related UI elements from sessionStorage so every
     // page is consistent with the currently logged-in account.
+    // Exposed as window.jntSyncUserIdentity() and re-run on the
+    // 'jnt:user-updated' event (fired after profile save) so sidebar,
+    // topbar chip and topbar dropdown always stay in sync.
     // ===================================================================
-    (function syncUserIdentityAcrossAllPages() {
+    function jntMakeAvatarUrl(name, size) {
+        return 'https://ui-avatars.com/api/?name='
+            + encodeURIComponent(name || 'User')
+            + '&background=E30613&color=fff&bold=true&size=' + (size || 100);
+    }
+
+    function jntEscapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function jntGetLiveUser() {
+        const rawRole = sessionStorage.getItem('jnt_user_role') || '';
+        return {
+            fullname: sessionStorage.getItem('jnt_active_username') || '',
+            role:     rawRole,
+            roleLabel: rawRole.replace(/_/g, ' '),
+            email:    sessionStorage.getItem('jnt_user_email') || '',
+            jabatan:  sessionStorage.getItem('jnt_user_jabatan') || ''
+        };
+    }
+
+    function jntRenderDropdownHeader(dropdown) {
+        const header = dropdown && dropdown.querySelector('.dropdown-user-header');
+        if (!header) return;
+        const u = jntGetLiveUser();
+        header.innerHTML = `
+            <img class="dropdown-user-avatar" src="${jntMakeAvatarUrl(u.fullname, 80)}" alt="${jntEscapeHtml(u.fullname)} Avatar">
+            <div class="dropdown-user-info">
+                <strong title="${jntEscapeHtml(u.fullname)}">${jntEscapeHtml(u.fullname || '-')}</strong>
+                ${u.email ? `<span class="dropdown-user-email" title="${jntEscapeHtml(u.email)}">${jntEscapeHtml(u.email)}</span>` : ''}
+                <span class="dropdown-user-role-badge">${jntEscapeHtml(u.roleLabel || '-')}</span>
+            </div>
+        `;
+    }
+
+    function syncUserIdentityAcrossAllPages() {
         // FIX BUG-2 (UI): Hapus fallback hardcoded ke 'Developer Admin' / 'ADMIN'.
         // Jika sesi tidak ada, tampilkan string kosong — jangan inject nilai privilege default.
-        const fullname  = sessionStorage.getItem('jnt_active_username') || '';
-        const role      = sessionStorage.getItem('jnt_user_role')       || '';
-        if (!fullname && !role) return; // Jika tidak ada sesi aktif, jangan update UI
-        const avatarUrl = 'https://ui-avatars.com/api/?name='
-            + encodeURIComponent(fullname)
-            + '&background=E30613&color=fff&bold=true&size=150';
+        const u = jntGetLiveUser();
+        if (!u.fullname && !u.role) return; // Jika tidak ada sesi aktif, jangan update UI
 
         // 1. Sidebar: username text
         document.querySelectorAll('#sidebar-user-name').forEach(el => {
-            el.textContent = fullname;
+            el.textContent = u.fullname;
         });
 
         // 2. Sidebar: role/jabatan badge
         document.querySelectorAll('.profile-role').forEach(el => {
-            el.textContent = role;
+            el.textContent = u.roleLabel;
         });
 
         // 3. Sidebar: avatar image
         document.querySelectorAll('.user-avatar-img').forEach(img => {
-            img.src = avatarUrl + '&size=150';
-            img.alt = fullname + ' Avatar';
+            img.src = jntMakeAvatarUrl(u.fullname, 150);
+            img.alt = u.fullname + ' Avatar';
         });
 
         // 4. Topbar chip: username text (handles multiple selectors used across pages)
         document.querySelectorAll(
             '#topbar-user-name, #dash-user-name, .inc-user-name'
         ).forEach(el => {
-            // preserve the ▾ / v chevron span inside if present
-            const chevron = el.querySelector('span');
-            el.textContent = fullname;
-            if (chevron) {
-                el.appendChild(chevron);
-            } else {
-                const v = document.createElement('span');
-                v.textContent = 'v';
-                el.appendChild(v);
-            }
+            el.textContent = u.fullname;
+            const chevron = document.createElement('span');
+            chevron.className = 'inc-user-chevron';
+            chevron.textContent = '▾';
+            el.appendChild(chevron);
+            el.title = u.fullname;
         });
 
         // 5. Topbar chip: role text
         document.querySelectorAll('.inc-user-role').forEach(el => {
-            el.textContent = role;
+            el.textContent = u.roleLabel;
         });
 
         // 6. Topbar chip: avatar image
         document.querySelectorAll('.inc-avatar-img').forEach(img => {
-            img.src = avatarUrl + '&size=100';
-            img.alt = fullname + ' Avatar';
+            img.src = jntMakeAvatarUrl(u.fullname, 100);
+            img.alt = u.fullname + ' Avatar';
         });
-    })();
+
+        // 7. Topbar dropdown header (if already created)
+        document.querySelectorAll('.topbar-user-dropdown').forEach(jntRenderDropdownHeader);
+    }
+
+    syncUserIdentityAcrossAllPages();
+    window.jntSyncUserIdentity = syncUserIdentityAcrossAllPages;
+    window.addEventListener('jnt:user-updated', syncUserIdentityAcrossAllPages);
 
 
     // PERMISSION MATRIX ROUTE GUARD
@@ -443,10 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const dropdown = document.createElement('div');
             dropdown.className = 'topbar-user-dropdown';
             dropdown.innerHTML = `
-                <div class="dropdown-user-header">
-                    <strong>${activeUsername}</strong>
-                    <span>Peran: ${activeRole}</span>
-                </div>
+                <div class="dropdown-user-header"></div>
                 <a href="profile.html" class="dropdown-nav-item">
                     <span>👤</span> Profil Saya
                 </a>
@@ -458,6 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
             wrapper.appendChild(dropdown);
+            jntRenderDropdownHeader(dropdown);
 
             chip.setAttribute('role', 'button');
             chip.setAttribute('aria-haspopup', 'true');
@@ -468,6 +613,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.topbar-user-dropdown.show').forEach(d => {
                     if (d !== dropdown) d.classList.remove('show');
                 });
+                // Selalu render ulang dari sesi terbaru sebelum ditampilkan
+                jntRenderDropdownHeader(dropdown);
                 const isShown = dropdown.classList.toggle('show');
                 chip.setAttribute('aria-expanded', isShown ? 'true' : 'false');
             });
@@ -2790,98 +2937,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =========================================================================
     // 11. PROFILE CONTROLLER (profile.html)
+    // UI form, validasi & update sesi ditangani oleh script inline profile.html
+    // (sumber tunggal). Blok ini HANYA me-mirror perubahan ke Firestore di
+    // background melalui event, agar tidak ada submit handler ganda yang
+    // menimpa data / memunculkan notifikasi dobel.
     // =========================================================================
     if (isProfilePage && typeof JNTFirebaseService !== 'undefined') {
-        const formProfInfo = document.getElementById('profile-info-form');
-        const formChangePass = document.getElementById('change-pass-form');
+        // Gunakan ID dokumen yang stabil (username login), bukan nama lengkap yang bisa berubah
+        const profileDocId = sessionStorage.getItem('jnt_username_login')
+            || sessionStorage.getItem('jnt_user_uid')
+            || activeUsername;
 
-        // Pre-fill profile info if user exists in cache
-        const loadProfileData = async () => {
-            const userDoc = await JNTFirebaseService.getDoc('users', activeUsername);
-            if (userDoc) {
-                const elFull = document.getElementById('prof-fullname');
-                const elUname = document.getElementById('prof-username');
-                const elEmail = document.getElementById('prof-email');
-                const elPhone = document.getElementById('prof-phone');
-                const elTlc = document.getElementById('prof-tlc');
-
-                if (elFull && userDoc.fullname) elFull.value = userDoc.fullname;
-                if (elUname) elUname.value = userDoc.username || activeUsername;
-                if (elEmail && userDoc.email) elEmail.value = userDoc.email;
-                if (elPhone && userDoc.phone) elPhone.value = userDoc.phone;
-                if (elTlc && userDoc.tlc) elTlc.value = userDoc.tlc;
+        window.addEventListener('jnt:user-updated', async () => {
+            try {
+                await JNTFirebaseService.saveUserProfile(profileDocId, {
+                    fullname:  sessionStorage.getItem('jnt_active_username') || '',
+                    email:     sessionStorage.getItem('jnt_user_email') || '',
+                    phone:     sessionStorage.getItem('jnt_user_phone') || '',
+                    tlc:       sessionStorage.getItem('jnt_user_tlc') || '',
+                    updatedAt: new Date().toISOString()
+                });
+            } catch (err) {
+                console.warn('[PROFILE] Gagal mirror profil ke Firestore:', err);
             }
-        };
+        });
 
-        loadProfileData();
-
-        if (formProfInfo) {
-            formProfInfo.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                try {
-                    const fullname = document.getElementById('prof-fullname')?.value;
-                    const email = document.getElementById('prof-email')?.value;
-                    const phone = document.getElementById('prof-phone')?.value;
-                    const tlc = document.getElementById('prof-tlc')?.value;
-
-                    await JNTFirebaseService.saveUserProfile(activeUsername, {
-                        fullname,
-                        email,
-                        phone,
-                        tlc,
-                        updatedAt: new Date().toISOString()
-                    });
-
-                    sessionStorage.setItem('jnt_active_username', fullname || activeUsername);
-
-                    window.showToastNotification("💾 PROFIL TERSIMPAN", "Informasi profil berhasil diperbarui secara persisten!", "success");
-                } catch (err) {
-                    alert(`Gagal menyimpan profil: ${err.message}`);
+        window.addEventListener('jnt:password-changed', async (e) => {
+            const newPass = e.detail && e.detail.newPass;
+            if (!newPass) return;
+            try {
+                // FIX BUG-3: Jangan simpan password plaintext ke Firestore — gunakan SHA-256 hash.
+                let passHash = null;
+                if (typeof crypto !== 'undefined' && crypto.subtle) {
+                    const hashBuffer = await crypto.subtle.digest(
+                        'SHA-256',
+                        new TextEncoder().encode(newPass)
+                    );
+                    passHash = Array.from(new Uint8Array(hashBuffer))
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('');
                 }
-            });
-        }
-
-        if (formChangePass) {
-            formChangePass.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const curPass = document.getElementById('current-pass')?.value;
-                const newPass = document.getElementById('new-pass')?.value;
-                const confPass = document.getElementById('confirm-pass')?.value;
-
-                if (!newPass || newPass.length < 6) {
-                    alert('Password baru minimal 6 karakter.');
-                    return;
-                }
-                if (newPass !== confPass) {
-                    alert('Konfirmasi password tidak cocok dengan password baru.');
-                    return;
-                }
-
-                try {
-                    // FIX BUG-3: Jangan simpan password plaintext ke Firestore.
-                    // Gunakan SHA-256 hash (konsisten dengan users.html password reset).
-                    let passHash = null;
-                    if (typeof crypto !== 'undefined' && crypto.subtle) {
-                        const hashBuffer = await crypto.subtle.digest(
-                            'SHA-256',
-                            new TextEncoder().encode(newPass)
-                        );
-                        passHash = Array.from(new Uint8Array(hashBuffer))
-                            .map(b => b.toString(16).padStart(2, '0'))
-                            .join('');
-                    }
-                    await JNTFirebaseService.saveUserProfile(activeUsername, {
-                        passwordHash: passHash,
-                        passwordUpdated: new Date().toISOString()
-                    });
-
-                    window.showToastNotification("🔑 PASSWORD DIUBAH", "Kata sandi akun Anda berhasil diperbarui!", "success");
-                    formChangePass.reset();
-                } catch (err) {
-                    alert(`Gagal mengubah password: ${err.message}`);
-                }
-            });
-        }
+                await JNTFirebaseService.saveUserProfile(profileDocId, {
+                    passwordHash: passHash,
+                    passwordUpdated: new Date().toISOString()
+                });
+            } catch (err) {
+                console.warn('[PROFILE] Gagal mirror password ke Firestore:', err);
+            }
+        });
     }
 
     // =========================================================================

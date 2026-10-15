@@ -279,6 +279,7 @@ const SLACountdownEngine = {
 
     /**
      * Updates programmatic registered element UI.
+     * ANTI-FLICKER: Gunakan textContent/className saja.
      */
     updateElementUI(el, state, config = {}) {
         if (!el) return;
@@ -287,47 +288,103 @@ const SLACountdownEngine = {
         const statusEl = config.statusSelector ? el.querySelector(config.statusSelector) : null;
 
         if (remainingEl) {
+            let newText = '', newClass = '';
             if (state.status === 'DATA_ERROR') {
-                remainingEl.textContent = 'N/A';
-                remainingEl.className = 'sla-remaining-cell text-dim';
+                newText  = 'N/A';
+                newClass = 'sla-remaining-cell text-dim';
             } else if (state.isCompleted) {
-                remainingEl.textContent = 'COMPLETED';
-                remainingEl.className = 'sla-remaining-cell completed';
+                newText  = 'COMPLETED';
+                newClass = 'sla-remaining-cell completed';
             } else if (state.isOverdue) {
-                remainingEl.textContent = state.remainingFormatted;
-                remainingEl.className = 'sla-remaining-cell overdue font-bold';
+                newText  = state.remainingFormatted;
+                newClass = 'sla-remaining-cell overdue font-bold';
             } else {
-                remainingEl.textContent = state.remainingFormatted;
-                remainingEl.className = `sla-remaining-cell ${state.badgeClass} font-bold`;
+                newText  = state.remainingFormatted;
+                newClass = 'sla-remaining-cell ' + state.badgeClass + ' font-bold';
             }
+            if (remainingEl.textContent !== newText) remainingEl.textContent = newText;
+            if (remainingEl.className   !== newClass) remainingEl.className   = newClass;
         }
 
         if (statusEl) {
-            statusEl.className = `badge-status sla-badge-${state.badgeClass}`;
-            statusEl.innerHTML = `<span class="dot">●</span> ${state.badgeSymbol} ${state.badgeText}`;
+            const newClass   = 'badge-status sla-badge-' + state.badgeClass;
+            const newText    = state.badgeText;
+            if (statusEl.className !== newClass) statusEl.className = newClass;
+            // Hanya update isi dot + label — jangan hancurkan seluruh innerHTML
+            let labelEl = statusEl.querySelector('.pill-label');
+            if (!labelEl) {
+                statusEl.innerHTML = '<span class="dot">\u25cf</span>\u00a0<span class="pill-label">' + newText + '</span>';
+            } else {
+                if (labelEl.textContent !== newText) labelEl.textContent = newText;
+            }
         }
     },
 
     /**
      * Updates declarative element UI ([data-sla-departure]).
+     * ANTI-FLICKER: Hanya sentuh DOM jika nilai benar-benar berubah.
+     * Tidak gunakan innerHTML untuk status pill — update className dan textContent saja.
      */
     updateDeclarativeElementUI(el, state) {
         if (!el) return;
 
-        const remainingContainer = el.querySelector('.sla-live-countdown') || el;
-        const statusContainer = el.querySelector('.sla-live-status');
-
-        if (remainingContainer) {
-            if (remainingContainer.textContent !== state.remainingFormatted) {
-                remainingContainer.textContent = state.remainingFormatted;
+        // ── 1. Countdown timer ───────────────────────────────────────────────
+        const countdownEl = el.querySelector('.sla-live-countdown') || el;
+        if (countdownEl) {
+            const newText  = state.remainingFormatted;
+            const newClass = 'sla-live-countdown sla-rem-' + state.badgeClass;
+            // Guard: jangan sentuh DOM kalau tidak berubah
+            if (countdownEl.textContent !== newText) {
+                countdownEl.textContent = newText;
             }
-            remainingContainer.className = `sla-live-countdown sla-rem-${state.badgeClass}`;
+            if (countdownEl.className !== newClass) {
+                countdownEl.className = newClass;
+            }
         }
 
+        // ── 2. Status pill ───────────────────────────────────────────────────
+        const statusContainer = el.querySelector('.sla-live-status');
         if (statusContainer) {
-            const html = `<span class="sla-status-pill ${state.badgeClass}"><span class="dot">●</span> ${state.badgeSymbol} ${state.badgeText}</span>`;
-            if (statusContainer.innerHTML !== html) {
-                statusContainer.innerHTML = html;
+            // Cari existing pill — jangan recreate jika hanya class/text yang berubah
+            let pill = statusContainer.querySelector('.sla-status-pill');
+            const newPillClass = 'sla-status-pill ' + state.badgeClass;
+            const newBadgeText = state.badgeText; // teks saja, tanpa emoji
+
+            if (!pill) {
+                // Buat pill pertama kali (saat row baru muncul)
+                pill = document.createElement('span');
+                pill.className = newPillClass;
+                const dot = document.createElement('span');
+                dot.className = 'dot';
+                dot.textContent = '\u25cf';
+                const label = document.createElement('span');
+                label.className = 'pill-label';
+                label.textContent = newBadgeText;
+                pill.appendChild(dot);
+                pill.appendChild(document.createTextNode('\u00a0'));
+                pill.appendChild(label);
+                statusContainer.innerHTML = '';
+                statusContainer.appendChild(pill);
+            } else {
+                // Update class hanya jika beda
+                if (pill.className !== newPillClass) {
+                    pill.className = newPillClass;
+                }
+                // Update label teks hanya jika beda
+                const labelEl = pill.querySelector('.pill-label');
+                if (labelEl) {
+                    if (labelEl.textContent !== newBadgeText) {
+                        labelEl.textContent = newBadgeText;
+                    }
+                } else {
+                    // Fallback: jika struktur pill lama belum punya .pill-label
+                    const newHtml = '<span class="dot">\u25cf</span>\u00a0<span class="pill-label">' + newBadgeText + '</span>';
+                    if (statusContainer.innerHTML.indexOf(newBadgeText) === -1 ||
+                        pill.className !== newPillClass) {
+                        pill.className = newPillClass;
+                        pill.innerHTML = newHtml;
+                    }
+                }
             }
         }
     }

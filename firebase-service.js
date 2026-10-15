@@ -3,7 +3,7 @@
  * Firebase Firestore Service Layer (v4 — SSOT, 3-Tier Architecture, 4H Audit Logs, Shift Management & Reporting Engine)
  */
 
-// Cross-Tab Broadcast Channel & Storage Listener for 100% Real-Time Multi-Tab Synchronization
+// Cross-Tab Broadcast Channel for Real-Time Multi-Tab Synchronization (Firebase-Only Mode)
 const JNT_SYNC_BUS_NAME = 'jnt_global_event_bus_v1';
 let jntSyncChannel = null;
 try {
@@ -20,24 +20,18 @@ try {
     console.warn('[GLOBAL SYNC BUS] BroadcastChannel unsupported:', e.message);
 }
 
-window.addEventListener('storage', (e) => {
-    if (e.key && (e.key.startsWith('jnt_store_') || e.key === 'jnt_global_data_pulse')) {
-        window.dispatchEvent(new CustomEvent('jnt_data_updated', { detail: { key: e.key, action: 'storage_sync' } }));
-    }
-});
+// ⚡ FIREBASE-ONLY MODE: Semua data langsung ke Firestore, tidak ada penyimpanan di device.
+// Jika tidak ada koneksi internet, operasi akan ditolak.
 
-// Auto-Reconnection Network Listener for Real-Time Offline Queue Flushing
+// Network status monitor - menampilkan notifikasi jika koneksi terputus
 if (typeof window !== 'undefined') {
-    window.addEventListener('online', async () => {
-        console.log('[NETWORK RECONNECT] Online event detected. Auto-flushing pending sync queue...');
-        if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.flushPendingSyncQueue === 'function') {
-            try {
-                const res = await JNTFirebaseService.flushPendingSyncQueue();
-                console.log('[NETWORK RECONNECT] Auto-flush completed:', res);
-            } catch (err) {
-                console.warn('[NETWORK RECONNECT] Auto-flush warning:', err.message);
-            }
-        }
+    window.addEventListener('online', () => {
+        console.log('[NETWORK] Koneksi internet pulih. Firestore tersedia.');
+        window.dispatchEvent(new CustomEvent('jnt_network_online'));
+    });
+    window.addEventListener('offline', () => {
+        console.warn('[NETWORK] Koneksi internet terputus. Input data ditolak.');
+        window.dispatchEvent(new CustomEvent('jnt_network_offline'));
     });
 }
 
@@ -51,25 +45,19 @@ const JNTFirebaseService = {
                 jntSyncChannel.postMessage({ type: 'JNT_DATA_MUTATION', detail, timestamp: Date.now() });
             } catch (e) { }
         }
-        try {
-            localStorage.setItem('jnt_global_data_pulse', String(Date.now()));
-        } catch (e) { }
+        // FIREBASE-ONLY: Tidak menulis ke localStorage untuk data pulse.
     },
 
-    // Local Storage & Firestore Dual-SSOT Helper
+    // ⚡ FIREBASE-ONLY: getLocalStore & saveLocalStore dinonaktifkan.
+    // Data TIDAK disimpan di device. Semua baca/tulis langsung ke Firestore.
     getLocalStore(colName) {
-        try {
-            const raw = localStorage.getItem(`jnt_store_${colName}`);
-            return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            return [];
-        }
+        // FIREBASE-ONLY: Tidak membaca dari localStorage.
+        return [];
     },
 
     saveLocalStore(colName, list) {
-        try {
-            localStorage.setItem(`jnt_store_${colName}`, JSON.stringify(list));
-        } catch (e) { }
+        // FIREBASE-ONLY: Tidak menyimpan ke localStorage.
+        // Data hanya ada di Firestore cloud.
     },
 
     async getDoc(colName, docId) {
@@ -96,101 +84,23 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // OFFLINE SYNC QUEUE & RESILIENT RETRY ENGINE (v5)
+    // OFFLINE SYNC QUEUE - DINONAKTIFKAN (FIREBASE-ONLY MODE)
+    // Data tidak pernah antri di device. Jika offline, operasi ditolak.
     // ----------------------------------------------------
-    getPendingSyncQueue() {
-        try {
-            const raw = localStorage.getItem('jnt_sync_queue');
-            return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            return [];
-        }
-    },
+    getPendingSyncQueue() { return []; },
+    savePendingSyncQueue(queue) { /* FIREBASE-ONLY: no-op */ },
+    getPendingSyncCount() { return 0; },
+    getSyncConflicts() { return []; },
+    saveSyncConflicts(conflicts) { /* FIREBASE-ONLY: no-op */ },
 
-    savePendingSyncQueue(queue) {
-        try {
-            localStorage.setItem('jnt_sync_queue', JSON.stringify(queue));
-        } catch (e) { }
-    },
-
-    getPendingSyncCount() {
-        return this.getPendingSyncQueue().length;
-    },
-
-    getSyncConflicts() {
-        try {
-            const raw = localStorage.getItem('jnt_conflicts');
-            return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            return [];
-        }
-    },
-
-    saveSyncConflicts(conflicts) {
-        try {
-            localStorage.setItem('jnt_conflicts', JSON.stringify(conflicts));
-        } catch (e) { }
-    },
-
-    recordSyncConflict(conflictRecord) {
-        const conflicts = this.getSyncConflicts();
-        const existingIdx = conflicts.findIndex(c => c.colName === conflictRecord.colName && c.docId === conflictRecord.docId);
-        const record = {
-            id: `CONF-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            ...conflictRecord,
-            timestamp: Date.now()
-        };
-        if (existingIdx >= 0) {
-            conflicts[existingIdx] = record;
-        } else {
-            conflicts.push(record);
-        }
-        this.saveSyncConflicts(conflicts);
-        return record;
-    },
-
-    clearSyncConflict(colName, docId) {
-        const conflicts = this.getSyncConflicts();
-        const filtered = conflicts.filter(c => !(c.colName === colName && c.docId === docId));
-        this.saveSyncConflicts(filtered);
-    },
-
-    clearAllSyncConflicts() {
-        try {
-            localStorage.removeItem('jnt_conflicts');
-        } catch (e) { }
-    },
-
-    enqueuePendingSync(item) {
-        const queue = this.getPendingSyncQueue();
-        const existingIdx = queue.findIndex(q => q.colName === item.colName && q.docId === item.docId);
-        const record = {
-            ...item,
-            queuedAt: item.queuedAt || Date.now(),
-            timestamp: Date.now()
-        };
-        if (existingIdx >= 0) {
-            queue[existingIdx] = record;
-        } else {
-            queue.push(record);
-        }
-        this.savePendingSyncQueue(queue);
-        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
-            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: queue.length, item: record } }));
-        }
-    },
-
-    removePendingSyncItem(colName, docId) {
-        const queue = this.getPendingSyncQueue();
-        const filtered = queue.filter(q => !(q.colName === colName && q.docId === docId));
-        this.savePendingSyncQueue(filtered);
-        if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
-            window.dispatchEvent(new CustomEvent('jnt_sync_queue_updated', { detail: { count: filtered.length } }));
-        }
-    },
+    recordSyncConflict(conflictRecord) { /* FIREBASE-ONLY: no-op */ },
+    clearSyncConflict(colName, docId) { /* FIREBASE-ONLY: no-op */ },
+    clearAllSyncConflicts() { /* FIREBASE-ONLY: no-op */ },
+    enqueuePendingSync(item) { /* FIREBASE-ONLY: no-op */ },
+    removePendingSyncItem(colName, docId) { /* FIREBASE-ONLY: no-op */ },
 
     async retrySyncPending() {
-        return this.flushPendingSyncQueue();
+        return { success: true, processed: 0, conflicts: 0, remaining: 0 };
     },
 
     async flushPendingSyncQueue() {
@@ -471,136 +381,69 @@ const JNTFirebaseService = {
     },
 
     async saveDoc(colName, docId, data, merge = false) {
-        console.log(`[SLA UPDATE] START WRITE [${colName}/${docId}]`, data);
-        let updatedObj = { id: docId, ...data };
-        let isSynced = false;
-        let syncErrMessage = null;
+        console.log(`[FIREBASE-ONLY] START WRITE [${colName}/${docId}]`, data);
 
-        const current = this.getLocalStore(colName);
-        const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
-        const existingItem = existingIdx >= 0 ? current[existingIdx] : null;
-        const baseUpdatedAt = data._baseUpdatedAt || (existingItem && existingItem.updatedAt ? existingItem.updatedAt : null);
-
-        // 1. Attempt authoritative write to Firestore Cloud
-        if (window.db) {
-            try {
-                const cloudPayload = { ...data };
-                delete cloudPayload.syncStatus;
-                delete cloudPayload.syncedToCloud;
-                delete cloudPayload._syncStatus;
-                delete cloudPayload.syncError;
-                delete cloudPayload._baseUpdatedAt;
-                delete cloudPayload._pendingDelete;
-                delete cloudPayload._conflictDetails;
-                delete cloudPayload._cloudVersion;
-
-                cloudPayload.updatedAt = cloudPayload.updatedAt || new Date().toISOString();
-
-                await window.db.collection(colName).doc(docId).set(cloudPayload, { merge: merge });
-                console.log(`[SLA UPDATE] WRITE FIRESTORE SUCCESS [${colName}/${docId}]`);
-                isSynced = true;
-                this.removePendingSyncItem(colName, docId);
-                updatedObj.updatedAt = cloudPayload.updatedAt;
-            } catch (err) {
-                syncErrMessage = err.message || 'Firestore Write Failed';
-                console.warn(`[SLA UPDATE] FIRESTORE ERROR [${colName}/${docId}]: ${syncErrMessage}`);
-            }
-        } else {
-            syncErrMessage = 'Cloud database not initialized';
+        // ⚡ FIREBASE-ONLY: Cek koneksi internet sebelum menulis
+        if (!navigator.onLine) {
+            const errMsg = 'Tidak ada koneksi internet. Data tidak dapat disimpan. Hubungkan ke internet dan coba lagi.';
+            console.error(`[FIREBASE-ONLY] REJECTED - Offline: [${colName}/${docId}]`);
+            throw new Error(errMsg);
         }
 
-        // 2. Set explicit synchronization status
-        if (isSynced) {
-            updatedObj.syncStatus = 'SYNCED';
-            updatedObj.syncedToCloud = true;
-            updatedObj._syncStatus = 'SYNCED';
-            delete updatedObj.syncError;
-            delete updatedObj._pendingDelete;
-            delete updatedObj._conflictDetails;
-            delete updatedObj._cloudVersion;
-        } else {
-            updatedObj.syncStatus = 'PENDING';
-            updatedObj.syncedToCloud = false;
-            updatedObj._syncStatus = 'PENDING';
-            updatedObj.syncError = syncErrMessage;
-            updatedObj.updatedAt = data.updatedAt || new Date().toISOString();
-            delete updatedObj._pendingDelete;
-            this.enqueuePendingSync({
-                colName,
-                docId,
-                data: { ...data, updatedAt: updatedObj.updatedAt },
-                merge,
-                action: 'set',
-                error: syncErrMessage,
-                baseUpdatedAt: baseUpdatedAt,
-                queuedAt: Date.now()
-            });
+        if (!window.db) {
+            const errMsg = 'Database Firebase tidak terhubung. Periksa koneksi internet Anda.';
+            console.error(`[FIREBASE-ONLY] REJECTED - DB not initialized: [${colName}/${docId}]`);
+            throw new Error(errMsg);
         }
 
-        // 3. Mirror to LocalStorage read-cache
-        if (existingIdx >= 0) {
-            updatedObj = merge ? { ...current[existingIdx], ...updatedObj } : updatedObj;
-            delete updatedObj._pendingDelete;
-            current[existingIdx] = updatedObj;
-        } else {
-            current.push(updatedObj);
-        }
-        this.saveLocalStore(colName, current);
-        console.log(`[SLA UPDATE] WRITE LOCAL STORAGE SUCCESS [${colName}/${docId}] (Status: ${updatedObj.syncStatus})`);
+        const cloudPayload = { ...data };
+        delete cloudPayload.syncStatus;
+        delete cloudPayload.syncedToCloud;
+        delete cloudPayload._syncStatus;
+        delete cloudPayload.syncError;
+        delete cloudPayload._baseUpdatedAt;
+        delete cloudPayload._pendingDelete;
+        delete cloudPayload._conflictDetails;
+        delete cloudPayload._cloudVersion;
+        cloudPayload.updatedAt = cloudPayload.updatedAt || new Date().toISOString();
 
-        this.notifyDataMutated({ colName, docId, action: 'save', data: updatedObj, syncStatus: updatedObj.syncStatus });
+        // Tulis langsung ke Firestore — tidak ada fallback localStorage
+        await window.db.collection(colName).doc(docId).set(cloudPayload, { merge: merge });
+        console.log(`[FIREBASE-ONLY] WRITE SUCCESS [${colName}/${docId}]`);
+
+        const updatedObj = {
+            id: docId,
+            ...cloudPayload,
+            syncStatus: 'SYNCED',
+            syncedToCloud: true,
+            _syncStatus: 'SYNCED'
+        };
+
+        this.notifyDataMutated({ colName, docId, action: 'save', data: updatedObj, syncStatus: 'SYNCED' });
         return updatedObj;
     },
 
     async deleteDoc(colName, docId) {
-        console.log(`[SLA DELETE] START DELETE [${colName}/${docId}]`);
-        let deleteSuccess = false;
-        let deleteErrMessage = null;
+        console.log(`[FIREBASE-ONLY] START DELETE [${colName}/${docId}]`);
 
-        if (window.db) {
-            try {
-                await window.db.collection(colName).doc(docId).delete();
-                console.log(`[SLA DELETE] FIRESTORE SUCCESS [${colName}/${docId}]`);
-                this.removePendingSyncItem(colName, docId);
-                deleteSuccess = true;
-            } catch (err) {
-                deleteErrMessage = err.message || 'Firestore Delete Failed';
-                console.warn(`[SLA DELETE] FIRESTORE FAILED - QUEUED [${colName}/${docId}]: ${deleteErrMessage}`);
-            }
-        } else {
-            deleteErrMessage = 'Cloud database not initialized';
+        // ⚡ FIREBASE-ONLY: Cek koneksi internet sebelum menghapus
+        if (!navigator.onLine) {
+            const errMsg = 'Tidak ada koneksi internet. Data tidak dapat dihapus. Hubungkan ke internet dan coba lagi.';
+            console.error(`[FIREBASE-ONLY] DELETE REJECTED - Offline: [${colName}/${docId}]`);
+            throw new Error(errMsg);
         }
 
-        const current = this.getLocalStore(colName);
-        const existingIdx = current.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
-
-        if (deleteSuccess) {
-            // Confirmed by cloud: safely remove from LocalStorage
-            const filtered = current.filter(i => (i.id !== docId && i.kodeTugas !== docId && i._docId !== docId));
-            this.saveLocalStore(colName, filtered);
-            console.log(`[SLA DELETE] LOCAL STORAGE REMOVE SUCCESS [${colName}/${docId}]`);
-            this.notifyDataMutated({ colName, docId, action: 'delete', confirmed: true });
-            return { success: true, confirmed: true };
-        } else {
-            // NOT confirmed by cloud: retain local cache, mark as PENDING_DELETE
-            if (existingIdx >= 0) {
-                current[existingIdx]._pendingDelete = true;
-                current[existingIdx].syncStatus = 'PENDING_DELETE';
-                current[existingIdx]._syncStatus = 'PENDING_DELETE';
-                current[existingIdx].syncError = deleteErrMessage;
-                this.saveLocalStore(colName, current);
-                console.log(`[SLA DELETE] LOCAL STORAGE RETAINED (PENDING CLOUD CONFIRMATION) [${colName}/${docId}]`);
-            }
-            this.enqueuePendingSync({
-                colName,
-                docId,
-                action: 'delete',
-                error: deleteErrMessage,
-                queuedAt: Date.now()
-            });
-            this.notifyDataMutated({ colName, docId, action: 'delete', confirmed: false, pending: true });
-            return { success: true, confirmed: false, pending: true };
+        if (!window.db) {
+            const errMsg = 'Database Firebase tidak terhubung. Periksa koneksi internet Anda.';
+            console.error(`[FIREBASE-ONLY] DELETE REJECTED - DB not initialized: [${colName}/${docId}]`);
+            throw new Error(errMsg);
         }
+
+        // Hapus langsung dari Firestore — tidak ada fallback localStorage
+        await window.db.collection(colName).doc(docId).delete();
+        console.log(`[FIREBASE-ONLY] DELETE SUCCESS [${colName}/${docId}]`);
+        this.notifyDataMutated({ colName, docId, action: 'delete', confirmed: true });
+        return { success: true, confirmed: true };
     },
 
     // ----------------------------------------------------
@@ -905,20 +748,12 @@ const JNTFirebaseService = {
 
     // Helper to get active Shift ID & Active Shift Object
     getActiveShiftId() {
-        const stored = sessionStorage.getItem('jnt_active_shift_id') || localStorage.getItem('jnt_active_shift_id');
+        // FIREBASE-ONLY: Hanya gunakan sessionStorage (tidak persist ke device)
+        const stored = sessionStorage.getItem('jnt_active_shift_id');
         if (stored) return stored;
-        const shifts = this.getLocalStore('shifts');
-        const active = shifts.find(s => s.status === 'AKTIF');
-        if (active && (active.shiftId || active.id)) {
-            const activeId = active.shiftId || active.id;
-            sessionStorage.setItem('jnt_active_shift_id', activeId);
-            localStorage.setItem('jnt_active_shift_id', activeId);
-            return activeId;
-        }
         const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const fallbackId = `SHIFT-${todayStr}-01`;
         sessionStorage.setItem('jnt_active_shift_id', fallbackId);
-        localStorage.setItem('jnt_active_shift_id', fallbackId);
         return fallbackId;
     },
 
@@ -1233,7 +1068,7 @@ const JNTFirebaseService = {
             // H. Seed Initial Transactions & Incidents (DEMO / DEVELOPMENT MODE GUARD)
             const IS_DEMO_MODE = true; // Toggle for demo/production deployment
             if (IS_DEMO_MODE && this.getLocalStore('incoming').length === 0) {
-                localStorage.setItem('jnt_seed_version', 'v2_sla_live');
+                // FIREBASE-ONLY: Seed version tidak disimpan ke localStorage.
 
                 const initialIncoming = [
                     {
@@ -1650,6 +1485,21 @@ const JNTFirebaseService = {
         });
     },
 
+    async deleteSLAOutbound(kodeTugas) {
+        if (!kodeTugas) throw new Error('kodeTugas tidak boleh kosong');
+        const shiftId = this.getActiveShiftId();
+        // Cascade delete dari semua 5 collection trip
+        await this.deleteTripCascade(kodeTugas, true);
+        await this.logAuditEvent({
+            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            operator: sessionStorage.getItem('jnt_active_username') || 'Operator',
+            shiftId: shiftId,
+            modul: 'SLA Vendor',
+            kodeTugas: kodeTugas,
+            aktivitas: `Hapus Data Keberangkatan & SLA (Cascade Delete)`
+        });
+    },
+
     subscribeSLAReturn(callback) {
         return this.createSub('sla_return', callback);
     },
@@ -2037,7 +1887,7 @@ const JNTFirebaseService = {
         };
 
         sessionStorage.setItem('jnt_active_shift_id', newShiftId);
-        localStorage.setItem('jnt_active_shift_id', newShiftId);
+        // FIREBASE-ONLY: Tidak menyimpan shift ID ke localStorage.
 
         await this.saveDoc('shifts', newShiftId, newShiftObj, true);
 

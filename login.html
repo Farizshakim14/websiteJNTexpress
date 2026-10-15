@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&T Express - Login</title>
-    <meta name="description" content="Sistem monitoring operasional transportasi untuk mendukung ketepatan waktu pengiriman dan kualitas layanan J&T Express.">
+    <meta name="description"
+        content="Sistem monitoring operasional transportasi untuk mendukung ketepatan waktu pengiriman dan kualitas layanan J&T Express.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div id="app-container" class="app-container">
-        
+
         <!-- PURE LOGIN SECTION -->
         <section id="login-section" class="login-section">
             <div class="banner-panel">
@@ -25,13 +29,16 @@
                 <div class="map-watermark" aria-hidden="true">
                     <svg viewBox="0 0 1000 400" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g opacity="0.12" fill="#94A3B8">
-                            <circle cx="150" cy="180" r="3" /><circle cx="160" cy="185" r="3" /><circle cx="170" cy="190" r="3" />
+                            <circle cx="150" cy="180" r="3" />
+                            <circle cx="160" cy="185" r="3" />
+                            <circle cx="170" cy="190" r="3" />
                         </g>
                     </svg>
                 </div>
 
                 <div class="red-diagonal-accent" aria-hidden="true">
-                    <svg viewBox="0 0 500 500" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg viewBox="0 0 500 500" fill="none" preserveAspectRatio="none"
+                        xmlns="http://www.w3.org/2000/svg">
                         <polygon points="500,180 500,500 180,500" fill="#E30613" />
                     </svg>
                 </div>
@@ -63,7 +70,8 @@
                                         <circle cx="12" cy="7" r="4"></circle>
                                     </svg>
                                 </span>
-                                <input type="text" id="username-input" name="username" class="form-input" placeholder="Masukkan username" required>
+                                <input type="text" id="username-input" name="username" class="form-input"
+                                    placeholder="Masukkan username" required>
                             </div>
                         </div>
 
@@ -76,13 +84,19 @@
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                     </svg>
                                 </span>
-                                <input type="password" id="password-input" name="password" class="form-input" placeholder="Masukkan password" required>
-                                <button type="button" id="toggle-password" class="password-toggle-btn" aria-label="Tampilkan password">
-                                    <svg id="eye-off-icon" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <input type="password" id="password-input" name="password" class="form-input"
+                                    placeholder="Masukkan password" required>
+                                <button type="button" id="toggle-password" class="password-toggle-btn"
+                                    aria-label="Tampilkan password">
+                                    <svg id="eye-off-icon" class="eye-icon" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                        </path>
                                         <line x1="1" y1="1" x2="23" y2="23"></line>
                                     </svg>
-                                    <svg id="eye-icon" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <svg id="eye-icon" class="eye-icon hidden" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                         <circle cx="12" cy="12" r="3"></circle>
                                     </svg>
@@ -104,7 +118,8 @@
 
                         <button type="submit" id="btn-login" class="btn-login">
                             <span class="btn-text-content">
-                                <svg class="login-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <svg class="login-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.2">
                                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                                     <polyline points="10 17 15 12 10 7"></polyline>
                                     <line x1="15" y1="12" x2="3" y2="12"></line>
@@ -115,8 +130,10 @@
                         </button>
                     </form>
 
-                    <div class="card-footer" style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
-                        <button type="button" id="btn-activate-account" style="background: none; border: none; color: #2563EB; font-size: 12px; cursor: pointer; text-decoration: underline;">
+                    <div class="card-footer"
+                        style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                        <button type="button" id="btn-activate-account"
+                            style="background: none; border: none; color: #2563EB; font-size: 12px; cursor: pointer; text-decoration: underline;">
                             🔑 Aktivasi Akun Lama / Reset Password
                         </button>
                         <button type="button" id="demo-fill-btn" class="demo-chip">
@@ -140,4 +157,5 @@
     <!-- JavaScript Script -->
     <script src="app.js"></script>
 </body>
+
 </html>
