@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&T Express - Profil Saya</title>
     <meta name="description" content="Profil Pengguna dan Pengaturan Keamanan Akun J&T Express Transportation Monitoring System.">
+    <!-- Favicon / Logo Tab Browser -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,7 +56,7 @@
 
                         <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
@@ -66,7 +69,7 @@
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                                <span class="nav-text">Trouble & Laka</span>
+                                <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -84,7 +87,7 @@
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span class="nav-text">Report & Export</span>
+                                <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -249,22 +252,22 @@
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Nama Lengkap</label>
-                                    <input type="text" id="prof-fullname" value="Developer Admin">
+                                    <input type="text" id="prof-fullname" value="">
                                 </div>
                                 <div class="form-group-st">
                                     <label>Username</label>
-                                    <input type="text" id="prof-username" value="devoleper" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" id="prof-username" value="" readonly style="background-color: #F8FAFC;">
                                 </div>
                             </div>
 
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Email Perusahaan</label>
-                                    <input type="email" id="prof-email" value="developer@jtexpress.co.id">
+                                    <input type="email" id="prof-email" value="">
                                 </div>
                                 <div class="form-group-st">
                                     <label>No. Telepon / WhatsApp</label>
-                                    <input type="tel" id="prof-phone" value="0812-0000-0001">
+                                    <input type="tel" id="prof-phone" value="">
                                 </div>
                             </div>
 
@@ -274,12 +277,10 @@
                                     <input type="text" value="Developer & System Administrator" readonly style="background-color: #F8FAFC;">
                                 </div>
                                 <div class="form-group-st">
-                                    <label>Cabang / TLC Utama</label>
+                                    <label>Gateway Penugasan Utama</label>
                                     <select id="prof-tlc">
-                                        <option selected>TLC Cikande</option>
-                                        <option>TLC Serpong</option>
-                                        <option>Head Office Jakarta</option>
-                                        <option>Gateway Surabaya</option>
+                                        <option value="JKT999" selected>Gateway JKT999</option>
+                                        <option value="Head Office Jakarta">Head Office Jakarta</option>
                                     </select>
                                 </div>
                             </div>
@@ -322,17 +323,35 @@
                             <form id="change-pass-form" class="st-card-body">
                                 <div class="form-group-st">
                                     <label>Password Saat Ini</label>
-                                    <input type="password" id="current-pass" placeholder="••••••••" required>
+                                    <div class="input-wrapper">
+                                        <input type="password" id="current-pass" class="form-input" style="padding-left: 14px;" placeholder="••••••••" required>
+                                        <button type="button" id="toggle-current-pass" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                            <svg id="curr-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                            <svg id="curr-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div class="form-group-st">
                                     <label>Password Baru</label>
-                                    <input type="password" id="new-pass" placeholder="Minimal 8 karakter" required>
+                                    <div class="input-wrapper">
+                                        <input type="password" id="new-pass" class="form-input" style="padding-left: 14px;" placeholder="Minimal 8 karakter" required>
+                                        <button type="button" id="toggle-new-pass" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                            <svg id="new-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                            <svg id="new-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div class="form-group-st">
                                     <label>Konfirmasi Password Baru</label>
-                                    <input type="password" id="confirm-pass" placeholder="Ulangi password baru" required>
+                                    <div class="input-wrapper">
+                                        <input type="password" id="confirm-pass" class="form-input" style="padding-left: 14px;" placeholder="Ulangi password baru" required>
+                                        <button type="button" id="toggle-confirm-pass" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                            <svg id="conf-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                            <svg id="conf-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div class="toggle-setting-row no-ic" style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px;">
@@ -448,16 +467,16 @@
         var ss = sessionStorage;
 
         // ── Baca semua data dari sessionStorage ──────────────────────────────
-        var fullname    = ss.getItem('jnt_active_username')  || 'Developer Admin';
-        var role        = ss.getItem('jnt_user_role')        || 'ADMIN';
-        var nik         = ss.getItem('jnt_user_nik')         || 'JNT-DEV-0001';
-        var tlc         = ss.getItem('jnt_user_tlc')         || 'Head Office Jakarta';
-        var email       = ss.getItem('jnt_user_email')       || 'developer@jtexpress.co.id';
-        var phone       = ss.getItem('jnt_user_phone')       || '0812-0000-0001';
-        var jabatan     = ss.getItem('jnt_user_jabatan')     || 'Developer & System Administrator';
-        var departemen  = ss.getItem('jnt_user_departemen')  || 'IT & Development';
-        var bergabung   = ss.getItem('jnt_user_bergabung')   || '1 Januari 2026';
-        var username    = ss.getItem('jnt_username_login')   || 'devoleper';
+        var fullname    = ss.getItem('jnt_active_username')  || '';
+        var role        = ss.getItem('jnt_user_role')        || '';
+        var nik         = ss.getItem('jnt_user_nik')         || '';
+        var tlc         = ss.getItem('jnt_user_tlc')         || '';
+        var email       = ss.getItem('jnt_user_email')       || '';
+        var phone       = ss.getItem('jnt_user_phone')       || '';
+        var jabatan     = ss.getItem('jnt_user_jabatan')     || '';
+        var departemen  = ss.getItem('jnt_user_departemen')  || '';
+        var bergabung   = ss.getItem('jnt_user_bergabung')   || '';
+        var username    = ss.getItem('jnt_username_login')   || '';
 
         var makeAvatar = function(name, size) {
             return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name)
@@ -551,20 +570,17 @@
                 ss.setItem('jnt_user_phone',       newPhone);
                 ss.setItem('jnt_user_tlc',         newTlc);
 
-                // Update localStorage accounts
-                try {
-                    var accounts = JSON.parse(localStorage.getItem('jnt_local_accounts') || '[]');
-                    var idx = accounts.findIndex(function(a) {
-                        return a.username === username || a.uid === ss.getItem('jnt_user_uid');
-                    });
-                    if (idx !== -1) {
-                        accounts[idx].fullname        = newFullname;
-                        accounts[idx].emailPerusahaan = newEmail;
-                        accounts[idx].phone           = newPhone;
-                        accounts[idx].tlc             = newTlc;
-                        localStorage.setItem('jnt_local_accounts', JSON.stringify(accounts));
-                    }
-                } catch(err) { console.warn('Gagal update localStorage:', err); }
+                // Update langsung ke Firestore & Local Store
+                if (typeof JNTFirebaseService !== 'undefined') {
+                    var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
+                    JNTFirebaseService.saveDoc('users', usernameLogin, {
+                        fullname: newFullname,
+                        emailPerusahaan: newEmail,
+                        phone: newPhone,
+                        tlc: newTlc,
+                        updatedAt: new Date().toISOString()
+                    }, true).catch(function(err) { console.warn('Firestore update profile:', err); });
+                }
 
                 // Update UI langsung
                 setText('hero-fullname', newFullname);
@@ -606,38 +622,45 @@
                     alert('❌ Konfirmasi password tidak cocok.'); return;
                 }
 
-                // Verifikasi password lama dari localStorage
-                try {
-                    var accounts = JSON.parse(localStorage.getItem('jnt_local_accounts') || '[]');
-                    var idx = accounts.findIndex(function(a) {
-                        return a.username === username || a.uid === ss.getItem('jnt_user_uid');
-                    });
-                    if (idx === -1) { alert('❌ Akun tidak ditemukan.'); return; }
-                    if (accounts[idx].password !== currentPass) {
-                        alert('❌ Password saat ini salah. Silakan coba lagi.'); return;
-                    }
-
-                    // Update password
-                    accounts[idx].password = newPass;
-                    localStorage.setItem('jnt_local_accounts', JSON.stringify(accounts));
-
-                    // Mirror (hash) ke Firestore di background via app.js
-                    window.dispatchEvent(new CustomEvent('jnt:password-changed', { detail: { newPass: newPass } }));
-
-                    // Reset form
-                    passForm.reset();
-
-                    var toast2 = document.createElement('div');
-                    toast2.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563EB;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(37,99,235,0.4);';
-                    toast2.textContent = '🔑 Password berhasil diperbarui!';
-                    document.body.appendChild(toast2);
-                    setTimeout(function() { toast2.style.opacity='0'; setTimeout(function(){toast2.remove();},400); }, 3000);
-
-                } catch(err) {
-                    alert('❌ Gagal mengubah password: ' + err.message);
+                // Update password langsung di Cloud Firestore & Local Store
+                if (typeof JNTFirebaseService !== 'undefined') {
+                    var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
+                    JNTFirebaseService.saveDoc('users', usernameLogin, {
+                        password: newPass,
+                        updatedAt: new Date().toISOString()
+                    }, true).catch(function(err) { console.warn('Firestore update password:', err); });
                 }
+
+                // Reset form
+                passForm.reset();
+
+                var toast2 = document.createElement('div');
+                toast2.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563EB;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(37,99,235,0.4);';
+                toast2.textContent = '🔑 Password berhasil diperbarui!';
+                document.body.appendChild(toast2);
+                setTimeout(function() { toast2.style.opacity='0'; setTimeout(function(){toast2.remove();},400); }, 3000);
             });
         }
+
+        // Toggle password visibility helpers for profile page
+        function setupPasswordToggle(toggleBtnId, inputId, eyeOffId, eyeOnId) {
+            var btn = document.getElementById(toggleBtnId);
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    var input = document.getElementById(inputId);
+                    var eyeOff = document.getElementById(eyeOffId);
+                    var eyeOn = document.getElementById(eyeOnId);
+                    if (!input) return;
+                    var isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    if (eyeOff) eyeOff.classList.toggle('hidden', isHidden);
+                    if (eyeOn) eyeOn.classList.toggle('hidden', !isHidden);
+                });
+            }
+        }
+        setupPasswordToggle('toggle-current-pass', 'current-pass', 'curr-eye-off', 'curr-eye-on');
+        setupPasswordToggle('toggle-new-pass', 'new-pass', 'new-eye-off', 'new-eye-on');
+        setupPasswordToggle('toggle-confirm-pass', 'confirm-pass', 'conf-eye-off', 'conf-eye-on');
 
         // ── TOMBOL EDIT PROFIL (scroll ke form) ──────────────────────────────
         var btnEdit = document.getElementById('btn-edit-profile');

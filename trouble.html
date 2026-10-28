@@ -7,6 +7,9 @@
     <title>J&T Express - Trouble & Laka</title>
     <meta name="description"
         content="Sistem monitoring operasional dan penanganan kejadian Trouble & Laka J&T Express.">
+    <!-- Favicon / Logo Tab Browser -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -67,7 +70,7 @@
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 16 14"></polyline>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
@@ -92,7 +95,7 @@
                                     <line x1="12" y1="9" x2="12" y2="13"></line>
                                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                                 </svg>
-                                <span class="nav-text">Trouble & Laka</span>
+                                <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -115,7 +118,7 @@
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span class="nav-text">Report & Export</span>
+                                <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -124,6 +127,8 @@
                                     stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                 </svg>
                                 <span class="nav-text">User Management</span>
                             </a>
@@ -385,7 +390,6 @@
                     </div>
                     <div class="filter-action-btns">
                         <button type="button" id="btn-reset-trouble-filter" class="btn-inc-reset">Reset</button>
-                        <button type="button" id="btn-apply-trouble-filter" class="btn-inc-filter">🔻 Filter</button>
                     </div>
                 </div>
 
@@ -504,23 +508,23 @@
                             </div>
                         </div>
 
-                        <!-- Incident Photo Gallery Section -->
+                        <!-- Incident Photo Gallery Section (Foto Kejadian) -->
                         <div class="incident-gallery-section" style="display: flex; flex-direction: column; gap: 8px;">
-                            <span style="font-size: 12.5px; font-weight: 700; color: #0F172A;">Foto Kejadian</span>
-                            <div class="photo-thumbnails-grid"
-                                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">
-                                <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=200&q=80"
-                                    alt="Truck Incident Front" class="incident-thumb">
-                                <img src="https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=200&q=80"
-                                    alt="Tire Damage" class="incident-thumb">
-                                <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=200&q=80"
-                                    alt="Tire Close Up" class="incident-thumb">
-                                <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=200&q=80"
-                                    alt="Truck Side" class="incident-thumb">
-                                <div class="add-photo-box">
-                                    <span style="font-size: 16px; font-weight: 700;">+</span>
-                                    <span style="font-size: 9px; font-weight: 600; text-align: center;">Tambah Foto</span>
-                                </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 12.5px; font-weight: 700; color: #0F172A;">📷 Foto Kejadian (Awal)</span>
+                                <input type="file" id="dt-add-photo-file" accept="image/*" multiple style="display:none;">
+                                <button type="button" id="btn-dt-add-photo" onclick="document.getElementById('dt-add-photo-file').click()" style="font-size: 11px; font-weight: 700; color: #2563EB; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 3px 8px; cursor: pointer;">+ Tambah Foto</button>
+                            </div>
+                            <div class="photo-thumbnails-grid" id="dt-incident-gallery-kejadian" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                <div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto kejadian</div>
+                            </div>
+                        </div>
+
+                        <!-- Incident Photo Gallery Section (Foto Bukti Selesai) -->
+                        <div class="incident-gallery-section" id="wrap-dt-gallery-selesai" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+                            <span style="font-size: 12.5px; font-weight: 700; color: #16A34A;">✅ Foto Bukti Selesai Penanganan</span>
+                            <div class="photo-thumbnails-grid" id="dt-incident-gallery-selesai" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                <div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto bukti selesai</div>
                             </div>
                         </div>
 
@@ -640,6 +644,18 @@
                     <input type="text" id="tr-dampak" placeholder="Contoh: Potensi keterlambatan 2 Jam, barang paket aman terkuci" style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
                 </div>
 
+                <!-- Foto Kejadian Upload Field -->
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label style="font-weight: 700; color: #1E293B;">Upload Foto Kejadian (Awal)</label>
+                    <input type="file" id="tr-foto-kejadian-file" accept="image/*" multiple style="display:none;">
+                    <div id="tr-upload-area-kejadian" onclick="document.getElementById('tr-foto-kejadian-file').click()" style="border: 2px dashed #CBD5E1; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; background: #F8FAFC;">
+                        <span style="font-size: 20px;">📷</span>
+                        <div style="font-size: 12px; font-weight: 700; color: #2563EB;">Klik untuk Unggah Foto Kejadian</div>
+                        <span style="font-size: 11px; color: #64748B;">Bisa pilih multiple gambar (Max 5MB per foto)</span>
+                    </div>
+                    <div id="tr-preview-container-kejadian" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
+                </div>
+
                 <div class="modal-footer" style="margin-top: 14px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
                     <button type="submit" class="btn-jnt-red">🚨 Simpan Laporan Incident (Firestore)</button>
@@ -673,11 +689,32 @@
                     <label style="font-weight: 700; color: #1E293B;">Catatan / Tindakan Penanganan</label>
                     <textarea id="upd-incident-catatan" rows="3" placeholder="Contoh: Unit derek sudah tiba dan menarik armada ke bengkel..." required style="border: 1px solid #CBD5E1; padding: 9px 12px; font-size: 13px; font-family: inherit;"></textarea>
                 </div>
+
+                <!-- Foto Bukti Selesai Penanganan Upload Field -->
+                <div class="form-field" id="wrap-upd-foto-selesai" style="margin-bottom: 14px;">
+                    <label style="font-weight: 700; color: #1E293B;">Foto Bukti Selesai Penanganan <span style="color: #E30613;">* (Wajib jika status SUDAH SELESAI)</span></label>
+                    <input type="file" id="tr-foto-selesai-file" accept="image/*" multiple style="display:none;">
+                    <div id="tr-upload-area-selesai" onclick="document.getElementById('tr-foto-selesai-file').click()" style="border: 2px dashed #BBF7D0; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; background: #F0FDF4;">
+                        <span style="font-size: 20px;">✅ 📸</span>
+                        <div style="font-size: 12px; font-weight: 700; color: #16A34A;">Klik untuk Unggah Foto Bukti Selesai Penanganan</div>
+                        <span style="font-size: 11px; color: #15803D;">Wajib diunggah saat menyelesaikan kejadian</span>
+                    </div>
+                    <div id="tr-preview-container-selesai" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
+                </div>
                 <div class="modal-footer" style="margin-top: 14px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
                     <button type="submit" class="btn-jnt-red">💾 Simpan Status</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: FULL PHOTO PREVIEW -->
+    <div id="modal-photo-preview" class="modal-overlay hidden" style="z-index: 10000;" onclick="this.classList.add('hidden')">
+        <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="event.stopPropagation()">
+            <button type="button" class="btn-close-x" onclick="document.getElementById('modal-photo-preview').classList.add('hidden')" style="position: absolute; top: -40px; right: 0; color: #FFFFFF; font-size: 28px; background: none; border: none; cursor: pointer;">&times;</button>
+            <img id="preview-modal-img" src="" alt="Full Photo Preview" style="max-width: 90vw; max-height: 80vh; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); object-fit: contain;">
+            <span id="preview-modal-caption" style="color: #FFFFFF; font-size: 13px; font-weight: 700; margin-top: 10px;">Foto Bukti</span>
         </div>
     </div>
 

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&T Express - Pengaturan</title>
     <meta name="description" content="Sistem pengaturan dan konfigurasi J&T Express Transportation Monitoring System.">
+    <!-- Favicon / Logo Tab Browser -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +55,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
@@ -65,7 +68,7 @@
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                                <span class="nav-text">Trouble & Laka</span>
+                                <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -83,7 +86,7 @@
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span class="nav-text">Report & Export</span>
+                                <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -201,22 +204,22 @@
                             </div>
                             <div class="st-double-row">
                                 <div class="form-group-st">
-                                    <label>Zona Waktu</label>
-                                    <select><option>Asia/Jakarta (WIB)</option></select>
+                                    <label for="setting-timezone">Zona Waktu</label>
+                                    <select id="setting-timezone" name="timezone"><option value="Asia/Jakarta">Asia/Jakarta (WIB)</option><option value="Asia/Makassar">Asia/Makassar (WITA)</option><option value="Asia/Jayapura">Asia/Jayapura (WIT)</option></select>
                                 </div>
                                 <div class="form-group-st">
-                                    <label>Format Waktu</label>
-                                    <select><option>24 Jam (HH:mm)</option></select>
+                                    <label for="setting-time-format">Format Waktu</label>
+                                    <select id="setting-time-format" name="time-format"><option value="24h">24 Jam (HH:mm)</option><option value="12h">12 Jam (hh:mm AM/PM)</option></select>
                                 </div>
                             </div>
                             <div class="st-double-row">
                                 <div class="form-group-st">
-                                    <label>Format Tanggal</label>
-                                    <select><option>dd/mm/yyyy</option></select>
+                                    <label for="setting-date-format">Format Tanggal</label>
+                                    <select id="setting-date-format" name="date-format"><option value="dd/mm/yyyy">dd/mm/yyyy</option><option value="mm/dd/yyyy">mm/dd/yyyy</option><option value="yyyy-mm-dd">yyyy-mm-dd</option></select>
                                 </div>
                                 <div class="form-group-st">
-                                    <label>Bahasa</label>
-                                    <select><option>Bahasa Indonesia</option></select>
+                                    <label for="setting-language">Bahasa</label>
+                                    <select id="setting-language" name="language"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select>
                                 </div>
                             </div>
                             <div style="margin-top: 6px;">
@@ -317,13 +320,13 @@
                             </div>
 
                             <div class="form-group-st">
-                                <label>Ukuran Font</label>
-                                <select><option>Sedang</option></select>
+                                <label for="setting-font-size">Ukuran Font</label>
+                                <select id="setting-font-size" name="font-size"><option value="small">Kecil</option><option value="medium" selected>Sedang</option><option value="large">Besar</option></select>
                             </div>
 
                             <div class="form-group-st">
-                                <label>Kepadatan Tampilan</label>
-                                <select><option>Normal</option></select>
+                                <label for="setting-density">Kepadatan Tampilan</label>
+                                <select id="setting-density" name="density"><option value="compact">Kompak</option><option value="normal" selected>Normal</option><option value="comfortable">Lega</option></select>
                             </div>
 
                             <div style="margin-top: 10px;">

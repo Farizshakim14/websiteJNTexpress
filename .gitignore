@@ -1,0 +1,11 @@
+
+# Private credentials
+*-firebase-adminsdk-*.json
+*service-account*.json
+.env
+.env.*
+!.env.example
+
+# Local development
+node_modules/
+.idea/

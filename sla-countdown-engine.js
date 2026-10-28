@@ -87,17 +87,17 @@ const SLACountdownEngine = {
 
         if (!departureDate || isNaN(hours) || hours <= 0) {
             return {
-                status: 'DATA_ERROR',
-                statusCode: 'DATA_ERROR',
-                badgeText: 'DATA ERROR',
-                badgeClass: 'gray',
-                badgeSymbol: '⚪',
+                status: 'ON_PROGRESS',
+                statusCode: 'ON_PROGRESS',
+                badgeText: 'ON PROGRESS',
+                badgeClass: 'transit',
+                badgeSymbol: '●',
                 remainingMs: 0,
-                remainingFormatted: 'N/A',
+                remainingFormatted: '--:--:--',
                 isOverdue: false,
                 isCompleted: false,
                 targetDate: null,
-                departureDate: departureDate
+                departureDate: null
             };
         }
 

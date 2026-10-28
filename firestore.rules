@@ -3,49 +3,67 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // -------------------------------------------------------------------------
-    // HELPER: Pastikan request memiliki Firebase Auth token yang valid.
-    // ⚡ FIREBASE-ONLY MODE: Sistem login menggunakan Anonymous Auth.
-    //    Role & permission dijaga di app-level (RBAC sessionStorage).
-    //    Firestore rules cukup memastikan pengguna sudah terautentikasi.
+    // HELPER FUNCTIONS
     // -------------------------------------------------------------------------
-    function isAuthenticated() {
-      return request.auth != null;
+
+
+
+    // Terautentikasi sebagai user nyata (sudah login dengan email+password).
+    // Anonymous sign-in provider = 'anonymous'; email = 'password'.
+    function isRealUser() {
+      return request.auth != null
+          && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Periksa custom claim role. Diset saat user dibuat via Admin SDK atau
+    // Cloud Function. Jika custom claim belum diset, izin ADMIN tidak berlaku.
+    function hasRole(role) {
+      return isRealUser()
+          && request.auth.token.keys().hasAny(['role'])
+          && request.auth.token.role == role;
     }
 
     // -------------------------------------------------------------------------
     // 1. USER MANAGEMENT (/users/{userId})
+    //    Baca: PUBLIK — diperlukan untuk lookup username→email saat proses login
+    //           tanpa perlu anonymous auth (agar tidak spam Firebase Auth).
+    //    Tulis: hanya user nyata yang sudah login dengan email/password.
     // -------------------------------------------------------------------------
     match /users/{userId} {
-      allow read, write: if isAuthenticated();
+      allow read:  if true;
+      allow write: if isRealUser();
     }
 
     // -------------------------------------------------------------------------
     // 2. OPERATIONAL: INCOMING & DISPATCH (/incoming/{kodeTugas})
+    //    Semua user nyata boleh baca & tulis.
     // -------------------------------------------------------------------------
     match /incoming/{kodeTugas} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isRealUser();
     }
 
     // -------------------------------------------------------------------------
     // 3. OPERATIONAL: SLA MANAGEMENT
+    //    Semua user nyata boleh baca & tulis.
     // -------------------------------------------------------------------------
     match /sla_outbound/{kodeTugas} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isRealUser();
     }
 
     match /sla_return/{kodeTugas} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isRealUser();
     }
 
     match /sla_roundtrip/{kodeTugas} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isRealUser();
     }
 
     // -------------------------------------------------------------------------
     // 4. MONITORING 4 JAM (/monitoring_4h/{kodeTugas})
+    //    Semua user nyata boleh baca & tulis.
     // -------------------------------------------------------------------------
     match /monitoring_4h/{kodeTugas} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isRealUser();
     }
 
     // -------------------------------------------------------------------------
@@ -53,7 +71,7 @@ service cloud.firestore {
     //    Delete tetap dilarang — record harus ditutup dengan status SELESAI.
     // -------------------------------------------------------------------------
     match /troubles/{incidentId} {
-      allow read, create, update: if isAuthenticated();
+      allow read, create, update: if isRealUser();
       allow delete: if false;
     }
 
@@ -62,31 +80,43 @@ service cloud.firestore {
     //    Delete dilarang — shift adalah rekam jejak operasional permanen.
     // -------------------------------------------------------------------------
     match /shifts/{shiftId} {
-      allow read, create, update: if isAuthenticated();
+      allow read, create, update: if isRealUser();
       allow delete: if false;
     }
 
     // -------------------------------------------------------------------------
     // 7. MASTER DATA (Routes, Fleets, Vendors, Drivers, Reasons, SLA)
+    //    Baca: semua user nyata.
+    //    Tulis: hanya ADMIN (via custom claim role='ADMIN').
+    //    Catatan: jika custom claim belum diimplementasikan, ubah baris write
+    //    menjadi `if isRealUser();` sebagai langkah sementara.
     // -------------------------------------------------------------------------
-    match /master_trips/{docId}   { allow read, write: if isAuthenticated(); }
-    match /master_fleets/{docId}  { allow read, write: if isAuthenticated(); }
-    match /master_vendors/{docId} { allow read, write: if isAuthenticated(); }
-    match /master_drivers/{docId} { allow read, write: if isAuthenticated(); }
-    match /master_reasons/{docId} { allow read, write: if isAuthenticated(); }
-    match /master_routes/{docId}  { allow read, write: if isAuthenticated(); }
-    match /master_sla/{docId}     { allow read, write: if isAuthenticated(); }
+    match /master_trips/{docId}   { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
+    match /master_fleets/{docId}  { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
+    match /master_vendors/{docId} { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
+    match /master_drivers/{docId} { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
+    match /master_reasons/{docId} { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
+    match /master_routes/{docId}  { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
+    match /master_sla/{docId}     { allow read: if isRealUser(); allow write: if hasRole('ADMIN'); }
 
     // -------------------------------------------------------------------------
     // 8. AUDIT LOGS — Immutable (update & delete dilarang di level rules)
     // -------------------------------------------------------------------------
     match /audit_logs/{logId} {
-      allow read, create: if isAuthenticated();
+      allow read, create: if isRealUser();
       allow update, delete: if false;
     }
 
     // -------------------------------------------------------------------------
-    // 9. DEFAULT DENY — Semua path yang tidak terdaftar di atas ditolak.
+    // 9. ACTIVE SESSIONS — Untuk single-session lock (1 akun 1 perangkat).
+    //    Baca, tulis, hapus: semua user nyata (anonymous tidak perlu sesi).
+    // -------------------------------------------------------------------------
+    match /active_sessions/{sessionKey} {
+      allow read, write, delete: if isRealUser();
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. DEFAULT DENY — Semua path yang tidak terdaftar di atas ditolak.
     // -------------------------------------------------------------------------
     match /{document=**} {
       allow read, write: if false;

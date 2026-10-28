@@ -1,0 +1,36 @@
+# ==============================================================================
+# J&T Express TMS - Clean URL Rewrite Rules for Apache / cPanel Hosting
+# Hides .html file extension from the browser address bar & prevents URL queries
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Prevent directory browsing
+    Options -Indexes
+
+    # Set default directory index
+    DirectoryIndex index.html
+
+    # Remove query string parameters on index GET submissions
+    RewriteCond %{QUERY_STRING} ^username=.* [NC]
+    RewriteRule ^$ /? [R=301,L]
+
+    # Redirect /filename.html to /filename (Clean URL)
+    RewriteCond %{THE_REQUEST} \s/+(.+)\.html[\s?] [NC]
+    RewriteRule ^ /%1 [R=301,L]
+
+    # Internally map /filename to /filename.html if file exists
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME}.html -f
+    RewriteRule ^([^\.]+)$ $1.html [NC,L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

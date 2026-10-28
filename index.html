@@ -8,6 +8,9 @@
     <meta name="description"
         content="Login ke Transportation Monitoring System J&T Express untuk memantau operasional transportasi secara real-time.">
     <meta name="robots" content="noindex, nofollow">
+    <!-- Favicon / Logo Tab Browser -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,27 +28,13 @@
         <!-- LOGIN SECTION -->
         <section id="login-section" class="login-section" aria-label="Halaman Login">
 
-            <!-- Left Banner Panel -->
-            <div class="banner-panel" aria-hidden="true">
-                <img src="assets/login.png" alt="" class="banner-image" loading="eager">
-                <!-- Overlay gradient untuk readability -->
-                <div class="banner-overlay"></div>
-                <!-- Brand overlay at bottom of banner -->
-                <div class="banner-brand-info">
-                    <div class="banner-logo-mark">
-                        <span class="banner-jnt">J&T</span>
-                        <span class="banner-express-word">EXPRESS</span>
-                    </div>
-                    <p class="banner-tagline">Transportation Monitoring System</p>
-                    <div class="banner-feature-pills">
-                        <span class="banner-pill">📦 Real-time Tracking</span>
-                        <span class="banner-pill">📊 SLA Monitoring</span>
-                        <span class="banner-pill">🚛 Fleet Management</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Full Landscape Background Image -->
+            <img src="assets/login.png" alt="J&amp;T Express Transportation Monitoring System" class="fullscreen-login-bg" loading="eager">
 
-            <!-- Right Login Form Panel -->
+            <!-- Subtle Vignette Dark Overlay for Contrast -->
+            <div class="login-bg-overlay"></div>
+
+            <!-- Centered Login Form Panel -->
             <div class="form-panel">
 
                 <!-- Background Map Watermark -->
@@ -105,12 +94,6 @@
                         </p>
                     </div>
 
-                    <!-- System Status Badge -->
-                    <div id="system-status-bar" class="system-status-bar" aria-live="polite">
-                        <span class="status-dot" id="status-dot"></span>
-                        <span class="status-label" id="status-label">Memeriksa koneksi sistem...</span>
-                    </div>
-
                     <!-- Alert Box -->
                     <div id="alert-box" class="alert-box hidden" role="alert" aria-atomic="true">
                         <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -123,7 +106,7 @@
                     </div>
 
                     <!-- Login Form -->
-                    <form id="login-form" novalidate autocomplete="on">
+                    <form id="login-form" action="javascript:void(0);" method="POST" novalidate autocomplete="on">
                         <div class="form-group">
                             <label for="username-input" class="form-label">Username</label>
                             <div class="input-wrapper" id="username-wrapper">
@@ -220,13 +203,6 @@
                             <span></span>
                         </div>
                         <div class="footer-info-row">
-                            <span class="footer-info-item" id="footer-auth-mode">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
-                                    height="13" aria-hidden="true">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                </svg>
-                                Mode: Lokal
-                            </span>
                             <span class="footer-info-item">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13"
                                     height="13" aria-hidden="true">
@@ -275,29 +251,31 @@
                         </svg>
                         <span>it-support@jtexpress.co.id</span>
                     </div>
-                    <div class="help-contact-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
-                            height="16" aria-hidden="true">
-                            <path
-                                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 14.92z">
-                            </path>
-                        </svg>
-                        <span>Ext. 1000 (IT Helpdesk)</span>
-                    </div>
                 </div>
+
+                <!-- Interactive Password Reset Form -->
+                <form id="forgot-password-form" action="javascript:void(0);" method="POST" style="margin-top:16px;">
+                    <div class="form-group" style="text-align:left;margin-bottom:12px;">
+                        <label for="reset-email-input" class="form-label" style="font-size:12px;color:#cbd5e1;">Email atau Username Akun Anda</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="reset-email-input" class="form-input" style="padding:10px 14px;" placeholder="Masukkan email atau username" required>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-send-reset" class="btn-login" style="padding:10px 14px;font-size:13px;width:100%;">
+                        <span>✉️ Kirim Link Reset Password</span>
+                    </button>
+                    <div id="reset-alert-box" class="field-hint hidden" style="margin-top:8px;text-align:center;"></div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK Compat CDN -->
+    <!-- Firebase SDK & Core Application Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <!-- Firebase Config & Service -->
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
-    <!-- JavaScript Script -->
     <script src="app.js"></script>
 </body>
-
 </html>

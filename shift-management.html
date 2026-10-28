@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&T Express - Shift Management Control Center</title>
     <meta name="description" content="Control Center Penugasan 2 Operator, Aktivitas Operasional, dan Audit Trail Shift J&T Express.">
+    <!-- Favicon / Logo Tab Browser -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +55,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
@@ -65,7 +68,7 @@
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                                <span class="nav-text">Trouble & Laka</span>
+                                <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item active">
@@ -83,7 +86,7 @@
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span class="nav-text">Report & Export</span>
+                                <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -282,7 +285,7 @@
 
                     <div class="inc-kpi-card" style="background: #FFFFFF; border-radius: 12px; padding: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
                         <div class="inc-kpi-icon-circle orange-light" style="background: #FEF3C7; color: #D97706; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         </div>
                         <div class="inc-kpi-info" style="margin-top: 10px;">
                             <span class="inc-kpi-label" style="font-size: 11px; font-weight: 700; color: #64748B;">MONITORING 4H</span>
@@ -351,36 +354,39 @@
                 </div>
 
                 <!-- SECTION: RIWAYAT SHIFT OPERASIONAL TABLE CARD -->
-                <div class="inc-table-card" style="margin-top: 24px;" id="section-shift-history">
-                    <div class="inc-table-header" style="flex-wrap: wrap; gap: 14px;">
+                <div class="inc-table-card" id="section-shift-history" style="margin-top: 24px;">
+
+                    <!-- Card Header -->
+                    <div class="inc-table-header" style="padding: 18px 20px 14px 20px; border-bottom: 1px solid #F1F5F9; margin-bottom: 0;">
                         <div>
-                            <h3 class="inc-table-title" style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                            <h3 class="inc-table-title" style="font-size: 17px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                 📜 Riwayat Shift Operasional
                             </h3>
-                            <span style="font-size: 12px; color: #64748B;">Daftar seluruh periode shift yang telah selesai maupun sedang berjalan</span>
+                            <span style="font-size: 12px; color: #64748B; display: block;">Daftar seluruh periode shift yang telah selesai maupun sedang berjalan</span>
                         </div>
 
                         <!-- Search & Filter Controls -->
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                            <input type="text" id="sh-history-search" placeholder="🔍 Cari Shift ID / Operator..." style="padding: 8px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 13px; outline: none; width: 220px;">
-                            
-                            <select id="sh-history-status-filter" style="padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; background: #FFF;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <input type="text" id="sh-history-search" placeholder="🔍 Cari Shift ID / Operator...">
+
+                            <select id="sh-history-status-filter">
                                 <option value="ALL">Semua Status</option>
                                 <option value="AKTIF">🟢 AKTIF</option>
                                 <option value="COMPLETED">✅ COMPLETED</option>
                             </select>
 
-                            <button id="btn-reset-history-filter" class="btn-st-outline" style="padding: 8px 14px; font-size: 12.5px;">
+                            <button id="btn-reset-history-filter" class="btn-st-outline" style="padding: 8px 14px; font-size: 12px; white-space: nowrap;">
                                 🔄 Reset
                             </button>
                         </div>
                     </div>
 
+                    <!-- Table Scroll Wrapper -->
                     <div class="inc-table-scroll">
                         <table class="inc-data-table shift-history-table">
                             <thead>
                                 <tr>
-                                    <th>No</th>
+                                    <th style="width: 40px;">No</th>
                                     <th>Shift ID</th>
                                     <th>Tanggal</th>
                                     <th>Jam Operasional</th>
@@ -389,7 +395,7 @@
                                     <th>Durasi</th>
                                     <th>Status</th>
                                     <th>Total Aktivitas</th>
-                                    <th>Action</th>
+                                    <th style="text-align: center;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="sh-history-tbody">
@@ -399,7 +405,7 @@
                     </div>
 
                     <!-- Pagination Footer -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-top: 1px solid #E2E8F0; font-size: 12.5px; color: #64748B;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-top: 1px solid #E2E8F0; font-size: 12.5px; color: #64748B; flex-wrap: wrap; gap: 8px;">
                         <span id="sh-pagination-info">Menampilkan 1 - 5 dari 5 Shift</span>
                         <div style="display: flex; gap: 6px;" id="sh-pagination-controls">
                             <!-- Populated dynamically -->
@@ -407,34 +413,68 @@
                     </div>
                 </div>
 
-                <!-- SECTION: SHIFT ACTIVITY & AUDIT TRAIL TABLE CARD -->
-                <div class="inc-table-card" style="margin-top: 24px;" id="section-audit-trail">
-                    <div class="inc-table-header" style="flex-wrap: wrap; gap: 14px;">
+                <!-- SECTION: HISTORI PERGANTIAN SHIFT (HANDOVER) -->
+                <div class="inc-table-card" id="section-handover-history" style="margin-top: 24px;">
+                    <div class="inc-table-header" style="padding: 18px 20px 14px 20px; border-bottom: 1px solid #F1F5F9; margin-bottom: 0;">
                         <div>
-                            <h3 class="inc-table-title" style="font-size: 18px; display: flex; align-items: center; gap: 8px;">
-                                🛡️ Shift Activity & Audit Trail (Real-Time Logs)
+                            <h3 class="inc-table-title" style="font-size: 17px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                🔄 Histori Pergantian Shift (Handover)
                             </h3>
-                            <span style="font-size: 12px; color: #64748B;">Mencatat otomatis setiap transaksi beserta Shift ID & Operator bertugas</span>
+                            <span style="font-size: 12px; color: #64748B; display: block;">Mencatat rekam jejak pergantian operator, dari nama siapa ke siapa, beserta jam mulai &amp; akhir</span>
+                        </div>
+                    </div>
+                    <div class="inc-table-scroll">
+                        <table class="inc-data-table handover-history-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">No</th>
+                                    <th>Shift ID</th>
+                                    <th>Operator Sebelumnya (Dari)</th>
+                                    <th>Operator Pengganti (Ke)</th>
+                                    <th>Jam Mulai &amp; Akhir</th>
+                                    <th>Tanggal Handover</th>
+                                    <th>Catatan / Alasan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sh-handover-tbody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION: SHIFT ACTIVITY & AUDIT TRAIL TABLE CARD -->
+                <div class="inc-table-card" id="section-audit-trail" style="margin-top: 24px;">
+
+                    <!-- Card Header -->
+                    <div class="inc-table-header" style="padding: 18px 20px 14px 20px; border-bottom: 1px solid #F1F5F9; margin-bottom: 0;">
+                        <div>
+                            <h3 class="inc-table-title" style="font-size: 17px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                🛡️ Shift Activity &amp; Audit Trail (Real-Time Logs)
+                            </h3>
+                            <span style="font-size: 12px; color: #64748B; display: block;">Mencatat otomatis setiap transaksi beserta Shift ID &amp; Operator bertugas</span>
                         </div>
 
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <select id="audit-module-filter" style="padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; background: #FFF;">
+                        <!-- Audit Filter Controls -->
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <select id="audit-module-filter">
                                 <option value="ALL">Semua Modul</option>
                                 <option value="Monitoring 4H">Monitoring 4H</option>
                                 <option value="SLA Vendor">SLA Vendor</option>
-                                <option value="Trouble & Laka">Trouble & Laka</option>
+                                <option value="Trouble &amp; Laka">Trouble &amp; Laka</option>
                                 <option value="Shift Management">Shift Management</option>
                             </select>
 
-                            <button id="btn-export-audit-log" class="btn-inc-import" style="padding: 8px 14px;">📥 Export Audit Log</button>
+                            <button id="btn-export-audit-log" class="btn-inc-import" style="padding: 8px 14px; white-space: nowrap;">📥 Export Audit Log</button>
                         </div>
                     </div>
 
+                    <!-- Table Scroll Wrapper -->
                     <div class="inc-table-scroll">
                         <table class="inc-data-table audit-table">
                             <thead>
                                 <tr>
-                                    <th>No</th>
+                                    <th style="width: 40px;">No</th>
                                     <th>Waktu</th>
                                     <th>Shift ID</th>
                                     <th>Operator Input</th>
@@ -472,11 +512,11 @@
                 <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Tanggal Shift</label>
-                        <input type="date" id="st-tanggal-input" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                        <input type="date" id="st-tanggal-input" required style="border: 1px solid #CBD5E1; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Nama Shift</label>
-                        <select id="st-nama-select" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                        <select id="st-nama-select" required style="border: 1px solid #CBD5E1; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
                             <option value="Shift 1 (08:00 - 20:00 WIB)">Shift 1 (08:00 - 20:00 WIB)</option>
                             <option value="Shift 2 (20:00 - 08:00 WIB)">Shift 2 (20:00 - 08:00 WIB)</option>
                         </select>
@@ -486,18 +526,18 @@
                 <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Jam Mulai</label>
-                        <input type="time" id="st-jam-mulai-input" value="08:00" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                        <input type="time" id="st-jam-mulai-input" value="08:00" required style="border: 1px solid #CBD5E1; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Jam Selesai</label>
-                        <input type="time" id="st-jam-selesai-input" value="20:00" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                        <input type="time" id="st-jam-selesai-input" value="20:00" required style="border: 1px solid #CBD5E1; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                 </div>
 
                 <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator 1 (Utama)</label>
-                        <select id="st-op1-select" required style="border: 1.5px solid #E30613; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; width: 100%;">
+                        <select id="st-op1-select" required style="border: 1.5px solid #E30613; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; width: 100%;">
                             <option value="Hamdan Hamdani">Hamdan Hamdani</option>
                             <option value="Dedi Setiawan">Dedi Setiawan</option>
                             <option value="Rina Marlina">Rina Marlina</option>
@@ -505,14 +545,14 @@
                     </div>
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Penugasan Op 1</label>
-                        <input type="text" id="st-op1-tugas" value="Monitoring 4H & Incident" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                        <input type="text" id="st-op1-tugas" value="Monitoring 4H & Incident" required style="border: 1px solid #CBD5E1; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                 </div>
 
                 <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Operator 2 (Pendamping)</label>
-                        <select id="st-op2-select" required style="border: 1.5px solid #2563EB; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; width: 100%;">
+                        <select id="st-op2-select" required style="border: 1.5px solid #2563EB; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13.5px; font-weight: 700; width: 100%;">
                             <option value="Rizky Ramadhan" selected>Rizky Ramadhan</option>
                             <option value="Faris Ramadhan">Faris Ramadhan</option>
                             <option value="Siti Aisyah">Siti Aisyah</option>
@@ -520,7 +560,7 @@
                     </div>
                     <div class="form-field">
                         <label style="font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 6px; display: block;">Penugasan Op 2</label>
-                        <input type="text" id="st-op2-tugas" value="SLA Vendor & Master Data" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
+                        <input type="text" id="st-op2-tugas" value="SLA Vendor & Master Data" required style="border: 1px solid #CBD5E1; background-color: #FFFFFF; color: #0F172A; padding: 10px 12px; border-radius: 8px; font-size: 13px; width: 100%;">
                     </div>
                 </div>
 

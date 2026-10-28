@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&T Express - User Management</title>
     <meta name="description" content="Sistem manajemen pengguna dan hak akses operasional J&T Express.">
+    <!-- Favicon / Logo Tab Browser -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +55,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
@@ -65,7 +68,7 @@
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                                <span class="nav-text">Trouble & Laka</span>
+                                <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -83,7 +86,7 @@
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                <span class="nav-text">Report & Export</span>
+                                <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item active">
@@ -201,13 +204,13 @@
                         </div>
                     </div>
 
-                    <!-- Card 4: OPERATOR -->
+                    <!-- Card 4: STAFF VEHICLE DISPATCH -->
                     <div class="inc-kpi-card">
                         <div class="inc-kpi-icon-circle green-light">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         </div>
                         <div class="inc-kpi-info">
-                            <span class="inc-kpi-label">OPERATOR</span>
+                            <span class="inc-kpi-label">STAFF VEHICLE DISPATCH</span>
                             <div class="inc-kpi-val-row">
                                 <span class="inc-kpi-number" id="usr-kpi-op">0</span>
                             </div>
@@ -246,17 +249,15 @@
                                 <option value="">Semua Role</option>
                                 <option value="Admin">Admin</option>
                                 <option value="Supervisor">Supervisor</option>
-                                <option value="Operator">Operator</option>
+                                <option value="Staff Vehicle Dispatch">Staff Vehicle Dispatch</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Cabang / TLC</label>
+                            <label>Gateway / Penugasan</label>
                             <select id="usr-filter-tlc">
-                                <option value="">Semua Cabang</option>
-                                <option value="Head Office">Head Office</option>
-                                <option value="TLC Cikande">TLC Cikande</option>
-                                <option value="TLC Serpong">TLC Serpong</option>
-                                <option value="Gateway Surabaya">Gateway Surabaya</option>
+                                <option value="">Semua Gateway</option>
+                                <option value="JKT999">Gateway JKT999</option>
+                                <option value="Head Office">Head Office Jakarta</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -294,7 +295,7 @@
                                         <th>Username</th>
                                         <th>Email</th>
                                         <th>Role</th>
-                                        <th>Cabang / TLC</th>
+                                        <th>Gateway Penugasan</th>
                                         <th>Status</th>
                                         <th>Terakhir Login</th>
                                         <th class="col-center">Aksi</th>
@@ -352,7 +353,7 @@
                                 <span class="info-value" id="usr-dt-role-item">-</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">🏢 Cabang / TLC</span>
+                                <span class="info-label">🏢 Gateway Penugasan</span>
                                 <span class="info-value font-bold" id="usr-dt-tlc">-</span>
                             </div>
                             <div class="info-item">
@@ -407,7 +408,7 @@
                                     <span class="history-ip">192.168.1.15</span>
                                 </div>
                             </div>
-                            <button class="btn-view-all-history">Lihat Semua Riwayat</button>
+                            <button id="btn-view-all-history" class="btn-view-all-history">Lihat Semua Riwayat</button>
                         </div>
 
                     </div>
@@ -459,25 +460,58 @@
                     <div class="form-field">
                         <label>Role / Akses Jabatan</label>
                         <select id="usr-role" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
-                            <option value="Operator">Operator</option>
+                            <option value="Staff Vehicle Dispatch">Staff Vehicle Dispatch</option>
                             <option value="Supervisor">Supervisor</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
                     <div class="form-field">
-                        <label>TLC / Cabang Penugasan</label>
+                        <label>Gateway Penugasan</label>
                         <select id="usr-tlc" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
-                            <option value="TLC Cikande">TLC Cikande</option>
-                            <option value="TLC Serpong">TLC Serpong</option>
-                            <option value="Head Office">Head Office</option>
-                            <option value="Gateway Surabaya">Gateway Surabaya</option>
+                            <option value="JKT999">Gateway JKT999</option>
+                            <option value="Head Office Jakarta">Head Office Jakarta</option>
                         </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2" style="margin-top: 10px;">
+                    <div class="form-field">
+                        <label>Password Login <span style="color: #E30613;">*</span></label>
+                        <div class="input-wrapper">
+                            <input type="password" id="usr-password" class="form-input" style="padding-left: 14px;" placeholder="Minimal 6 karakter" required minlength="6">
+                            <button type="button" id="toggle-usr-password" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                <svg id="usr-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                                <svg id="usr-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label>Konfirmasi Password <span style="color: #E30613;">*</span></label>
+                        <div class="input-wrapper">
+                            <input type="password" id="usr-confirm-password" class="form-input" style="padding-left: 14px;" placeholder="Ketik ulang password" required minlength="6">
+                            <button type="button" id="toggle-usr-confirm" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                <svg id="usr-confirm-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                                <svg id="usr-confirm-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="modal-footer" style="margin-top: 10px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red">👤 Simpan User Ke Firestore</button>
+                    <button type="submit" class="btn-jnt-red">👤 Buat Akun &amp; Masuk</button>
                 </div>
             </form>
         </div>
@@ -518,18 +552,16 @@
                     <div class="form-field">
                         <label>Role / Akses Jabatan</label>
                         <select id="edit-usr-role" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
-                            <option value="Operator">Operator</option>
+                            <option value="Staff Vehicle Dispatch">Staff Vehicle Dispatch</option>
                             <option value="Supervisor">Supervisor</option>
                             <option value="Admin">Admin</option>
                         </select>
                     </div>
                     <div class="form-field">
-                        <label>TLC / Cabang Penugasan</label>
+                        <label>Gateway Penugasan</label>
                         <select id="edit-usr-tlc" style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
-                            <option value="TLC Cikande">TLC Cikande</option>
-                            <option value="TLC Serpong">TLC Serpong</option>
-                            <option value="Head Office">Head Office</option>
-                            <option value="Gateway Surabaya">Gateway Surabaya</option>
+                            <option value="JKT999">Gateway JKT999</option>
+                            <option value="Head Office Jakarta">Head Office Jakarta</option>
                         </select>
                     </div>
                 </div>
@@ -563,11 +595,15 @@
                     Mengatur ulang kata sandi untuk pengguna <strong id="reset-usr-label-name" style="color: #0F172A;">-</strong>.
                 </p>
                 <div class="form-field" style="margin-bottom: 12px;">
-                    <label>Password Baru</label>
+                    <label>Password Terakhir / Saat Ini <span style="color: #E30613;">*</span></label>
+                    <input type="password" id="reset-usr-current-pass" placeholder="Masukkan password saat ini/terakhir" required style="padding: 10px 12px; font-size: 13px;">
+                </div>
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label>Password Baru <span style="color: #E30613;">*</span></label>
                     <input type="password" id="reset-usr-new-pass" placeholder="Minimal 6 karakter" required minlength="6" style="padding: 10px 12px; font-size: 13px;">
                 </div>
                 <div class="form-field" style="margin-bottom: 16px;">
-                    <label>Konfirmasi Password Baru</label>
+                    <label>Konfirmasi Password Baru <span style="color: #E30613;">*</span></label>
                     <input type="password" id="reset-usr-confirm-pass" placeholder="Ulangi password baru" required minlength="6" style="padding: 10px 12px; font-size: 13px;">
                 </div>
                 <div class="modal-footer">

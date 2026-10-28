@@ -1,19 +1,18 @@
 /**
  * J&T Express - Transportation Monitoring System
- * Firebase SDK Configuration & Initialization (Project ID: jntexpres-ab678)
- * ⚡ FIREBASE-ONLY MODE — Live config, Anonymous Auth untuk Firestore access.
+ * Firebase SDK Configuration & Initialization (Project ID: jntexpres-c377f)
+ * ⚡ FIREBASE-ONLY MODE — Live config, Email/Password Auth.
  */
 
-// Firebase Configuration — LIVE (jntexpres-ab678)
+// Firebase Configuration — LIVE (jntexpres-c377f)
 const firebaseConfig = {
-    apiKey: "AIzaSyDa7-G9pAtUChHfya-XM8YZcX-WP1kfVeU",
-    authDomain: "jntexpres-ab678.firebaseapp.com",
-    databaseURL: "https://jntexpres-ab678-default-rtdb.firebaseio.com",
-    projectId: "jntexpres-ab678",
-    storageBucket: "jntexpres-ab678.firebasestorage.app",
-    messagingSenderId: "178404857541",
-    appId: "1:178404857541:web:dc146ca198cbeef24242ac",
-    measurementId: "G-2NW170G2VZ"
+    apiKey: "AIzaSyAsd4dSEv_ARfcLtxst-c16DeTFP7hyeak",
+    authDomain: "jntexpres-c377f.firebaseapp.com",
+    projectId: "jntexpres-c377f",
+    storageBucket: "jntexpres-c377f.firebasestorage.app",
+    messagingSenderId: "667157450247",
+    appId: "1:667157450247:web:3cf72a34486f15927da4a2",
+    measurementId: "G-BCT0JWRGHT"
 };
 
 // Check if running on localhost with emulators enabled
@@ -42,35 +41,16 @@ if (typeof firebase !== 'undefined') {
         }
     }
 
-    // ⚡ AUTO ANONYMOUS AUTH — Sign in anonymously agar request.auth != null
-    // Dipanggil otomatis saat halaman load. Jika sudah ada sesi auth, skip.
+    // ✅ NO ANONYMOUS AUTH — Returns current real (email/password) user saja.
+    // Anonymous auth dihapus untuk mencegah spam akun di Firebase Auth.
     window.ensureFirebaseAuth = async function () {
-        try {
-            const currentUser = window.auth.currentUser;
-            if (currentUser) {
-                console.log('🔑 Firebase Auth: sesi aktif UID =', currentUser.uid);
-                return currentUser;
-            }
-            const cred = await window.auth.signInAnonymously();
-            console.log('🔑 Firebase Auth: Anonymous sign-in berhasil, UID =', cred.user.uid);
-            return cred.user;
-        } catch (err) {
-            console.error('❌ Firebase Anonymous Auth gagal:', err.message);
-            return null;
+        const currentUser = window.auth.currentUser;
+        if (currentUser && !currentUser.isAnonymous) {
+            return currentUser;
         }
+        return null;
     };
 
-    // Jalankan saat halaman load (jika user sudah login ke app)
-    window.auth.onAuthStateChanged((user) => {
-        if (!user) {
-            // Cek apakah user sudah login ke sistem lokal
-            const isLoggedIn = sessionStorage.getItem('jnt_is_logged_in') === 'true';
-            if (isLoggedIn) {
-                // Sign in anonymously supaya Firestore rules terpenuhi
-                window.ensureFirebaseAuth();
-            }
-        }
-    });
 
     window.isFirebaseConfigPlaceholder = () => false; // Config sudah LIVE
     console.log('🔥 Firebase Initialized (LIVE):', firebaseConfig.projectId);

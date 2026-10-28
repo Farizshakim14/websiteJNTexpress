@@ -1,13 +1,13 @@
 {
   "hosting": {
     "public": ".",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "test_*.js",
-      "*.log",
-      "audit_results.json"
+      "*.log"
     ]
   },
   "firestore": {

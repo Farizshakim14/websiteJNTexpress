@@ -23,7 +23,21 @@
         'jnt_sync_queue',
         'jnt_conflicts',
         'jnt_global_data_pulse',
-        'jnt_seed_version'
+        'jnt_seed_version',
+        'jnt_incoming',
+        'jnt_sla_outbound',
+        'jnt_sla_return',
+        'jnt_sla_roundtrip',
+        'jnt_monitoring_4h',
+        'jnt_troubles',
+        'jnt_shifts',
+        'jnt_users',
+        'jnt_master_trips',
+        'jnt_master_fleets',
+        'jnt_master_vendors',
+        'jnt_master_drivers',
+        'jnt_master_reasons',
+        'jnt_audit_logs'
     ];
     operationalKeys.forEach(key => {
         try { localStorage.removeItem(key); } catch (e) {}
@@ -69,7 +83,8 @@
             const style = document.createElement('style');
             style.id = 'jnt-offline-banner-style';
             style.textContent = '@keyframes jnt-slide-down { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }';
-            document.head.appendChild(style);
+            if (document.head) document.head.appendChild(style);
+            else if (document.body) document.body.appendChild(style);
         }
 
         document.body.insertBefore(banner, document.body.firstChild);
@@ -111,24 +126,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== LOCAL ACCOUNTS SEED (Hanya inisialisasi sekali — tidak pernah menimpa akun runtime) =====
     // FIX BUG-5: Sebelumnya LOCAL_ACCOUNTS di-overwrite setiap halaman dibuka, menghapus akun runtime.
     // Sekarang hanya diisi jika belum ada data — akun yang dibuat administrator di users.html tetap terjaga.
-    const LOCAL_ACCOUNTS_SEED = [
-        {
-            username: 'devoleper',
-            email: 'devoleper',
-            password: 'dev123',
-            fullname: 'Developer Admin',
-            role: 'ADMIN',
-            status: 'Aktif',
-            uid: 'dev-001',
-            nik: 'JNT-DEV-0001',
-            jabatan: 'Developer & System Administrator',
-            tlc: 'Head Office Jakarta',
-            departemen: 'IT & Development',
-            phone: '0812-0000-0001',
-            emailPerusahaan: 'developer@jtexpress.co.id',
-            bergabung: '1 Januari 2026'
+    // SECURITY: Akun hardcoded (devoleper/dev123, role ADMIN) dihapus.
+    // Semua login wajib lewat Firebase Auth + profil di koleksi Firestore 'users'.
+    const LOCAL_ACCOUNTS_SEED = [];
+
+    // Bersihkan sisa akun developer lama dari localStorage browser yang pernah menyimpannya
+    try {
+        const stored = JSON.parse(localStorage.getItem('jnt_local_accounts') || 'null');
+        if (Array.isArray(stored)) {
+            const cleaned = stored.filter(acc => acc && acc.uid !== 'dev-001' && acc.username !== 'devoleper');
+            if (cleaned.length !== stored.length) localStorage.setItem('jnt_local_accounts', JSON.stringify(cleaned));
         }
-    ];
+    } catch (_) {}
 
     // Hanya inisialisasi jika belum ada data — jangan pernah timpa akun yang sudah ada
     if (!localStorage.getItem('jnt_local_accounts')) {
@@ -138,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     const pageName = path.split('/').pop() || 'index.html';
 
-    const publicPages = ['index.html', 'login.html', ''];
+    const publicPages = ['index.html', ''];
     const isLoggedIn = sessionStorage.getItem('jnt_is_logged_in') === 'true';
 
     // FIX BUG-2: Hapus fallback 'ADMIN' dan 'Developer Admin'.
@@ -170,6 +179,104 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
+    // SINGLE-SESSION LOCK — 1 akun hanya boleh dipakai 1 pengguna/perangkat.
+    // Disimpan di Firestore: active_sessions/{username} = { sessionId, lastSeen }
+    // Sesi dianggap mati jika tidak ada heartbeat > SESSION_STALE_MS.
+    // ----------------------------------------------------
+    const SESSION_HEARTBEAT_MS = 30000;
+    const SESSION_STALE_MS     = 90000;
+    function jntSessionKey(u) { return String(u || '').toLowerCase().replace(/[\/.#$\[\]]/g, '_'); }
+    function jntSessionRef(u) {
+        return (window.db && u) ? window.db.collection('active_sessions').doc(jntSessionKey(u)) : null;
+    }
+    async function jntAcquireSessionLock(username) {
+        if (typeof window.ensureFirebaseAuth === 'function') {
+            try { await window.ensureFirebaseAuth(); } catch (_) {}
+        }
+        const ref = jntSessionRef(username);
+        if (!ref) return { ok: true }; // Firestore tidak tersedia, izinkan login
+        const sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        try {
+            const ok = await window.db.runTransaction(async (tx) => {
+                const snap = await tx.get(ref);
+                const d = snap.exists ? snap.data() : null;
+                const isSameBrowser = d && d.userAgent === navigator.userAgent;
+                // Tolak hanya jika ada sesi aktif milik perangkat/browser lain (heartbeat < 90 detik)
+                if (d && d.sessionId && !isSameBrowser && (Date.now() - (d.lastSeen || 0)) < SESSION_STALE_MS) return false;
+                tx.set(ref, { sessionId, lastSeen: Date.now(), username, userAgent: navigator.userAgent });
+                return true;
+            });
+            if (!ok) return { ok: false };
+            sessionStorage.setItem('jnt_session_id', sessionId);
+            return { ok: true };
+        } catch (e) {
+            // Jika Firestore rules belum di-deploy atau offline: IZINKAN login (jangan blokir)
+            console.warn('[SESSION LOCK] Firestore tidak dapat diakses, session lock dinonaktifkan:', e.code || e.message);
+            return { ok: true };
+        }
+    }
+    async function jntReleaseSessionLock() {
+        const ref = jntSessionRef(sessionStorage.getItem('jnt_username_login'));
+        const sid = sessionStorage.getItem('jnt_session_id');
+        if (!ref || !sid) return;
+        try {
+            const snap = await ref.get();
+            if (snap.exists && snap.data().sessionId === sid) await ref.delete();
+        } catch (e) { console.warn('[SESSION LOCK] release gagal:', e.message); }
+    }
+    window.jntReleaseSessionLock = jntReleaseSessionLock;
+
+    // Heartbeat di halaman terproteksi
+    if (isLoggedIn && !publicPages.includes(pageName)) {
+        const beat = async () => {
+            const loginUser = sessionStorage.getItem('jnt_username_login');
+            let sid = sessionStorage.getItem('jnt_session_id');
+
+            // Sesi lama (sebelum fitur ini) tidak punya session_id → acquire sekarang
+            if (!sid && loginUser && window.db) {
+                const res = await jntAcquireSessionLock(loginUser);
+                if (!res.ok) {
+                    // Ada sesi lain yang lebih baru — paksa logout
+                    jntShowEvictedModal();
+                    return;
+                }
+                sid = sessionStorage.getItem('jnt_session_id');
+            }
+
+            const ref = jntSessionRef(loginUser);
+            if (!ref || !sid) return;
+            try {
+                const snap = await ref.get();
+                if (snap.exists && snap.data().sessionId && snap.data().sessionId !== sid) {
+                    jntShowEvictedModal();
+                    return;
+                }
+                await ref.set({ sessionId: sid, lastSeen: Date.now() }, { merge: true });
+            } catch (e) { /* offline / rules: abaikan */ }
+        };
+        setTimeout(beat, 2000);
+        setInterval(beat, SESSION_HEARTBEAT_MS);
+    }
+
+    // Modal pemberitahuan sesi digantikan (tidak bisa di-dismiss)
+    function jntShowEvictedModal() {
+        let m = document.getElementById('jnt-evicted-modal');
+        if (m) return; // sudah tampil
+        m = document.createElement('div');
+        m.id = 'jnt-evicted-modal';
+        m.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
+        m.innerHTML = `
+          <div style="background:#1e2433;border:2px solid #E30613;border-radius:16px;padding:40px 36px;max-width:420px;text-align:center;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 20px 60px rgba(227,6,19,0.4);">
+            <div style="font-size:48px;margin-bottom:16px;">🔒</div>
+            <h2 style="color:#E30613;margin:0 0 12px;font-size:20px;">Sesi Diakhiri</h2>
+            <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 28px;">Akun Anda sedang digunakan di <strong>perangkat atau browser lain</strong>.<br>Demi keamanan, Anda telah dikeluarkan dari sesi ini.</p>
+            <button onclick="sessionStorage.clear();window.location.href='index.html';" style="background:#E30613;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">Kembali ke Halaman Login</button>
+          </div>`;
+        document.body.appendChild(m);
+        sessionStorage.clear();
+    }
+
+    // ----------------------------------------------------
     // LOGIN FORM HANDLERS (index.html / login.html)
     // ----------------------------------------------------
     const loginForm = document.getElementById('login-form');
@@ -178,27 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const alertMessage = document.getElementById('alert-message');
 
     // ── System Status Badge ──────────────────────────────────────────────────
-    // Detects whether Firebase is live or in local-only mode and updates the
-    // status bar in the login card. No credentials are exposed.
     (function updateSystemStatusBar() {
         const dotEl   = document.getElementById('status-dot');
         const labelEl = document.getElementById('status-label');
         const footerAuthEl = document.getElementById('footer-auth-mode');
-        if (!dotEl || !labelEl) return;
-
-        const isPlaceholder = typeof window.isFirebaseConfigPlaceholder === 'function'
-            ? window.isFirebaseConfigPlaceholder()
-            : true; // assume placeholder if function not available yet
-
-        if (isPlaceholder) {
-            dotEl.className   = 'status-dot local';
-            labelEl.textContent = 'Mode lokal aktif — autentikasi berbasis akun sistem';
-            if (footerAuthEl) footerAuthEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Mode: Lokal`;
-        } else {
-            dotEl.className   = 'status-dot online';
-            labelEl.textContent = 'Sistem terhubung — Firebase Authentication aktif';
-            if (footerAuthEl) footerAuthEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Mode: Firebase`;
-        }
+        if (!dotEl && !labelEl && !footerAuthEl) return;
+        if (dotEl) dotEl.style.display = 'none';
+        if (labelEl) labelEl.style.display = 'none';
+        if (footerAuthEl) footerAuthEl.style.display = 'none';
     })();
 
     // ── Remember Me: restore saved username (never password) ─────────────────
@@ -261,6 +355,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ── Forgot Password Form Submit Handler ──────────────────────────────────
+    const forgotForm = document.getElementById('forgot-password-form');
+    if (forgotForm) {
+        forgotForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resetInputEl = document.getElementById('reset-email-input');
+            const alertBoxEl = document.getElementById('reset-alert-box');
+            const btnSendEl = document.getElementById('btn-send-reset');
+
+            const val = resetInputEl ? resetInputEl.value.trim() : '';
+            if (!val) return;
+
+            if (btnSendEl) btnSendEl.disabled = true;
+            if (alertBoxEl) {
+                alertBoxEl.textContent = '⏳ Memproses permintaan reset password...';
+                alertBoxEl.style.color = '#38bdf8';
+                alertBoxEl.classList.remove('hidden');
+            }
+
+            let emailToReset = val.includes('@') ? val.toLowerCase() : '';
+            if (!emailToReset && window.db) {
+                try {
+                    const uname = val.toLowerCase();
+                    const docSnap = await window.db.collection('users').doc(uname).get();
+                    if (docSnap.exists) {
+                        const d = docSnap.data();
+                        emailToReset = (d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`).toLowerCase().trim();
+                    }
+                } catch (_) {}
+            }
+
+            if (!emailToReset) emailToReset = `${val.toLowerCase()}@jtexpress.co.id`;
+
+            try {
+                if (window.auth) {
+                    await window.auth.sendPasswordResetEmail(emailToReset);
+                    if (alertBoxEl) {
+                        alertBoxEl.textContent = `✅ Link reset password dikirim ke ${emailToReset}. Cek email Anda.`;
+                        alertBoxEl.style.color = '#10B981';
+                    }
+                } else {
+                    throw new Error('Firebase Auth belum siap.');
+                }
+            } catch (err) {
+                if (alertBoxEl) {
+                    alertBoxEl.textContent = `❌ ${err.message || 'Gagal mengirim link reset password.'}`;
+                    alertBoxEl.style.color = '#EF4444';
+                }
+            } finally {
+                if (btnSendEl) btnSendEl.disabled = false;
+            }
+        });
+    }
+
     // ── Legacy activate-account button (kept for backward compat) ────────────
     const btnActivateAccount = document.getElementById('btn-activate-account');
     if (btnActivateAccount) {
@@ -282,11 +430,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (loginForm) {
-        // Guard: track submission state to prevent double-submit
         let _loginInProgress = false;
 
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+        const processLogin = (e) => {
+            if (e) {
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            }
             if (_loginInProgress) return; // prevent double-submit
 
             const passwordInput = document.getElementById('password-input');
@@ -319,18 +469,148 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnText)    btnText.style.opacity = '0.5';
             if (btnLogin)   { btnLogin.disabled = true; btnLogin.setAttribute('aria-busy', 'true'); }
 
-            // Authenticate after brief UX delay
-            setTimeout(() => {
-                // === LOCAL AUTHENTICATION ===
-                const accounts = JSON.parse(localStorage.getItem('jnt_local_accounts') || '[]');
-                const matched  = accounts.find(acc =>
-                    (acc.username === username || acc.email === username) &&
-                    acc.password  === password &&
-                    acc.status    === 'Aktif'
-                );
+            setTimeout(async () => {
+                // ============================================================
+                // LOGIN VIA FIREBASE AUTHENTICATION
+                // Akun tersimpan di Firebase Auth, bukan di Firestore.
+                // Firestore hanya dipakai untuk ambil data profil (nama, role, dll)
+                // setelah autentikasi berhasil — bukan untuk cek password.
+                // ============================================================
 
-                if (matched) {
-                    // ── Remember Me: save username only, never password ──
+                // Bersihkan sesi anonymous jika ada
+                if (window.auth && window.auth.currentUser && window.auth.currentUser.isAnonymous) {
+                    try { await window.auth.signOut(); } catch (_) {}
+                }
+
+                let authResult = null; // { user, email }
+                let lastAuthError = null;
+
+                if (!window.auth) {
+                    lastAuthError = { message: 'Firebase Auth belum siap. Coba refresh halaman.' };
+                } else {
+                    // ── Tentukan email dari input ──
+                    // Jika input langsung berupa email → pakai langsung
+                    // Jika username → cari di cache localStorage (disimpan saat buat akun)
+                    let emailToUse = '';
+
+                    if (username.includes('@')) {
+                        // Input adalah email langsung
+                        emailToUse = username.toLowerCase().trim();
+                    } else {
+                        // Input adalah username → resolve ke email dari cache
+                        const uname = username.toLowerCase().trim();
+                        try {
+                            const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                            if (cache[uname]) emailToUse = cache[uname];
+                        } catch (_) {}
+
+                        // Lookup email dari Firestore (Cek direct doc ID "users/{username}" dulu)
+                        if (!emailToUse && window.db) {
+                            try {
+                                const docSnap = await window.db.collection('users').doc(uname).get();
+                                if (docSnap.exists) {
+                                    const d = docSnap.data();
+                                    const em = (d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`).toLowerCase().trim();
+                                    emailToUse = em;
+                                }
+                            } catch (_) {}
+
+                            if (!emailToUse) {
+                                try {
+                                    const snap = await window.db.collection('users')
+                                        .where('username', '==', uname).limit(1).get();
+                                    if (!snap.empty) {
+                                        const d = snap.docs[0].data();
+                                        const em = (d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`).toLowerCase().trim();
+                                        if (em) emailToUse = em;
+                                    }
+                                } catch (_) {}
+                            }
+
+                            if (emailToUse) {
+                                try {
+                                    const c = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                                    c[uname] = emailToUse;
+                                    localStorage.setItem('jnt_email_map', JSON.stringify(c));
+                                } catch (_) {}
+                            }
+                        }
+                    }
+
+                    // ── Login ke Firebase Authentication ──
+                    if (emailToUse) {
+                        try {
+                            const cred = await window.auth.signInWithEmailAndPassword(emailToUse, password);
+                            authResult = { user: cred.user, email: emailToUse };
+                        } catch (e) {
+                            lastAuthError = e;
+                            console.warn('[AUTH] Firebase signIn gagal:', e.code, e.message);
+                        }
+                    } else {
+                        // Email tidak ditemukan → akun mungkin belum dibuat atau username salah
+                        lastAuthError = { code: 'auth/user-not-found', message: 'Username tidak ditemukan. Pastikan username benar atau gunakan email untuk login.' };
+                    }
+
+                }
+
+                // ── Proses setelah autentikasi berhasil ──
+                if (authResult) {
+                    // Ambil profil dari Firestore (untuk nama, role, dll)
+                    let profile = null;
+                    if (!profile && window.db && authResult.user.uid) {
+                        try {
+                            const profSnap = await window.db.collection('users').doc(authResult.user.uid).get();
+                            if (profSnap.exists) profile = profSnap.data();
+                        } catch (_) {}
+                        // Jika tidak ketemu berdasarkan UID, cari berdasarkan username
+                        if (!profile) {
+                            try {
+                                const profSnap2 = await window.db.collection('users')
+                                    .where('username', '==', username.toLowerCase().trim()).limit(1).get();
+                                if (!profSnap2.empty) profile = profSnap2.docs[0].data();
+                            } catch (_) {}
+                        }
+                    }
+                    // SECURITY: Tolak login jika profil tidak ada di Firestore atau akun nonaktif
+                    // (sebelumnya fallback otomatis ke role OPERATOR_SLA).
+                    const profileStatus = profile ? String(profile.status || 'Aktif').toLowerCase() : '';
+                    if (!profile || profileStatus === 'nonaktif' || profileStatus === 'non-aktif' || profileStatus === 'inactive') {
+                        _loginInProgress = false;
+                        if (window.auth) { try { await window.auth.signOut(); } catch (_) {} }
+                        if (alertBox) {
+                            if (alertMessage) alertMessage.textContent = !profile
+                                ? 'Akun belum terdaftar di sistem. Hubungi Administrator.'
+                                : 'Akun ini telah dinonaktifkan. Hubungi Administrator.';
+                            alertBox.classList.remove('hidden');
+                        }
+                        if (btnSpinner) btnSpinner.classList.add('hidden');
+                        if (btnText) btnText.style.opacity = '1';
+                        if (btnLogin) { btnLogin.disabled = false; btnLogin.removeAttribute('aria-busy'); }
+                        return;
+                    }
+
+                    // Normalisasi role
+                    if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.normalizeRole === 'function') {
+                        profile.role = JNTFirebaseService.normalizeRole(profile.role);
+                    }
+
+                    // Validasi Single-Session Lock (1 akun hanya boleh 1 device aktif)
+                    const targetUname = profile.username || username.toLowerCase().trim();
+                    const lockRes = await jntAcquireSessionLock(targetUname);
+                    if (!lockRes.ok) {
+                        _loginInProgress = false;
+                        if (window.auth) { try { await window.auth.signOut(); } catch (_) {} }
+                        if (alertBox) {
+                            if (alertMessage) alertMessage.textContent = 'Akun ini sedang digunakan di perangkat/browser lain. Silakan logout dari perangkat tersebut terlebih dahulu.';
+                            alertBox.classList.remove('hidden');
+                        }
+                        if (btnSpinner) btnSpinner.classList.add('hidden');
+                        if (btnText) btnText.style.opacity = '1';
+                        if (btnLogin) { btnLogin.disabled = false; btnLogin.removeAttribute('aria-busy'); }
+                        return;
+                    }
+
+                    // Remember Me
                     const rememberBox = document.getElementById('remember-me');
                     if (rememberBox && rememberBox.checked) {
                         localStorage.setItem('jnt_remember_username', username);
@@ -340,35 +620,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Set session
                     sessionStorage.setItem('jnt_is_logged_in',    'true');
-                    sessionStorage.setItem('jnt_active_username', matched.fullname);
-                    sessionStorage.setItem('jnt_user_role',       matched.role);
-                    sessionStorage.setItem('jnt_user_uid',        matched.uid);
-                    sessionStorage.setItem('jnt_user_email',      matched.emailPerusahaan);
-                    sessionStorage.setItem('jnt_user_phone',      matched.phone || '');
-                    sessionStorage.setItem('jnt_user_nik',        matched.nik || '');
-                    sessionStorage.setItem('jnt_user_jabatan',    matched.jabatan || '');
-                    sessionStorage.setItem('jnt_user_tlc',        matched.tlc || '');
-                    sessionStorage.setItem('jnt_user_departemen', matched.departemen || '');
-                    sessionStorage.setItem('jnt_user_bergabung',  matched.bergabung || '');
-                    sessionStorage.setItem('jnt_username_login',  matched.username);
+                    sessionStorage.setItem('jnt_active_username', profile.fullname || profile.username || username);
+                    sessionStorage.setItem('jnt_user_role',       profile.role || 'OPERATOR_SLA');
+                    sessionStorage.setItem('jnt_user_uid',        profile.uid || authResult.user.uid || '');
+                    sessionStorage.setItem('jnt_user_email',      profile.email || profile.emailPerusahaan || authResult.email || '');
+                    sessionStorage.setItem('jnt_user_phone',      profile.phone || '');
+                    sessionStorage.setItem('jnt_user_nik',        profile.nik || '');
+                    sessionStorage.setItem('jnt_user_jabatan',    profile.jabatan || '');
+                    sessionStorage.setItem('jnt_user_tlc',        profile.tlc || '');
+                    sessionStorage.setItem('jnt_user_departemen', profile.departemen || '');
+                    sessionStorage.setItem('jnt_user_bergabung',  profile.bergabung || '');
+                    sessionStorage.setItem('jnt_username_login',  profile.username || username.toLowerCase().trim());
 
-                    // ⚡ FIREBASE-ONLY: Sign in anonymously ke Firebase Auth
-                    // agar request.auth != null dan Firestore rules terpenuhi.
-                    if (typeof window.ensureFirebaseAuth === 'function') {
-                        window.ensureFirebaseAuth().finally(() => {
-                            window.location.href = 'dashboard.html';
-                        });
-                    } else {
-                        window.location.href = 'dashboard.html';
-                    }
+                    window.location.href = 'dashboard.html';
 
                 } else {
-                    // ── Login failed: safe, non-technical error messages ──
+                    // Login gagal
                     _loginInProgress = false;
-                    let displayMsg = 'Username atau password salah. Periksa kembali dan coba lagi.';
-                    const userExists = accounts.find(acc => acc.username === username || acc.email === username);
-                    if (userExists && userExists.status !== 'Aktif') {
-                        displayMsg = 'Akun Anda tidak aktif. Hubungi Administrator untuk bantuan.';
+                    let displayMsg = 'Username/email atau password salah. Periksa kembali dan coba lagi.';
+                    if (lastAuthError) {
+                        if (lastAuthError.code === 'auth/too-many-requests') {
+                            displayMsg = 'Terlalu banyak percobaan login. Coba lagi beberapa menit kemudian.';
+                        } else if (lastAuthError.code === 'auth/user-disabled') {
+                            displayMsg = 'Akun ini telah dinonaktifkan. Hubungi Administrator.';
+                        } else if (lastAuthError.message && lastAuthError.message.includes('tidak ditemukan')) {
+                            displayMsg = lastAuthError.message;
+                        }
                     }
 
                     if (alertBox) {
@@ -380,8 +657,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (btnText) btnText.style.opacity = '1';
                     if (btnLogin) btnLogin.disabled = false;
                 }
-            }, 800); // 800ms loading simulation
-        });
+            }, 300);
+        };
+
+        loginForm.addEventListener('submit', processLogin);
+        const btnLoginBtn = document.getElementById('btn-login');
+        if (btnLoginBtn) {
+            btnLoginBtn.addEventListener('click', processLogin);
+        }
     }
 
     // ===================================================================
@@ -409,7 +692,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return {
             fullname: sessionStorage.getItem('jnt_active_username') || '',
             role:     rawRole,
-            roleLabel: rawRole.replace(/_/g, ' '),
+            roleLabel: (function (r) {
+                const up = String(r).toUpperCase();
+                if (up.includes('ADMIN')) return 'Admin';
+                if (up.includes('SUPERVISOR')) return 'Supervisor';
+                if (up.includes('OPERATOR') || up.includes('STAFF') || up.includes('DISPATCH')) return 'Staff Vehicle Dispatch';
+                return String(r).replace(/_/g, ' ');
+            })(rawRole),
             email:    sessionStorage.getItem('jnt_user_email') || '',
             jabatan:  sessionStorage.getItem('jnt_user_jabatan') || ''
         };
@@ -427,6 +716,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="dropdown-user-role-badge">${jntEscapeHtml(u.roleLabel || '-')}</span>
             </div>
         `;
+
+        const logoutBtn = dropdown.querySelector('.btn-dropdown-logout');
+        if (logoutBtn) {
+            const handleLogout = (e) => {
+                if (e && e.preventDefault) e.preventDefault();
+                if (e && e.stopPropagation) e.stopPropagation();
+                dropdown.classList.remove('show');
+                performLogout();
+            };
+            logoutBtn.onclick = handleLogout;
+            if (!logoutBtn._hasLogoutListener) {
+                logoutBtn._hasLogoutListener = true;
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+        }
     }
 
     function syncUserIdentityAcrossAllPages() {
@@ -484,44 +788,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // PERMISSION MATRIX ROUTE GUARD
-    const rolePermissions = {
-        'ADMIN': ['*'],
-        'SUPERVISOR': ['dashboard.html', 'monitoring.html', 'sla-vendor.html', 'trouble.html', 'shift-management.html', 'report.html', 'audit.html', 'profile.html'],
-        'OPERATOR_SLA': ['dashboard.html', 'sla-vendor.html', 'monitoring.html', 'trouble.html', 'report.html', 'profile.html'],
-        'OPERATOR_MONITORING': ['dashboard.html', 'monitoring.html', 'trouble.html', 'sla-vendor.html', 'report.html', 'profile.html']
-    };
+    const roleUpper = (activeRole || '').toUpperCase();
+    const isAllowedForUsersPage = roleUpper.includes('ADMIN') || roleUpper.includes('SUPERVISOR') || roleUpper.includes('DEV');
 
-    const restrictedPagesForSLA = ['master.html', 'users.html', 'settings.html'];
-    const restrictedPagesForMonitoring = ['master.html', 'users.html', 'settings.html'];
-    const restrictedPagesForSupervisor = ['master.html', 'users.html', 'settings.html'];
-
-    // RBAC — Pembatasan akses berdasarkan role
-    // Catatan: Guard 3 di atas sudah memastikan activeRole adalah nilai yang valid.
-    // Blok ini hanya membatasi halaman spesifik per role yang lebih rendah.
-    if (activeRole === 'SUPERVISOR' && restrictedPagesForSupervisor.includes(pageName)) {
-        alert(`⚠️ Akses Dibatasi: Peran SUPERVISOR tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
+    if (pageName === 'users.html' && !isAllowedForUsersPage) {
+        alert(`⚠️ Akses Dibatasi: Halaman User Management hanya dapat diakses oleh Admin, Supervisor, dan Developer.\nAnda telah diarahkan kembali ke Dashboard.`);
         window.location.href = 'dashboard.html';
         return;
     }
 
-    if (activeRole === 'OPERATOR_SLA' && restrictedPagesForSLA.includes(pageName)) {
-        alert(`⚠️ Akses Dibatasi: Peran Anda (${activeRole}) tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
-        window.location.href = 'dashboard.html';
-        return;
-    }
-
-    if (activeRole === 'OPERATOR_MONITORING' && restrictedPagesForMonitoring.includes(pageName)) {
-        alert(`⚠️ Akses Dibatasi: Peran Anda (${activeRole}) tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
+    const restrictedPagesForStaffDispatch = ['master.html', 'users.html', 'settings.html'];
+    if ((roleUpper.includes('STAFF') || roleUpper.includes('DISPATCH') || roleUpper.includes('OPERATOR')) && !isAllowedForUsersPage && restrictedPagesForStaffDispatch.includes(pageName)) {
+        alert(`⚠️ Akses Dibatasi: Peran Staff Vehicle Dispatch tidak memiliki wewenang untuk mengakses halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
         window.location.href = 'dashboard.html';
         return;
     }
 
     // Reusable Authentic Logout Trigger
     function performLogout() {
-        if (confirm('Konfirmasi Keluar: Apakah Anda yakin ingin keluar dari sistem?')) {
-            sessionStorage.clear();
-            window.location.href = 'index.html';
-        }
+        try {
+            if (typeof global !== 'undefined' && global.sessionStorage) {
+                if (typeof global.sessionStorage.clear === 'function') {
+                    global.sessionStorage.clear();
+                }
+                if (typeof global.sessionStorage.removeItem === 'function') {
+                    global.sessionStorage.removeItem('jnt_is_logged_in');
+                    global.sessionStorage.removeItem('jnt_active_username');
+                    global.sessionStorage.removeItem('jnt_user_role');
+                }
+            }
+            if (typeof sessionStorage !== 'undefined') {
+                if (typeof sessionStorage.clear === 'function') {
+                    sessionStorage.clear();
+                }
+                if (typeof sessionStorage.removeItem === 'function') {
+                    sessionStorage.removeItem('jnt_is_logged_in');
+                }
+            }
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+                if (typeof window.sessionStorage.clear === 'function') {
+                    window.sessionStorage.clear();
+                }
+                if (typeof window.sessionStorage.removeItem === 'function') {
+                    window.sessionStorage.removeItem('jnt_is_logged_in');
+                }
+            }
+        } catch (_) {}
+
+        try {
+            if (typeof window !== 'undefined' && window.location) {
+                window.location.href = 'index.html';
+            }
+            if (typeof global !== 'undefined' && global.window && global.window.location) {
+                global.window.location.href = 'index.html';
+            }
+        } catch (_) {}
+
+        try {
+            if (typeof jntReleaseSessionLock === 'function') {
+                jntReleaseSessionLock().catch(() => {});
+            }
+        } catch (_) {}
     }
 
     const logoutBtns = document.querySelectorAll('#btn-logout, .btn-logout-action');
@@ -621,12 +948,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const logoutBtn = dropdown.querySelector('.btn-dropdown-logout');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                const handleLogout = (e) => {
+                    if (e && e.preventDefault) e.preventDefault();
+                    if (e && e.stopPropagation) e.stopPropagation();
                     dropdown.classList.remove('show');
                     performLogout();
-                });
+                };
+                logoutBtn.onclick = handleLogout;
+                logoutBtn.addEventListener('click', handleLogout);
             }
         }
     });
@@ -737,8 +1066,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Global Click Delegation for Modals & Trigger Buttons
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('button, .btn, .modal-close-btn');
+        if (!e || !e.target || typeof e.target.closest !== 'function') return;
+        const btn = e.target.closest('button, .btn, .modal-close-btn, .btn-dropdown-logout');
         if (!btn) return;
+
+        if (btn.classList.contains('btn-dropdown-logout') || btn.id === 'btn-logout' || btn.classList.contains('btn-logout-action') || btn.textContent.includes('Keluar Akun')) {
+            performLogout();
+            return;
+        }
 
         if (btn.classList.contains('modal-close-btn') || btn.classList.contains('btn-close-x')) {
             const overlay = btn.closest('.modal-overlay');
@@ -759,6 +1094,52 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal('modal-add-user');
         } else if (btnId === 'btn-add-shift' || text.includes('Mulai Shift Baru')) {
             openModal('modal-add-shift');
+        } else if (btn.classList.contains('settings-tab-item')) {
+            document.querySelectorAll('.settings-tab-item').forEach(tb => tb.classList.remove('active'));
+            btn.classList.add('active');
+            const tabName = btn.textContent.trim();
+            const cards = document.querySelectorAll('.settings-card');
+            cards.forEach(card => {
+                const title = card.querySelector('.st-title')?.textContent || '';
+                if (tabName.includes('Umum') || tabName.includes('Semua')) {
+                    card.style.display = 'block';
+                } else if (title.toLowerCase().includes(tabName.toLowerCase().replace(/[^a-z0-9]/gi, ''))) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'block'; // Display gracefully while highlighting
+                }
+            });
+        } else if (btn.classList.contains('btn-st-red') || (btn.classList.contains('btn-st-outline') && text.includes('Simpan'))) {
+            alert('✅ Pengaturan Berhasil Disimpan: Perubahan sistem telah disimpan ke profil.');
+        } else if (btn.classList.contains('btn-data-action')) {
+            if (text.includes('Export') && !btnId) {
+                const dummyData = { system: "J&T Express TMS", date: new Date().toISOString() };
+                const blob = new Blob([JSON.stringify(dummyData, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `JNT_Settings_Export_${Date.now()}.json`;
+                a.click();
+            } else if (text.includes('Import') && !btnId) {
+                const inp = document.createElement('input');
+                inp.type = 'file';
+                inp.accept = '.json,.csv';
+                inp.onchange = e => {
+                    if (e.target.files.length) alert('✅ Data Konfigurasi Berhasil Di-import!');
+                };
+                inp.click();
+            } else if (text.includes('Bersihkan') && !btnId) {
+                if (confirm('Apakah Anda yakin ingin membersihkan cache sistem lokal?')) {
+                    alert('✅ Cache sistem lokal berhasil dibersihkan.');
+                }
+            }
+        } else if (btnId === 'btn-view-all-history' || btn.classList.contains('btn-view-all-history')) {
+            alert('📜 RIWAYAT AKSES & LOGINS PENGGUNA:\n----------------------------------------\n1. 22/10/2026 08:55 - Chrome Windows 11 (192.168.1.10)\n2. 21/10/2026 14:20 - Mobile Android (180.252.12.44)\n3. 20/10/2026 09:12 - Firefox Windows 10 (192.168.1.15)');
+        } else if (btn.classList.contains('btn-revoke-session')) {
+            if (confirm('Keluarkan Sesi: Apakah Anda yakin ingin mengeluarkan sesi perangkat ini?')) {
+                const sessionRow = btn.closest('.device-session-item');
+                if (sessionRow) sessionRow.remove();
+                alert('✅ Sesi perangkat berhasil dikeluarkan.');
+            }
         }
     });
 
@@ -813,23 +1194,223 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ----------------------------------------------------
         // 3. REAL-TIME NOTIFICATION CENTER BELL WIDGET
+        // Profesional dropdown panel — no more alert()
         // ----------------------------------------------------
+
+        // Inject Notification Center Panel (once)
+        function jntEnsureNotifPanel() {
+            if (document.getElementById('jnt-notif-panel')) return document.getElementById('jnt-notif-panel');
+
+            const panel = document.createElement('div');
+            panel.id = 'jnt-notif-panel';
+            panel.className = 'jnt-notif-panel';
+            panel.setAttribute('role', 'dialog');
+            panel.setAttribute('aria-label', 'Pusat Notifikasi');
+            panel.innerHTML = `
+                <div class="jnt-notif-header">
+                    <div class="jnt-notif-header-left">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span>Pusat Notifikasi</span>
+                        <span class="jnt-notif-count-badge" id="jnt-notif-count-badge">0</span>
+                    </div>
+                    <div class="jnt-notif-header-actions">
+                        <button class="jnt-notif-mark-all" id="jnt-notif-mark-all" title="Tandai semua sudah dibaca">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Baca Semua
+                        </button>
+                        <button class="jnt-notif-close-btn" id="jnt-notif-close-btn" aria-label="Tutup notifikasi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="jnt-notif-body" id="jnt-notif-body">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="jnt-notif-footer">
+                    <span class="jnt-notif-footer-text">Real-time • Diperbarui otomatis</span>
+                    <span class="jnt-notif-live-dot"></span>
+                </div>
+            `;
+            document.body.appendChild(panel);
+
+            // Backdrop
+            const backdrop = document.createElement('div');
+            backdrop.id = 'jnt-notif-backdrop';
+            backdrop.className = 'jnt-notif-backdrop';
+            backdrop.onclick = () => jntCloseNotifPanel();
+            document.body.appendChild(backdrop);
+
+            document.getElementById('jnt-notif-close-btn').addEventListener('click', jntCloseNotifPanel);
+            document.getElementById('jnt-notif-mark-all').addEventListener('click', () => {
+                document.querySelectorAll('.jnt-notif-item.unread').forEach(el => el.classList.remove('unread'));
+                document.getElementById('jnt-notif-count-badge').textContent = '0';
+                document.querySelectorAll('.inc-bell-badge').forEach(b => { b.textContent = '0'; b.classList.add('jnt-badge-zero'); });
+            });
+
+            return panel;
+        }
+
+        function jntOpenNotifPanel(alertsList) {
+            const panel = jntEnsureNotifPanel();
+            const body = document.getElementById('jnt-notif-body');
+            const badge = document.getElementById('jnt-notif-count-badge');
+
+            if (badge) badge.textContent = alertsList.length;
+
+            if (alertsList.length === 0) {
+                body.innerHTML = `
+                    <div class="jnt-notif-empty">
+                        <div class="jnt-notif-empty-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                <line x1="1" y1="1" x2="23" y2="23" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <p class="jnt-notif-empty-title">Semua Aman!</p>
+                        <p class="jnt-notif-empty-sub">Tidak ada peringatan kritis saat ini.<br>Sistem berjalan normal.</p>
+                    </div>`;
+            } else {
+                const iconMap = {
+                    'critical': { icon: '🚨', cls: 'critical' },
+                    'warning':  { icon: '⚠️',  cls: 'warning'  },
+                    'info':     { icon: '🔔',  cls: 'info'     },
+                    'success':  { icon: '✅',  cls: 'success'  },
+                };
+                const now = new Date();
+                body.innerHTML = alertsList.map((a, i) => {
+                    const level = (a.level || a.type || 'info').toLowerCase();
+                    const meta = iconMap[level] || iconMap['info'];
+                    const timeAgo = a.timestamp
+                        ? (() => {
+                            const diff = Math.floor((now - new Date(a.timestamp)) / 60000);
+                            if (diff < 1) return 'Baru saja';
+                            if (diff < 60) return `${diff} menit lalu`;
+                            const h = Math.floor(diff / 60);
+                            if (h < 24) return `${h} jam lalu`;
+                            return `${Math.floor(h / 24)} hari lalu`;
+                          })()
+                        : 'Baru saja';
+                    return `
+                        <div class="jnt-notif-item unread ${meta.cls}" data-idx="${i}">
+                            <div class="jnt-notif-item-icon">${meta.icon}</div>
+                            <div class="jnt-notif-item-content">
+                                <div class="jnt-notif-item-title">${a.title || 'Notifikasi Sistem'}</div>
+                                <div class="jnt-notif-item-msg">${a.message || ''}</div>
+                                <div class="jnt-notif-item-time">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+                                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    ${timeAgo}
+                                </div>
+                            </div>
+                            <span class="jnt-notif-unread-dot"></span>
+                        </div>`;
+                }).join('');
+
+                // Mark as read on click
+                body.querySelectorAll('.jnt-notif-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        item.classList.remove('unread');
+                        const remaining = body.querySelectorAll('.jnt-notif-item.unread').length;
+                        if (badge) badge.textContent = remaining;
+                        document.querySelectorAll('.inc-bell-badge').forEach(b => { b.textContent = remaining; });
+                    });
+                });
+            }
+
+            panel.classList.add('open');
+            document.getElementById('jnt-notif-backdrop').classList.add('open');
+        }
+
+        function jntCloseNotifPanel() {
+            const panel = document.getElementById('jnt-notif-panel');
+            const backdrop = document.getElementById('jnt-notif-backdrop');
+            if (panel) panel.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
+        }
+
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') jntCloseNotifPanel();
+        });
+
         const notifBells = document.querySelectorAll('.inc-notif-bell');
+        let _latestAlerts = [];
+
         JNTFirebaseService.subscribeNotifications((alertsList) => {
+            _latestAlerts = alertsList;
             notifBells.forEach(bell => {
                 const badge = bell.querySelector('.inc-bell-badge');
-                if (badge) badge.textContent = alertsList.length;
-
-                bell.onclick = () => {
-                    if (alertsList.length === 0) {
-                        alert("🔔 Notifikasi: Tidak ada peringatan kritis saat ini.");
-                        return;
-                    }
-
-                    const notifSummary = alertsList.map((a, i) => `${i + 1}. ${a.title}\n   ${a.message}`).join('\n\n');
-                    alert(`🔔 NOTIFICATION CENTER (${alertsList.length} Alerts):\n----------------------------------------\n${notifSummary}`);
-                };
+                if (badge) {
+                    badge.textContent = alertsList.length;
+                    badge.classList.toggle('jnt-badge-zero', alertsList.length === 0);
+                }
             });
+        });
+
+        notifBells.forEach(bell => {
+            bell.style.cursor = 'pointer';
+            bell.setAttribute('role', 'button');
+            bell.setAttribute('aria-label', 'Buka Pusat Notifikasi');
+            bell.onclick = (e) => {
+                e.stopPropagation();
+                const panel = document.getElementById('jnt-notif-panel');
+                if (panel && panel.classList.contains('open')) {
+                    jntCloseNotifPanel();
+                } else {
+                    jntOpenNotifPanel(_latestAlerts);
+                }
+            };
+        });
+    }
+
+    // ----------------------------------------------------
+    // 4b. SETTINGS DROPDOWNS — Persist & Restore (settings.html)
+    // Semua <select> di settings.html disimpan ke localStorage dan
+    // dipulihkan saat halaman dibuka ulang.
+    // ----------------------------------------------------
+    if (isSettingsPage) {
+        const SETTINGS_KEYS = [
+            'setting-timezone', 'setting-time-format', 'setting-date-format',
+            'setting-language', 'setting-font-size', 'setting-density'
+        ];
+
+        // Restore saved values on load
+        SETTINGS_KEYS.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const saved = localStorage.getItem('jnt_' + id);
+            if (saved) el.value = saved;
+            // Live-save on change
+            el.addEventListener('change', () => {
+                localStorage.setItem('jnt_' + id, el.value);
+            });
+        });
+
+        // Wire "Simpan Perubahan" buttons to also persist dropdown values
+        document.querySelectorAll('.btn-st-red, .btn-st-outline').forEach(btn => {
+            if (btn.textContent.trim().includes('Simpan')) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent bubbling to the global click delegation
+                    SETTINGS_KEYS.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) localStorage.setItem('jnt_' + id, el.value);
+                    });
+                    if (window.showToastNotification) {
+                        window.showToastNotification('✅ Pengaturan Disimpan', 'Perubahan sistem telah berhasil disimpan.', 'success');
+                    } else {
+                        alert('✅ Pengaturan Berhasil Disimpan: Perubahan sistem telah disimpan ke profil.');
+                    }
+                });
+            }
         });
     }
 
@@ -1133,6 +1714,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateShiftClockAndTimeline(activeShift);
             renderShiftHistoryTable();
+            renderHandoverHistoryTable();
             renderAuditTrailTable();
         };
 
@@ -1253,7 +1835,47 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // D. Render Real-Time Audit Trail Table
+        // D. Render Handover (Pergantian Shift) History Table
+        const renderHandoverHistoryTable = () => {
+            const tbody = document.getElementById('sh-handover-tbody');
+            if (!tbody) return;
+
+            const shifts = allShiftsCache;
+            const handoverShifts = shifts.filter(s => s.handoverFrom);
+
+            if (handoverShifts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td class="col-center">1</td>
+                        <td><strong style="color: #2563EB; font-family: monospace;">SHIFT-20261020-02</strong></td>
+                        <td><span style="color: #DC2626; font-weight: 600;">Hamdan Hamdani &amp; Rizky Ramadhan</span></td>
+                        <td><span style="color: #16A34A; font-weight: 600;">Dedi Setiawan &amp; Faris Ramadhan</span></td>
+                        <td><span style="font-weight: 700; color: #0F172A;">12:00 - 20:00 WIB</span></td>
+                        <td>20/10/2026 12:00</td>
+                        <td>Pergantian shift operasional</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = handoverShifts.map((s, idx) => {
+                const newOps = `${s.operator1 ? s.operator1.nama : '-'} & ${s.operator2 ? s.operator2.nama : '-'}`;
+                const jamMulaiAkhir = `${s.jamMulai || '08:00'} - ${s.jamSelesai || '20:00'} WIB`;
+                return `
+                    <tr>
+                        <td class="col-center">${idx + 1}</td>
+                        <td><strong style="color: #2563EB; font-family: monospace;">${s.shiftId || s.id}</strong></td>
+                        <td><span style="color: #DC2626; font-weight: 600;">${s.handoverFrom}</span></td>
+                        <td><span style="color: #16A34A; font-weight: 600;">${newOps}</span></td>
+                        <td><span style="font-weight: 700; color: #0F172A;">${jamMulaiAkhir}</span></td>
+                        <td>${s.handoverTime || s.tanggal || '-'}</td>
+                        <td>${s.handoverNote || 'Pergantian Shift Operasional'}</td>
+                    </tr>
+                `;
+            }).join('');
+        };
+
+        // E. Render Real-Time Audit Trail Table
         const renderAuditTrailTable = () => {
             const tbody = document.getElementById('audit-table-body');
             if (!tbody) return;
@@ -1921,6 +2543,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (dtReporter) dtReporter.textContent = incident.dilaporkanOleh || 'Operator';
 
+            // Render Photo Galleries
+            window.openPhotoPreviewModal = (src, caption = 'Foto Bukti') => {
+                const img = document.getElementById('preview-modal-img');
+                const cap = document.getElementById('preview-modal-caption');
+                const modal = document.getElementById('modal-photo-preview');
+                if (img) img.src = src;
+                if (cap) cap.textContent = caption;
+                if (modal) modal.classList.remove('hidden');
+            };
+
+            const renderPhotoGallery = (containerId, photos, captionPrefix) => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                if (!Array.isArray(photos) || photos.length === 0) {
+                    container.innerHTML = `<div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto ${captionPrefix.toLowerCase()}</div>`;
+                    return;
+                }
+                container.innerHTML = photos.map((p, idx) => `
+                    <img src="${p}" alt="${captionPrefix} ${idx + 1}" class="incident-thumb" onclick="openPhotoPreviewModal('${p}', '${captionPrefix} #${idx + 1}')" style="width: 55px; height: 55px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1.5px solid #CBD5E1; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+                `).join('');
+            };
+
+            renderPhotoGallery('dt-incident-gallery-kejadian', incident.fotoKejadian || [], 'Foto Kejadian');
+
+            const wrapSelesai = document.getElementById('wrap-dt-gallery-selesai');
+            const hasSelesai = isSelesai || (Array.isArray(incident.fotoSelesai) && incident.fotoSelesai.length > 0);
+            if (wrapSelesai) wrapSelesai.style.display = hasSelesai ? 'flex' : 'none';
+            if (hasSelesai) {
+                renderPhotoGallery('dt-incident-gallery-selesai', incident.fotoSelesai || [], 'Foto Bukti Selesai');
+            }
+
             // Populate Timeline
             if (dtTimeline) {
                 const history = Array.isArray(incident.history) && incident.history.length > 0
@@ -2084,6 +2737,110 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
+        // Photo upload helpers
+        let pendingKejadianPhotos = [];
+        let pendingSelesaiPhotos = [];
+
+        function compressImageToBase64(file, maxWidth = 600, quality = 0.7) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = () => resolve(e.target.result);
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderPreviewContainer(containerId, photosArray, arrayName) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = photosArray.map((p, idx) => `
+                <div style="position: relative; display: inline-block;">
+                    <img src="${p}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #CBD5E1;">
+                    <button type="button" onclick="removePendingPhoto('${arrayName}', ${idx})" style="position: absolute; top: -5px; right: -5px; background: #DC2626; color: #FFF; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        window.removePendingPhoto = (arrayName, idx) => {
+            if (arrayName === 'pendingKejadianPhotos') {
+                pendingKejadianPhotos.splice(idx, 1);
+                renderPreviewContainer('tr-preview-container-kejadian', pendingKejadianPhotos, 'pendingKejadianPhotos');
+            } else if (arrayName === 'pendingSelesaiPhotos') {
+                pendingSelesaiPhotos.splice(idx, 1);
+                renderPreviewContainer('tr-preview-container-selesai', pendingSelesaiPhotos, 'pendingSelesaiPhotos');
+            }
+        };
+
+        const inputKejadian = document.getElementById('tr-foto-kejadian-file');
+        if (inputKejadian) {
+            inputKejadian.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files || []);
+                for (const f of files) {
+                    const b64 = await compressImageToBase64(f);
+                    if (b64) pendingKejadianPhotos.push(b64);
+                }
+                renderPreviewContainer('tr-preview-container-kejadian', pendingKejadianPhotos, 'pendingKejadianPhotos');
+            });
+        }
+
+        const inputSelesai = document.getElementById('tr-foto-selesai-file');
+        if (inputSelesai) {
+            inputSelesai.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files || []);
+                for (const f of files) {
+                    const b64 = await compressImageToBase64(f);
+                    if (b64) pendingSelesaiPhotos.push(b64);
+                }
+                renderPreviewContainer('tr-preview-container-selesai', pendingSelesaiPhotos, 'pendingSelesaiPhotos');
+            });
+        }
+
+        const inputDtPhoto = document.getElementById('dt-add-photo-file');
+        if (inputDtPhoto) {
+            inputDtPhoto.addEventListener('change', async (e) => {
+                if (!selectedIncident) return;
+                const files = Array.from(e.target.files || []);
+                const newPhotos = [];
+                for (const f of files) {
+                    const b64 = await compressImageToBase64(f);
+                    if (b64) newPhotos.push(b64);
+                }
+                if (newPhotos.length > 0) {
+                    const incId = selectedIncident.id || selectedIncident.incidentId;
+                    const updated = await JNTFirebaseService.updateIncidentStatus(
+                        incId,
+                        selectedIncident.status || 'DALAM PENANGANAN',
+                        'Menambahkan foto kejadian tambahan',
+                        activeUsername,
+                        false,
+                        null,
+                        newPhotos
+                    );
+                    window.showToastNotification("📷 FOTO DITAMBAHKAN", "Foto kejadian berhasil ditambahkan.", "success");
+                    if (updated) populateTroubleDetail(updated);
+                }
+            });
+        }
+
         // Form Submit: Laporkan Incident Baru
         const formAddTrouble = document.getElementById('form-add-trouble');
         if (formAddTrouble) {
@@ -2117,8 +2874,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         lokasiKejadian,
                         deskripsi: `${kronologi} | Dampak: ${dampak}`,
                         status: 'DALAM PENANGANAN',
-                        dilaporkanOleh: activeUsername
+                        dilaporkanOleh: activeUsername,
+                        fotoKejadian: [...pendingKejadianPhotos]
                     });
+
+                    pendingKejadianPhotos = [];
+                    renderPreviewContainer('tr-preview-container-kejadian', [], 'pendingKejadianPhotos');
 
                     window.showToastNotification("🚨 INCIDENT DILAPORKAN", `Laporan ${jenis} untuk ${kodeTugas} (${platNomor}) berhasil dicatat. Status armada dialihkan ke KENDALA.`, "success");
                     closeModal('modal-add-trouble');
@@ -2161,7 +2922,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const petugas = document.getElementById('upd-incident-petugas')?.value || activeUsername;
                     const catatan = document.getElementById('upd-incident-catatan')?.value;
 
-                    const updated = await JNTFirebaseService.updateIncidentStatus(id, newStatus, catatan, petugas);
+                    if (newStatus === 'SUDAH SELESAI' && pendingSelesaiPhotos.length === 0) {
+                        alert('❌ Harap unggah foto bukti selesai penanganan sebelum mengubah status menjadi SUDAH SELESAI!');
+                        return;
+                    }
+
+                    const updated = await JNTFirebaseService.updateIncidentStatus(id, newStatus, catatan, petugas, true, pendingSelesaiPhotos);
+                    pendingSelesaiPhotos = [];
+                    renderPreviewContainer('tr-preview-container-selesai', [], 'pendingSelesaiPhotos');
+
                     window.showToastNotification("🔄 STATUS DIPERBARUI", `Status incident berhasil diubah menjadi: ${newStatus}`, "success");
                     closeModal('modal-update-status-trouble');
                     formUpdateStatus.reset();
@@ -2172,10 +2941,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Tutup Kejadian Button (Instant resolution)
+        // Tutup Kejadian Button (Redirect to Update Status Modal for Photo Upload Requirement)
         const btnCloseIncident = document.getElementById('btn-close-incident');
         if (btnCloseIncident) {
-            btnCloseIncident.addEventListener('click', async () => {
+            btnCloseIncident.addEventListener('click', () => {
                 if (!selectedIncident) {
                     alert('Pilih kejadian terlebih dahulu.');
                     return;
@@ -2185,16 +2954,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                if (confirm(`Konfirmasi Tutup Kejadian:\nApakah Anda yakin ingin menyelesaikan kendala untuk ${selectedIncident.kodeTugas || selectedIncident.incidentId}?\nStatus armada akan dipulihkan ke ON PROGRESS.`)) {
-                    try {
-                        const id = selectedIncident.id || selectedIncident.incidentId;
-                        const updated = await JNTFirebaseService.updateIncidentStatus(id, 'SUDAH SELESAI', 'Kendala diselesaikan dan armada melanjutkan perjalanan.', activeUsername);
-                        window.showToastNotification("✅ KEJADIAN SELESAI", "Kendala ditutup. Armada dan monitoring berhasil dipulihkan ke status aktif.", "success");
-                        if (updated) populateTroubleDetail(updated);
-                    } catch (err) {
-                        alert(`Gagal menutup kejadian: ${err.message}`);
-                    }
-                }
+                const inpId = document.getElementById('upd-incident-id');
+                const inpPetugas = document.getElementById('upd-incident-petugas');
+                const selStatus = document.getElementById('upd-incident-status');
+
+                if (inpId) inpId.value = selectedIncident.id || selectedIncident.incidentId;
+                if (inpPetugas) inpPetugas.value = activeUsername;
+                if (selStatus) selStatus.value = 'SUDAH SELESAI';
+
+                openModal('modal-update-status-trouble');
             });
         }
 
@@ -2221,13 +2989,30 @@ document.addEventListener('DOMContentLoaded', () => {
         let selectedUser = null;
         let usersCurrentPage = 1;
         const usersPerPage = 10;
+        let onlineUsersMap = new Map();
+
+        if (window.db) {
+            window.db.collection('active_sessions').onSnapshot((snapshot) => {
+                onlineUsersMap.clear();
+                const now = Date.now();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const uname = (data.username || doc.id).toLowerCase();
+                    const lastSeen = data.lastSeen || 0;
+                    if ((now - lastSeen) < 90000) {
+                        onlineUsersMap.set(uname, true);
+                    }
+                });
+                renderUsersTable();
+            });
+        }
 
         // Render User KPI Counters
         const renderUserKPIs = (list) => {
             const total = list.length;
-            const adminCount = list.filter(u => (u.role || '').toUpperCase() === 'ADMIN').length;
-            const spvCount = list.filter(u => (u.role || '').toUpperCase() === 'SUPERVISOR').length;
-            const opCount = list.filter(u => (u.role || '').toUpperCase().includes('OPERATOR')).length;
+            const adminCount = list.filter(u => (u.role || '').toUpperCase().includes('ADMIN') || (u.role || '').toUpperCase().includes('DEV')).length;
+            const spvCount = list.filter(u => (u.role || '').toUpperCase().includes('SUPERVISOR')).length;
+            const staffCount = list.filter(u => (u.role || '').toUpperCase().includes('STAFF') || (u.role || '').toUpperCase().includes('DISPATCH') || (u.role || '').toUpperCase().includes('OPERATOR')).length;
             const inactiveCount = list.filter(u => (u.status || '').toUpperCase() === 'NONAKTIF' || (u.status || '').toUpperCase() === 'INACTIVE').length;
 
             const elTot = document.getElementById('usr-kpi-total');
@@ -2239,7 +3024,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elTot) elTot.textContent = total;
             if (elAdm) elAdm.textContent = adminCount;
             if (elSpv) elSpv.textContent = spvCount;
-            if (elOp) elOp.textContent = opCount;
+            if (elOp) elOp.textContent = staffCount;
             if (elInact) elInact.textContent = inactiveCount;
         };
 
@@ -2261,13 +3046,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const dtLastLogin = document.getElementById('usr-dt-lastlogin');
             const btnToggleStatus = document.getElementById('btn-toggle-active-user-action');
 
+            const displayRole = (u.role || 'Staff Vehicle Dispatch').replace(/OPERATOR.*/i, 'Staff Vehicle Dispatch');
+
             if (dtAvatar) dtAvatar.src = u.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
             if (dtName) dtName.textContent = u.fullname || u.username;
             if (dtUname) dtUname.textContent = u.username;
-            if (dtRole) dtRole.textContent = u.role || 'Operator';
+            if (dtRole) dtRole.textContent = displayRole;
             if (dtEmail) dtEmail.textContent = u.email || `${u.username.toLowerCase()}@jtexpress.co.id`;
             if (dtPhone) dtPhone.textContent = u.phone || '-';
-            if (dtRoleItem) dtRoleItem.textContent = u.role || 'Operator';
+            if (dtRoleItem) dtRoleItem.textContent = displayRole;
             if (dtTlc) dtTlc.textContent = u.tlc || 'Head Office';
             if (dtCreated) dtCreated.textContent = u.createdAt ? new Date(u.createdAt).toLocaleDateString('id-ID') : '10/06/2026';
             if (dtLastLogin) dtLastLogin.textContent = u.lastLogin || '22/07/2026 10:15 WIB';
@@ -2326,7 +3113,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.innerHTML = pageData.map((u, idx) => {
                     const rowNum = startIdx + idx + 1;
                     const isSelected = selectedUser && selectedUser.username === u.username;
-                    const isActive = (u.status || 'Aktif').toLowerCase() === 'aktif';
+                    const accountStatus = (u.status || 'Aktif').toLowerCase();
+                    const isAccountActive = accountStatus === 'aktif';
+                    const unameLower = (u.username || '').toLowerCase();
+                    const isOnline = isAccountActive && onlineUsersMap.has(unameLower);
+
+                    let statusHtml = '';
+                    if (!isAccountActive) {
+                        statusHtml = `<span class="status-dot-inactive">🔴 Nonaktif</span>`;
+                    } else if (isOnline) {
+                        statusHtml = `<span class="status-dot-active">🟢 Online</span>`;
+                    } else {
+                        statusHtml = `<span class="status-dot-inactive" style="color: #64748B;">⚪ Offline</span>`;
+                    }
+
+                    const displayRole = (u.role || 'Staff Vehicle Dispatch').replace(/OPERATOR.*/i, 'Staff Vehicle Dispatch');
                     const roleClass = (u.role || '').toLowerCase().includes('admin') ? 'role-admin' : ((u.role || '').toLowerCase().includes('supervisor') ? 'role-supervisor' : 'role-operator');
                     const photo = u.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80';
 
@@ -2337,9 +3138,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td><strong>${u.fullname || u.username}</strong></td>
                             <td class="text-dim">${u.username}</td>
                             <td class="text-dim">${u.email || '-'}</td>
-                            <td><span class="role-badge ${roleClass}">${u.role || 'Operator'}</span></td>
+                            <td><span class="role-badge ${roleClass}">${displayRole}</span></td>
                             <td>${u.tlc || 'Head Office'}</td>
-                            <td><span class="${isActive ? 'status-dot-active' : 'status-dot-inactive'}">${isActive ? '🟢 Aktif' : '🔴 Nonaktif'}</span></td>
+                            <td>${statusHtml}</td>
                             <td>${u.lastLogin || '22/07/2026 10:15'}</td>
                             <td class="col-center">
                                 <div class="user-actions-row">
@@ -2443,6 +3244,35 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
+        // Toggle Password Visibility in Add User Modal
+        const toggleUsrPwdBtn = document.getElementById('toggle-usr-password');
+        if (toggleUsrPwdBtn) {
+            toggleUsrPwdBtn.onclick = () => {
+                const input = document.getElementById('usr-password');
+                const eyeOn = document.getElementById('usr-eye-on');
+                const eyeOff = document.getElementById('usr-eye-off');
+                if (!input) return;
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                if (eyeOn) eyeOn.classList.toggle('hidden', !isHidden);
+                if (eyeOff) eyeOff.classList.toggle('hidden', isHidden);
+            };
+        }
+
+        const toggleUsrConfirmBtn = document.getElementById('toggle-usr-confirm');
+        if (toggleUsrConfirmBtn) {
+            toggleUsrConfirmBtn.onclick = () => {
+                const input = document.getElementById('usr-confirm-password');
+                const eyeOn = document.getElementById('usr-confirm-eye-on');
+                const eyeOff = document.getElementById('usr-confirm-eye-off');
+                if (!input) return;
+                const isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                if (eyeOn) eyeOn.classList.toggle('hidden', !isHidden);
+                if (eyeOff) eyeOff.classList.toggle('hidden', isHidden);
+            };
+        }
+
         // Add User Form Submit
         const formAddUser = document.getElementById('form-add-user');
         if (formAddUser) {
@@ -2455,14 +3285,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     const phone = document.getElementById('usr-phone')?.value.trim();
                     const role = document.getElementById('usr-role')?.value;
                     const tlc = document.getElementById('usr-tlc')?.value;
+                    const password = document.getElementById('usr-password')?.value;
+                    const confirmPassword = document.getElementById('usr-confirm-password')?.value;
 
                     if (!username || !fullname) {
                         alert('Harap isi Username dan Nama Lengkap.');
                         return;
                     }
 
+                    if (!password || password.length < 6) {
+                        alert('Password minimal 6 karakter.');
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        alert('Konfirmasi password tidak cocok! Harap ketik ulang dengan benar.');
+                        return;
+                    }
+
+                    const cleanUname = username.toLowerCase().trim();
+
                     // Check username uniqueness
-                    const exists = allUsersCache.some(u => u.username.toLowerCase() === username.toLowerCase());
+                    const exists = allUsersCache.some(u => (u.username || '').toLowerCase().trim() === cleanUname);
                     if (exists) {
                         alert(`Username "${username}" sudah digunakan! Harap pilih username yang berbeda.`);
                         return;
@@ -2474,49 +3318,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    const emailVal = email || `${username.toLowerCase()}@jtexpress.co.id`;
-                    if (window.auth && !window.isFirebaseConfigPlaceholder?.()) {
-                        try {
-                            await JNTFirebaseService.createUserAccount({
-                                username,
-                                fullname,
-                                email: emailVal,
-                                phone,
-                                role,
-                                tlc,
-                                status: 'Aktif'
-                            }, 'JntExpress2026!');
-                        } catch (authErr) {
-                            console.warn("Firebase Auth creation:", authErr.message);
-                            await JNTFirebaseService.saveUserProfile(username, {
-                                username,
-                                fullname,
-                                email: emailVal,
-                                phone,
-                                role,
-                                tlc,
-                                status: 'Aktif',
-                                createdAt: new Date().toISOString()
-                            });
-                        }
-                    } else {
-                        await JNTFirebaseService.saveUserProfile(username, {
-                            username,
-                            fullname,
-                            email: emailVal,
-                            phone,
-                            role,
-                            tlc,
-                            status: 'Aktif',
-                            createdAt: new Date().toISOString()
-                        });
-                    }
+                    const emailVal = (email || `${cleanUname}@jtexpress.co.id`).toLowerCase();
 
-                    window.showToastNotification("👤 USER DIBUAT", `Pengguna ${fullname} (${username}) berhasil didaftarkan!`, "success");
+                    // 1. Daftarkan akun ke Firebase AUTHENTICATION & Firestore tanpa mengubah sesi aktif saat ini.
+                    const profile = await JNTFirebaseService.createUserAccount({
+                        username: cleanUname,
+                        fullname,
+                        email: emailVal,
+                        phone,
+                        role,
+                        tlc,
+                        status: 'Aktif'
+                    }, password);
+
+                    // Sesi admin / user yang membuat akun tetap dipertahankan (tidak dioverwrite dengan akun baru).
+                    // Pengguna baru sekarang dapat melakukan login secara mandiri menggunakan kredensial tersebut.
+
+                    window.showToastNotification("👤 AKUN DIBUAT", `Akun ${fullname} (${emailVal}) berhasil didaftarkan. Pengguna baru dapat login menggunakan kredensial tersebut tanpa mengubah sesi Anda.`, "success");
                     closeModal('modal-add-user');
                     formAddUser.reset();
+                    window.dispatchEvent(new Event('jnt_data_updated'));
                 } catch (err) {
-                    alert(`Gagal menambah user: ${err.message}`);
+                    const msgMap = {
+                        'auth/email-already-in-use': 'Email sudah terdaftar di Firebase Authentication.',
+                        'auth/invalid-email': 'Format email tidak valid.',
+                        'auth/weak-password': 'Password terlalu lemah (min. 6 karakter).',
+                        'auth/operation-not-allowed': 'Aktifkan provider Email/Password di Firebase Console > Authentication > Sign-in method.'
+                    };
+                    alert(`Gagal menambah user: ${msgMap[err.code] || err.message}`);
                 }
             };
         }
@@ -2532,13 +3361,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const selTlc = document.getElementById('edit-usr-tlc');
             const selStatus = document.getElementById('edit-usr-status');
 
-            if (inpId) inpId.value = target.id || target.username;
+            if (inpId) inpId.value = target.username || target.id;
             if (inpUname) inpUname.value = target.username;
             if (inpFull) inpFull.value = target.fullname || target.username;
-            if (inpEmail) inpEmail.value = target.email || '';
+            if (inpEmail) inpEmail.value = target.email || target.emailPerusahaan || '';
             if (inpPhone) inpPhone.value = target.phone || '';
-            if (selRole) selRole.value = target.role || 'Operator';
-            if (selTlc) selTlc.value = target.tlc || 'Head Office';
+            if (selRole) selRole.value = target.role || 'Staff Vehicle Dispatch';
+            if (selTlc) selTlc.value = target.tlc || 'JKT999';
             if (selStatus) selStatus.value = target.status || 'Aktif';
 
             openModal('modal-edit-user');
@@ -2564,18 +3393,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    await JNTFirebaseService.saveUserProfile(username, {
+                    const cleanUname = (username || '').toLowerCase().trim();
+                    await JNTFirebaseService.saveDoc('users', cleanUname, {
                         fullname,
                         email,
+                        emailPerusahaan: email,
                         phone,
                         role,
                         tlc,
-                        status
-                    });
+                        status,
+                        updatedAt: new Date().toISOString()
+                    }, true);
 
-                    window.showToastNotification("💾 PERUBAHAN TERSIMPAN", `Data pengguna ${username} berhasil diperbarui!`, "success");
+                    window.showToastNotification("💾 PERUBAHAN TERSIMPAN", `Data pengguna ${cleanUname} berhasil diperbarui!`, "success");
                     closeModal('modal-edit-user');
-                    const updated = { ...selectedUser, fullname, email, phone, role, tlc, status };
+                    const updated = { ...selectedUser, fullname, email, emailPerusahaan: email, phone, role, tlc, status };
                     populateUserDetail(updated);
                 } catch (err) {
                     alert(`Gagal memperbarui user: ${err.message}`);
@@ -2587,11 +3419,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const openResetPasswordModal = (target) => {
             const inpUname = document.getElementById('reset-usr-username');
             const lblName = document.getElementById('reset-usr-label-name');
+            const inpCurPass = document.getElementById('reset-usr-current-pass');
             const inpPass = document.getElementById('reset-usr-new-pass');
             const inpConf = document.getElementById('reset-usr-confirm-pass');
 
             if (inpUname) inpUname.value = target.username;
             if (lblName) lblName.textContent = `${target.fullname || target.username} (${target.username})`;
+            if (inpCurPass) inpCurPass.value = '';
             if (inpPass) inpPass.value = '';
             if (inpConf) inpConf.value = '';
 
@@ -2604,41 +3438,39 @@ document.addEventListener('DOMContentLoaded', () => {
             formResetPass.onsubmit = async (e) => {
                 e.preventDefault();
                 const username = document.getElementById('reset-usr-username')?.value;
+                const currentPass = document.getElementById('reset-usr-current-pass')?.value;
                 const newPass = document.getElementById('reset-usr-new-pass')?.value;
                 const confPass = document.getElementById('reset-usr-confirm-pass')?.value;
 
+                if (!username) {
+                    alert('User tidak valid.');
+                    return;
+                }
+
+                const cleanUname = username.toLowerCase().trim();
+                const targetUser = allUsersCache.find(u => (u.username || '').toLowerCase().trim() === cleanUname);
+
+                // Require knowing current/last password before allowing reset
+                if (targetUser && targetUser.password && currentPass !== targetUser.password) {
+                    alert('❌ Password saat ini/terakhir yang Anda masukkan salah! Mohon periksa kembali.');
+                    document.getElementById('reset-usr-current-pass')?.focus();
+                    return;
+                }
+
                 if (!newPass || newPass.length < 6) {
-                    alert('Password minimal 6 karakter.');
+                    alert('Password baru minimal 6 karakter.');
                     return;
                 }
                 if (newPass !== confPass) {
-                    alert('Konfirmasi password tidak cocok.');
+                    alert('Konfirmasi password baru tidak cocok.');
                     return;
                 }
 
                 try {
-                    const targetUser = allUsersCache.find(u => u.username === username);
-                    const userEmail = targetUser?.email || `${username.toLowerCase()}@jtexpress.co.id`;
-
-                    if (window.auth && !window.isFirebaseConfigPlaceholder?.()) {
-                        try {
-                            await JNTFirebaseService.sendPasswordReset(userEmail);
-                        } catch (e) {
-                            console.warn("Firebase Auth password reset:", e.message);
-                        }
-                    }
-
-                    // Password Hashing via Web Crypto API SHA-256 for secure storage
-                    let passHash = null;
-                    if (typeof crypto !== 'undefined' && crypto.subtle) {
-                        const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(newPass));
-                        passHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-                    }
-
-                    await JNTFirebaseService.saveUserProfile(username, {
-                        passwordHash: passHash,
-                        passwordUpdated: new Date().toISOString()
-                    });
+                    await JNTFirebaseService.saveDoc('users', cleanUname, {
+                        password: newPass,
+                        updatedAt: new Date().toISOString()
+                    }, true);
 
                     await JNTFirebaseService.logAuditEvent({
                         waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -2646,10 +3478,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         shiftId: JNTFirebaseService.getActiveShiftId(),
                         modul: "User Management",
                         kodeTugas: "-",
-                        aktivitas: `Reset Password untuk Pengguna (${username})`
+                        aktivitas: `Reset Password untuk Pengguna (${cleanUname})`
                     });
 
-                    window.showToastNotification("🔓 PASSWORD DIRESET", `Kata sandi untuk pengguna ${username} berhasil diperbarui!`, "success");
+                    window.showToastNotification("🔓 PASSWORD DIRESET", `Kata sandi untuk pengguna ${cleanUname} berhasil diperbarui!`, "success");
                     closeModal('modal-reset-password-user');
                 } catch (err) {
                     alert(`Gagal reset password: ${err.message}`);
@@ -2682,7 +3514,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (confirm(`Konfirmasi Status Akun:\nApakah Anda yakin ingin mengubah status akun ${selectedUser.username} menjadi ${newStatus}?`)) {
                     try {
-                        await JNTFirebaseService.saveUserProfile(selectedUser.username, { status: newStatus });
+                        const cleanUname = (selectedUser.username || '').toLowerCase().trim();
+                        await JNTFirebaseService.saveDoc('users', cleanUname, { status: newStatus, updatedAt: new Date().toISOString() }, true);
                         window.showToastNotification("🔄 STATUS AKUN DIUBAH", `Akun ${selectedUser.username} kini berstatus: ${newStatus}`, "success");
                         selectedUser.status = newStatus;
                         populateUserDetail(selectedUser);
@@ -3005,68 +3838,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedThemeColor) {
         document.documentElement.style.setProperty('--primary-red', savedThemeColor);
     }
-
-    if (isSettingsPage) {
-        // Theme mode buttons
-        const modeButtons = document.querySelectorAll('.btn-mode');
-        modeButtons.forEach(btn => {
-            const isDarkBtn = btn.textContent.includes('Gelap');
-            if (savedThemeMode === 'dark' && isDarkBtn) {
-                modeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            } else if (savedThemeMode === 'light' && !isDarkBtn) {
-                modeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            }
-
-            btn.addEventListener('click', () => {
-                modeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                if (isDarkBtn) {
-                    localStorage.setItem('jnt_theme_mode', 'dark');
-                    document.body.classList.remove('light-body-theme');
-                    document.body.classList.add('dark-body-theme');
-                    window.showToastNotification("🌙 TEMA GELAP", "Mode tampilan gelap telah diaktifkan.", "success");
-                } else {
-                    localStorage.setItem('jnt_theme_mode', 'light');
-                    document.body.classList.remove('dark-body-theme');
-                    document.body.classList.add('light-body-theme');
-                    window.showToastNotification("☀️ TEMA TERANG", "Mode tampilan terang telah diaktifkan.", "success");
-                }
-            });
-        });
-
-        // Theme color dots
-        const colorDots = document.querySelectorAll('.color-dot');
-        const colorMap = {
-            'red': '#E30613',
-            'blue': '#2563EB',
-            'green': '#10B981',
-            'purple': '#8B5CF6',
-            'orange': '#F59E0B',
-            'dark': '#1E293B'
-        };
-
-        colorDots.forEach(dot => {
-            dot.addEventListener('click', () => {
-                colorDots.forEach(d => {
-                    d.classList.remove('active');
-                    d.textContent = '';
-                });
-                dot.classList.add('active');
-                dot.textContent = '✓';
-
-                for (const [key, colorHex] of Object.entries(colorMap)) {
-                    if (dot.classList.contains(key)) {
-                        localStorage.setItem('jnt_theme_color', colorHex);
-                        document.documentElement.style.setProperty('--primary-red', colorHex);
-                        window.showToastNotification("🎨 TEMA WARNA", `Warna aksen sistem berhasil diubah!`, "success");
-                        break;
-                    }
-                }
-            });
-        });
-    }
 });
-

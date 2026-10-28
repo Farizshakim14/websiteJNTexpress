@@ -449,17 +449,57 @@ const JNTFirebaseService = {
     // ----------------------------------------------------
     // HELPER: SLOT TIME CALCULATION & NORMALIZATION
     // ----------------------------------------------------
-    getSlotForTime(timeStr) {
-        if (!timeStr) return "00:00";
+    /** Urutan 24 slot monitoring (4 hari x 6 slot @4 jam) */
+    getMonitoringSlotKeys() {
+        return [
+            '00:00', '04:00', '08:00', '12:00', '16:00', '20:00',
+            'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00',
+            'D3_00:00', 'D3_04:00', 'D3_08:00', 'D3_12:00', 'D3_16:00', 'D3_20:00',
+            'D4_00:00', 'D4_04:00', 'D4_08:00', 'D4_12:00', 'D4_16:00', 'D4_20:00'
+        ];
+    },
+
+    /**
+     * Parser tanggal monitoring yang toleran terhadap format:
+     *  - "dd/mm/yyyy HH:MM" (format input operator)
+     *  - "dd/mm/yy, HH.MM"  (format toLocaleString id-ID)
+     *  - ISO "yyyy-mm-ddTHH:MM"
+     */
+    parseMonitoringDate(value) {
+        if (!value) return null;
+        if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+        const s = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+            const d = new Date(s);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})[,\s]+(\d{1,2})[:.](\d{2})/);
+        if (m) {
+            let y = parseInt(m[3], 10);
+            if (y < 100) y += 2000;
+            const d = new Date(y, parseInt(m[2], 10) - 1, parseInt(m[1], 10), parseInt(m[4], 10), parseInt(m[5], 10));
+            return isNaN(d.getTime()) ? null : d;
+        }
+        return null;
+    },
+
+    /** Ambil jam (0-23) dari string waktu apa pun; fallback ke parsing "HH:MM" sederhana */
+    _extractHour(timeStr) {
+        const d = this.parseMonitoringDate(timeStr);
+        if (d) return d.getHours();
         let hour = 0;
-        const str = String(timeStr).trim();
+        const str = String(timeStr || '').trim();
         const spaceParts = str.split(' ');
         const clockPart = spaceParts.length > 1 ? spaceParts[1] : spaceParts[0];
-        if (clockPart && clockPart.includes(':')) {
-            const timeParts = clockPart.split(':');
-            hour = parseInt(timeParts[0], 10);
+        if (clockPart && /[:.]/.test(clockPart)) {
+            hour = parseInt(clockPart.split(/[:.]/)[0], 10);
         }
-        if (isNaN(hour)) hour = 0;
+        return isNaN(hour) ? 0 : hour;
+    },
+
+    getSlotForTime(timeStr) {
+        if (!timeStr) return "00:00";
+        const hour = this._extractHour(timeStr);
 
         if (hour >= 0 && hour < 4) return "00:00";
         if (hour >= 4 && hour < 8) return "04:00";
@@ -467,6 +507,57 @@ const JNTFirebaseService = {
         if (hour >= 12 && hour < 16) return "12:00";
         if (hour >= 16 && hour < 20) return "16:00";
         return "20:00";
+    },
+
+    getDepartureSlotIndex(jamBerangkatStr) {
+        if (!jamBerangkatStr) return 0;
+        const hour = this._extractHour(jamBerangkatStr);
+
+        if (hour >= 4 && hour < 8) return 1;
+        if (hour >= 8 && hour < 12) return 2;
+        if (hour >= 12 && hour < 16) return 3;
+        if (hour >= 16 && hour < 20) return 4;
+        if (hour >= 20) return 5;
+        return 0;
+    },
+
+    isOutJakartaSlot(sVal) {
+        return !!(sVal && typeof sVal === 'object' && (sVal.lokasi === "OUT JAKARTA" || sVal.keterangan === "Keberangkatan Awal"));
+    },
+
+    /** Index slot tempat OUT JAKARTA tercatat (-1 jika tidak ada) */
+    getOutJakartaSlotIndex(item) {
+        const slots = (item && item.slots && typeof item.slots === 'object') ? item.slots : {};
+        const keys = this.getMonitoringSlotKeys();
+        for (let i = 0; i < keys.length; i++) {
+            if (this.isOutJakartaSlot(slots[keys[i]])) return i;
+        }
+        return -1;
+    },
+
+    /**
+     * Index slot paling awal yang BOLEH diisi update posisi 4 jam.
+     * Aturan: update posisi harus SETELAH OUT JAKARTA (slot OUT JAKARTA & sebelumnya terkunci).
+     */
+    getMinCheckinSlotIndex(item) {
+        const outIdx = this.getOutJakartaSlotIndex(item);
+        if (outIdx >= 0) return outIdx + 1;
+        return this.getDepartureSlotIndex(item && item.jamBerangkat);
+    },
+
+    /**
+     * Hitung index slot (0-23) dari waktu check-in relatif terhadap tanggal berangkat.
+     * Hari 1 = tanggal berangkat. Return null jika tanggal tidak terbaca, -1 jika sebelum hari berangkat.
+     */
+    getCheckinSlotIndexByTime(jamBerangkatStr, checkinTime) {
+        const dep = this.parseMonitoringDate(jamBerangkatStr);
+        const t = this.parseMonitoringDate(checkinTime);
+        if (!dep || !t) return null;
+        const d0 = new Date(dep.getFullYear(), dep.getMonth(), dep.getDate());
+        const d1 = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+        const dayDiff = Math.round((d1 - d0) / 86400000);
+        if (dayDiff < 0) return -1;
+        return dayDiff * 6 + Math.floor(t.getHours() / 4);
     },
 
     normalizeMonitoringSlots(item) {
@@ -485,6 +576,37 @@ const JNTFirebaseService = {
                         slots[sKey] = null;
                         modified = true;
                     }
+                }
+            }
+        }
+
+        // Pindahkan update posisi yang (salah) tercatat SEBELUM OUT JAKARTA ke slot setelahnya.
+        // Armada tidak mungkin sudah di tol sebelum OUT JAKARTA.
+        const keys24 = this.getMonitoringSlotKeys();
+        const outIdx = keys24.findIndex(k => this.isOutJakartaSlot(slots[k]));
+        if (outIdx > 0) {
+            const depStr = (slots[keys24[outIdx]] && slots[keys24[outIdx]].jamUpdateAktual) || item.jamBerangkat;
+            const isFilled = (k) => !!(slots[k] && typeof slots[k] === 'object' && slots[k].lokasi);
+            for (let i = 0; i < outIdx; i++) {
+                const origKey = keys24[i];
+                const v = slots[origKey];
+                if (!(v && typeof v === 'object' && v.lokasi)) continue;
+
+                let start = this.getCheckinSlotIndexByTime(depStr, v.jamUpdateAktual);
+                if (start === null || start <= outIdx) start = outIdx + 1;
+                let target = -1;
+                for (let j = start; j < keys24.length; j++) {
+                    if (!isFilled(keys24[j])) { target = j; break; }
+                }
+                if (target === -1) {
+                    for (let j = outIdx + 1; j < Math.min(start, keys24.length); j++) {
+                        if (!isFilled(keys24[j])) { target = j; break; }
+                    }
+                }
+                if (target >= 0) {
+                    slots[keys24[target]] = v;
+                    slots[origKey] = null;
+                    modified = true;
                 }
             }
         }
@@ -690,17 +812,42 @@ const JNTFirebaseService = {
 
     createSub(colName, callback) {
         let isCloudInitialized = false;
+        let lastEmittedJson = '';
+
+        // Simpan referensi emit agar bisa di-force dari luar (misal: setelah submit form)
+        let _emitRef = null;
+
+        this._cachedSubData = this._cachedSubData || {};
 
         const emit = (cloudList = null) => {
-            console.log(`[SLA UPDATE] RENDER START for ${colName}`);
             const map = new Map();
 
-            if (cloudList !== null && isCloudInitialized) {
-                cloudList.forEach(i => {
+            if (cloudList !== null) {
+                isCloudInitialized = true;
+                this._cachedSubData[colName] = cloudList;
+
+                // 1. Populate Local Store first (preserve locally created trips)
+                const localList = this.getLocalStore(colName) || [];
+                localList.forEach(i => {
                     const key = i.kodeTugas || i.id || i._docId;
                     if (key) map.set(key, i);
                 });
+
+                // 2. Merge Cloud list on top
+                cloudList.forEach(i => {
+                    const key = i.kodeTugas || i.id || i._docId;
+                    if (key) {
+                        const existing = map.get(key) || {};
+                        map.set(key, { ...existing, ...i });
+                    }
+                });
+
                 this.saveLocalStore(colName, Array.from(map.values()));
+            } else if (isCloudInitialized && this._cachedSubData && this._cachedSubData[colName]) {
+                this._cachedSubData[colName].forEach(i => {
+                    const key = i.kodeTugas || i.id || i._docId;
+                    if (key) map.set(key, i);
+                });
             } else {
                 const localList = this.getLocalStore(colName);
                 localList.forEach(i => {
@@ -713,8 +860,22 @@ const JNTFirebaseService = {
             if (colName === 'monitoring_4h') {
                 resultList = resultList.map(item => this.normalizeMonitoringSlots(item));
             }
-            console.log(`[SLA UPDATE] RENDER SUCCESS for ${colName} (${resultList.length} items)`);
+
+            // Anti-flicker: Only invoke callback if list content has changed
+            const newJson = JSON.stringify(resultList);
+            if (newJson === lastEmittedJson) return;
+            lastEmittedJson = newJson;
+
             callback(resultList);
+        };
+
+        _emitRef = emit;
+
+        // Simpan di registry global agar bisa diakses dari luar
+        this._subRegistry = this._subRegistry || {};
+        this._subRegistry[colName] = {
+            emit,
+            invalidate: () => { lastEmittedJson = ''; }
         };
 
         emit(null);
@@ -743,7 +904,23 @@ const JNTFirebaseService = {
         return () => {
             window.removeEventListener('jnt_data_updated', eventHandler);
             if (typeof unsub === 'function') unsub();
+            // Bersihkan registry saat unsubscribe
+            if (this._subRegistry && this._subRegistry[colName]) {
+                delete this._subRegistry[colName];
+            }
         };
+    },
+
+    /**
+     * Invalidasi cache anti-flicker untuk koleksi tertentu, lalu paksa emit ulang.
+     * Panggil ini setelah save/update agar tabel langsung refresh tanpa menunggu
+     * onSnapshot (yang bisa tertunda beberapa detik di koneksi lambat).
+     */
+    forceRefreshSub(colName) {
+        if (this._subRegistry && this._subRegistry[colName]) {
+            this._subRegistry[colName].invalidate();
+            this._subRegistry[colName].emit(null);
+        }
     },
 
     // Helper to get active Shift ID & Active Shift Object
@@ -788,47 +965,88 @@ const JNTFirebaseService = {
     // ----------------------------------------------------
     async seedInitialDataIfEmpty() {
         try {
-            // A. Master Trips & SLA Targets
+            // A. Master Trips & SLA Targets (EXACT MATCH FOR J&T EXPRESS OFFICIAL SLA EXCEL DATABASE)
             const initialMasterTrips = [
-                { code: "BDO CDD", rute: "JAKARTA - BANDUNG", tlc: "BANDUNG", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 4.5, targetSLAReturnHours: 4.5, targetSLARoundtripHours: 9.0, status: "ACTIVE" },
-                { code: "BDO FUSO", rute: "JAKARTA - BANDUNG", tlc: "BANDUNG", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 5.5, targetSLAReturnHours: 5.5, targetSLARoundtripHours: 11.0, status: "ACTIVE" },
-                { code: "TKG CDD", rute: "JAKARTA - LAMPUNG", tlc: "LAMPUNG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 11.0, targetSLAReturnHours: 11.0, targetSLARoundtripHours: 22.0, status: "ACTIVE" },
+                { code: "BDO CDD", rute: "JAKARTA - BANDUNG", tlc: "BANDUNG", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 5.5, targetSLAReturnHours: 5.5, targetSLARoundtripHours: 11.0, status: "ACTIVE" },
+                { code: "BDO FUSO", rute: "JAKARTA - BANDUNG", tlc: "BANDUNG", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 5.5, targetSLAReturnHours: 4.5, targetSLARoundtripHours: 11.0, status: "ACTIVE" },
                 { code: "TKG FUSO", rute: "JAKARTA - LAMPUNG", tlc: "LAMPUNG", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 13.5, targetSLAReturnHours: 13.5, targetSLARoundtripHours: 27.0, status: "ACTIVE" },
+                { code: "TKG CDD", rute: "JAKARTA - LAMPUNG", tlc: "LAMPUNG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 11.0, targetSLAReturnHours: 11.0, targetSLARoundtripHours: 22.0, status: "ACTIVE" },
                 { code: "SRG CDD", rute: "JAKARTA - SEMARANG", tlc: "SEMARANG", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 12.5, targetSLAReturnHours: 12.5, targetSLARoundtripHours: 25.0, status: "ACTIVE" },
                 { code: "SRG FUSO", rute: "JAKARTA - SEMARANG", tlc: "SEMARANG", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 14.0, targetSLAReturnHours: 14.0, targetSLARoundtripHours: 28.0, status: "ACTIVE" },
-                { code: "PLM CDD", rute: "JAKARTA - PALEMBANG", tlc: "PALEMBANG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
-                { code: "PLM FUSO", rute: "JAKARTA - PALEMBANG", tlc: "PALEMBANG", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
-                { code: "SOC CDD", rute: "JAKARTA - SOLO", tlc: "SOLO", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 14.5, targetSLAReturnHours: 14.5, targetSLARoundtripHours: 29.0, status: "ACTIVE" },
-                { code: "SOC FUSO", rute: "JAKARTA - SOLO", tlc: "SOLO", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 14.5, targetSLAReturnHours: 14.5, targetSLARoundtripHours: 29.0, status: "ACTIVE" },
+                { code: "PLM CDD", rute: "JAKARTA - PALEMBANG", tlc: "PALEMBANG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 19.67, targetSLAReturnHours: 19.67, targetSLARoundtripHours: 39.33, status: "ACTIVE" },
+                { code: "PLM FUSO", rute: "JAKARTA - PALEMBANG", tlc: "PALEMBANG", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 19.67, targetSLAReturnHours: 19.67, targetSLARoundtripHours: 39.33, status: "ACTIVE" },
+                { code: "SOC CDD", rute: "JAKARTA - SOLO", tlc: "SOLO", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 15.5, targetSLAReturnHours: 15.5, targetSLARoundtripHours: 31.0, status: "ACTIVE" },
+                { code: "SOC FUSO", rute: "JAKARTA - SOLO", tlc: "SOLO", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 15.5, targetSLAReturnHours: 15.5, targetSLARoundtripHours: 31.0, status: "ACTIVE" },
                 { code: "JOG CDD", rute: "JAKARTA - YOGYAKARTA", tlc: "YOGYAKARTA", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 16.0, targetSLAReturnHours: 16.0, targetSLARoundtripHours: 32.0, status: "ACTIVE" },
                 { code: "JOG FUSO", rute: "JAKARTA - YOGYAKARTA", tlc: "YOGYAKARTA", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
-                { code: "SUB CDD", rute: "JAKARTA - SURABAYA", tlc: "SURABAYA", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 19.0, targetSLAReturnHours: 19.0, targetSLARoundtripHours: 38.0, status: "ACTIVE" },
-                { code: "SUB FUSO", rute: "JAKARTA - SURABAYA", tlc: "SURABAYA", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 23.0, targetSLAReturnHours: 23.0, targetSLARoundtripHours: 46.0, status: "ACTIVE" },
-                { code: "PKU CDD", rute: "JAKARTA - PEKANBARU", tlc: "PEKANBARU", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 43.0, targetSLAReturnHours: 43.0, targetSLARoundtripHours: 86.0, status: "ACTIVE" },
-                { code: "PKU FUSO", rute: "JAKARTA - PEKANBARU", tlc: "PEKANBARU", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 43.83, targetSLAReturnHours: 43.83, targetSLARoundtripHours: 87.67, status: "ACTIVE" },
-                { code: "PDG CDD", rute: "JAKARTA - PADANG", tlc: "PADANG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 44.33, targetSLAReturnHours: 44.33, targetSLARoundtripHours: 88.67, status: "ACTIVE" },
-                { code: "PDG FUSO", rute: "JAKARTA - PADANG", tlc: "PADANG", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 49.33, targetSLAReturnHours: 49.33, targetSLARoundtripHours: 98.67, status: "ACTIVE" },
+                { code: "PMH CDD", rute: "JAKARTA - PRABUMULIH", tlc: "PRABUMULIH", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 21.0, targetSLAReturnHours: 21.0, targetSLARoundtripHours: 42.0, status: "ACTIVE" },
+                { code: "PMH FUSO", rute: "JAKARTA - PRABUMULIH", tlc: "PRABUMULIH", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 21.0, targetSLAReturnHours: 21.0, targetSLARoundtripHours: 42.0, status: "ACTIVE" },
+                { code: "SUB CDD", rute: "JAKARTA - SURABAYA", tlc: "SURABAYA", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 19.0, targetSLAReturnHours: 18.0, targetSLARoundtripHours: 38.0, status: "ACTIVE" },
+                { code: "SUB FUSO", rute: "JAKARTA - SURABAYA", tlc: "SURABAYA", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 23.0, targetSLAReturnHours: 19.0, targetSLARoundtripHours: 46.0, status: "ACTIVE" },
+                { code: "BKS CDD", rute: "JAKARTA - BENGKULU", tlc: "BENGKULU", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 44.0, targetSLAReturnHours: 44.0, targetSLARoundtripHours: 88.0, status: "ACTIVE" },
+                { code: "BKS FUSO", rute: "JAKARTA - BENGKULU", tlc: "BENGKULU", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 44.0, targetSLAReturnHours: 44.0, targetSLARoundtripHours: 88.0, status: "ACTIVE" },
+                { code: "DJB CDD", rute: "JAKARTA - JAMBI", tlc: "JAMBI", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 21.0, targetSLAReturnHours: 21.0, targetSLARoundtripHours: 42.0, status: "ACTIVE" },
+                { code: "DJB FUSO", rute: "JAKARTA - JAMBI", tlc: "JAMBI", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 33.0, targetSLAReturnHours: 33.0, targetSLARoundtripHours: 66.0, status: "ACTIVE" },
+                { code: "LLG CDD", rute: "JAKARTA - LUBUKLINGGAU", tlc: "LUBUKLINGGAU", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 23.0, targetSLAReturnHours: 23.0, targetSLARoundtripHours: 46.0, status: "ACTIVE" },
+                { code: "LLG FUSO", rute: "JAKARTA - LUBUKLINGGAU", tlc: "LUBUKLINGGAU", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 23.0, targetSLAReturnHours: 23.0, targetSLARoundtripHours: 46.0, status: "ACTIVE" },
+                { code: "PKU CDD", rute: "JAKARTA - PEKANBARU", tlc: "PEKANBARU", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 54.0, targetSLAReturnHours: 54.0, targetSLARoundtripHours: 108.0, status: "ACTIVE" },
+                { code: "PKU FUSO", rute: "JAKARTA - PEKANBARU", tlc: "PEKANBARU", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 54.0, targetSLAReturnHours: 54.0, targetSLARoundtripHours: 108.0, status: "ACTIVE" },
+                { code: "PDG CDD", rute: "JAKARTA - PADANG", tlc: "PADANG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 49.0, targetSLAReturnHours: 49.0, targetSLARoundtripHours: 98.0, status: "ACTIVE" },
+                { code: "PDG FUSO", rute: "JAKARTA - PADANG", tlc: "PADANG", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 49.0, targetSLAReturnHours: 49.0, targetSLARoundtripHours: 98.0, status: "ACTIVE" },
+                { code: "RPT CDD", rute: "JAKARTA - RANTAUPRAPAT", tlc: "RANTAUPRAPAT", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 48.0, targetSLAReturnHours: 48.0, targetSLARoundtripHours: 96.0, status: "ACTIVE" },
+                { code: "RPT FUSO", rute: "JAKARTA - RANTAUPRAPAT", tlc: "RANTAUPRAPAT", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 50.0, targetSLAReturnHours: 50.0, targetSLARoundtripHours: 100.0, status: "ACTIVE" },
                 { code: "MES CDD", rute: "JAKARTA - MEDAN", tlc: "MEDAN", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 71.0, targetSLAReturnHours: 71.0, targetSLARoundtripHours: 142.0, status: "ACTIVE" },
                 { code: "MES FUSO", rute: "JAKARTA - MEDAN", tlc: "MEDAN", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 71.0, targetSLAReturnHours: 71.0, targetSLARoundtripHours: 142.0, status: "ACTIVE" },
                 { code: "BTJ CDD", rute: "JAKARTA - ACEH", tlc: "ACEH", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 62.0, targetSLAReturnHours: 62.0, targetSLARoundtripHours: 124.0, status: "ACTIVE" },
                 { code: "BTJ FUSO", rute: "JAKARTA - ACEH", tlc: "ACEH", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 63.0, targetSLAReturnHours: 63.0, targetSLARoundtripHours: 126.0, status: "ACTIVE" },
+                { code: "GSK CDD", rute: "JAKARTA - GRESIK", tlc: "GRESIK", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 19.0, targetSLAReturnHours: 19.0, targetSLARoundtripHours: 38.0, status: "ACTIVE" },
+                { code: "GSK FUSO", rute: "JAKARTA - GRESIK", tlc: "GRESIK", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 19.0, targetSLAReturnHours: 19.0, targetSLARoundtripHours: 38.0, status: "ACTIVE" },
                 { code: "TGR CDD", rute: "JAKARTA - TANGERANG", tlc: "TANGERANG", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 0.5, targetSLAReturnHours: 0.5, targetSLARoundtripHours: 1.0, status: "ACTIVE" },
+                { code: "TGR FUSO", rute: "JAKARTA - TANGERANG", tlc: "TANGERANG", layanan: "FUSO", wilayah: "JABODETABEK", targetSLAOutboundHours: 0.5, targetSLAReturnHours: 0.5, targetSLARoundtripHours: 1.0, status: "ACTIVE" },
                 { code: "DPK CDD", rute: "JAKARTA - DEPOK", tlc: "DEPOK", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.0, targetSLAReturnHours: 2.0, targetSLARoundtripHours: 4.0, status: "ACTIVE" },
-                { code: "BGR CDD", rute: "JAKARTA - BOGOR", tlc: "BOGOR", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.83, targetSLAReturnHours: 2.83, targetSLARoundtripHours: 5.67, status: "ACTIVE" },
+                { code: "DPK FUSO", rute: "JAKARTA - DEPOK", tlc: "DEPOK", layanan: "FUSO", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.0, targetSLAReturnHours: 2.0, targetSLARoundtripHours: 4.0, status: "ACTIVE" },
+                { code: "BGR CDD", rute: "JAKARTA - BOGOR", tlc: "BOGOR", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.0, targetSLAReturnHours: 2.0, targetSLARoundtripHours: 4.0, status: "ACTIVE" },
+                { code: "BGR FUSO", rute: "JAKARTA - BOGOR", tlc: "BOGOR", layanan: "FUSO", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.5, targetSLAReturnHours: 2.5, targetSLARoundtripHours: 5.0, status: "ACTIVE" },
+                { code: "BKI FUSO", rute: "JAKARTA - BEKASI", tlc: "BEKASI", layanan: "FUSO", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.0, targetSLAReturnHours: 2.0, targetSLARoundtripHours: 4.0, status: "ACTIVE" },
                 { code: "BKI CDD", rute: "JAKARTA - BEKASI", tlc: "BEKASI", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.0, targetSLAReturnHours: 2.0, targetSLARoundtripHours: 4.0, status: "ACTIVE" },
                 { code: "CKR CDD", rute: "JAKARTA - CIKARANG", tlc: "CIKARANG", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 2.83, targetSLAReturnHours: 2.83, targetSLARoundtripHours: 5.67, status: "ACTIVE" },
                 { code: "SEG CDD", rute: "JAKARTA - SERANG", tlc: "SERANG", layanan: "CDD", wilayah: "BANTEN", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+                { code: "SEG FUSO", rute: "JAKARTA - SERANG", tlc: "SERANG", layanan: "FUSO", wilayah: "BANTEN", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+                { code: "JAT CDD", rute: "JAKARTA - JAT", tlc: "JAT", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
                 { code: "SMI CDD", rute: "JAKARTA - SUKABUMI", tlc: "SUKABUMI", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 6.0, targetSLAReturnHours: 6.0, targetSLARoundtripHours: 12.0, status: "ACTIVE" },
                 { code: "TSK CDD", rute: "JAKARTA - TASIKMALAYA", tlc: "TASIKMALAYA", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 10.0, targetSLAReturnHours: 10.0, targetSLARoundtripHours: 20.0, status: "ACTIVE" },
+                { code: "TSK FUSO", rute: "JAKARTA - TASIKMALAYA", tlc: "TASIKMALAYA", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 10.0, targetSLAReturnHours: 10.0, targetSLARoundtripHours: 20.0, status: "ACTIVE" },
                 { code: "CRN CDD", rute: "JAKARTA - CIREBON", tlc: "CIREBON", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 8.5, targetSLAReturnHours: 8.5, targetSLARoundtripHours: 17.0, status: "ACTIVE" },
                 { code: "CKP CDD", rute: "JAKARTA - CIKAMPEK", tlc: "CIKAMPEK", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 4.5, targetSLAReturnHours: 4.5, targetSLARoundtripHours: 9.0, status: "ACTIVE" },
                 { code: "PTI CDD", rute: "JAKARTA - PATI", tlc: "PATI", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 14.0, targetSLAReturnHours: 14.0, targetSLARoundtripHours: 28.0, status: "ACTIVE" },
                 { code: "PWO CDD", rute: "JAKARTA - PURWOKERTO", tlc: "PURWOKERTO", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 12.5, targetSLAReturnHours: 12.5, targetSLARoundtripHours: 25.0, status: "ACTIVE" },
                 { code: "MDN CDD", rute: "JAKARTA - MADIUN", tlc: "MADIUN", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
+                { code: "MDN FUSO", rute: "JAKARTA - MADIUN", tlc: "MADIUN", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
                 { code: "KDR CDD", rute: "JAKARTA - KEDIRI", tlc: "KEDIRI", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 14.0, targetSLAReturnHours: 14.0, targetSLARoundtripHours: 28.0, status: "ACTIVE" },
+                { code: "KDR FUSO", rute: "JAKARTA - KEDIRI", tlc: "KEDIRI", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 16.0, targetSLAReturnHours: 16.0, targetSLARoundtripHours: 32.0, status: "ACTIVE" },
                 { code: "MLG CDD", rute: "JAKARTA - MALANG", tlc: "MALANG", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 21.0, targetSLAReturnHours: 21.0, targetSLARoundtripHours: 42.0, status: "ACTIVE" },
                 { code: "TGL CDD", rute: "JAKARTA - TEGAL", tlc: "TEGAL", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 9.0, targetSLAReturnHours: 9.0, targetSLARoundtripHours: 18.0, status: "ACTIVE" },
-                { code: "DPS CDD", rute: "JAKARTA - DENPASAR", tlc: "DENPASAR", layanan: "CDD", wilayah: "BALI", targetSLAOutboundHours: 40.0, targetSLAReturnHours: 40.0, targetSLARoundtripHours: 80.0, status: "ACTIVE" }
+                { code: "BAL CDD", rute: "JAKARTA - BALARAJA", tlc: "BALARAJA", layanan: "CDD", wilayah: "BANTEN", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+                { code: "DPS CDD", rute: "JAKARTA - DENPASAR", tlc: "DENPASAR", layanan: "CDD", wilayah: "BALI", targetSLAOutboundHours: 40.0, targetSLAReturnHours: 40.0, targetSLARoundtripHours: 80.0, status: "ACTIVE" },
+                { code: "DPS FUSO", rute: "JAKARTA - DENPASAR", tlc: "DENPASAR", layanan: "FUSO", wilayah: "BALI", targetSLAOutboundHours: 43.0, targetSLAReturnHours: 43.0, targetSLARoundtripHours: 86.0, status: "ACTIVE" },
+                { code: "WRG CDD", rute: "JAKARTA - WARINGIN", tlc: "WARINGIN", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 1.0, targetSLAReturnHours: 1.0, targetSLARoundtripHours: 2.0, status: "ACTIVE" },
+                { code: "WRG FUSO", rute: "JAKARTA - WARINGIN", tlc: "WARINGIN", layanan: "FUSO", wilayah: "JABODETABEK", targetSLAOutboundHours: 1.25, targetSLAReturnHours: 1.25, targetSLARoundtripHours: 2.5, status: "ACTIVE" },
+                { code: "SDP CDD", rute: "JAKARTA - SDP", tlc: "SDP", layanan: "CDD", wilayah: "JABODETABEK", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+                { code: "SDP FUSO", rute: "JAKARTA - SDP", tlc: "SDP", layanan: "FUSO", wilayah: "JABODETABEK", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+                { code: "JBR CDD", rute: "JAKARTA - JEMBER", tlc: "JEMBER", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 29.0, targetSLAReturnHours: 29.0, targetSLARoundtripHours: 58.0, status: "ACTIVE" },
+                { code: "JBR FUSO", rute: "JAKARTA - JEMBER", tlc: "JEMBER", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 29.0, targetSLAReturnHours: 29.0, targetSLARoundtripHours: 58.0, status: "ACTIVE" },
+                { code: "MDR CDD", rute: "JAKARTA - MADURA", tlc: "MADURA", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
+                { code: "MDR FUSO", rute: "JAKARTA - MADURA", tlc: "MADURA", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
+                { code: "PRO CDD", rute: "JAKARTA - PROBOLINGGO", tlc: "PROBOLINGGO", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 22.0, targetSLAReturnHours: 22.0, targetSLARoundtripHours: 44.0, status: "ACTIVE" },
+                { code: "LMG CDD", rute: "JAKARTA - LAMONGAN", tlc: "LAMONGAN", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 19.5, targetSLAReturnHours: 19.5, targetSLARoundtripHours: 39.0, status: "ACTIVE" },
+                { code: "BTN FUSO", rute: "JAKARTA - BANTEN", tlc: "BANTEN", layanan: "FUSO", wilayah: "BANTEN", targetSLAOutboundHours: 3.0, targetSLAReturnHours: 3.0, targetSLARoundtripHours: 6.0, status: "ACTIVE" },
+                { code: "BTN CDD", rute: "JAKARTA - BANTEN", tlc: "BANTEN", layanan: "CDD", wilayah: "BANTEN", targetSLAOutboundHours: 2.5, targetSLAReturnHours: 2.5, targetSLARoundtripHours: 5.0, status: "ACTIVE" },
+                { code: "TKG KONTAINER", rute: "JAKARTA - LAMPUNG", tlc: "LAMPUNG", layanan: "KONTAINER", wilayah: "SUMATERA", targetSLAOutboundHours: 13.0, targetSLAReturnHours: 13.0, targetSLARoundtripHours: 26.0, status: "ACTIVE" },
+                { code: "PLM KONTAINER", rute: "JAKARTA - PALEMBANG", tlc: "PALEMBANG", layanan: "KONTAINER", wilayah: "SUMATERA", targetSLAOutboundHours: 19.75, targetSLAReturnHours: 19.75, targetSLARoundtripHours: 39.5, status: "ACTIVE" },
+                { code: "SUB KONTAINER", rute: "JAKARTA - SURABAYA", tlc: "SURABAYA", layanan: "KONTAINER", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
+                { code: "MDN KONTAINER", rute: "JAKARTA - MADIUN", tlc: "MADIUN", layanan: "KONTAINER", wilayah: "JAWA", targetSLAOutboundHours: 20.0, targetSLAReturnHours: 20.0, targetSLARoundtripHours: 40.0, status: "ACTIVE" },
+                { code: "CIM CDD", rute: "JAKARTA - CIMAHI", tlc: "CIMAHI", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 4.5, targetSLAReturnHours: 4.5, targetSLARoundtripHours: 9.0, status: "ACTIVE" },
+                { code: "CIM FUSO", rute: "JAKARTA - CIMAHI", tlc: "CIMAHI", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 5.5, targetSLAReturnHours: 5.5, targetSLARoundtripHours: 11.0, status: "ACTIVE" }
             ];
 
             if (this.getLocalStore('master_trips').length === 0) {
@@ -864,20 +1082,38 @@ const JNTFirebaseService = {
                 }
             }
 
-            // B2. Master Vendors (11 Official Vendors)
+            // B2. Master Vendors (12 Official Vendors)
             const initialVendors = [
                 { code: "SERYU", nama: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)", status: "AKTIF" },
-                { code: "APL", nama: "PT. ASIA PASIFIK LOGISTIK (APL)", status: "AKTIF" },
-                { code: "KLS", nama: "PT. KENCANA LOGISTIK SAMUDERA (KLS)", status: "AKTIF" },
-                { code: "JTS", nama: "PT. JET TRANSPORT SERVICES (JTS)", status: "AKTIF" },
-                { code: "CHIJUN", nama: "PT CHIJUN SMART FREIGHT (CHIJUN)", status: "AKTIF" },
-                { code: "PAL", nama: "PT. PESONA ABADI LOGISTIK (PAL)", status: "AKTIF" },
-                { code: "AB", nama: "PT ANUGERAH BERSATU (AB)", status: "AKTIF" },
-                { code: "SOLUSI", nama: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)", status: "AKTIF" },
-                { code: "REYA", nama: "PT. REYA BAHAGIA ABADI (REYA)", status: "AKTIF" },
-                { code: "SDE", nama: "PT. SOLUSI DUNIA EXPEDISI (SDE)", status: "AKTIF" },
-                { code: "MTI", nama: "PT. MEDIA TRANS INDO (MTI)", status: "AKTIF" }
+                { code: "APL",   nama: "PT. ASIA PASIFIK LOGISTIK (APL)",      status: "AKTIF" },
+                { code: "KLS",   nama: "PT. KENCANA LOGISTIK SAMUDERA (KLS)",  status: "AKTIF" },
+                { code: "JTS",   nama: "PT. JET TRANSPORT SERVICES (JTS)",     status: "AKTIF" },
+                { code: "CHIJUN",nama: "PT CHIJUN SMART FREIGHT (CHIJUN)",     status: "AKTIF" },
+                { code: "PAL",   nama: "PT. PESONA ABADI LOGISTIK (PAL)",      status: "AKTIF" },
+                { code: "AB",    nama: "PT ANUGERAH BERSATU (AB)",             status: "AKTIF" },
+                { code: "SOLUSI",nama: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)", status: "AKTIF" },
+                { code: "REYA",  nama: "PT. REYA BAHAGIA ABADI (REYA)",        status: "AKTIF" },
+                { code: "SDE",   nama: "PT. SOLUSI DUNIA EXPEDISI (SDE)",      status: "AKTIF" },
+                { code: "MTI",   nama: "PT. MEDIA TRANS INDO (MTI)",           status: "AKTIF" },
+                { code: "LNP",   nama: "LNP",                                  status: "AKTIF" }
             ];
+
+            // Registri singkatan vendor terpusat — dipakai oleh semua modul
+            JNTFirebaseService._vendorMap = {
+                SERYU: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)",
+                APL:   "PT. ASIA PASIFIK LOGISTIK (APL)",
+                KLS:   "PT. KENCANA LOGISTIK SAMUDERA (KLS)",
+                JTS:   "PT. JET TRANSPORT SERVICES (JTS)",
+                CHIJUN:"PT CHIJUN SMART FREIGHT (CHIJUN)",
+                PAL:   "PT. PESONA ABADI LOGISTIK (PAL)",
+                AB:    "PT ANUGERAH BERSATU (AB)",
+                SOLUSI:"PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)",
+                REYA:  "PT. REYA BAHAGIA ABADI (REYA)",
+                SDE:   "PT. SOLUSI DUNIA EXPEDISI (SDE)",
+                MTI:   "PT. MEDIA TRANS INDO (MTI)",
+                LNP:   "LNP"
+            };
+            JNTFirebaseService._vendorList = initialVendors;
 
             if (this.getLocalStore('master_vendors').length === 0) {
                 this.saveLocalStore('master_vendors', initialVendors.map(v => ({ id: v.code, ...v })));
@@ -1387,7 +1623,13 @@ const JNTFirebaseService = {
             trip: fullTripData.trip,
             namaRute: fullTripData.namaRute,
             platNomor: fullTripData.platNomor,
+            vendor: fullTripData.vendor || "J&T",
+            driver1: fullTripData.driver1 || "",
+            driverPhone: fullTripData.driverPhone || "",
+            driver2: fullTripData.driver2 || "",
+            driver2Phone: fullTripData.driver2Phone || "",
             jamBerangkat: fullTripData.jamBerangkat,
+            totalAwb: fullTripData.totalAwb || 0,
             jamSampaiAktual: "",
             durasiBerangkatMinutes: 0,
             targetSLAHours: masterInfo.targetSLAOutboundHours,
@@ -1412,15 +1654,17 @@ const JNTFirebaseService = {
 
         // Monitoring 4H Record
         const todayStr = new Date().toISOString().split('T')[0];
-        const departureSlotKey = this.getSlotForTime(fullTripData.jamBerangkat);
-        const initialSlots = {
-            "00:00": null,
-            "04:00": null,
-            "08:00": null,
-            "12:00": null,
-            "16:00": null,
-            "20:00": null
-        };
+        const slotKeys24 = [
+            '00:00', '04:00', '08:00', '12:00', '16:00', '20:00',
+            'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00',
+            'D3_00:00', 'D3_04:00', 'D3_08:00', 'D3_12:00', 'D3_16:00', 'D3_20:00',
+            'D4_00:00', 'D4_04:00', 'D4_08:00', 'D4_12:00', 'D4_16:00', 'D4_20:00'
+        ];
+        const depSlotIdx = this.getDepartureSlotIndex(fullTripData.jamBerangkat);
+        const departureSlotKey = slotKeys24[depSlotIdx] || '00:00';
+        const initialSlots = {};
+        slotKeys24.forEach(k => { initialSlots[k] = null; });
+
         initialSlots[departureSlotKey] = {
             lokasi: "OUT JAKARTA",
             keterangan: "Keberangkatan Awal",
@@ -1438,6 +1682,7 @@ const JNTFirebaseService = {
             namaRute: fullTripData.namaRute,
             platNomor: fullTripData.platNomor,
             driver1: fullTripData.driver1,
+            jamBerangkat: fullTripData.jamBerangkat || "",
             slots: initialSlots,
             lastUpdateSlot: departureSlotKey,
             lastUpdateLokasi: "OUT JAKARTA",
@@ -1474,6 +1719,16 @@ const JNTFirebaseService = {
         const shiftId = this.getActiveShiftId();
         await this.saveDoc('sla_outbound', kodeTugas, { ...updateObj, shiftId: shiftId }, true);
         await this.recalculateSLARoundtrip(kodeTugas);
+
+        // Synchronize SLA Outbound update -> Monitoring 4H & Incoming
+        if (updateObj.jamSampaiAktual) {
+            await this.saveDoc('monitoring_4h', kodeTugas, {
+                statusPerjalanan: 'COMPLETED',
+                lastUpdateTime: updateObj.jamSampaiAktual,
+                jamSampaiAktual: updateObj.jamSampaiAktual
+            }, true);
+            await this.saveDoc('incoming', kodeTugas, { status: 'SUDAH SELESAI' }, true);
+        }
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -1611,7 +1866,88 @@ const JNTFirebaseService = {
     },
 
     subscribeMonitoring4H(callback) {
-        return this.createSub('monitoring_4h', callback);
+        if (!window.db) {
+            // Fallback for offline / local storage
+            return this.createSub('monitoring_4h', (monList) => {
+                const incList = this.getLocalStore('incoming') || [];
+                const slaList = this.getLocalStore('sla_outbound') || [];
+                const mergedMap = new Map();
+                slaList.forEach(item => { const k = item.kodeTugas || item.id; if (k) mergedMap.set(k, { ...item, slots: {} }); });
+                incList.forEach(item => { const k = item.kodeTugas || item.id; if (k && !mergedMap.has(k)) mergedMap.set(k, { ...item, slots: {} }); });
+                (monList || []).forEach(item => {
+                    const k = item.kodeTugas || item.id;
+                    if (k) {
+                        const existing = mergedMap.get(k) || { ...item, slots: {} };
+                        mergedMap.set(k, { ...existing, ...item, slots: { ...(existing.slots || {}), ...(item.slots || {}) } });
+                    }
+                });
+                callback(Array.from(mergedMap.values()).map(item => this.normalizeMonitoringSlots(item)));
+            });
+        }
+
+        // REAL-TIME FIRESTORE MULTI-COLLECTION MERGE LISTENER (sla_outbound + incoming + monitoring_4h)
+        let slaCache = [];
+        let incCache = [];
+        let monCache = [];
+
+        const emitMergedData = () => {
+            const mergedMap = new Map();
+
+            // 1. All SLA Outbound trips from Firestore
+            slaCache.forEach(item => {
+                const key = item.kodeTugas || item.id;
+                if (key) mergedMap.set(key, { ...item, slots: {} });
+            });
+
+            // 2. All Incoming trips from Firestore
+            incCache.forEach(item => {
+                const key = item.kodeTugas || item.id;
+                if (key && !mergedMap.has(key)) mergedMap.set(key, { ...item, slots: {} });
+            });
+
+            // 3. All Monitoring 4H slot check-ins from Firestore
+            monCache.forEach(item => {
+                const key = item.kodeTugas || item.id;
+                if (key) {
+                    const existing = mergedMap.get(key) || {};
+                    const mergedSlots = { ...(existing.slots || {}), ...(item.slots || {}) };
+                    mergedMap.set(key, {
+                        ...item,
+                        ...existing, // preserve rich metadata (trip, vendor, platNomor, driver1, jamBerangkat)
+                        slots: mergedSlots,
+                        lastUpdateSlot: item.lastUpdateSlot || existing.lastUpdateSlot || '',
+                        lastUpdateLokasi: item.lastUpdateLokasi || existing.lastUpdateLokasi || '',
+                        lastUpdateTime: item.lastUpdateTime || existing.lastUpdateTime || '',
+                        statusPerjalanan: item.statusPerjalanan || existing.statusPerjalanan || 'ON PROGRESS'
+                    });
+                }
+            });
+
+            const mergedList = Array.from(mergedMap.values()).map(item => this.normalizeMonitoringSlots(item));
+            callback(mergedList);
+        };
+
+        // Real-time Firestore Listeners across all 3 collections (FIREBASE-ONLY)
+        const unsubSla = window.db.collection('sla_outbound').onSnapshot(snap => {
+            slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            emitMergedData();
+        }, err => console.warn('sla_outbound sub error:', err.message));
+
+        const unsubInc = window.db.collection('incoming').onSnapshot(snap => {
+            incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            emitMergedData();
+        }, err => console.warn('incoming sub error:', err.message));
+
+        const unsubMon = window.db.collection('monitoring_4h').onSnapshot(snap => {
+            monCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            emitMergedData();
+        }, err => console.warn('monitoring_4h sub error:', err.message));
+
+        return () => {
+            if (typeof unsubSla === 'function') unsubSla();
+            if (typeof unsubInc === 'function') unsubInc();
+            if (typeof unsubMon === 'function') unsubMon();
+        };
     },
 
     async saveMonitoringSlotUpdate(kodeTugas, slotKey, lokasi, keterangan = "", jenisUpdate = "Lokasi Normal", jamUpdateAktual = "", inputBy = "Hamdan", statusPerjalanan = "ON PROGRESS") {
@@ -1630,6 +1966,27 @@ const JNTFirebaseService = {
             }
         }
         if (!existing.slots) existing.slots = {};
+
+        const incList = this.getLocalStore('incoming') || [];
+        const incData = incList.find(i => (i.id === kodeTugas || i.kodeTugas === kodeTugas)) || {};
+
+        // Perbaiki data lama: update posisi yang tercatat sebelum OUT JAKARTA dipindah ke slot setelahnya
+        existing = this.normalizeMonitoringSlots(existing);
+        existing.slots = { ...existing.slots };
+
+        // GUARD: update posisi 4 jam hanya boleh SETELAH OUT JAKARTA
+        const keys24 = this.getMonitoringSlotKeys();
+        const targetIdx = keys24.indexOf(slotKey);
+        if (targetIdx < 0) {
+            throw new Error(`Slot ${slotKey} tidak valid.`);
+        }
+        const minIdx = this.getMinCheckinSlotIndex({
+            ...existing,
+            jamBerangkat: existing.jamBerangkat || incData.jamBerangkat || ""
+        });
+        if (targetIdx < minIdx) {
+            throw new Error(`Slot ${slotKey} berada sebelum/bersamaan dengan OUT JAKARTA. Update posisi 4 jam hanya bisa diinput setelah armada OUT JAKARTA.`);
+        }
 
         const oldSlotData = existing.slots[slotKey];
         const newSlotData = {
@@ -1668,6 +2025,14 @@ const JNTFirebaseService = {
         const updateObj = {
             ...existing,
             kodeTugas: kodeTugas,
+            platNomor: existing.platNomor || incData.platNomor || "",
+            driver1: existing.driver1 || incData.driver1 || "",
+            trip: existing.trip || incData.trip || "",
+            namaRute: existing.namaRute || incData.namaRute || "",
+            vendor: existing.vendor || incData.vendor || incData.namaVendor || "",
+            namaVendor: existing.namaVendor || incData.namaVendor || incData.vendor || "",
+            tlc: existing.tlc || incData.tlc || "",
+            jamBerangkat: existing.jamBerangkat || incData.jamBerangkat || "",
             slots: existing.slots,
             lastUpdateSlot: slotKey,
             lastUpdateLokasi: lokasi,
@@ -1731,11 +2096,14 @@ const JNTFirebaseService = {
             waktuKejadian: incidentData.waktuKejadian || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
             platNomor: incidentData.platNomor || incMaster.platNomor || "-",
             driver: incidentData.driver || incMaster.driver1 || "-",
+            driver2: incidentData.driver2 || incMaster.driver2 || "-",
             vendor: incidentData.vendor || incMaster.vendor || "J&T Logistics",
             rute: incidentData.rute || incMaster.trip || incMaster.namaRute || "-",
             deskripsi: incidentData.deskripsi || "Kejadian terdeteksi pada operasional.",
             dilaporkanOleh: incidentData.dilaporkanOleh || sessionStorage.getItem('jnt_active_username') || "Hamdan",
             status: incidentData.status || "DALAM PENANGANAN",
+            fotoKejadian: incidentData.fotoKejadian || [],
+            fotoSelesai: incidentData.fotoSelesai || [],
             shiftId: shiftId,
             createdAt: new Date().toISOString(),
             history: [
@@ -1767,7 +2135,7 @@ const JNTFirebaseService = {
         return fullIncident;
     },
 
-    async updateIncidentStatus(incidentId, newStatus, note = "", user = "Hamdan", restoreTripStatus = true) {
+    async updateIncidentStatus(incidentId, newStatus, note = "", user = "Hamdan", restoreTripStatus = true, fotoSelesai = null, extraFotoKejadian = null) {
         const data = await this.getDoc('troubles', incidentId);
         if (!data) {
             console.warn(`[TROUBLE] Incident with ID ${incidentId} not found.`);
@@ -1783,9 +2151,14 @@ const JNTFirebaseService = {
             user: user
         });
 
+        const existingKejadian = Array.isArray(data.fotoKejadian) ? data.fotoKejadian : [];
+        const existingSelesai  = Array.isArray(data.fotoSelesai)  ? data.fotoSelesai  : [];
+
         const updatedData = {
             ...data,
             status: newStatus,
+            fotoKejadian: extraFotoKejadian && Array.isArray(extraFotoKejadian) ? [...existingKejadian, ...extraFotoKejadian] : existingKejadian,
+            fotoSelesai: fotoSelesai && Array.isArray(fotoSelesai) ? [...existingSelesai, ...fotoSelesai] : existingSelesai,
             history: history,
             updatedAt: new Date().toISOString()
         };
@@ -1907,17 +2280,25 @@ const JNTFirebaseService = {
         const shifts = this.getLocalStore('shifts');
         const currentShift = shifts.find(s => (s.shiftId === shiftId || s.id === shiftId));
 
+        let prevOpNames = "Operator Sebelumnya";
         if (currentShift) {
-            await this.saveDoc('shifts', shiftId, { status: 'COMPLETED', endedAt: new Date().toISOString() }, true);
+            const op1Prev = currentShift.operator1 ? currentShift.operator1.nama : 'Hamdan Hamdani';
+            const op2Prev = currentShift.operator2 ? currentShift.operator2.nama : 'Rizky Ramadhan';
+            prevOpNames = `${op1Prev} & ${op2Prev}`;
+            await this.saveDoc('shifts', shiftId, { status: 'COMPLETED', endedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) }, true);
         }
 
         const todayStr = new Date().toISOString().slice(0, 10);
+        const startTimeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         const nextShift = await this.startNewShift({
             tanggal: todayStr,
-            jamMulai: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            jamMulai: startTimeStr,
             jamSelesai: "20:00",
             operator1: { nama: newOp1, role: "Operator Utama", tugas: op1Tugas || "Monitoring 4H & Incident" },
-            operator2: { nama: newOp2, role: "Operator Pendamping", tugas: op2Tugas || "SLA Vendor" }
+            operator2: { nama: newOp2, role: "Operator Pendamping", tugas: op2Tugas || "SLA Vendor" },
+            handoverFrom: prevOpNames,
+            handoverNote: reason,
+            handoverTime: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
         });
 
         await this.logAuditEvent({
@@ -2076,23 +2457,50 @@ const JNTFirebaseService = {
         if (idTrim.includes('@')) return idTrim.toLowerCase();
 
         const uname = idTrim.toLowerCase();
-        const localUsers = this.getLocalStore('users') || [];
-        const found = localUsers.find(u => (u.username || '').toLowerCase() === uname);
-        if (found && found.email) return found.email.toLowerCase();
 
-        if (window.db) {
-            try {
-                const docSnap = await window.db.collection('users').doc(uname).get();
-                if (docSnap.exists && docSnap.data().email) {
-                    return docSnap.data().email.toLowerCase();
-                }
-                const qSnap = await window.db.collection('users').where('username', '==', uname).limit(1).get();
-                if (!qSnap.empty && qSnap.docs[0].data().email) {
-                    return qSnap.docs[0].data().email.toLowerCase();
-                }
-            } catch (e) { }
+        // ── 1. Cek cache localStorage (disimpan saat buat akun) ──
+        try {
+            const emailCache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+            if (emailCache[uname]) return emailCache[uname].toLowerCase();
+        } catch (_) {}
+
+        // ── 2. Cek localStorage users ──
+        const localUsers = this.getLocalStore('users') || [];
+        const found = localUsers.find(u => (u.username || '').toLowerCase() === uname || (u.email || '').toLowerCase().startsWith(uname + '@'));
+        if (found && (found.email || found.emailPerusahaan)) {
+            return (found.email || found.emailPerusahaan).toLowerCase();
         }
 
+        // ── 3. Cari di Firestore ──
+        if (window.db) {
+            try {
+                const snapshot = await window.db.collection('users').get();
+                if (!snapshot.empty) {
+                    for (const doc of snapshot.docs) {
+                        const data = doc.data();
+                        const docUsername = (data.username || '').toLowerCase();
+                        const docId = (doc.id || '').toLowerCase();
+                        const docEmail = (data.email || data.emailPerusahaan || '').toLowerCase();
+                        if (docUsername === uname || docId === uname || docEmail.startsWith(uname + '@')) {
+                            if (docEmail) {
+                                // Simpan ke cache untuk lookup berikutnya
+                                try {
+                                    const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                                    cache[uname] = docEmail;
+                                    localStorage.setItem('jnt_email_map', JSON.stringify(cache));
+                                } catch (_) {}
+                                return docEmail;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('resolveEmailFromIdentifier firestore scan failed:', e);
+            }
+        }
+
+        // ── 4. Fallback terakhir: pakai domain @jtexpress.co.id ──
+        // (Ini hanya akan benar jika email memang pakai domain perusahaan)
         return `${uname}@jtexpress.co.id`;
     },
 
@@ -2102,7 +2510,20 @@ const JNTFirebaseService = {
         if (window.db) {
             try {
                 const snap = await window.db.collection('users').doc(uid).get();
-                if (snap.exists) profile = snap.data();
+                if (snap.exists) {
+                    profile = snap.data();
+                } else {
+                    const snapshot = await window.db.collection('users').get();
+                    if (!snapshot.empty) {
+                        for (const doc of snapshot.docs) {
+                            const data = doc.data();
+                            if (data.uid === uid || data.id === uid || doc.id === uid) {
+                                profile = data;
+                                break;
+                            }
+                        }
+                    }
+                }
             } catch (e) { }
         }
         if (!profile) {
@@ -2120,12 +2541,18 @@ const JNTFirebaseService = {
 
         if (!profile && window.db) {
             try {
-                const docSnap = await window.db.collection('users').doc(uname).get();
-                if (docSnap.exists) {
-                    profile = docSnap.data();
-                } else {
-                    const qSnap = await window.db.collection('users').where('username', '==', uname).limit(1).get();
-                    if (!qSnap.empty) profile = qSnap.docs[0].data();
+                const snapshot = await window.db.collection('users').get();
+                if (!snapshot.empty) {
+                    for (const doc of snapshot.docs) {
+                        const data = doc.data();
+                        const docUsername = (data.username || '').toLowerCase();
+                        const docId = (doc.id || '').toLowerCase();
+                        const docUid = (data.uid || '').toLowerCase();
+                        if (docUsername === uname || docId === uname || docUid === uname) {
+                            profile = data;
+                            break;
+                        }
+                    }
                 }
             } catch (e) { }
         }
@@ -2196,8 +2623,43 @@ const JNTFirebaseService = {
 
             return { user, profile };
         } catch (err) {
+            console.warn('[AUTH LOGIN] Error:', err.code, '| email yang dicoba:', email, '| identifier:', identifier);
+            // auth/wrong-password = email benar tapi password salah → langsung throw, bukan cek legacy
+            if (err.code === 'auth/wrong-password' || err.code === 'auth/too-many-requests') {
+                throw err;
+            }
+            // auth/user-not-found atau auth/invalid-credential = email tidak ditemukan di Auth
+            // kemungkinan username → email resolve salah, ATAU akun legacy belum di-Auth
             if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                // Coba lagi: cari email dari Firestore langsung berdasarkan username
                 const uname = identifier.includes('@') ? identifier.split('@')[0].toLowerCase() : identifier.toLowerCase();
+                let retryEmail = null;
+                if (window.db) {
+                    try {
+                        const snap = await window.db.collection('users').where('username', '==', uname).limit(1).get();
+                        if (!snap.empty) {
+                            const d = snap.docs[0].data();
+                            retryEmail = d.email || d.emailPerusahaan;
+                        }
+                    } catch (_) {}
+                }
+                // Jika email ditemukan & berbeda dari yang sudah dicoba, retry login
+                if (retryEmail && retryEmail.toLowerCase() !== email.toLowerCase()) {
+                    console.log('[AUTH LOGIN] Retry dengan email dari Firestore:', retryEmail);
+                    // Simpan ke cache agar lookup berikutnya langsung benar
+                    try {
+                        const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                        cache[uname] = retryEmail.toLowerCase();
+                        localStorage.setItem('jnt_email_map', JSON.stringify(cache));
+                    } catch (_) {}
+                    const retryCred = await window.auth.signInWithEmailAndPassword(retryEmail.toLowerCase(), password);
+                    const retryProfile = await this.getUserProfileByUid(retryCred.user.uid);
+                    if (retryProfile) {
+                        retryProfile.role = this.normalizeRole(retryProfile.role);
+                        return { user: retryCred.user, profile: retryProfile };
+                    }
+                }
+                // Cek apakah ini akun legacy (ada di Firestore tapi belum di Firebase Auth)
                 const legacy = await this.getUserProfileByUsername(uname);
                 if (legacy) {
                     const activationErr = new Error(`Akun "${uname}" terdaftar pada sistem lama, namun belum diaktifkan di Firebase Authentication.`);
@@ -2217,15 +2679,42 @@ const JNTFirebaseService = {
         if (!profileData.username) throw new Error("Username wajib diisi!");
         if (!password || password.length < 6) throw new Error("Password minimal 6 karakter.");
 
-        const cred = await window.auth.createUserWithEmailAndPassword(profileData.email, password);
+        let cred;
+        let secondaryApp = null;
+        try {
+            if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function' && typeof firebaseConfig !== 'undefined') {
+                const secondaryName = 'SecondaryCreateUserApp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+                secondaryApp = firebase.initializeApp(firebaseConfig, secondaryName);
+                const secondaryAuth = secondaryApp.auth();
+                if (typeof useEmulator !== 'undefined' && useEmulator) {
+                    try { secondaryAuth.useEmulator('http://127.0.0.1:9099'); } catch (_) {}
+                }
+                cred = await secondaryAuth.createUserWithEmailAndPassword(profileData.email, password);
+                await secondaryAuth.signOut();
+            } else {
+                cred = await window.auth.createUserWithEmailAndPassword(profileData.email, password);
+            }
+        } catch (err) {
+            console.warn("Secondary app auth creation failed, fallback to primary auth:", err);
+            cred = await window.auth.createUserWithEmailAndPassword(profileData.email, password);
+        } finally {
+            if (secondaryApp) {
+                try {
+                    await secondaryApp.delete();
+                } catch (_) {}
+            }
+        }
+
         const uid = cred.user.uid;
+        const cleanUname = profileData.username.toLowerCase().trim();
 
         const newProfile = {
             uid: uid,
             id: uid,
-            username: profileData.username.toLowerCase().trim(),
+            username: cleanUname,
             fullname: profileData.fullname || profileData.username,
             email: profileData.email.toLowerCase().trim(),
+            emailPerusahaan: profileData.email.toLowerCase().trim(),
             phone: profileData.phone || '',
             role: this.normalizeRole(profileData.role),
             tlc: profileData.tlc || 'Head Office',
@@ -2233,7 +2722,18 @@ const JNTFirebaseService = {
             createdAt: new Date().toISOString()
         };
 
+        // Simpan dengan docId = username DAN docId = uid
+        await this.saveDoc('users', cleanUname, newProfile, true);
         await this.saveDoc('users', uid, newProfile, true);
+
+        // ── Simpan mapping username → email ke localStorage sebagai backup ──
+        // Ini memastikan login dengan username tetap bisa resolve email yang benar
+        // bahkan jika Firestore rules belum di-deploy atau koneksi lambat.
+        try {
+            const emailCache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+            emailCache[cleanUname] = newProfile.email;
+            localStorage.setItem('jnt_email_map', JSON.stringify(emailCache));
+        } catch (_) {}
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -2274,6 +2774,7 @@ const JNTFirebaseService = {
             migratedAt: new Date().toISOString()
         };
 
+        await this.saveDoc('users', uname, migratedProfile, true);
         await this.saveDoc('users', uid, migratedProfile, true);
 
         await this.logAuditEvent({
@@ -2305,6 +2806,10 @@ const JNTFirebaseService = {
     },
 
     async logoutFirebaseAuth() {
+        // Hapus kunci sesi aktif dari Firestore sebelum sign out
+        if (typeof window.jntReleaseSessionLock === 'function') {
+            try { await window.jntReleaseSessionLock(); } catch (_) {}
+        }
         if (window.auth) {
             try {
                 await window.auth.signOut();
@@ -2586,11 +3091,12 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
     });
 }
 
-// Initialize seeding when DOM is loaded
+// Initialize retry sync when DOM is loaded (Auto-seeding DISABLED to prevent deleted data from reappearing)
 if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
-            JNTFirebaseService.seedInitialDataIfEmpty();
+            // Disabled automatic seed on DOM load to respect manual Firebase Console document deletions
+            // JNTFirebaseService.seedInitialDataIfEmpty();
             JNTFirebaseService.retrySyncPending();
         }, 500);
     });
