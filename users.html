@@ -12,6 +12,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Anti-Flash Dark Theme Pre-Initialization -->
+    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -30,15 +32,15 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150" alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
-                        <span class="profile-role">Operator</span>
+                        <span class="profile-role">ADMIN</span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -75,12 +77,6 @@
                             <a href="shift-management.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 <span class="nav-text">Shift Management</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="master.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                                <span class="nav-text">Master Data</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -150,11 +146,11 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                             <span class="inc-bell-badge">5</span>
                         </div>
-                        <div class="inc-user-chip">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Hamdan Avatar" class="inc-avatar-img">
+                        <div class="inc-user-chip" id="topbar-user-chip-btn">
+                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100" alt="User Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name">Hamdan <span>v</span></span>
-                                <span class="inc-user-role">Operator</span>
+                                <span class="inc-user-name">Farizs Hakim <span class="inc-user-chevron">▾</span></span>
+                                <span class="inc-user-role">Admin</span>
                             </div>
                         </div>
                     </div>

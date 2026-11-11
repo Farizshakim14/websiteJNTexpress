@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&amp;T Express - SLA Monitoring Vendor (3-Tab)</title>
-    <meta name="description" content="Sistem monitoring SLA Berangkat, SLA Balikan, dan SLA Roundtrip PP J&amp;T Express.">
+    <meta name="description" content="Sistem monitoring SLA Berangkat dan SLA Balikan Vendor J&amp;T Express.">
     <!-- Favicon / Logo Tab Browser -->
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="shortcut icon" href="assets/favicon.svg">
@@ -12,6 +12,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Anti-Flash Dark Theme Pre-Initialization -->
+    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -29,19 +31,19 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
+                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150"
                             alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </div>
-                        <span class="profile-role">Operator</span>
+                        <span class="profile-role">ADMIN</span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -101,17 +103,6 @@
                                     <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
                                 <span class="nav-text">Shift Management</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="master.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path
-                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
-                                    </path>
-                                </svg>
-                                <span class="nav-text">Master Data</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -204,10 +195,10 @@
                             <span id="sla-header-date">15 Oktober 2026</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="User Avatar" class="inc-avatar-img">
+                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100" alt="User Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name">Hamdan</span>
-                                <span class="inc-user-role">Operator SLA</span>
+                                <span class="inc-user-name">Farizs Hakim <span class="inc-user-chevron">▾</span></span>
+                                <span class="inc-user-role">Admin</span>
                             </div>
                         </div>
                     </div>
@@ -265,31 +256,84 @@
                     </div>
                 </div>
 
-                <!-- 3 SLA Segmented Navigation -->
-                <div class="sla-segmented-tabs">
+                <!-- 2 SLA Segmented Navigation -->
+                <div class="sla-segmented-tabs" style="margin-bottom: 12px;">
                     <button class="sla-tab-btn active" id="tab-btn-sla-outbound" onclick="switchSlaTab('outbound')">
-                        &#128666; SLA Berangkat <span class="tab-sub">JKT &rarr; Gateway</span>
+                        &#128666; Armada Berangkat <span class="tab-sub">JKT &rarr; Gateway</span>
                     </button>
                     <button class="sla-tab-btn" id="tab-btn-sla-return" onclick="switchSlaTab('return')">
-                        &#128260; SLA Balikan <span class="tab-sub">Gateway &rarr; JKT999</span>
+                        &#128260; Armada Balikan <span class="tab-sub">Gateway &rarr; JKT999</span>
                     </button>
-                    <button class="sla-tab-btn" id="tab-btn-sla-roundtrip" onclick="switchSlaTab('roundtrip')">
-                        &#128204; SLA Roundtrip <span class="tab-sub">Pulang-Pergi PP</span>
-                    </button>
+                </div>
+
+                <!-- EXCEL-STYLE VENDOR SHEET NAVIGATION BAR -->
+                <div class="excel-sheet-nav-container" style="margin-bottom: 12px;">
+                    <div class="excel-sheet-header">
+                        <div class="excel-sheet-title">
+                            <span class="excel-icon">📑</span>
+                            <strong>SHEET VENDOR:</strong>
+                            <span class="excel-sheet-subtitle">Pilih sheet vendor di bawah untuk menyaring data &amp; input keberangkatan</span>
+                        </div>
+                        <div class="excel-sheet-controls">
+                            <button type="button" class="excel-nav-arrow" onclick="scrollExcelTabs(-1)" title="Scroll ke kiri">&lt;</button>
+                            <button type="button" class="excel-nav-arrow" onclick="scrollExcelTabs(1)" title="Scroll ke kanan">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="excel-tabs-scroll-track" id="excel-tabs-track">
+                        <!-- Populated dynamically by renderVendorTabs() -->
+                    </div>
+                </div>
+
+                <!-- FILTER GRID CARD FOR SLA (CARI ARMADA & FILTER IDENTIK MONITORING 4 JAM) -->
+                <div class="inc-filter-card" style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
+                    <div class="filter-inputs-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
+                        <div class="filter-group">
+                            <label for="filter-sla-date" style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
+                            <input type="date" id="filter-sla-date" onchange="renderFilteredSLATables()" style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-sla-rute" style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
+                            <select id="filter-sla-rute" onchange="renderFilteredSLATables()" style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <option value="">Semua Rute</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-sla-status" style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status SLA</label>
+                            <select id="filter-sla-status" onchange="renderFilteredSLATables()" style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <option value="">Semua Status</option>
+                                <option value="OUT">OUT (Di Jalan)</option>
+                                <option value="IN">IN (Sudah Sampai)</option>
+                                <option value="KENDALA">KENDALA</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" style="grid-column: span 2;">
+                            <label for="filter-sla-search" style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari Kode Tugas / Plat / Driver / Trip</label>
+                            <div style="position: relative;">
+                                <input type="text" id="filter-sla-search" oninput="renderFilteredSLATables()" placeholder="Ketik disini..." style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <button type="button" id="btn-reset-sla-filter" onclick="resetSLAFilters()" class="btn-inc-reset" style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄 Reset</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- TAB 1: SLA BERANGKAT -->
                 <div id="section-sla-outbound" class="sla-table-card-redesign">
                     <div class="sla-card-header-bar">
                         <div class="sla-card-title-group">
-                            <h3 class="sla-card-title">Perhitungan SLA Berangkat (Outbound Trip)</h3>
+                            <h3 class="sla-card-title" id="title-sla-outbound">Perhitungan SLA Berangkat (Outbound Trip)</h3>
                             <span class="sla-card-badge">&#9679; LIVE MONITORING</span>
                         </div>
                         <div class="sla-card-actions">
-                            <button class="btn-sla-primary-action" onclick="openAddMobilKeluarModal()">
+                            <button class="btn-sla-primary-action" id="btn-input-keberangkatan" onclick="openAddMobilKeluarModal()" style="display: none;">
                                 &#128666; Input Keberangkatan
                             </button>
-                            <button class="btn-sla-secondary-action" onclick="document.getElementById('modal-update-sla-outbound').classList.remove('hidden')">
+                            <button class="btn-sla-secondary-action" id="btn-update-sla-outbound" onclick="handleTopUpdateSLAClick()" style="display: none;">
                                 &#9999;&#65039; Update SLA
                             </button>
                             <button class="btn-sla-secondary-action" onclick="exportOfficialSLAExcel()" style="background:#F0FDF4;color:#166534;border-color:#BBF7D0;" title="Download Laporan Excel SLA Format Resmi J&T Express">
@@ -303,7 +347,7 @@
                             <thead>
                                 <tr>
                                     <th>Kode Tugas</th>
-                                    <th>Trip / Rute</th>
+                                    <th style="text-align: center;">TLC / RUTE</th>
                                     <th>Plat Nomor</th>
                                     <th>Vendor</th>
                                     <th>Driver 1 & 2</th>
@@ -331,10 +375,10 @@
                 <div id="section-sla-return" class="sla-table-card-redesign hidden">
                     <div class="sla-card-header-bar">
                         <div class="sla-card-title-group">
-                            <h3 class="sla-card-title">Perhitungan SLA Balikan (Return Trip)</h3>
+                            <h3 class="sla-card-title" id="title-sla-return">Perhitungan SLA Balikan (Return Trip)</h3>
                             <span class="sla-card-badge" style="background:#EFF6FF; border-color:#BFDBFE; color:#2563EB;">&#9679; RETURN TRIP</span>
                         </div>
-                        <button class="btn-sla-primary-action" onclick="document.getElementById('modal-add-sla-return').classList.remove('hidden')">
+                        <button class="btn-sla-primary-action" id="btn-input-balikan" onclick="openAddSLAReturnModal()" style="display: none;">
                             <span>+</span> Input Perjalanan Balikan
                         </button>
                     </div>
@@ -361,38 +405,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: SLA ROUNDTRIP (PP) -->
-                <div id="section-sla-roundtrip" class="sla-table-card-redesign hidden">
-                    <div class="sla-card-header-bar">
-                        <div class="sla-card-title-group">
-                            <h3 class="sla-card-title">Perhitungan SLA Roundtrip (Pulang-Pergi PP)</h3>
-                            <span class="sla-card-badge" style="background:#FAF5FF; border-color:#E9D5FF; color:#9333EA;">&#9679; ROUNDTRIP PP</span>
-                        </div>
-                    </div>
-
-                    <div class="inc-table-scroll">
-                        <table class="sla-enterprise-table" id="table-sla-roundtrip">
-                            <thead>
-                                <tr>
-                                    <th>Kode Tugas</th>
-                                    <th>Trip</th>
-                                    <th>Wilayah</th>
-                                    <th>Target SLA PP</th>
-                                    <th>Durasi Berangkat</th>
-                                    <th>Durasi Balikan</th>
-                                    <th>Total Durasi PP</th>
-                                    <th>Total Late PP</th>
-                                    <th>Status Roundtrip</th>
-                                    <th>Keterangan PP</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Live Populated -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </main>
         </div>
     </div>
@@ -405,148 +417,155 @@
                 <button type="button" class="btn-close-x modal-close-btn">&times;</button>
             </div>
             <form id="form-add-mobil-keluar" class="modal-body-form" style="padding: 16px 20px;">
+                <!-- VENDOR ARMADA OTOMATIS SESUAI SHEET AKTIF -->
+                <div style="margin-bottom: 16px; background: rgba(56, 189, 248, 0.08); border: 1.5px solid #38BDF8; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">🏢 VENDOR ARMADA (OTOMATIS SESUAI SHEET AKTIF):</span>
+                        <div id="sla-modal-vendor-label" style="font-size: 14.5px; font-weight: 800; color: #38BDF8; margin-top: 2px;">APL — PT. ASIA PASIFIK LOGISTIK (APL)</div>
+                    </div>
+                    <span id="sla-modal-vendor-tag" style="font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 6px; background: #0284C7; color: #FFF;">APL</span>
+                    <input type="hidden" id="sla-new-vendor" required>
+                </div>
+
+                <!-- 2. DETAIL TUGAS & ARMADA -->
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label>Kode Tugas Armada</label>
+                        <label for="sla-new-kode-tugas">Kode Tugas Armada</label>
                         <input type="text" id="sla-new-kode-tugas" placeholder="Contoh: DBGX2609300001" required>
                     </div>
                     <div class="form-field">
-                        <label>Pilih / Ketik Trip Master</label>
-                        <input type="text" id="sla-new-trip" list="sla-trip-datalist" placeholder="Ketik atau Pilih Trip (Contoh: BDO CDD, MES FUSO)..." required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
-                        <datalist id="sla-trip-datalist">
-                            <option value="BDO CDD">BDO CDD &mdash; JAKARTA - BANDUNG (Target 5.5 Jam)</option>
-                            <option value="BDO FUSO">BDO FUSO &mdash; JAKARTA - BANDUNG (Target 5.5 Jam)</option>
-                            <option value="TKG CDD">TKG CDD &mdash; JAKARTA - LAMPUNG (Target 11.0 Jam)</option>
-                            <option value="TKG FUSO">TKG FUSO &mdash; JAKARTA - LAMPUNG (Target 13.5 Jam)</option>
-                            <option value="SRG CDD">SRG CDD &mdash; JAKARTA - SEMARANG (Target 12.5 Jam)</option>
-                            <option value="SRG FUSO">SRG FUSO &mdash; JAKARTA - SEMARANG (Target 14.0 Jam)</option>
-                            <option value="PLM CDD">PLM CDD &mdash; JAKARTA - PALEMBANG (Target 19.67 Jam)</option>
-                            <option value="PLM FUSO">PLM FUSO &mdash; JAKARTA - PALEMBANG (Target 19.67 Jam)</option>
-                            <option value="SOC CDD">SOC CDD &mdash; JAKARTA - SOLO (Target 15.5 Jam)</option>
-                            <option value="SOC FUSO">SOC FUSO &mdash; JAKARTA - SOLO (Target 15.5 Jam)</option>
-                            <option value="JOG CDD">JOG CDD &mdash; JAKARTA - YOGYAKARTA (Target 16.0 Jam)</option>
-                            <option value="JOG FUSO">JOG FUSO &mdash; JAKARTA - YOGYAKARTA (Target 20.0 Jam)</option>
-                            <option value="PMH CDD">PMH CDD &mdash; JAKARTA - PRABUMULIH (Target 21.0 Jam)</option>
-                            <option value="PMH FUSO">PMH FUSO &mdash; JAKARTA - PRABUMULIH (Target 21.0 Jam)</option>
-                            <option value="SUB CDD">SUB CDD &mdash; JAKARTA - SURABAYA (Target 19.0 Jam)</option>
-                            <option value="SUB FUSO">SUB FUSO &mdash; JAKARTA - SURABAYA (Target 23.0 Jam)</option>
-                            <option value="BKS CDD">BKS CDD &mdash; JAKARTA - BENGKULU (Target 44.0 Jam)</option>
-                            <option value="BKS FUSO">BKS FUSO &mdash; JAKARTA - BENGKULU (Target 44.0 Jam)</option>
-                            <option value="DJB CDD">DJB CDD &mdash; JAKARTA - JAMBI (Target 21.0 Jam)</option>
-                            <option value="DJB FUSO">DJB FUSO &mdash; JAKARTA - JAMBI (Target 33.0 Jam)</option>
-                            <option value="LLG CDD">LLG CDD &mdash; JAKARTA - LUBUKLINGGAU (Target 23.0 Jam)</option>
-                            <option value="LLG FUSO">LLG FUSO &mdash; JAKARTA - LUBUKLINGGAU (Target 23.0 Jam)</option>
-                            <option value="PKU CDD">PKU CDD &mdash; JAKARTA - PEKANBARU (Target 54.0 Jam)</option>
-                            <option value="PKU FUSO">PKU FUSO &mdash; JAKARTA - PEKANBARU (Target 54.0 Jam)</option>
-                            <option value="PDG CDD">PDG CDD &mdash; JAKARTA - PADANG (Target 49.0 Jam)</option>
-                            <option value="PDG FUSO">PDG FUSO &mdash; JAKARTA - PADANG (Target 49.0 Jam)</option>
-                            <option value="RPT CDD">RPT CDD &mdash; JAKARTA - RANTAUPRAPAT (Target 48.0 Jam)</option>
-                            <option value="RPT FUSO">RPT FUSO &mdash; JAKARTA - RANTAUPRAPAT (Target 50.0 Jam)</option>
-                            <option value="MES CDD">MES CDD &mdash; JAKARTA - MEDAN (Target 71.0 Jam)</option>
-                            <option value="MES FUSO">MES FUSO &mdash; JAKARTA - MEDAN (Target 71.0 Jam)</option>
-                            <option value="BTJ CDD">BTJ CDD &mdash; JAKARTA - ACEH (Target 62.0 Jam)</option>
-                            <option value="BTJ FUSO">BTJ FUSO &mdash; JAKARTA - ACEH (Target 63.0 Jam)</option>
-                            <option value="GSK CDD">GSK CDD &mdash; JAKARTA - GRESIK (Target 19.0 Jam)</option>
-                            <option value="GSK FUSO">GSK FUSO &mdash; JAKARTA - GRESIK (Target 19.0 Jam)</option>
-                            <option value="TGR CDD">TGR CDD &mdash; JAKARTA - TANGERANG (Target 0.5 Jam)</option>
-                            <option value="TGR FUSO">TGR FUSO &mdash; JAKARTA - TANGERANG (Target 0.5 Jam)</option>
-                            <option value="DPK CDD">DPK CDD &mdash; JAKARTA - DEPOK (Target 2.0 Jam)</option>
-                            <option value="DPK FUSO">DPK FUSO &mdash; JAKARTA - DEPOK (Target 2.0 Jam)</option>
-                            <option value="BGR CDD">BGR CDD &mdash; JAKARTA - BOGOR (Target 2.0 Jam)</option>
-                            <option value="BGR FUSO">BGR FUSO &mdash; JAKARTA - BOGOR (Target 2.5 Jam)</option>
-                            <option value="BKI CDD">BKI CDD &mdash; JAKARTA - BEKASI (Target 2.0 Jam)</option>
-                            <option value="BKI FUSO">BKI FUSO &mdash; JAKARTA - BEKASI (Target 2.0 Jam)</option>
-                            <option value="CKR CDD">CKR CDD &mdash; JAKARTA - CIKARANG (Target 2.83 Jam)</option>
-                            <option value="SEG CDD">SEG CDD &mdash; JAKARTA - SERANG (Target 1.5 Jam)</option>
-                            <option value="SEG FUSO">SEG FUSO &mdash; JAKARTA - SERANG (Target 1.5 Jam)</option>
-                            <option value="SMI CDD">SMI CDD &mdash; JAKARTA - SUKABUMI (Target 6.0 Jam)</option>
-                            <option value="TSK CDD">TSK CDD &mdash; JAKARTA - TASIKMALAYA (Target 10.0 Jam)</option>
-                            <option value="TSK FUSO">TSK FUSO &mdash; JAKARTA - TASIKMALAYA (Target 10.0 Jam)</option>
-                            <option value="CRN CDD">CRN CDD &mdash; JAKARTA - CIREBON (Target 8.5 Jam)</option>
-                            <option value="CKP CDD">CKP CDD &mdash; JAKARTA - CIKAMPEK (Target 4.5 Jam)</option>
-                            <option value="PTI CDD">PTI CDD &mdash; JAKARTA - PATI (Target 14.0 Jam)</option>
-                            <option value="PWO CDD">PWO CDD &mdash; JAKARTA - PURWOKERTO (Target 12.5 Jam)</option>
-                            <option value="MDN CDD">MDN CDD &mdash; JAKARTA - MADIUN (Target 20.0 Jam)</option>
-                            <option value="MDN FUSO">MDN FUSO &mdash; JAKARTA - MADIUN (Target 20.0 Jam)</option>
-                            <option value="KDR CDD">KDR CDD &mdash; JAKARTA - KEDIRI (Target 14.0 Jam)</option>
-                            <option value="KDR FUSO">KDR FUSO &mdash; JAKARTA - KEDIRI (Target 16.0 Jam)</option>
-                            <option value="MLG CDD">MLG CDD &mdash; JAKARTA - MALANG (Target 21.0 Jam)</option>
-                            <option value="TGL CDD">TGL CDD &mdash; JAKARTA - TEGAL (Target 9.0 Jam)</option>
-                            <option value="BAL CDD">BAL CDD &mdash; JAKARTA - BALARAJA (Target 1.5 Jam)</option>
-                            <option value="DPS CDD">DPS CDD &mdash; JAKARTA - DENPASAR (Target 40.0 Jam)</option>
-                            <option value="DPS FUSO">DPS FUSO &mdash; JAKARTA - DENPASAR (Target 43.0 Jam)</option>
-                            <option value="WRG CDD">WRG CDD &mdash; JAKARTA - WARINGIN (Target 1.0 Jam)</option>
-                            <option value="WRG FUSO">WRG FUSO &mdash; JAKARTA - WARINGIN (Target 1.25 Jam)</option>
-                            <option value="SDP CDD">SDP CDD &mdash; JAKARTA - SDP (Target 1.5 Jam)</option>
-                            <option value="SDP FUSO">SDP FUSO &mdash; JAKARTA - SDP (Target 1.5 Jam)</option>
-                            <option value="JBR CDD">JBR CDD &mdash; JAKARTA - JEMBER (Target 29.0 Jam)</option>
-                            <option value="JBR FUSO">JBR FUSO &mdash; JAKARTA - JEMBER (Target 29.0 Jam)</option>
-                            <option value="MDR CDD">MDR CDD &mdash; JAKARTA - MADURA (Target 20.0 Jam)</option>
-                            <option value="MDR FUSO">MDR FUSO &mdash; JAKARTA - MADURA (Target 20.0 Jam)</option>
-                            <option value="PRO CDD">PRO CDD &mdash; JAKARTA - PROBOLINGGO (Target 22.0 Jam)</option>
-                            <option value="LMG CDD">LMG CDD &mdash; JAKARTA - LAMONGAN (Target 19.5 Jam)</option>
-                            <option value="BTN CDD">BTN CDD &mdash; JAKARTA - BANTEN (Target 2.5 Jam)</option>
-                            <option value="BTN FUSO">BTN FUSO &mdash; JAKARTA - BANTEN (Target 3.0 Jam)</option>
-                            <option value="TKG KONTAINER">TKG KONTAINER &mdash; JAKARTA - LAMPUNG (Target 13.0 Jam)</option>
-                            <option value="PLM KONTAINER">PLM KONTAINER &mdash; JAKARTA - PALEMBANG (Target 19.75 Jam)</option>
-                            <option value="SUB KONTAINER">SUB KONTAINER &mdash; JAKARTA - SURABAYA (Target 20.0 Jam)</option>
-                            <option value="MDN KONTAINER">MDN KONTAINER &mdash; JAKARTA - MADIUN (Target 20.0 Jam)</option>
-                            <option value="CIM CDD">CIM CDD &mdash; JAKARTA - CIMAHI (Target 4.5 Jam)</option>
-                            <option value="CIM FUSO">CIM FUSO &mdash; JAKARTA - CIMAHI (Target 5.5 Jam)</option>
-                        </datalist>
-                    </div>
-                </div>
-                <div class="form-row-2">
-                    <div class="form-field">
-                        <label>Plat Nomor Armada</label>
+                        <label for="sla-new-plat">Plat Nomor Armada</label>
                         <input type="text" id="sla-new-plat" placeholder="Contoh: B 9134 PXX" required>
                     </div>
-                    <div class="form-field">
-                        <label>Nama Vendor / Pemilik Armada</label>
-                        <input type="text" id="sla-new-vendor" list="sla-vendor-datalist" placeholder="Pilih atau Ketik Nama Vendor..." required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
-                        <datalist id="sla-vendor-datalist">
-                            <option value="PT. SERIKAT HANTAR EKSPEDISI (SERYU)">PT. SERIKAT HANTAR EKSPEDISI (SERYU)</option>
-                            <option value="PT. ASIA PASIFIK LOGISTIK (APL)">PT. ASIA PASIFIK LOGISTIK (APL)</option>
-                            <option value="PT. KENCANA LOGISTIK SAMUDERA (KLS)">PT. KENCANA LOGISTIK SAMUDERA (KLS)</option>
-                            <option value="PT. JET TRANSPORT SERVICES (JTS)">PT. JET TRANSPORT SERVICES (JTS)</option>
-                            <option value="PT CHIJUN SMART FREIGHT (CHIJUN)">PT CHIJUN SMART FREIGHT (CHIJUN)</option>
-                            <option value="PT. PESONA ABADI LOGISTIK (PAL)">PT. PESONA ABADI LOGISTIK (PAL)</option>
-                            <option value="PT ANUGERAH BERSATU (AB)">PT ANUGERAH BERSATU (AB)</option>
-                            <option value="PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)">PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)</option>
-                            <option value="PT. REYA BAHAGIA ABADI (REYA)">PT. REYA BAHAGIA ABADI (REYA)</option>
-                            <option value="PT. SOLUSI DUNIA EXPEDISI (SDE)">PT. SOLUSI DUNIA EXPEDISI (SDE)</option>
-                            <option value="PT. MEDIA TRANS INDO (MTI)">PT. MEDIA TRANS INDO (MTI)</option>
-                            <option value="LNP">LNP</option>
-                        </datalist>
-                    </div>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label for="sla-new-trip">Pilih / Ketik Trip Master</label>
+                    <input type="text" id="sla-new-trip" list="sla-trip-datalist" placeholder="Ketik atau Pilih Trip (Contoh: BDO CDD, MES FUSO)..." required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
+                    <datalist id="sla-trip-datalist">
+                        <option value="BDO CDD">BDO CDD &mdash; JAKARTA - BANDUNG (Target 5.5 Jam)</option>
+                        <option value="BDO FUSO">BDO FUSO &mdash; JAKARTA - BANDUNG (Target 5.5 Jam)</option>
+                        <option value="TKG CDD">TKG CDD &mdash; JAKARTA - LAMPUNG (Target 11.0 Jam)</option>
+                        <option value="TKG FUSO">TKG FUSO &mdash; JAKARTA - LAMPUNG (Target 13.5 Jam)</option>
+                        <option value="SRG CDD">SRG CDD &mdash; JAKARTA - SEMARANG (Target 12.5 Jam)</option>
+                        <option value="SRG FUSO">SRG FUSO &mdash; JAKARTA - SEMARANG (Target 14.0 Jam)</option>
+                        <option value="PLM CDD">PLM CDD &mdash; JAKARTA - PALEMBANG (Target 19.67 Jam)</option>
+                        <option value="PLM FUSO">PLM FUSO &mdash; JAKARTA - PALEMBANG (Target 19.67 Jam)</option>
+                        <option value="SOC CDD">SOC CDD &mdash; JAKARTA - SOLO (Target 15.5 Jam)</option>
+                        <option value="SOC FUSO">SOC FUSO &mdash; JAKARTA - SOLO (Target 15.5 Jam)</option>
+                        <option value="JOG CDD">JOG CDD &mdash; JAKARTA - YOGYAKARTA (Target 16.0 Jam)</option>
+                        <option value="JOG FUSO">JOG FUSO &mdash; JAKARTA - YOGYAKARTA (Target 20.0 Jam)</option>
+                        <option value="PMH CDD">PMH CDD &mdash; JAKARTA - PRABUMULIH (Target 21.0 Jam)</option>
+                        <option value="PMH FUSO">PMH FUSO &mdash; JAKARTA - PRABUMULIH (Target 21.0 Jam)</option>
+                        <option value="SUB CDD">SUB CDD &mdash; JAKARTA - SURABAYA (Target 19.0 Jam)</option>
+                        <option value="SUB FUSO">SUB FUSO &mdash; JAKARTA - SURABAYA (Target 23.0 Jam)</option>
+                        <option value="BKS CDD">BKS CDD &mdash; JAKARTA - BENGKULU (Target 44.0 Jam)</option>
+                        <option value="BKS FUSO">BKS FUSO &mdash; JAKARTA - BENGKULU (Target 44.0 Jam)</option>
+                        <option value="DJB CDD">DJB CDD &mdash; JAKARTA - JAMBI (Target 21.0 Jam)</option>
+                        <option value="DJB FUSO">DJB FUSO &mdash; JAKARTA - JAMBI (Target 33.0 Jam)</option>
+                        <option value="LLG CDD">LLG CDD &mdash; JAKARTA - LUBUKLINGGAU (Target 23.0 Jam)</option>
+                        <option value="LLG FUSO">LLG FUSO &mdash; JAKARTA - LUBUKLINGGAU (Target 23.0 Jam)</option>
+                        <option value="PKU CDD">PKU CDD &mdash; JAKARTA - PEKANBARU (Target 54.0 Jam)</option>
+                        <option value="PKU FUSO">PKU FUSO &mdash; JAKARTA - PEKANBARU (Target 54.0 Jam)</option>
+                        <option value="PDG CDD">PDG CDD &mdash; JAKARTA - PADANG (Target 49.0 Jam)</option>
+                        <option value="PDG FUSO">PDG FUSO &mdash; JAKARTA - PADANG (Target 49.0 Jam)</option>
+                        <option value="RPT CDD">RPT CDD &mdash; JAKARTA - RANTAUPRAPAT (Target 48.0 Jam)</option>
+                        <option value="RPT FUSO">RPT FUSO &mdash; JAKARTA - RANTAUPRAPAT (Target 50.0 Jam)</option>
+                        <option value="MES CDD">MES CDD &mdash; JAKARTA - MEDAN (Target 71.0 Jam)</option>
+                        <option value="MES FUSO">MES FUSO &mdash; JAKARTA - MEDAN (Target 71.0 Jam)</option>
+                        <option value="BTJ CDD">BTJ CDD &mdash; JAKARTA - ACEH (Target 62.0 Jam)</option>
+                        <option value="BTJ FUSO">BTJ FUSO &mdash; JAKARTA - ACEH (Target 63.0 Jam)</option>
+                        <option value="GSK CDD">GSK CDD &mdash; JAKARTA - GRESIK (Target 19.0 Jam)</option>
+                        <option value="GSK FUSO">GSK FUSO &mdash; JAKARTA - GRESIK (Target 19.0 Jam)</option>
+                        <option value="TGR CDD">TGR CDD &mdash; JAKARTA - TANGERANG (Target 0.5 Jam)</option>
+                        <option value="TGR FUSO">TGR FUSO &mdash; JAKARTA - TANGERANG (Target 0.5 Jam)</option>
+                        <option value="DPK CDD">DPK CDD &mdash; JAKARTA - DEPOK (Target 2.0 Jam)</option>
+                        <option value="DPK FUSO">DPK FUSO &mdash; JAKARTA - DEPOK (Target 2.0 Jam)</option>
+                        <option value="BGR CDD">BGR CDD &mdash; JAKARTA - BOGOR (Target 2.0 Jam)</option>
+                        <option value="BGR FUSO">BGR FUSO &mdash; JAKARTA - BOGOR (Target 2.5 Jam)</option>
+                        <option value="BKI CDD">BKI CDD &mdash; JAKARTA - BEKASI (Target 2.0 Jam)</option>
+                        <option value="BKI FUSO">BKI FUSO &mdash; JAKARTA - BEKASI (Target 2.0 Jam)</option>
+                        <option value="CKR CDD">CKR CDD &mdash; JAKARTA - CIKARANG (Target 2.83 Jam)</option>
+                        <option value="SEG CDD">SEG CDD &mdash; JAKARTA - SERANG (Target 1.5 Jam)</option>
+                        <option value="SEG FUSO">SEG FUSO &mdash; JAKARTA - SERANG (Target 1.5 Jam)</option>
+                        <option value="SMI CDD">SMI CDD &mdash; JAKARTA - SUKABUMI (Target 6.0 Jam)</option>
+                        <option value="TSK CDD">TSK CDD &mdash; JAKARTA - TASIKMALAYA (Target 10.0 Jam)</option>
+                        <option value="TSK FUSO">TSK FUSO &mdash; JAKARTA - TASIKMALAYA (Target 10.0 Jam)</option>
+                        <option value="CRN CDD">CRN CDD &mdash; JAKARTA - CIREBON (Target 8.5 Jam)</option>
+                        <option value="CKP CDD">CKP CDD &mdash; JAKARTA - CIKAMPEK (Target 4.5 Jam)</option>
+                        <option value="PTI CDD">PTI CDD &mdash; JAKARTA - PATI (Target 14.0 Jam)</option>
+                        <option value="PWO CDD">PWO CDD &mdash; JAKARTA - PURWOKERTO (Target 12.5 Jam)</option>
+                        <option value="MDN CDD">MDN CDD &mdash; JAKARTA - MADIUN (Target 20.0 Jam)</option>
+                        <option value="MDN FUSO">MDN FUSO &mdash; JAKARTA - MADIUN (Target 20.0 Jam)</option>
+                        <option value="KDR CDD">KDR CDD &mdash; JAKARTA - KEDIRI (Target 14.0 Jam)</option>
+                        <option value="KDR FUSO">KDR FUSO &mdash; JAKARTA - KEDIRI (Target 16.0 Jam)</option>
+                        <option value="MLG CDD">MLG CDD &mdash; JAKARTA - MALANG (Target 21.0 Jam)</option>
+                        <option value="TGL CDD">TGL CDD &mdash; JAKARTA - TEGAL (Target 9.0 Jam)</option>
+                        <option value="BAL CDD">BAL CDD &mdash; JAKARTA - BALARAJA (Target 1.5 Jam)</option>
+                        <option value="DPS CDD">DPS CDD &mdash; JAKARTA - DENPASAR (Target 40.0 Jam)</option>
+                        <option value="DPS FUSO">DPS FUSO &mdash; JAKARTA - DENPASAR (Target 43.0 Jam)</option>
+                        <option value="WRG CDD">WRG CDD &mdash; JAKARTA - WARINGIN (Target 1.0 Jam)</option>
+                        <option value="WRG FUSO">WRG FUSO &mdash; JAKARTA - WARINGIN (Target 1.25 Jam)</option>
+                        <option value="SDP CDD">SDP CDD &mdash; JAKARTA - SDP (Target 1.5 Jam)</option>
+                        <option value="SDP FUSO">SDP FUSO &mdash; JAKARTA - SDP (Target 1.5 Jam)</option>
+                        <option value="JBR CDD">JBR CDD &mdash; JAKARTA - JEMBER (Target 29.0 Jam)</option>
+                        <option value="JBR FUSO">JBR FUSO &mdash; JAKARTA - JEMBER (Target 29.0 Jam)</option>
+                        <option value="MDR CDD">MDR CDD &mdash; JAKARTA - MADURA (Target 20.0 Jam)</option>
+                        <option value="MDR FUSO">MDR FUSO &mdash; JAKARTA - MADURA (Target 20.0 Jam)</option>
+                        <option value="PRO CDD">PRO CDD &mdash; JAKARTA - PROBOLINGGO (Target 22.0 Jam)</option>
+                        <option value="LMG CDD">LMG CDD &mdash; JAKARTA - LAMONGAN (Target 19.5 Jam)</option>
+                        <option value="BTN CDD">BTN CDD &mdash; JAKARTA - BANTEN (Target 2.5 Jam)</option>
+                        <option value="BTN FUSO">BTN FUSO &mdash; JAKARTA - BANTEN (Target 3.0 Jam)</option>
+                        <option value="TKG KONTAINER">TKG KONTAINER &mdash; JAKARTA - LAMPUNG (Target 13.0 Jam)</option>
+                        <option value="PLM KONTAINER">PLM KONTAINER &mdash; JAKARTA - PALEMBANG (Target 19.75 Jam)</option>
+                        <option value="SUB KONTAINER">SUB KONTAINER &mdash; JAKARTA - SURABAYA (Target 20.0 Jam)</option>
+                        <option value="MDN KONTAINER">MDN KONTAINER &mdash; JAKARTA - MADIUN (Target 20.0 Jam)</option>
+                        <option value="CIM CDD">CIM CDD &mdash; JAKARTA - CIMAHI (Target 4.5 Jam)</option>
+                        <option value="CIM FUSO">CIM FUSO &mdash; JAKARTA - CIMAHI (Target 5.5 Jam)</option>
+                    </datalist>
                 </div>
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label>Driver Utama</label>
+                        <label for="sla-new-driver">Driver Utama</label>
                         <input type="text" id="sla-new-driver" placeholder="Contoh: Nasrul F." required>
                     </div>
                     <div class="form-field">
-                        <label>No. WhatsApp / HP Driver Utama</label>
+                        <label for="sla-new-driver-phone">No. WhatsApp / HP Driver Utama</label>
                         <input type="text" id="sla-new-driver-phone" placeholder="Contoh: 0812-3456-7890" required>
                     </div>
                 </div>
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label>Driver Kedua (Pendamping / Cadangan)</label>
+                        <label for="sla-new-driver2">Driver Kedua (Pendamping / Cadangan)</label>
                         <input type="text" id="sla-new-driver2" placeholder="Contoh: Budi S. (Opsional)">
                     </div>
                     <div class="form-field">
-                        <label>No. WhatsApp / HP Driver Kedua</label>
+                        <label for="sla-new-driver2-phone">No. WhatsApp / HP Driver Kedua</label>
                         <input type="text" id="sla-new-driver2-phone" placeholder="Contoh: 0813-9876-5432 (Opsional)">
                     </div>
                 </div>
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label>Jam Berangkat (Mobil Keluar)</label>
-                        <input type="datetime-local" id="sla-new-jam-berangkat" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; width: 100%; font-size: 13px;">
+                        <label for="sla-new-tanggal" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                            <span>Jam Berangkat (Mobil Keluar) <span style="color:#EF4444;">*</span></span>
+                            <span style="background: #1E3A8A; color: #93C5FD; border: 1px solid #3B82F6; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">24 JAM WIB</span>
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6px; align-items: center;">
+                            <input type="date" id="sla-new-tanggal" required
+                                style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 9px 8px; width: 100%; font-size: 12.5px; font-weight: 600;">
+                            <select id="sla-new-jam" required
+                                style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 9px 6px; width: 100%; font-size: 12.5px; font-weight: 700;">
+                            </select>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <select id="sla-new-menit" required
+                                    style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 9px 6px; width: 100%; font-size: 12.5px; font-weight: 700;">
+                                </select>
+                                <span style="font-size: 10.5px; font-weight: 800; color: #38BDF8; background: #0F172A; border: 1px solid #38BDF8; padding: 7px 5px; border-radius: 5px; line-height: 1; user-select: none;">WIB</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-field">
-                        <label>Total AWB / Paket</label>
+                        <label for="sla-new-awb">Total AWB / Paket</label>
                         <input type="number" id="sla-new-awb" placeholder="Contoh: 6500">
                     </div>
                 </div>
@@ -558,27 +577,113 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP 1: UPDATE JAM SAMPAI OUTBOUND -->
-    <div id="modal-update-sla-outbound" class="modal-overlay hidden">
-        <div class="modal-card" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>&#9999;&#65039; Update Jam Sampai Gateway (Outbound)</h3>
-                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
+    <!-- MODAL POPUP 1: UPDATE JAM SAMPAI OUTBOUND (SELESAIKAN PERJALANAN DENGAN UPLOAD FOTO) -->
+    <div id="modal-update-sla-outbound" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 9999;">
+        <div class="modal-card" style="max-width: 540px; border-radius: 16px; background: #0F172A; border: 1px solid #1E293B; box-shadow: 0 20px 50px rgba(0,0,0,0.4); max-height: 94vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="background: #0F172A; border-bottom: 1px solid #1E293B; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">🏁</span>
+                    <div>
+                        <h3 style="font-size: 15px; font-weight: 800; color: #F1F5F9; margin: 0;">Selesaikan Perjalanan Armada (SLA)</h3>
+                        <span style="font-size: 11px; color: #94A3B8;">Catat jam kedatangan aktual &amp; upload foto bukti sampai</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close-x modal-close-btn" onclick="closeUpdateSLAOutboundModal()" style="color: #94A3B8; font-size: 22px; background: none; border: none; cursor: pointer;">&times;</button>
             </div>
-            <form id="form-update-sla-outbound" class="modal-body-form" style="padding: 16px 20px;">
-                <div class="form-field">
-                    <label>Pilih Kode Tugas Armada</label>
-                    <select id="sla-out-kode-tugas" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
-                        <!-- Dynamically populated -->
-                    </select>
+
+            <!-- Card Ringkasan Armada (Langsung armada yang dipilih di tabel, tanpa perlu pilih armada lagi) -->
+            <div style="margin: 12px 18px 0; background: #1E293B; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span id="sla-out-kode-badge" style="font-family: monospace; font-size: 13px; font-weight: 800; color: #38BDF8; background: #0F172A; padding: 2px 8px; border-radius: 6px; border: 1px solid #38BDF8;">-</span>
+                    <span id="sla-out-vendor-badge" style="font-size: 11px; font-weight: 700; color: #F1F5F9; background: #334155; padding: 2px 8px; border-radius: 6px;">-</span>
                 </div>
-                <div class="form-field">
-                    <label>Jam Sampai Aktual di Gateway</label>
-                    <input type="datetime-local" id="sla-out-jam-sampai" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px;">
+                    <div><span style="color: #64748B;">Plat:</span> <strong id="sla-out-plat-text" style="color: #F1F5F9;">-</strong></div>
+                    <div><span style="color: #64748B;">Driver:</span> <strong id="sla-out-driver-text" style="color: #F1F5F9;">-</strong></div>
+                    <div style="grid-column: span 2;"><span style="color: #64748B;">TLC / Rute:</span> <strong id="sla-out-rute-text" style="color: #FBBF24;">-</strong></div>
                 </div>
-                <div class="modal-footer-btns" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
-                    <button type="button" class="btn-modal-secondary modal-close-btn">&#10005; Batal</button>
-                    <button type="submit" class="btn-modal-primary">&#128190; Simpan Update SLA</button>
+            </div>
+
+            <!-- Dropdown selector khusus jika dibuka dari tombol atas tanpa memilih baris -->
+            <div id="sla-out-selector-wrap" style="display: none; margin: 10px 18px 0;">
+                <label for="sla-out-kode-tugas-select" style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">Pilih Kode Tugas Armada</label>
+                <select id="sla-out-kode-tugas-select" onchange="onSLAOutboundSelectChange(this.value)" style="background: #1E293B; color: #FFF; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; width: 100%; font-size: 12px; font-weight: 600;">
+                </select>
+            </div>
+
+            <form id="form-update-sla-outbound" style="padding: 14px 18px 18px; overflow-y: auto; flex: 1;">
+                <input type="hidden" id="sla-out-kode-tugas" value="">
+
+                <!-- Waktu Kedatangan Aktual (24 Jam WIB) -->
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Waktu Kedatangan Aktual (Mobil Masuk Gateway) <span style="color: #EF4444;">*</span></span>
+                        <span style="background: #1E3A8A; color: #93C5FD; border: 1px solid #3B82F6; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">24 JAM WIB</span>
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; align-items: center;">
+                        <input type="date" id="sla-out-tanggal" required
+                            style="background: #1E293B; color: #F1F5F9; border: 1.5px solid #334155; border-radius: 8px; padding: 9px 10px; font-size: 13px; width: 100%; font-weight: 600; outline: none; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#334155'">
+                        <select id="sla-out-jam" required
+                            style="background: #1E293B; color: #F1F5F9; border: 1.5px solid #334155; border-radius: 8px; padding: 9px 8px; font-size: 13px; width: 100%; font-weight: 700; outline: none; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#334155'">
+                        </select>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <select id="sla-out-menit" required
+                                style="background: #1E293B; color: #F1F5F9; border: 1.5px solid #334155; border-radius: 8px; padding: 9px 8px; font-size: 13px; width: 100%; font-weight: 700; outline: none; transition: border-color 0.2s;"
+                                onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#334155'">
+                            </select>
+                            <span style="font-size: 11px; font-weight: 800; color: #38BDF8; background: #0F172A; border: 1px solid #38BDF8; padding: 8px 6px; border-radius: 6px; line-height: 1; user-select: none;">WIB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lokasi Sampai (Checkpoint IN) -->
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label for="sla-out-lokasi-sampai" style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
+                        Lokasi Sampai (Checkpoint IN) <span style="color: #EF4444;">*</span>
+                    </label>
+                    <input type="text" id="sla-out-lokasi-sampai" placeholder="Contoh: IN SEG / IN TKG / IN SRG" required
+                        style="background: #1E293B; color: #F1F5F9; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; font-size: 13px; width: 100%;">
+                </div>
+
+                <!-- Upload Foto Bukti Sampai -->
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label for="sla-out-foto-file" style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
+                        Upload Foto Bukti Sampai / Surat Jalan / Gerbang Masuk
+                    </label>
+                    <input type="file" id="sla-out-foto-file" accept="image/*" style="display:none;" onchange="handleSLAOutboundFotoChange(event)">
+                    <div id="sla-out-upload-box" onclick="document.getElementById('sla-out-foto-file').click()"
+                        style="border: 2px dashed #334155; border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; background: #1E293B; transition: all 0.2s;">
+                        <span style="font-size: 26px; display: block; margin-bottom: 4px;">📷</span>
+                        <div style="font-size: 12.5px; font-weight: 700; color: #38BDF8;">Klik untuk Pilih Foto / Ambil Kamera</div>
+                        <span style="font-size: 11px; color: #94A3B8;">Format: JPG, PNG, WebP (Maks. 10MB)</span>
+                    </div>
+
+                    <!-- Container Pratinjau Foto -->
+                    <div id="sla-out-preview-wrap" style="display: none; margin-top: 10px; position: relative; border-radius: 10px; overflow: hidden; border: 1.5px solid #38BDF8; max-height: 200px; text-align: center; background: #000000;">
+                        <img id="sla-out-foto-preview" src="" alt="Pratinjau Foto Sampai" style="max-height: 200px; width: auto; max-width: 100%; object-fit: contain;">
+                        <button type="button" onclick="hapusFotoSLAOutbound(event)"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(239,68,68,0.9); color: #FFFFFF; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            🗑️ Hapus Foto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Catatan Kedatangan -->
+                <div class="form-field" style="margin-bottom: 14px;">
+                    <label for="sla-out-catatan" style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
+                        Catatan Kedatangan (Opsional)
+                    </label>
+                    <input type="text" id="sla-out-catatan" placeholder="Contoh: Paket utuh dan aman, segel pintu gateway lengkap..."
+                        style="background: #1E293B; color: #F1F5F9; border: 1px solid #334155; border-radius: 8px; padding: 9px 12px; font-size: 13px; width: 100%;">
+                </div>
+
+                <div id="sla-out-error-msg" style="display: none; color: #EF4444; font-size: 12px; font-weight: 600; margin-bottom: 10px;"></div>
+
+                <div class="modal-footer-btns" style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+                    <button type="button" class="btn-modal-secondary modal-close-btn" onclick="closeUpdateSLAOutboundModal()">✕ Batal</button>
+                    <button type="submit" id="btn-submit-update-sla" class="btn-modal-primary" style="background: #2563EB; color: #FFF; font-weight: 700; border-radius: 8px; padding: 9px 18px;">💾 Simpan Update Sampai</button>
                 </div>
             </form>
         </div>
@@ -593,27 +698,27 @@
             </div>
             <form id="form-add-sla-return" class="modal-body-form" style="padding: 16px 20px;">
                 <div class="form-field">
-                    <label>Kode Tugas Asal (Outbound)</label>
+                    <label for="sla-ret-kode-tugas-asal">Kode Tugas Asal (Outbound)</label>
                     <select id="sla-ret-kode-tugas-asal" required style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
                         <!-- Dynamically populated -->
                     </select>
                 </div>
                 <div class="form-field">
-                    <label>Kode Tugas Balikan</label>
+                    <label for="sla-ret-kode-balikan">Kode Tugas Balikan</label>
                     <input type="text" id="sla-ret-kode-balikan" placeholder="Contoh: DBGX260723RET01" required>
                 </div>
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label>Jam Berangkat Gateway</label>
+                        <label for="sla-ret-jam-berangkat">Jam Berangkat Gateway</label>
                         <input type="text" id="sla-ret-jam-berangkat" placeholder="Contoh: 23/07/2026 08:00" required>
                     </div>
                     <div class="form-field">
-                        <label>Jam Sampai JKT999</label>
+                        <label for="sla-ret-jam-sampai">Jam Sampai JKT999</label>
                         <input type="text" id="sla-ret-jam-sampai" placeholder="Contoh: 24/07/2026 01:00" required>
                     </div>
                 </div>
                 <div class="form-field">
-                    <label>Alasan Keterlambatan Balikan (Jika Ada)</label>
+                    <label for="sla-ret-alasan">Alasan Keterlambatan Balikan (Jika Ada)</label>
                     <select id="sla-ret-alasan" style="background-color: #172030; color: #FFF; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px;">
                         <option value="Lancar">Lancar (Tepat Waktu)</option>
                         <option value="Mogok / Mesin Overheat">Mogok / Mesin Overheat</option>
@@ -660,6 +765,16 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP: FULL PHOTO PREVIEW -->
+    <div id="modal-photo-preview" class="modal-overlay hidden" style="z-index: 10000;" onclick="this.classList.add('hidden')">
+        <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center;" onclick="event.stopPropagation()">
+            <button type="button" onclick="document.getElementById('modal-photo-preview').classList.add('hidden')"
+                style="position: absolute; top: -14px; right: -14px; background: #EF4444; color: #FFFFFF; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">&times;</button>
+            <img id="preview-modal-img" src="" alt="Bukti Foto Sampai" style="max-width: 85vw; max-height: 80vh; border-radius: 12px; border: 2px solid #334155; box-shadow: 0 20px 60px rgba(0,0,0,0.6); object-fit: contain; background: #0F172A;">
+            <span id="preview-modal-caption" style="color: #F1F5F9; font-size: 13px; font-weight: 700; margin-top: 10px; background: rgba(15,23,42,0.8); padding: 4px 12px; border-radius: 6px;"></span>
+        </div>
+    </div>
+
 
     <!-- Firebase SDK Compat CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -671,17 +786,26 @@
     <script src="sla-countdown-engine.js"></script>
     <script src="app.js"></script>
     <script>
-        // ── TAB NAVIGATION ────────────────────────────────────────────────────
+        // ── TAB & STATE MANAGEMENT ───────────────────────────────────────────
+        window._currentSlaTab = 'outbound';
+        window._rawSLAOutbound = [];
+        window._rawSLAReturn = [];
+        window._currentVendorFilter = 'ALL';
+
         function switchSlaTab(tabName) {
+            window._currentSlaTab = tabName;
             document.querySelectorAll('.sla-tab-btn').forEach(b => b.classList.remove('active'));
             const activeBtn = document.getElementById('tab-btn-sla-' + tabName);
             if (activeBtn) activeBtn.classList.add('active');
-            ['outbound', 'return', 'roundtrip'].forEach(sec => {
+            ['outbound', 'return'].forEach(sec => {
                 const section = document.getElementById('section-sla-' + sec);
                 if (section) section.classList.add('hidden');
             });
             const targetSection = document.getElementById('section-sla-' + tabName);
             if (targetSection) targetSection.classList.remove('hidden');
+
+            renderVendorTabs();
+            renderFilteredSLATables();
         }
 
         // ── UTILITY FUNCTIONS ─────────────────────────────────────────────────
@@ -710,7 +834,8 @@
             if (!str) return '<span class="text-dim">Belum Sampai</span>';
             const parts = str.trim().split(' ');
             if (parts.length < 2) return '<div>' + str + '</div>';
-            return '<div class="date-hierarchy"><span class="date-part">' + parts[0] + '</span><span class="time-part">' + parts[1] + '</span></div>';
+            const timeStr = parts[1].includes('WIB') ? parts[1] : (parts[1] + ' WIB');
+            return '<div class="date-hierarchy"><span class="date-part">' + parts[0] + '</span><span class="time-part">' + timeStr + '</span></div>';
         }
 
         function formatLateDisplay(minutes) {
@@ -722,8 +847,18 @@
         function updateSLAOutboundKPIs(list) {
             let onTime = 0, late = 0, transit = 0;
             list.forEach(function(i) {
-                if (i.statusSla === 'ON TIME') onTime++;
-                else if (i.lateMinutes > 0 || i.statusSla === 'LATE') late++;
+                const st = (i.statusSla || '').toUpperCase();
+                let isLate = (st === 'LATE' || st === 'KENDALA' || (i.lateMinutes && Number(i.lateMinutes) > 0));
+                let isCompleted = (st === 'ON TIME' || (i.jamSampaiAktual && i.jamSampaiAktual !== '-' && i.jamSampaiAktual.trim() !== ''));
+
+                if (!isLate && !isCompleted && window.SLACountdownEngine) {
+                    const state = window.SLACountdownEngine.calculateSLAState(i.jamBerangkat, i.targetSLAHours || 16, i.jamSampaiAktual);
+                    if (state.isOverdue) isLate = true;
+                    else if (state.isCompleted) isCompleted = true;
+                }
+
+                if (isLate) late++;
+                else if (isCompleted) onTime++;
                 else transit++;
             });
             const total = list.length;
@@ -805,6 +940,205 @@
             return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
         }
 
+        // ═══════════════════════════════════════════════════════
+        // HELPER: Format RUTE & TLC (Standard J&T Express)
+        // ═══════════════════════════════════════════════════════
+        const JNT_CITY_MAP = {
+            'SEG': 'SERANG',
+            'TKG': 'LAMPUNG',
+            'SRG': 'SEMARANG',
+            'BDO': 'BANDUNG',
+            'PLM': 'PALEMBANG',
+            'SOC': 'SOLO',
+            'JOG': 'YOGYAKARTA',
+            'PMH': 'PRABUMULIH',
+            'SUB': 'SURABAYA',
+            'BKS': 'BENGKULU',
+            'DJB': 'JAMBI',
+            'LLG': 'LUBUKLINGGAU',
+            'PKU': 'PEKANBARU',
+            'PDG': 'PADANG',
+            'RPT': 'RANTAUPRAPAT',
+            'MES': 'MEDAN',
+            'BTJ': 'ACEH',
+            'GSK': 'GRESIK',
+            'TGR': 'TANGERANG',
+            'DPK': 'DEPOK',
+            'BGR': 'BOGOR',
+            'BKI': 'BEKASI',
+            'CKR': 'CIKARANG',
+            'JAT': 'JAT',
+            'SMI': 'SUKABUMI',
+            'TSK': 'TASIKMALAYA',
+            'TSM': 'TASIKMALAYA',
+            'CRN': 'CIREBON',
+            'CBN': 'CIREBON',
+            'CKP': 'CIKAMPEK',
+            'PTI': 'PATI',
+            'PWO': 'PURWOKERTO',
+            'PWT': 'PURWOKERTO',
+            'MDN': 'MADIUN',
+            'KDR': 'KEDIRI',
+            'MLG': 'MALANG',
+            'TGL': 'TEGAL',
+            'BAL': 'BALARAJA',
+            'DPS': 'BALI',
+            'WRG': 'WARINGIN',
+            'SDP': 'SDP',
+            'JBR': 'JEMBER',
+            'MDR': 'MADURA',
+            'PRO': 'PROBOLINGGO',
+            'LMG': 'LAMONGAN',
+            'BTN': 'BANTEN',
+            'CIM': 'CIMAHI'
+        };
+
+        const JNT_NAME_MAP = {
+            'SERANG': 'SEG',
+            'LAMPUNG': 'TKG',
+            'SEMARANG': 'SRG',
+            'BANDUNG': 'BDO',
+            'PALEMBANG': 'PLM',
+            'SOLO': 'SOC',
+            'SURAKARTA': 'SOC',
+            'YOGYAKARTA': 'JOG',
+            'JOGJA': 'JOG',
+            'PRABUMULIH': 'PMH',
+            'SURABAYA': 'SUB',
+            'BENGKULU': 'BKS',
+            'JAMBI': 'DJB',
+            'LUBUKLINGGAU': 'LLG',
+            'PEKANBARU': 'PKU',
+            'PADANG': 'PDG',
+            'RANTAUPRAPAT': 'RPT',
+            'MEDAN': 'MES',
+            'ACEH': 'BTJ',
+            'GRESIK': 'GSK',
+            'TANGERANG': 'TGR',
+            'DEPOK': 'DPK',
+            'BOGOR': 'BGR',
+            'BEKASI': 'BKI',
+            'CIKARANG': 'CKR',
+            'JAT': 'JAT',
+            'SUKABUMI': 'SMI',
+            'TASIKMALAYA': 'TSK',
+            'TASIK': 'TSK',
+            'CIREBON': 'CRN',
+            'CIKAMPEK': 'CKP',
+            'PATI': 'PTI',
+            'PURWOKERTO': 'PWO',
+            'MADIUN': 'MDN',
+            'KDR': 'KEDIRI',
+            'MALANG': 'MLG',
+            'TEGAL': 'TGL',
+            'BALARAJA': 'BAL',
+            'BALI': 'DPS',
+            'DENPASAR': 'DPS',
+            'WARINGIN': 'WRG',
+            'SDP': 'SDP',
+            'JBR': 'JEMBER',
+            'MDR': 'MADURA',
+            'PRO': 'PROBOLINGGO',
+            'LMG': 'LAMONGAN',
+            'BANTEN': 'BTN',
+            'CIMAHI': 'CIM'
+        };
+
+        function formatRuteAndTLC(item) {
+            if (!item) return { ruteName: '-', formattedTLC: '-', fleetType: 'FUSO', cityCode: 'SEG' };
+
+            var rawCombined = ((item.trip || '') + ' ' + (item.namaRute || '') + ' ' + (item.rute || '') + ' ' + (item.tlc || '') + ' ' + (item.layanan || '')).toUpperCase();
+            var rawJenis = ((item.jenisMobil || '') + ' ' + (item.jenisArmada || '') + ' ' + (item.tipeKendaraan || '') + ' ' + (item.jenis || '') + ' ' + rawCombined).toUpperCase();
+
+            // 1. Tentukan jenis armada (CDD / KONTAINER / FUSO)
+            var fleetType = 'FUSO';
+            if (rawJenis.includes('CDD') || rawJenis.includes('ENGKEL') || rawJenis.includes('BOX') || rawJenis.includes('SMALL')) {
+                fleetType = 'CDD';
+            } else if (rawJenis.includes('KONTAINER') || rawJenis.includes('CONTAINER')) {
+                fleetType = 'KONTAINER';
+            } else {
+                fleetType = 'FUSO';
+            }
+
+            var cityCode = '';
+            var ruteName = '';
+
+            // 2. Cek apakah teks mengandung nama kota panjang
+            for (var [cityName, code] of Object.entries(JNT_NAME_MAP)) {
+                if (rawCombined.includes(cityName)) {
+                    cityCode = code;
+                    ruteName = cityName;
+                    break;
+                }
+            }
+
+            // 3. Jika belum ketemu, cek kata-kata 3 huruf apakah cocok dengan kode kota di JNT_CITY_MAP
+            if (!ruteName) {
+                var words = rawCombined.split(/[\s\-_/\\,.]+/).filter(Boolean);
+                for (var w of words) {
+                    if (JNT_CITY_MAP[w]) {
+                        cityCode = w;
+                        ruteName = JNT_CITY_MAP[w];
+                        break;
+                    }
+                }
+            }
+
+            // 4. Jika format rute adalah "ASAL - TUJUAN" (misal: "JAKARTA - SERANG")
+            if (!ruteName) {
+                var rawRute = String(item.trip || item.namaRute || item.rute || '').trim();
+                if (rawRute.includes('-')) {
+                    var parts = rawRute.split('-').map(function(p){ return p.trim(); });
+                    var dest = parts[parts.length - 1].toUpperCase();
+                    var cleanDest = dest.replace(/\b(CDD|FUSO|KONTAINER)\b/g, '').trim();
+                    if (cleanDest) {
+                        ruteName = JNT_CITY_MAP[cleanDest] || cleanDest;
+                        cityCode = JNT_NAME_MAP[ruteName] || cleanDest.substring(0, 3);
+                    }
+                }
+            }
+
+            // 5. Fallback jika masih belum ada
+            if (!ruteName) {
+                var rawRute = String(item.trip || item.namaRute || item.rute || item.tlc || '').toUpperCase().trim();
+                var clean = rawRute.replace(/\b(CDD|FUSO|KONTAINER)\b/g, '').trim();
+                if (clean.length > 0) {
+                    cityCode = clean.substring(0, 3);
+                    ruteName = JNT_CITY_MAP[cityCode] || clean;
+                } else {
+                    cityCode = 'SEG';
+                    ruteName = 'SERANG';
+                }
+            }
+
+            // 6. Jika ruteName masih mengandung CDD/FUSO/KONTAINER atau kode, bersihkan & petakan ke nama kota
+            ruteName = ruteName.replace(/\b(CDD|FUSO|KONTAINER)\b/g, '').trim();
+            if (JNT_CITY_MAP[ruteName]) {
+                cityCode = ruteName;
+                ruteName = JNT_CITY_MAP[ruteName];
+            }
+
+            // Pastikan cityCode selalu valid
+            if (!cityCode && JNT_NAME_MAP[ruteName]) {
+                cityCode = JNT_NAME_MAP[ruteName];
+            }
+            if (!cityCode) {
+                cityCode = ruteName.substring(0, 3).toUpperCase();
+            }
+
+            // 7. Format TLC: Kode 3 Huruf + Jenis Mobil (misal "SEG FUSO", "TKG FUSO", "SRG FUSO")
+            var formattedTLC = cityCode + ' ' + fleetType;
+            var existingTLC = String(item.tlc || '').toUpperCase().trim();
+            if (existingTLC.includes('CDD') || existingTLC.includes('FUSO') || existingTLC.includes('KONTAINER')) {
+                var cleanTlcWord = existingTLC.split(/[\s\-_]+/)[0];
+                if (JNT_CITY_MAP[cleanTlcWord] || JNT_NAME_MAP[cleanTlcWord]) {
+                    formattedTLC = existingTLC;
+                }
+            }
+
+            return { ruteName: ruteName, formattedTLC: formattedTLC, fleetType: fleetType, cityCode: cityCode };
+        }
+
         // ── ROW BUILDERS ──────────────────────────────────────────────────────
         function buildOutboundRowHTML(i) {
             var targetHours = i.targetSLAHours || 16;
@@ -832,92 +1166,442 @@
             var lateMin = i.lateMinutes || 0;
             var lateStr = lateMin > 0 ? Math.floor(lateMin/60) + 'h ' + (lateMin%60) + 'm' : '00:00';
 
+            var fmt = formatRuteAndTLC(i);
+
+            var fotoSampai = i.fotoSampai || (matchedInc && matchedInc.fotoSampai) || '';
+            var arrivalDisplay = formatDateTimeHierarchy(i.jamSampaiAktual);
+            if (fotoSampai && i.jamSampaiAktual && i.jamSampaiAktual !== '-') {
+                arrivalDisplay += '<div style="margin-top:4px;">' +
+                    '<button type="button" class="btn-view-photo" onclick="window.previewFotoBukti(\'' + fotoSampai + '\', \'' + i.kodeTugas + '\')" title="Lihat Foto Bukti Sampai" style="background:#EFF6FF; border:1px solid #BFDBFE; color:#2563EB; border-radius:6px; padding:2px 8px; font-size:10.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">📷 Foto Bukti</button>' +
+                '</div>';
+            }
+
+            var photoActionBtn = fotoSampai
+                ? '<button class="btn-sla-action btn-photo" onclick="window.previewFotoBukti(\'' + fotoSampai + '\', \'' + i.kodeTugas + '\')" title="Lihat Foto Bukti Sampai" style="background:#EFF6FF; border:1px solid #BFDBFE; color:#2563EB;">📷</button>'
+                : '';
+
             return '<td><span class="kode-tugas-mono">' + (i.kodeTugas || '-') + '</span></td>' +
-                '<td><span class="sla-trip-pill">' + (i.trip || i.namaRute || '-') + '</span></td>' +
+                '<td style="text-align:center; min-width:115px;">' +
+                    '<div style="font-weight:700;font-size:12px;color:#2563EB;">' + (fmt.formattedTLC || '-') + '</div>' +
+                    '<div style="margin-top:3px;"><span class="sla-trip-pill" style="font-size:10.5px;">' + (fmt.ruteName || '-') + '</span></div>' +
+                '</td>' +
                 '<td><strong>' + (i.platNomor || '-') + '</strong></td>' +
                 '<td><span style="font-size:11px; font-weight:800; color:#38BDF8;">' + formatVendorShort(i.vendor) + '</span></td>' +
                 '<td style="font-size:11px;">' + fullDriverStr + '</td>' +
                 '<td>' + formatDateTimeHierarchy(i.jamBerangkat) + '</td>' +
                 '<td><span class="sla-target-badge">' + targetHours + 'h Target</span></td>' +
                 '<td><strong style="color:#2563EB;">' + targetArrivalStr + '</strong></td>' +
-                '<td>' + formatDateTimeHierarchy(i.jamSampaiAktual) + '</td>' +
+                '<td>' + arrivalDisplay + '</td>' +
                 '<td><strong>' + awbStr + '</strong></td>' +
                 '<td><span class="sla-live-countdown">--:--:--</span></td>' +
                 '<td><strong style="color:' + (lateMin > 0 ? '#DC2626' : '#16A34A') + ';">' + lateStr + '</strong></td>' +
                 '<td>' + (i.alasan || '-') + '</td>' +
                 '<td><span style="font-size:10.5px; color:#94A3B8;">' + (i.inputBy || 'Operator') + '</span></td>' +
-                '<td><span class="sla-live-status"></span></td>' +
+                '<td style="text-align:center;"><div class="mon-status-cell"><span class="sla-live-status"></span></div></td>' +
                 '<td class="text-center"><div class="sla-action-buttons">' +
-                '<button class="btn-sla-action btn-edit" onclick="openUpdateOutboundModal(\'' + i.kodeTugas + '\')" title="Edit">&#9999;&#65039;</button>' +
+                photoActionBtn +
+                '<button class="btn-sla-action btn-edit" onclick="openUpdateOutboundModal(\'' + i.kodeTugas + '\')" title="Update Kedatangan / Selesaikan Perjalanan">&#9999;&#65039;</button>' +
                 '<button class="btn-sla-action btn-delete" onclick="openDeleteOutboundModal(\'' + i.kodeTugas + '\')" title="Hapus">&#128465;&#65039;</button>' +
                 '</div></td>';
         }
 
         function buildReturnRowHTML(i) {
             var isLate = i.totalTelatMinutes > 0;
-            return '<td><strong style="color:#2563EB;">' + i.kodeTugasBalikan + '</strong></td>' +
-                '<td><strong>' + i.kodeTugasAsal + '</strong></td>' +
-                '<td>' + i.jamBerangkatGateway + '</td>' +
-                '<td>' + i.jamSampaiJKT999 + '</td>' +
+            return '<td><strong style="color:#2563EB;">' + (i.kodeTugasBalikan || '-') + '</strong></td>' +
+                '<td><strong>' + (i.kodeTugasAsal || '-') + '</strong></td>' +
+                '<td>' + (i.jamBerangkatGateway || '-') + '</td>' +
+                '<td>' + (i.jamSampaiJKT999 || '-') + '</td>' +
                 '<td><strong>' + (i.targetSLABalikanHours || 16) + ' Jam</strong></td>' +
                 '<td><strong>' + formatDuration(i.durasiBalikanMinutes) + '</strong></td>' +
                 '<td><strong style="color:' + (isLate ? '#DC2626' : '#16A34A') + ';">' + formatDuration(i.totalTelatMinutes) + '</strong></td>' +
                 '<td>' + (i.alasan || '-') + '</td>' +
-                '<td class="text-center"><button class="btn-table-action" onclick="alert(\'Trip Balikan: ' + i.kodeTugasBalikan + '\')">&#128065;&#65039;</button></td>';
+                '<td class="text-center"><button class="btn-table-action" onclick="alert(\'Trip Balikan: ' + (i.kodeTugasBalikan || i.kodeTugasAsal) + '\')">&#128065;&#65039;</button></td>';
         }
 
-        function buildRoundtripRowHTML(i) {
-            var bc = i.statusRoundtrip === 'ON TIME PP' ? 'green' : (i.statusRoundtrip === 'LATE PP' ? 'red' : 'yellow-outline');
-            return '<td><strong style="color:var(--primary-red);">' + i.kodeTugas + '</strong></td>' +
-                '<td><span class="badge-status blue-outline">' + (i.trip || '-') + '</span></td>' +
-                '<td><span class="badge-status gray">' + (i.wilayah || 'JAWA') + '</span></td>' +
-                '<td><strong>' + (i.targetSLAPP || 32) + ' Jam (PP)</strong></td>' +
-                '<td>' + formatDuration(i.durasiBerangkatMinutes) + '</td>' +
-                '<td>' + formatDuration(i.durasiBalikanMinutes) + '</td>' +
-                '<td><strong>' + formatDuration(i.totalDurasiPPMinutes) + '</strong></td>' +
-                '<td><strong style="color:' + (i.totalLatePPMinutes > 0 ? '#DC2626' : '#16A34A') + ';">' + formatDuration(i.totalLatePPMinutes) + '</strong></td>' +
-                '<td><span class="badge-status ' + bc + '">' + i.statusRoundtrip + '</span></td>' +
-                '<td>' + (i.keterangan || '-') + '</td>';
+        // ── OFFICIAL VENDORS FOR EXCEL SHEET TABS ─────────────────────────────
+        const OFFICIAL_VENDORS = [
+            { key: 'ALL', name: '📊 SEMUA VENDOR', fullName: 'Semua Vendor' },
+            { key: 'APL', name: 'APL', fullName: 'PT. ASIA PASIFIK LOGISTIK (APL)' },
+            { key: 'SERYU', name: 'SERYU', fullName: 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)' },
+            { key: 'KLS', name: 'KLS', fullName: 'PT. KENCANA LOGISTIK SAMUDERA (KLS)' },
+            { key: 'MTI', name: 'MTI', fullName: 'PT. MEDIA TRANS INDO (MTI)' },
+            { key: 'CHIJUN', name: 'CHIJUN', fullName: 'PT CHIJUN SMART FREIGHT (CHIJUN)' },
+            { key: 'SOLUSI', name: 'SOLUSI', fullName: 'PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)' },
+            { key: 'JTS', name: 'JTS', fullName: 'PT. JET TRANSPORT SERVICES (JTS)' },
+            { key: 'AB', name: 'AB', fullName: 'PT ANUGERAH BERSATU (AB)' },
+            { key: 'REYA', name: 'REYA', fullName: 'PT. REYA BAHAGIA ABADI (REYA)' },
+            { key: 'SDE', name: 'SDE', fullName: 'PT. SOLUSI DUNIA EXPEDISI (SDE)' },
+            { key: 'PAL', name: 'PAL', fullName: 'PT. PESONA ABADI LOGISTIK (PAL)' },
+            { key: 'LNP', name: 'LNP', fullName: 'LNP' }
+        ];
+
+        function isVendorMatch(itemVendor, filterKey) {
+            if (!filterKey || filterKey === 'ALL') return true;
+            if (!itemVendor) return false;
+            var shortV = formatVendorShort(itemVendor);
+            if (shortV === filterKey) return true;
+            if ((filterKey === 'KLS' || filterKey === 'KENCANA') && (shortV === 'KLS' || shortV === 'KENCANA')) return true;
+            var uItem = String(itemVendor).toUpperCase();
+            var uKey = String(filterKey).toUpperCase();
+            if (uItem.includes(uKey)) return true;
+            return false;
         }
 
-        // ── SUBSCRIPTIONS & EVENT HANDLERS ────────────────────────────────────
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof JNTFirebaseService !== 'undefined') {
+        window.scrollExcelTabs = function(direction) {
+            var track = document.getElementById('excel-tabs-track');
+            if (track) {
+                track.scrollBy({ left: direction * 240, behavior: 'smooth' });
+            }
+        };
 
-                // 1. Subscribe Outbound SLA
-                JNTFirebaseService.subscribeSLAOutbound(function(list) {
-                    var tbody       = document.querySelector('#table-sla-outbound tbody');
-                    var selectOpt   = document.getElementById('sla-out-kode-tugas');
-                    var selectRetOpt= document.getElementById('sla-ret-kode-tugas-asal');
+        window.selectVendorTab = function(vendorKey) {
+            window._currentVendorFilter = vendorKey;
+            renderVendorTabs();
+            renderFilteredSLATables();
+        };
 
-                    if (selectOpt)    selectOpt.innerHTML    = list.map(function(i){ return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + (i.trip || i.namaRute) + ')</option>'; }).join('');
-                    if (selectRetOpt) selectRetOpt.innerHTML = list.map(function(i){ return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + i.trip + ')</option>'; }).join('');
+        window.renderVendorTabs = function() {
+            var track = document.getElementById('excel-tabs-track');
+            if (!track) return;
 
-                    updateSLAOutboundKPIs(list);
+            var cur = window._currentVendorFilter || 'ALL';
+            var isOut = (window._currentSlaTab !== 'return');
+            var rawList = isOut ? (window._rawSLAOutbound || []) : (window._rawSLAReturn || []);
 
-                    smartUpdateTbody(tbody, list,
+            var html = OFFICIAL_VENDORS.map(function(v) {
+                var isActive = (cur === v.key) ? ' active' : '';
+                var isAll = (v.key === 'ALL') ? ' all-tab' : '';
+                var count = (v.key === 'ALL')
+                    ? rawList.length
+                    : rawList.filter(function(i){
+                        var vName = i.vendor;
+                        if (!vName && !isOut && window._rawSLAOutbound) {
+                            var matched = window._rawSLAOutbound.find(function(o){ return o.kodeTugas === i.kodeTugasAsal; });
+                            if (matched) vName = matched.vendor;
+                        }
+                        return isVendorMatch(vName, v.key);
+                    }).length;
+                var badgeHtml = '<span class="excel-tab-badge">' + count + '</span>';
+                return '<button type="button" class="excel-tab-item' + isAll + isActive + '" onclick="selectVendorTab(\'' + v.key + '\')">' +
+                    '<span>' + v.name + '</span>' + badgeHtml +
+                '</button>';
+            }).join('');
+
+            track.innerHTML = html;
+
+            var activeBtn = track.querySelector('.excel-tab-item.active');
+            if (activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            }
+        };
+
+        window.renderFilteredSLATables = function() {
+            var cur = window._currentVendorFilter || 'ALL';
+            var outRaw = window._rawSLAOutbound || [];
+            var retRaw = window._rawSLAReturn || [];
+
+            // 1. Filter Vendor Outbound
+            var filteredOut = (cur === 'ALL') ? outRaw : outRaw.filter(function(i){ return isVendorMatch(i.vendor, cur); });
+            var vObj = OFFICIAL_VENDORS.find(function(v){ return v.key === cur; }) || OFFICIAL_VENDORS[0];
+            var vendorLabel = (vObj.key === 'ALL') ? 'Semua Vendor' : vObj.name;
+
+            // Filter Vendor Return
+            var filteredRet = (cur === 'ALL') ? retRaw : retRaw.filter(function(i) {
+                if (i.vendor && isVendorMatch(i.vendor, cur)) return true;
+                var matched = outRaw.find(function(o){ return o.kodeTugas === i.kodeTugasAsal; });
+                return matched ? isVendorMatch(matched.vendor, cur) : false;
+            });
+
+            // 2. Filter Tanggal
+            var filterDate = document.getElementById('filter-sla-date') ? document.getElementById('filter-sla-date').value : '';
+            if (filterDate) {
+                var dParts = filterDate.split('-');
+                if (dParts.length === 3) {
+                    var dateStr = dParts[2] + '/' + dParts[1] + '/' + dParts[0];
+                    filteredOut = filteredOut.filter(function(i) {
+                        return i.jamBerangkat && i.jamBerangkat.startsWith(dateStr);
+                    });
+                    filteredRet = filteredRet.filter(function(i) {
+                        return i.jamBerangkatGateway && i.jamBerangkatGateway.startsWith(dateStr);
+                    });
+                }
+            }
+
+            // 3. Filter Rute
+            var filterRute = document.getElementById('filter-sla-rute') ? document.getElementById('filter-sla-rute').value : '';
+            if (filterRute) {
+                var fLow = filterRute.toLowerCase().trim();
+                filteredOut = filteredOut.filter(function(i) {
+                    var fmt = formatRuteAndTLC(i);
+                    var rName = (fmt.ruteName || '').toLowerCase();
+                    var tlc = (fmt.formattedTLC || '').toLowerCase();
+                    var rTrip = (i.trip || i.namaRute || '').toLowerCase();
+                    return rName === fLow || rName.includes(fLow) || tlc.includes(fLow) || rTrip.includes(fLow);
+                });
+                filteredRet = filteredRet.filter(function(i) {
+                    var fmt = formatRuteAndTLC(i);
+                    var rName = (fmt.ruteName || '').toLowerCase();
+                    var tlc = (fmt.formattedTLC || '').toLowerCase();
+                    var rTrip = (i.trip || i.namaRute || '').toLowerCase();
+                    return rName === fLow || rName.includes(fLow) || tlc.includes(fLow) || rTrip.includes(fLow);
+                });
+            }
+
+            // 4. Filter Status SLA
+            var filterStatus = document.getElementById('filter-sla-status') ? document.getElementById('filter-sla-status').value : '';
+            if (filterStatus) {
+                filteredOut = filteredOut.filter(function(i) {
+                    var hasArrived = i.jamSampaiAktual && i.jamSampaiAktual !== '-' && i.jamSampaiAktual.trim() !== '';
+                    var st = hasArrived ? 'IN' : 'OUT';
+                    if (i.statusSla === 'KENDALA' || (i.alasan && i.alasan.toLowerCase().includes('kendala'))) st = 'KENDALA';
+                    return st === filterStatus;
+                });
+                filteredRet = filteredRet.filter(function(i) {
+                    var hasArrived = i.jamSampaiJKT999 && i.jamSampaiJKT999 !== '-' && i.jamSampaiJKT999.trim() !== '';
+                    var st = hasArrived ? 'IN' : 'OUT';
+                    return st === filterStatus;
+                });
+            }
+
+            // 5. Filter Pencarian Teks
+            var filterSearch = document.getElementById('filter-sla-search') ? document.getElementById('filter-sla-search').value.toLowerCase().trim() : '';
+            if (filterSearch) {
+                filteredOut = filteredOut.filter(function(i) {
+                    var fmt = formatRuteAndTLC(i);
+                    var str = ((i.kodeTugas || '') + ' ' + (i.platNomor || '') + ' ' + (i.driver1 || '') + ' ' + (i.driver2 || '') + ' ' + (i.trip || '') + ' ' + (i.namaRute || '') + ' ' + (fmt.ruteName || '') + ' ' + (fmt.formattedTLC || '') + ' ' + (i.vendor || '')).toLowerCase();
+                    return str.includes(filterSearch);
+                });
+                filteredRet = filteredRet.filter(function(i) {
+                    var fmt = formatRuteAndTLC(i);
+                    var str = ((i.kodeTugasBalikan || '') + ' ' + (i.kodeTugasAsal || '') + ' ' + (fmt.ruteName || '') + ' ' + (fmt.formattedTLC || '') + ' ' + (i.alasan || '') + ' ' + (i.vendor || '')).toLowerCase();
+                    return str.includes(filterSearch);
+                });
+            }
+
+            // Update KPI
+            updateSLAOutboundKPIs(filteredOut);
+
+            // Populate Outbound Table
+            var tbodyOut = document.querySelector('#table-sla-outbound tbody');
+            if (tbodyOut) {
+                if (filteredOut.length === 0) {
+                    tbodyOut.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:36px; color:#94A3B8;">' +
+                        '<div style="font-size:32px; margin-bottom:8px;">🚚💨</div>' +
+                        '<strong style="font-size:14px; color:#F1F5F9;">Tidak ada perjalanan armada yang cocok dengan filter.</strong><br>' +
+                        '<span style="font-size:12px; color:#94A3B8;">Klik tombol &ldquo;Reset&rdquo; atau &ldquo;Input Keberangkatan&rdquo; untuk mencatat armada baru.</span>' +
+                        '</td></tr>';
+                } else {
+                    smartUpdateTbody(tbodyOut, filteredOut,
                         function(i){ return i.kodeTugas; },
                         buildOutboundRowHTML,
                         function(i){ return { 'data-sla-departure': i.jamBerangkat || '', 'data-sla-hours': i.targetSLAHours || 16, 'data-sla-arrival': i.jamSampaiAktual || '' }; },
-                        function(i){ return (i.kodeTugas||'') + '|' + (i.jamBerangkat||'') + '|' + (i.targetSLAHours||16) + '|' + (i.jamSampaiAktual||'') + '|' + (i.statusSla||'') + '|' + (i.vendor||'') + '|' + (i.platNomor||''); }
+                        function(i){
+                            var fmt = formatRuteAndTLC(i);
+                            return (i.kodeTugas||'') + '|' + (fmt.formattedTLC||'') + '|' + (fmt.ruteName||'') + '|' + (i.jamBerangkat||'') + '|' + (i.targetSLAHours||16) + '|' + (i.jamSampaiAktual||'') + '|' + (i.statusSla||'') + '|' + (i.vendor||'') + '|' + (i.platNomor||'') + '|' + (i.fotoSampai||'');
+                        }
                     );
-                    if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
+                }
+            }
+
+            // Populate Return Table
+            var tbodyRet = document.querySelector('#table-sla-return tbody');
+            if (tbodyRet) {
+                if (filteredRet.length === 0) {
+                    tbodyRet.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:36px; color:#94A3B8;">' +
+                        '<div style="font-size:32px; margin-bottom:8px;">🔄</div>' +
+                        '<strong style="font-size:14px; color:#F1F5F9;">Belum ada perjalanan balikan untuk sheet vendor ini.</strong><br>' +
+                        '<span style="font-size:12px; color:#94A3B8;">Klik tombol &ldquo;Input Perjalanan Balikan&rdquo; untuk mencatat armada pulang ke JKT999.</span>' +
+                        '</td></tr>';
+                } else {
+                    smartUpdateTbody(tbodyRet, filteredRet,
+                        function(i){ return i.kodeTugasBalikan || i.kodeTugasAsal; },
+                        buildReturnRowHTML,
+                        null,
+                        function(i){ return (i.kodeTugasBalikan||'') + '|' + (i.kodeTugasAsal||'') + '|' + (i.jamBerangkatGateway||'') + '|' + (i.jamSampaiJKT999||'') + '|' + (i.alasan||''); }
+                    );
+                }
+            }
+
+            // Populate Rute select dynamically (nama Rute asli, bukan kode TLC)
+            var ruteSelect = document.getElementById('filter-sla-rute');
+            if (ruteSelect) {
+                var curRuteVal = ruteSelect.value;
+                var ruteSet = new Set();
+                outRaw.forEach(function(i){
+                    var fmt = formatRuteAndTLC(i);
+                    if (fmt.ruteName && fmt.ruteName !== '-') ruteSet.add(fmt.ruteName);
+                });
+                var existingOptions = Array.from(ruteSelect.options).map(function(o){ return o.value; });
+                var sortedRuteList = [...ruteSet].sort();
+                var shouldUpdate = (existingOptions.length !== sortedRuteList.length + 1);
+                if (!shouldUpdate) {
+                    for (var rIdx = 0; rIdx < sortedRuteList.length; rIdx++) {
+                        if (existingOptions[rIdx + 1] !== sortedRuteList[rIdx]) {
+                            shouldUpdate = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldUpdate) {
+                    ruteSelect.innerHTML = '<option value="">Semua Rute</option>';
+                    sortedRuteList.forEach(function(r){
+                        var opt = document.createElement('option');
+                        opt.value = r;
+                        opt.textContent = r;
+                        ruteSelect.appendChild(opt);
+                    });
+                    if (curRuteVal) ruteSelect.value = curRuteVal;
+                }
+            }
+
+            // Sembunyikan / Tampilkan Tombol Aksi sesuai Sheet Vendor aktif:
+            // Sembunyi saat 'ALL' (Semua Vendor), dan muncul dengan label vendor saat sheet per-vendor aktif
+            var btnInput = document.getElementById('btn-input-keberangkatan');
+            var btnUpdate = document.getElementById('btn-update-sla-outbound');
+            var btnInputRet = document.getElementById('btn-input-balikan');
+
+            if (cur === 'ALL') {
+                if (btnInput) btnInput.style.display = 'none';
+                if (btnUpdate) btnUpdate.style.display = 'none';
+                if (btnInputRet) btnInputRet.style.display = 'none';
+            } else {
+                if (btnInput) {
+                    btnInput.style.display = 'inline-flex';
+                    btnInput.innerHTML = '&#128666; Input Keberangkatan (' + cur + ')';
+                }
+                if (btnUpdate) {
+                    btnUpdate.style.display = 'inline-flex';
+                    btnUpdate.innerHTML = '&#9999;&#65039; Update SLA (' + cur + ')';
+                }
+                if (btnInputRet) {
+                    btnInputRet.style.display = 'inline-flex';
+                    btnInputRet.innerHTML = '<span>+</span> Input Balikan (' + cur + ')';
+                }
+            }
+
+            if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
+        };
+
+        window.resetSLAFilters = function() {
+            var fDate = document.getElementById('filter-sla-date');
+            if (fDate) fDate.value = '';
+            var fRute = document.getElementById('filter-sla-rute');
+            if (fRute) fRute.value = '';
+            var fStat = document.getElementById('filter-sla-status');
+            if (fStat) fStat.value = '';
+            var fSrch = document.getElementById('filter-sla-search');
+            if (fSrch) fSrch.value = '';
+            window._currentVendorFilter = 'ALL';
+            renderVendorTabs();
+            renderFilteredSLATables();
+        };
+
+        // ── IMMEDIATE INITIAL RENDER (0ms latency for sheet vendor tabs) ──
+        try {
+            if (typeof JNTFirebaseService !== 'undefined') {
+                window._rawSLAOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                window._rawSLAReturn = JNTFirebaseService.getLocalStore('sla_return') || [];
+            }
+        } catch (e) {
+            console.debug('Initial SLA vendor tabs notice:', e);
+        }
+        renderVendorTabs();
+        renderFilteredSLATables();
+
+        // ── SUBSCRIPTIONS & EVENT HANDLERS ────────────────────────────────────
+        function initSLAPage() {
+            if (typeof JNTFirebaseService !== 'undefined') {
+                window._rawSLAOutbound = window._rawSLAOutbound || JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                window._rawSLAReturn = window._rawSLAReturn || JNTFirebaseService.getLocalStore('sla_return') || [];
+                renderVendorTabs();
+                renderFilteredSLATables();
+
+                // 1. Subscribe Outbound SLA
+                JNTFirebaseService.subscribeSLAOutbound(function(list) {
+                    window._rawSLAOutbound = list || [];
+                    var selectOpt   = document.getElementById('sla-out-kode-tugas');
+                    var selectRetOpt= document.getElementById('sla-ret-kode-tugas-asal');
+
+                    if (selectOpt)    selectOpt.innerHTML    = window._rawSLAOutbound.map(function(i){ var fmt = formatRuteAndTLC(i); return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + fmt.formattedTLC + ' - ' + fmt.ruteName + ')</option>'; }).join('');
+                    if (selectRetOpt) selectRetOpt.innerHTML = window._rawSLAOutbound.map(function(i){ var fmt = formatRuteAndTLC(i); return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + fmt.formattedTLC + ' - ' + fmt.ruteName + ')</option>'; }).join('');
+
+                    renderVendorTabs();
+                    renderFilteredSLATables();
                 });
 
                 // 2. Subscribe Return SLA
                 JNTFirebaseService.subscribeSLAReturn(function(list) {
-                    var tbody = document.querySelector('#table-sla-return tbody');
-                    smartUpdateTbody(tbody, list, function(i){ return i.kodeTugasBalikan; }, buildReturnRowHTML, null, function(i){ return (i.kodeTugasBalikan||'') + '|' + (i.jamBerangkat||'') + '|' + (i.jamSampai||'') + '|' + (i.alasan||''); });
+                    window._rawSLAReturn = list || [];
+                    renderVendorTabs();
+                    renderFilteredSLATables();
                 });
 
-                // 3. Subscribe Roundtrip SLA
-                JNTFirebaseService.subscribeSLARoundtrip(function(list) {
-                    var tbody = document.querySelector('#table-sla-roundtrip tbody');
-                    smartUpdateTbody(tbody, list, function(i){ return i.kodeTugas; }, buildRoundtripRowHTML, null, function(i){ return (i.kodeTugas||'') + '|' + (i.totalDurasiPPMinutes||0) + '|' + (i.statusRoundtrip||''); });
+                // 3. Listener Real-time Internal Mutasi Data (Auto-refresh seketika tanpa F5 manual)
+                window.addEventListener('jnt_data_updated', function() {
+                    window._rawSLAOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                    window._rawSLAReturn = JNTFirebaseService.getLocalStore('sla_return') || [];
+                    renderVendorTabs();
+                    renderFilteredSLATables();
                 });
+            } else {
+                renderVendorTabs();
+                renderFilteredSLATables();
             }
 
-            // ── DATETIME PICKER & VALIDATION HELPERS ────────────────────────────
+            // ── DATETIME PICKER & VALIDATION HELPERS (24 JAM WIB) ───────────────
+            function initWIBTimeDropdowns(jamSelectId, menitSelectId) {
+                var jamEl = document.getElementById(jamSelectId);
+                var menitEl = document.getElementById(menitSelectId);
+                if (jamEl && jamEl.options.length < 24) {
+                    var jHtml = '';
+                    for (var h = 0; h < 24; h++) {
+                        var val = String(h).padStart(2, '0');
+                        jHtml += '<option value="' + val + '">' + val + '</option>';
+                    }
+                    jamEl.innerHTML = jHtml;
+                }
+                if (menitEl && menitEl.options.length < 60) {
+                    var mHtml = '';
+                    for (var m = 0; m < 60; m++) {
+                        var valM = String(m).padStart(2, '0');
+                        mHtml += '<option value="' + valM + '">' + valM + '</option>';
+                    }
+                    menitEl.innerHTML = mHtml;
+                }
+            }
+
+            function setWIBDateTimeFields(tanggalId, jamId, menitId, dateInput) {
+                initWIBTimeDropdowns(jamId, menitId);
+                var d;
+                if (!dateInput) {
+                    d = new Date();
+                } else if (dateInput instanceof Date) {
+                    d = dateInput;
+                } else {
+                    d = parseCustomDate(dateInput) || new Date();
+                }
+                var pad = function(n) { return String(n).padStart(2, '0'); };
+                var tEl = document.getElementById(tanggalId);
+                if (tEl) tEl.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+                var jEl = document.getElementById(jamId);
+                if (jEl) jEl.value = pad(d.getHours());
+                var mEl = document.getElementById(menitId);
+                if (mEl) mEl.value = pad(d.getMinutes());
+            }
+
+            function getWIBDateTimeString(tanggalId, jamId, menitId) {
+                var tEl = document.getElementById(tanggalId);
+                var tVal = tEl ? tEl.value.trim() : '';
+                var jEl = document.getElementById(jamId);
+                var jVal = (jEl && jEl.value ? jEl.value : '00').padStart(2, '0');
+                var mEl = document.getElementById(menitId);
+                var mVal = (mEl && mEl.value ? mEl.value : '00').padStart(2, '0');
+                if (!tVal) return '';
+                var parts = tVal.split('-');
+                if (parts.length < 3) return '';
+                return parts[2] + '/' + parts[1] + '/' + parts[0] + ' ' + jVal + ':' + mVal;
+            }
+
             function formatToDatetimeLocal(d) {
                 var pad = function(n){ return String(n).padStart(2,'0'); };
                 return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
@@ -932,25 +1616,174 @@
                 return dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0] + ' ' + parts[1];
             }
 
+            // ── INPUT SANITIZERS & AUTO FORMATTERS ─────────────────────────────
+            function formatPlatNomor(val) {
+                if (!val) return '';
+                var clean = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                var match = clean.match(/^([A-Z]{1,2})(\d{1,4})([A-Z]{0,3})$/);
+                if (match) {
+                    return (match[1] + ' ' + match[2] + (match[3] ? ' ' + match[3] : '')).trim();
+                }
+                var partial = clean.match(/^([A-Z]{1,2})(\d{0,4})(.*)$/);
+                if (partial) {
+                    var res = partial[1];
+                    if (partial[2]) res += ' ' + partial[2];
+                    if (partial[3]) {
+                        var trailing = partial[3].replace(/[^A-Z]/g, '').slice(0, 3);
+                        if (trailing) res += ' ' + trailing;
+                    }
+                    return res.trim();
+                }
+                return clean;
+            }
+
+            function setupInputSanitizers() {
+                // 1. Text input otomatis Capslock (Uppercase)
+                var upperFields = ['sla-new-kode-tugas', 'sla-new-plat', 'sla-new-trip', 'sla-new-driver', 'sla-new-driver2', 'sla-ret-kode-balikan'];
+                upperFields.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', function() {
+                            var start = this.selectionStart;
+                            var end = this.selectionEnd;
+                            var upper = this.value.toUpperCase();
+                            if (this.value !== upper) {
+                                this.value = upper;
+                                if (start !== null && end !== null) {
+                                    this.setSelectionRange(start, end);
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // 2. Plat nomor otomatis spasi format Indonesia (B 9134 PXX)
+                var platEl = document.getElementById('sla-new-plat');
+                if (platEl) {
+                    platEl.addEventListener('input', function() {
+                        var start = this.selectionStart;
+                        var prevLen = this.value.length;
+                        var formatted = formatPlatNomor(this.value);
+                        if (this.value !== formatted) {
+                            this.value = formatted;
+                            var diff = formatted.length - prevLen;
+                            var newPos = Math.max(0, (start || 0) + diff);
+                            this.setSelectionRange(newPos, newPos);
+                        }
+                    });
+                    platEl.addEventListener('blur', function() {
+                        this.value = formatPlatNomor(this.value);
+                    });
+                }
+
+                // 3. Kolom No. WhatsApp / HP Driver: numeric only (huruf ditolak)
+                var phoneFields = ['sla-new-driver-phone', 'sla-new-driver2-phone'];
+                phoneFields.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', function() {
+                            var start = this.selectionStart;
+                            var prevLen = this.value.length;
+                            var cleaned = this.value.replace(/[^0-9+\-]/g, '');
+                            if (this.value !== cleaned) {
+                                this.value = cleaned;
+                                var diff = cleaned.length - prevLen;
+                                var newPos = Math.max(0, (start || 0) + diff);
+                                this.setSelectionRange(newPos, newPos);
+                            }
+                        });
+                    }
+                });
+            }
+
+            setupInputSanitizers();
+
             // ── MODAL HELPERS ──────────────────────────────────────────────────
             window.openAddMobilKeluarModal = function() {
+                var cur = window._currentVendorFilter || 'ALL';
+                if (cur === 'ALL') {
+                    alert('⚠️ Silakan pilih salah satu Sheet Vendor (misal: APL, SERYU, KLS, dll) terlebih dahulu sebelum menginput keberangkatan.');
+                    return;
+                }
+
+                var vObj = OFFICIAL_VENDORS.find(function(v){ return v.key === cur; }) || { key: cur, name: cur, fullName: cur };
+
                 var form = document.getElementById('form-add-mobil-keluar');
                 if (form) form.reset();
 
-                // Set min bound (H-2) for datetime-local picker.
-                // Dynamic max is validated in submit handler to prevent HTML5 native 1-minute typing lockouts.
-                var jamEl = document.getElementById('sla-new-jam-berangkat');
-                if (jamEl) {
-                    var minDate = new Date();
-                    minDate.setDate(minDate.getDate() - 2);
-                    minDate.setHours(0, 0, 0, 0);
+                var labelEl = document.getElementById('sla-modal-vendor-label');
+                if (labelEl) labelEl.textContent = cur + ' \u2014 ' + vObj.fullName;
 
-                    jamEl.min = formatToDatetimeLocal(minDate);
-                    jamEl.removeAttribute('max');
-                    jamEl.value = ''; // starts completely empty
-                }
+                var tagEl = document.getElementById('sla-modal-vendor-tag');
+                if (tagEl) tagEl.textContent = cur;
+
+                var vendorInput = document.getElementById('sla-new-vendor');
+                if (vendorInput) vendorInput.value = vObj.fullName;
+
+                // Waktu berangkat default: 24 Jam WIB saat ini
+                setWIBDateTimeFields('sla-new-tanggal', 'sla-new-jam', 'sla-new-menit', new Date());
 
                 document.getElementById('modal-add-mobil-keluar').classList.remove('hidden');
+            };
+
+            window.handleTopUpdateSLAClick = function() {
+                var cur = window._currentVendorFilter || 'ALL';
+                if (cur === 'ALL') {
+                    alert('⚠️ Silakan pilih salah satu Sheet Vendor terlebih dahulu untuk mengupdate SLA.');
+                    return;
+                }
+
+                var outRaw = window._rawSLAOutbound || [];
+                var vendorTrips = outRaw.filter(function(i){ return isVendorMatch(i.vendor, cur); });
+
+                if (vendorTrips.length === 0) {
+                    alert('⚠️ Belum ada armada aktif untuk vendor ' + cur);
+                    return;
+                }
+
+                var selectOpt = document.getElementById('sla-out-kode-tugas-select');
+                if (selectOpt) {
+                    selectOpt.innerHTML = vendorTrips.map(function(i){
+                        var fmt = formatRuteAndTLC(i);
+                        return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + fmt.formattedTLC + ' · ' + fmt.ruteName + ' · ' + (i.platNomor || '-') + ')</option>';
+                    }).join('');
+                }
+
+                openUpdateOutboundModal(vendorTrips[0].kodeTugas, true);
+            };
+
+            window.onSLAOutboundSelectChange = function(kodeTugas) {
+                if (kodeTugas) {
+                    openUpdateOutboundModal(kodeTugas, true);
+                }
+            };
+
+            window.openAddSLAReturnModal = function() {
+                var cur = window._currentVendorFilter || 'ALL';
+                if (cur === 'ALL') {
+                    alert('⚠️ Silakan pilih salah satu Sheet Vendor terlebih dahulu untuk mencatat perjalanan balikan.');
+                    return;
+                }
+
+                var outRaw = window._rawSLAOutbound || [];
+                var vendorTrips = outRaw.filter(function(i){ return isVendorMatch(i.vendor, cur); });
+
+                var selectRetOpt = document.getElementById('sla-ret-kode-tugas-asal');
+                if (selectRetOpt) {
+                    if (vendorTrips.length === 0) {
+                        selectRetOpt.innerHTML = '<option value="">(Belum ada data trip asal untuk vendor ' + cur + ')</option>';
+                    } else {
+                        selectRetOpt.innerHTML = vendorTrips.map(function(i){
+                            var fmt = formatRuteAndTLC(i);
+                            return '<option value="' + i.kodeTugas + '">' + i.kodeTugas + ' (' + fmt.formattedTLC + ' - ' + fmt.ruteName + ' - ' + (i.platNomor || '-') + ')</option>';
+                        }).join('');
+                    }
+                }
+
+                var formRet = document.getElementById('form-add-sla-return');
+                if (formRet) formRet.reset();
+
+                document.getElementById('modal-add-sla-return').classList.remove('hidden');
             };
 
             var formKeluar = document.getElementById('form-add-mobil-keluar');
@@ -967,32 +1800,11 @@
                 var driver2      = raw('sla-new-driver2');
                 var driver2Phone = raw('sla-new-driver2-phone');
 
-                var rawJamValue = document.getElementById('sla-new-jam-berangkat') ? document.getElementById('sla-new-jam-berangkat').value : '';
-                if (!rawJamValue) {
-                    alert('❌ Harap pilih Tanggal & Jam Berangkat dari kalender!');
+                var jamBerangkat = getWIBDateTimeString('sla-new-tanggal', 'sla-new-jam', 'sla-new-menit');
+                if (!jamBerangkat) {
+                    alert('❌ Harap tentukan Tanggal & Jam Berangkat (24 Jam WIB)!');
                     return;
                 }
-
-                // Strict Date Validation Rules:
-                // Rule 1: Cannot select future date/time (> current time + 5 mins buffer)
-                // Rule 2: Cannot select date older than 2 days ago (< minDate)
-                var selectedDate = new Date(rawJamValue);
-                var now = new Date();
-                var bufferNow = new Date(now.getTime() + 5 * 60 * 1000); // 5 mins buffer
-                var minDate = new Date();
-                minDate.setDate(minDate.getDate() - 2);
-                minDate.setHours(0, 0, 0, 0);
-
-                if (selectedDate > bufferNow) {
-                    alert('❌ Jam Berangkat tidak boleh melebihi tanggal & jam saat ini!');
-                    return;
-                }
-                if (selectedDate < minDate) {
-                    alert('❌ Jam Berangkat tidak boleh terlewat lebih dari 2 hari (Maksimal H-2 dari sekarang)!');
-                    return;
-                }
-
-                var jamBerangkat = convertDatetimeLocalToCustomStr(rawJamValue);
                 var awbEl        = document.getElementById('sla-new-awb');
                 var totalAwb     = awbEl && awbEl.value ? parseInt(awbEl.value) || 0 : 0;
                 var inputBy      = sessionStorage.getItem('jnt_active_username') || 'Operator';
@@ -1014,20 +1826,158 @@
                     });
                     document.getElementById('modal-add-mobil-keluar').classList.add('hidden');
                     formKeluar.reset();
+                    window._rawSLAOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                    window._rawSLAReturn = JNTFirebaseService.getLocalStore('sla_return') || [];
+                    renderVendorTabs();
+                    renderFilteredSLATables();
                     if (typeof window.showSLASuccessModal === 'function') {
                         window.showSLASuccessModal({ actionType: 'Input Keberangkatan Mobil & SLA Outbound', kodeTugas: kodeTugas, platNomor: platNomor, trip: trip, driver: driver1, vendor: vendor, jamBerangkat: jamBerangkat, totalAwb: totalAwb, inputBy: inputBy });
                     } else { alert('Mobil Keluar ' + kodeTugas + ' (' + platNomor + ') berhasil dicatat!'); }
                 } catch(err) { alert(err.message || 'Terjadi kesalahan saat menyimpan data.'); }
             });
 
-            window.openUpdateOutboundModal = async function(kodeTugas) {
-                var selectOpt = document.getElementById('sla-out-kode-tugas');
-                if (selectOpt && kodeTugas) selectOpt.value = kodeTugas;
-                var jamEl = document.getElementById('sla-out-jam-sampai');
-                if (jamEl) {
-                    var now = new Date();
-                    jamEl.value = formatToDatetimeLocal(now);
+            // ── PHOTO & MODAL STATE FOR SLA OUTBOUND ──────────────────────────
+            var _selectedSLABuktiFoto = null;
+            var _existingSLABuktiFotoUrl = '';
+
+            window.handleSLAOutboundFotoChange = function(e) {
+                var file = e.target.files && e.target.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    alert('Mohon pilih file gambar yang valid (JPG, PNG, atau WebP).');
+                    return;
                 }
+
+                _selectedSLABuktiFoto = file;
+
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    var img = document.getElementById('sla-out-foto-preview');
+                    if (img) img.src = event.target.result;
+                    var previewWrap = document.getElementById('sla-out-preview-wrap');
+                    if (previewWrap) previewWrap.style.display = 'block';
+                    var uploadBox = document.getElementById('sla-out-upload-box');
+                    if (uploadBox) uploadBox.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            };
+
+            window.hapusFotoSLAOutbound = function(e) {
+                if (e) e.stopPropagation();
+                _selectedSLABuktiFoto = null;
+                _existingSLABuktiFotoUrl = '';
+                var fileInput = document.getElementById('sla-out-foto-file');
+                if (fileInput) fileInput.value = '';
+                var previewImg = document.getElementById('sla-out-foto-preview');
+                if (previewImg) previewImg.src = '';
+                var previewWrap = document.getElementById('sla-out-preview-wrap');
+                if (previewWrap) previewWrap.style.display = 'none';
+                var uploadBox = document.getElementById('sla-out-upload-box');
+                if (uploadBox) uploadBox.style.display = 'block';
+            };
+
+            window.closeUpdateSLAOutboundModal = function() {
+                var modal = document.getElementById('modal-update-sla-outbound');
+                if (modal) modal.classList.add('hidden');
+                _selectedSLABuktiFoto = null;
+                _existingSLABuktiFotoUrl = '';
+            };
+
+            window.previewFotoBukti = function(url, kodeTugas) {
+                if (!url) return;
+                var modal = document.getElementById('modal-photo-preview');
+                var img = document.getElementById('preview-modal-img');
+                var caption = document.getElementById('preview-modal-caption');
+                if (img) img.src = url;
+                if (caption) caption.textContent = 'Foto Bukti Sampai · ' + (kodeTugas || '');
+                if (modal) modal.classList.remove('hidden');
+            };
+
+            window.openUpdateOutboundModal = async function(kodeTugas, keepSelectorVisible) {
+                if (!kodeTugas) return;
+                var outRaw = window._rawSLAOutbound || [];
+                var incList = (typeof JNTFirebaseService !== 'undefined') ? (JNTFirebaseService.getLocalStore('incoming') || []) : [];
+                var item = outRaw.find(function(x){ return x.kodeTugas === kodeTugas; }) ||
+                           incList.find(function(x){ return x.kodeTugas === kodeTugas; }) || {};
+
+                var fmt = formatRuteAndTLC(item);
+
+                // Populate Ringkasan Armada (Langsung armada terpilih, tidak perlu pilih armada lagi)
+                var badgeKode = document.getElementById('sla-out-kode-badge');
+                if (badgeKode) badgeKode.textContent = kodeTugas;
+
+                var badgeVendor = document.getElementById('sla-out-vendor-badge');
+                if (badgeVendor) badgeVendor.textContent = formatVendorShort(item.vendor);
+
+                var textPlat = document.getElementById('sla-out-plat-text');
+                if (textPlat) textPlat.textContent = item.platNomor || '-';
+
+                var textDriver = document.getElementById('sla-out-driver-text');
+                if (textDriver) textDriver.textContent = item.driver1 || '-';
+
+                var textRute = document.getElementById('sla-out-rute-text');
+                if (textRute) textRute.textContent = (fmt.formattedTLC || '-') + ' · ' + (fmt.ruteName || '-');
+
+                var hiddenKode = document.getElementById('sla-out-kode-tugas');
+                if (hiddenKode) hiddenKode.value = kodeTugas;
+
+                var selectorWrap = document.getElementById('sla-out-selector-wrap');
+                if (selectorWrap) selectorWrap.style.display = keepSelectorVisible ? 'block' : 'none';
+
+                var selectOpt = document.getElementById('sla-out-kode-tugas-select');
+                if (selectOpt && keepSelectorVisible) selectOpt.value = kodeTugas;
+
+                // Jam Sampai (24 Jam WIB): jika sudah pernah diisi, gunakan data tersebut; jika belum, gunakan waktu saat ini
+                if (item.jamSampaiAktual && item.jamSampaiAktual !== '-') {
+                    setWIBDateTimeFields('sla-out-tanggal', 'sla-out-jam', 'sla-out-menit', item.jamSampaiAktual);
+                } else {
+                    setWIBDateTimeFields('sla-out-tanggal', 'sla-out-jam', 'sla-out-menit', new Date());
+                }
+
+                // Lokasi Sampai (Checkpoint IN): default "IN <cityCode>"
+                var lokasiEl = document.getElementById('sla-out-lokasi-sampai');
+                if (lokasiEl) {
+                    if (item.lokasiSampai) {
+                        lokasiEl.value = item.lokasiSampai;
+                    } else {
+                        var destCode = fmt.cityCode || (fmt.ruteName ? (JNT_NAME_MAP[fmt.ruteName] || fmt.ruteName.substring(0, 3)) : 'SEG');
+                        lokasiEl.value = 'IN ' + destCode.toUpperCase();
+                    }
+                }
+
+                // Catatan
+                var catatanEl = document.getElementById('sla-out-catatan');
+                if (catatanEl) {
+                    catatanEl.value = item.catatanSampai || item.alasan || '';
+                }
+
+                // Foto Bukti Sampai
+                _selectedSLABuktiFoto = null;
+                _existingSLABuktiFotoUrl = item.fotoSampai || '';
+                var previewWrap = document.getElementById('sla-out-preview-wrap');
+                var uploadBox = document.getElementById('sla-out-upload-box');
+                var previewImg = document.getElementById('sla-out-foto-preview');
+
+                if (_existingSLABuktiFotoUrl) {
+                    if (previewImg) previewImg.src = _existingSLABuktiFotoUrl;
+                    if (previewWrap) previewWrap.style.display = 'block';
+                    if (uploadBox) uploadBox.style.display = 'none';
+                } else {
+                    if (previewImg) previewImg.src = '';
+                    if (previewWrap) previewWrap.style.display = 'none';
+                    if (uploadBox) uploadBox.style.display = 'block';
+                }
+
+                var errEl = document.getElementById('sla-out-error-msg');
+                if (errEl) errEl.style.display = 'none';
+
+                var submitBtn = document.getElementById('btn-submit-update-sla');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '💾 Simpan Update Sampai';
+                }
+
                 document.getElementById('modal-update-sla-outbound').classList.remove('hidden');
             };
 
@@ -1045,6 +1995,10 @@
                 try {
                     await JNTFirebaseService.deleteSLAOutbound(pendingDeleteKodeTugas);
                     document.getElementById('modal-confirm-delete-sla').classList.add('hidden');
+                    window._rawSLAOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                    window._rawSLAReturn = JNTFirebaseService.getLocalStore('sla_return') || [];
+                    renderVendorTabs();
+                    renderFilteredSLATables();
                     if (typeof window.showToastNotification === 'function') window.showToastNotification('DELETED', 'Data SLA Outbound ' + pendingDeleteKodeTugas + ' berhasil dihapus.', 'info');
                 } catch(err) { console.warn('Delete SLA error:', err.message); }
             });
@@ -1053,26 +2007,105 @@
             if (formUpdateOutbound) formUpdateOutbound.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 var kodeTugas = document.getElementById('sla-out-kode-tugas').value;
-                var rawJamValue = document.getElementById('sla-out-jam-sampai') ? document.getElementById('sla-out-jam-sampai').value : '';
-                if (!rawJamValue) {
-                    alert('❌ Harap pilih Jam Sampai Aktual dari kalender!');
+                var jamSampaiAktualStr = getWIBDateTimeString('sla-out-tanggal', 'sla-out-jam', 'sla-out-menit');
+                var lokasiSampai = document.getElementById('sla-out-lokasi-sampai') ? document.getElementById('sla-out-lokasi-sampai').value.trim() : '';
+                var catatan = document.getElementById('sla-out-catatan') ? document.getElementById('sla-out-catatan').value.trim() : '';
+                var submitBtn = document.getElementById('btn-submit-update-sla');
+                var errEl = document.getElementById('sla-out-error-msg');
+
+                if (errEl) errEl.style.display = 'none';
+
+                if (!kodeTugas || !jamSampaiAktualStr || !lokasiSampai) {
+                    if (errEl) {
+                        errEl.textContent = '❌ Tanggal & Jam kedatangan (24 Jam WIB) serta lokasi sampai (checkpoint IN) wajib diisi!';
+                        errEl.style.display = 'block';
+                    }
                     return;
                 }
-                var jamSampaiAktualStr = convertDatetimeLocalToCustomStr(rawJamValue);
-                var incData           = (await JNTFirebaseService.getDoc('incoming', kodeTugas)) || {};
-                var dBerangkat        = parseCustomDate(incData.jamBerangkat);
-                var dSampai           = parseCustomDate(jamSampaiAktualStr);
-                var durasiMin         = 0;
-                if (dBerangkat && dSampai && dSampai > dBerangkat) durasiMin = Math.round((dSampai - dBerangkat) / 60000);
-                var targetHours = incData.targetSLAOutboundHours || 16;
-                var lateMin     = Math.max(0, durasiMin - targetHours * 60);
-                var statusSla   = lateMin > 0 ? 'LATE' : 'ON TIME';
-                await JNTFirebaseService.saveSLAOutbound(kodeTugas, { jamSampaiAktual: jamSampaiAktualStr, durasiBerangkatMinutes: durasiMin, lateMinutes: lateMin, statusSla: statusSla });
-                await JNTFirebaseService.updateIncomingTrip(kodeTugas, { status: 'SUDAH SELESAI' });
-                document.getElementById('modal-update-sla-outbound').classList.add('hidden');
-                if (typeof window.showSLASuccessModal === 'function') {
-                    window.showSLASuccessModal({ actionType: 'Update Jam Sampai Gateway (Status: ' + statusSla + ')', kodeTugas: kodeTugas, platNomor: incData.platNomor || '-', trip: incData.trip || '-', driver: incData.driver1 || '-', vendor: incData.vendor || 'PT J&T Logistics', jamBerangkat: jamSampaiAktualStr, targetSLAHours: targetHours, totalAwb: incData.totalAwb || 0, inputBy: sessionStorage.getItem('jnt_active_username') || 'Operator' });
-                } else { alert('Update SLA Outbound ' + kodeTugas + ' berhasil! Status: ' + statusSla); }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '⏳ Mengunggah foto & menyimpan data...';
+                }
+
+                try {
+                    var photoUrl = _existingSLABuktiFotoUrl || '';
+                    if (_selectedSLABuktiFoto && typeof JNTFirebaseService.uploadPhotoToHosting === 'function') {
+                        photoUrl = await JNTFirebaseService.uploadPhotoToHosting(_selectedSLABuktiFoto, 'sampai');
+                    }
+                    var incData           = (await JNTFirebaseService.getDoc('incoming', kodeTugas)) || {};
+                    var outData           = (await JNTFirebaseService.getDoc('sla_outbound', kodeTugas)) || {};
+                    var departureStr      = incData.jamBerangkat || outData.jamBerangkat || '';
+                    var dBerangkat        = parseCustomDate(departureStr);
+                    var dSampai           = parseCustomDate(jamSampaiAktualStr);
+                    var durasiMin         = 0;
+                    if (dBerangkat && dSampai && dSampai > dBerangkat) durasiMin = Math.round((dSampai - dBerangkat) / 60000);
+                    var targetHours = incData.targetSLAOutboundHours || outData.targetSLAHours || 16;
+                    var lateMin     = Math.max(0, durasiMin - targetHours * 60);
+                    var statusSla   = lateMin > 0 ? 'LATE' : 'ON TIME';
+                    var operatorName = sessionStorage.getItem('jnt_active_username') || 'Operator';
+
+                    var slaPayload = {
+                        jamSampaiAktual: jamSampaiAktualStr,
+                        durasiBerangkatMinutes: durasiMin,
+                        lateMinutes: lateMin,
+                        statusSla: statusSla,
+                        lokasiSampai: lokasiSampai,
+                        inputBy: operatorName
+                    };
+                    if (photoUrl) slaPayload.fotoSampai = photoUrl;
+                    if (catatan) slaPayload.alasan = catatan;
+
+                    await JNTFirebaseService.saveSLAOutbound(kodeTugas, slaPayload);
+
+                    // Sinkronisasi status perjalanan & foto sampai ke incoming & monitoring_4h
+                    var tripMeta = {
+                        jamSampaiAktual: jamSampaiAktualStr,
+                        statusPerjalanan: 'COMPLETED',
+                        inputBy: operatorName,
+                        lokasiSampai: lokasiSampai
+                    };
+                    if (photoUrl) tripMeta.fotoSampai = photoUrl;
+                    if (catatan) tripMeta.catatanSampai = catatan;
+                    await JNTFirebaseService.updateTripStatus(kodeTugas, 'SUDAH SELESAI', tripMeta);
+
+                    // Update local storage
+                    window._rawSLAOutbound = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                    renderVendorTabs();
+                    renderFilteredSLATables();
+
+                    closeUpdateSLAOutboundModal();
+
+                    if (typeof window.showSLASuccessModal === 'function') {
+                        window.showSLASuccessModal({
+                            actionType: 'Update Jam Sampai Gateway (Status: ' + statusSla + ')',
+                            kodeTugas: kodeTugas,
+                            platNomor: incData.platNomor || outData.platNomor || '-',
+                            trip: incData.trip || outData.trip || '-',
+                            driver: incData.driver1 || outData.driver1 || '-',
+                            vendor: incData.vendor || outData.vendor || 'PT J&T Logistics',
+                            jamBerangkat: jamSampaiAktualStr,
+                            targetSLAHours: targetHours,
+                            totalAwb: incData.totalAwb || outData.totalAwb || 0,
+                            inputBy: operatorName
+                        });
+                    } else {
+                        alert('Update SLA Outbound ' + kodeTugas + ' berhasil! Jam Sampai: ' + jamSampaiAktualStr + ', Status: ' + statusSla);
+                    }
+                } catch(err) {
+                    console.error('Error update SLA Outbound:', err);
+                    if (errEl) {
+                        errEl.textContent = '❌ Gagal menyimpan update: ' + (err.message || err);
+                        errEl.style.display = 'block';
+                    } else {
+                        alert('Gagal mengupdate: ' + (err.message || err));
+                    }
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '💾 Simpan Update Sampai';
+                    }
+                }
             });
 
             var formReturn = document.getElementById('form-add-sla-return');
@@ -1092,11 +2125,20 @@
                 var lateMin = Math.max(0, durasiMin - targetHours * 60);
                 await JNTFirebaseService.saveSLAReturn(kodeAsal, { kodeTugasBalikan: kodeBalikan, kodeTugasAsal: kodeAsal, jamBerangkatGateway: jamBerangkatGatewayStr, jamSampaiJKT999: jamSampaiJKT999Str, targetSLABalikanHours: targetHours, durasiBalikanMinutes: durasiMin, totalTelatMinutes: lateMin, alasan: alasan });
                 document.getElementById('modal-add-sla-return').classList.add('hidden');
+                window._rawSLAReturn = JNTFirebaseService.getLocalStore('sla_return') || [];
+                renderVendorTabs();
+                renderFilteredSLATables();
                 if (typeof window.showSLASuccessModal === 'function') {
                     window.showSLASuccessModal({ actionType: 'Input Perjalanan Balikan SLA', kodeTugas: kodeBalikan, platNomor: incData.platNomor || '-', trip: 'Balikan Asal: ' + kodeAsal, driver: incData.driver1 || '-', vendor: incData.vendor || 'PT J&T Logistics', jamBerangkat: jamBerangkatGatewayStr, targetSLAHours: targetHours, totalAwb: incData.totalAwb || 0, inputBy: sessionStorage.getItem('jnt_active_username') || 'Operator' });
                 } else { alert('Perjalanan Balikan ' + kodeBalikan + ' tersimpan!'); }
             });
-        });
+        } // end initSLAPage
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSLAPage);
+        } else {
+            initSLAPage();
+        }
 
         // ── EXPORT EXCEL RESMI J&T EXPRESS (26 COLUMNS FORMAT) ──────────────
         window.exportOfficialSLAExcel = async function() {
@@ -1125,10 +2167,11 @@
                     const d1 = (i.driver1 || '-') + (i.driverPhone ? ' (' + i.driverPhone + ')' : '');
                     const d2 = (i.driver2 || '-') + (i.driver2Phone ? ' (' + i.driver2Phone + ')' : '');
 
+                    const fmt = formatRuteAndTLC(i);
                     const row = [
-                        `"${i.tlc || i.namaRute || 'HEAD OFFICE'}"`,
+                        `"${fmt.formattedTLC || i.tlc || 'HEAD OFFICE'}"`,
                         `"${i.kodeTugas || '-'}"`,
-                        `"${i.trip || '-'}"`,
+                        `"${fmt.ruteName || i.trip || '-'}"`,
                         `"${i.inputBy || 'Operator'}"`,
                         `"${i.platNomor || '-'}"`,
                         `"${i.jamBerangkat || '-'}"`,

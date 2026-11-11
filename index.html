@@ -16,10 +16,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <!-- Anti-Flash Dark Theme Pre-Initialization -->
+    <script>
+        document.documentElement.classList.add('login-page-root');
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Login page scroll lock: terapkan kelas segera sebelum render -->
-    <script>document.documentElement.classList.add('login-page-root');</script>
 </head>
 
 <body class="login-page">

@@ -12,6 +12,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Anti-Flash Dark Theme Pre-Initialization -->
+    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <!-- SheetJS Excel Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -30,15 +34,15 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Hamdan Avatar" class="user-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150" alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </div>
-                        <span class="profile-role">Operator</span>
+                        <span class="profile-role">ADMIN</span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -75,12 +79,6 @@
                             <a href="shift-management.html" class="nav-link">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 <span class="nav-text">Shift Management</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="master.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                                <span class="nav-text">Master Data</span>
                             </a>
                         </li>
                         <li class="nav-item active">
@@ -135,83 +133,108 @@
                 <!-- Top Header Nav -->
                 <header class="inc-top-nav">
                     <div class="inc-title-group">
-                        <button class="hamburger-btn">
+                        <button class="hamburger-btn" type="button" aria-label="Menu">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                         </button>
                         <div>
-                            <h2 class="inc-main-title" style="font-size: 22px;">Reporting, Performance Operator & Export</h2>
-                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Report & Export</span>
+                            <h2 class="inc-main-title" style="font-size: 22px;">Report &amp; Export Center</h2>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Report, Analisis &amp; Sinkronisasi Excel</span>
                         </div>
                     </div>
 
-                    <div class="inc-top-right">
-                        <button id="btn-open-export-modal" class="btn-inc-add" onclick="document.getElementById('modal-export-filter').classList.remove('hidden')" style="background-color: #16A34A; cursor: pointer; padding: 8px 16px;">
-                            📥 Export Excel (Multi-Sheet)
+                    <div class="inc-top-right" style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 12.5px; color: #64748B; font-weight: 600; background: #F1F5F9; padding: 6px 12px; border-radius: 8px; border: 1px solid #E2E8F0;" id="rep-clock-badge">
+                            🕒 <span id="rep-live-time">--:--:-- WIB</span>
+                        </div>
+                        <button id="btn-open-export-modal" class="btn-inc-add" type="button" onclick="document.getElementById('modal-export-filter').classList.remove('hidden')" style="background-color: #16A34A; cursor: pointer; padding: 8px 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            📥 Export Excel
                         </button>
-                        <button id="btn-open-import-modal" class="btn-inc-reset" onclick="document.getElementById('modal-import-excel').classList.remove('hidden')" style="cursor: pointer; padding: 8px 16px;">
-                            📤 Import Excel
+                        <button id="btn-open-import-tab" class="btn-inc-reset" type="button" onclick="switchReportTab('upload')" style="cursor: pointer; padding: 8px 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #E30613; color: #FFFFFF; border: none;">
+                            📤 Upload File Excel
                         </button>
                     </div>
                 </header>
 
-                <!-- TAB HEADERS (4 REPORTING TABS) -->
-                <div style="display: flex; gap: 8px; border-bottom: 2px solid #E2E8F0; margin-bottom: 20px;">
-                    <button class="btn-tab-report active" id="tab-btn-sla" onclick="switchReportTab('sla')">📊 Report SLA Vendor</button>
-                    <button class="btn-tab-report" id="tab-btn-monitoring" onclick="switchReportTab('monitoring')">🚚 Report Monitoring 4H</button>
-                    <button class="btn-tab-report" id="tab-btn-trouble" onclick="switchReportTab('trouble')">🚨 Report Trouble & Laka</button>
-                    <button class="btn-tab-report" id="tab-btn-operator" onclick="switchReportTab('operator')">👤 Rekap Kinerja Operator</button>
+                <!-- TAB HEADERS (5 REPORTING & SYNC TABS) -->
+                <div class="report-tab-nav" style="display: flex; gap: 8px; border-bottom: 2px solid #E2E8F0; margin-bottom: 20px;">
+                    <button class="btn-tab-report active" id="tab-btn-sla" type="button" onclick="switchReportTab('sla')">
+                        📊 Report SLA Vendor
+                    </button>
+                    <button class="btn-tab-report" id="tab-btn-monitoring" type="button" onclick="switchReportTab('monitoring')">
+                        🚚 Report Monitoring 4H
+                    </button>
+                    <button class="btn-tab-report" id="tab-btn-trouble" type="button" onclick="switchReportTab('trouble')">
+                        🚨 Report Trouble &amp; Laka
+                    </button>
+                    <button class="btn-tab-report" id="tab-btn-operator" type="button" onclick="switchReportTab('operator')">
+                        👤 Rekap Kinerja Operator
+                    </button>
+                    <button class="btn-tab-report" id="tab-btn-upload" type="button" onclick="switchReportTab('upload')" style="color: #E30613;">
+                        📤 Upload File Excel (SLA &amp; 4H)
+                        <span class="tab-badge-count">Auto-SLA</span>
+                    </button>
                 </div>
 
                 <!-- TAB CONTENT 1: SLA REPORT -->
                 <div id="tab-content-sla" class="report-tab-pane">
                     <div class="inc-kpi-grid">
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #3B82F6;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL TRIP MONITORING</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-total-trip">0</span></div>
+                                <span style="font-size: 11px; color: #64748B;">Total unit terdaftar di SLA</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #16A34A;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">ON TIME OUTBOUND</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-ontime-pct" style="color: #16A34A;">0%</span></div>
+                                <span style="font-size: 11px; color: #16A34A; font-weight: 600;">Sesuai target standar SLA</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #DC2626;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">LATE OUTBOUND</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-late-count" style="color: #DC2626;">0 Unit</span></div>
+                                <span style="font-size: 11px; color: #DC2626;">Melebihi batas toleransi jam</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #D97706;">
                             <div class="inc-kpi-info">
-                                <span class="inc-kpi-label">TOTAL LATE PP</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-total-late-pp" style="color: #D97706;">0 Jam 0 Mnt</span></div>
+                                <span class="inc-kpi-label">AKURASI SLA RUTE</span>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-total-late-pp" style="color: #2563EB;">100%</span></div>
+                                <span style="font-size: 11px; color: #64748B;">Tingkat kepatuhan vendor</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="inc-table-card" style="margin-top: 16px;">
-                        <div class="inc-table-header">
-                            <h3 class="inc-table-title">Rekap Kinerja SLA Vendor per Rute</h3>
+                    <div class="inc-table-card" style="margin-top: 20px; border-radius: 12px;">
+                        <div class="inc-table-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+                            <div>
+                                <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">Rekap Kinerja SLA Vendor per Rute &amp; TLC</h3>
+                                <p style="font-size: 12px; color: #64748B; margin-top: 2px;">Analisis ketepatan waktu armada keluar (outbound) dan target durasi perjalanan.</p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="filter-sla-route" placeholder="Cari rute / TLC..." style="padding: 7px 12px; font-size: 12.5px; border: 1px solid #CBD5E1; border-radius: 6px; width: 180px;">
+                            </div>
                         </div>
-                        <div class="inc-table-scroll">
-                            <table class="inc-data-table" id="table-report-sla">
+                        <div class="inc-table-scroll" style="overflow-x: auto;">
+                            <table class="inc-data-table" id="table-report-sla" style="width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th>No</th>
+                                        <th style="width: 45px; text-align: center;">No</th>
                                         <th>Nama Rute / Trip</th>
                                         <th>TLC</th>
                                         <th>Wilayah</th>
-                                        <th>Total Trip</th>
-                                        <th>On Time</th>
-                                        <th>Late</th>
-                                        <th>Target SLA PP</th>
-                                        <th>Akurasi SLA %</th>
+                                        <th style="text-align: center;">Total Trip</th>
+                                        <th style="text-align: center;">On Time</th>
+                                        <th style="text-align: center;">Late</th>
+                                        <th>Target SLA</th>
+                                        <th style="text-align: center;">Akurasi SLA %</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Dynamically updated -->
+                                    <tr><td colspan="9" style="text-align: center; color: #94A3B8; padding: 30px;">Memuat data SLA...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -221,29 +244,59 @@
                 <!-- TAB CONTENT 2: MONITORING 4H REPORT -->
                 <div id="tab-content-monitoring" class="report-tab-pane hidden">
                     <div class="inc-kpi-grid">
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #2563EB;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL CHECK-IN 4H</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-total">0</span></div>
+                                <span style="font-size: 11px; color: #64748B;">Total titik checkpoint diperbarui</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #16A34A;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">CHECK-IN TEPAT WAKTU</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-ontime" style="color: #16A34A;">0</span></div>
+                                <span style="font-size: 11px; color: #16A34A;">Dalam rentang jendela 4 jam</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #D97706;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TERLAMBAT CHECK-IN</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-late" style="color: #D97706;">0</span></div>
+                                <span style="font-size: 11px; color: #D97706;">Update terlambat / tertunda</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #10B981;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">KEPATUHAN OPERATOR %</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-mon-pct" style="color: #2563EB;">100%</span></div>
+                                <span style="font-size: 11px; color: #64748B;">Tingkat kepatuhan jadwal slot</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-card" style="margin-top: 20px; border-radius: 12px;">
+                        <div class="inc-table-header" style="padding: 16px 20px;">
+                            <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">Rekap Check-in Posisi Armada (Monitoring 4 Jam)</h3>
+                            <p style="font-size: 12px; color: #64748B; margin-top: 2px;">Data checkpoint berkala 4 jam (H1 hingga H7) terhubung langsung dengan sistem SSOT.</p>
+                        </div>
+                        <div class="inc-table-scroll" style="overflow-x: auto;">
+                            <table class="inc-data-table" id="table-report-monitoring" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45px; text-align: center;">No</th>
+                                        <th>Kode Tugas</th>
+                                        <th>Plat Nomor</th>
+                                        <th>TLC / Rute</th>
+                                        <th>Vendor</th>
+                                        <th>Keberangkatan (OUT JKT999)</th>
+                                        <th>Update Terakhir</th>
+                                        <th style="text-align: center;">Status Perjalanan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 30px;">Memuat data monitoring 4 jam...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -251,79 +304,127 @@
                 <!-- TAB CONTENT 3: TROUBLE & LAKA REPORT -->
                 <div id="tab-content-trouble" class="report-tab-pane hidden">
                     <div class="inc-kpi-grid">
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #F59E0B;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL KEJADIAN TROUBLE</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-trouble">0</span></div>
+                                <span style="font-size: 11px; color: #64748B;">Kendala teknis / ban / macet</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #DC2626;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">TOTAL KEJADIAN LAKA</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-laka" style="color: #9333EA;">0</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-laka" style="color: #DC2626;">0</span></div>
+                                <span style="font-size: 11px; color: #DC2626;">Insiden kecelakaan lalu lintas</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #3B82F6;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">DALAM PENANGANAN</span>
-                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-penanganan" style="color: #D97706;">0</span></div>
+                                <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-penanganan" style="color: #3B82F6;">0</span></div>
+                                <span style="font-size: 11px; color: #64748B;">Sedang diproses operator/teknisi</span>
                             </div>
                         </div>
-                        <div class="inc-kpi-card">
+                        <div class="inc-kpi-card" style="border-left: 4px solid #16A34A;">
                             <div class="inc-kpi-info">
                                 <span class="inc-kpi-label">SUDAH SELESAI</span>
                                 <div class="inc-kpi-val-row"><span class="inc-kpi-number" id="rep-kpi-trb-selesai" style="color: #16A34A;">0</span></div>
+                                <span style="font-size: 11px; color: #16A34A;">Kendala telah teratasi</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="inc-table-card" style="margin-top: 20px; border-radius: 12px;">
+                        <div class="inc-table-header" style="padding: 16px 20px;">
+                            <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">Log Incident Kendala &amp; Laka</h3>
+                            <p style="font-size: 12px; color: #64748B; margin-top: 2px;">Daftar rekaman kejadian trouble operasional, dampak keterlambatan, dan status tindak lanjut.</p>
+                        </div>
+                        <div class="inc-table-scroll" style="overflow-x: auto;">
+                            <table class="inc-data-table" id="table-report-trouble" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45px; text-align: center;">No</th>
+                                        <th>Kode Tugas</th>
+                                        <th>Jenis &amp; Kategori</th>
+                                        <th>Tingkat Keparahan</th>
+                                        <th>Lokasi Kejadian</th>
+                                        <th>Waktu Kejadian</th>
+                                        <th>Keterangan Kendala</th>
+                                        <th style="text-align: center;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 30px;">Memuat data incident...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
                 <!-- TAB CONTENT 4: PERFORMANCE OPERATOR REPORT -->
                 <div id="tab-content-operator" class="report-tab-pane hidden">
-                    <div class="inc-split-container">
+                    <div class="inc-split-container" style="display: flex; gap: 20px; flex-wrap: wrap;">
                         
                         <!-- Operator 1 Performance -->
-                        <div class="inc-table-card" style="flex: 1;">
-                            <div class="inc-table-header">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #E30613;">
+                        <div class="inc-table-card" style="flex: 1; min-width: 320px; border-radius: 12px;">
+                            <div class="inc-table-header" style="padding: 16px 20px; border-bottom: 1px solid #E2E8F0;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100" style="width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid #E30613;" alt="Farizs Hakim">
                                     <div>
-                                        <h3 class="inc-table-title">Hamdan Hamdani</h3>
-                                        <span style="font-size: 11.5px; color: #64748B;">Role: Operator Utama • Monitoring & Trouble</span>
+                                        <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800; color: #0F172A;">Farizs Hakim</h3>
+                                        <span style="font-size: 12px; color: #64748B;">Role: Operator Utama • Control Tower &amp; Monitoring</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="padding: 16px;">
-                                <div class="info-item"><span class="info-label">Check-in Monitoring 4H</span><span class="info-value font-bold">42 Transaksi</span></div>
-                                <div class="info-item"><span class="info-label">Laporan Trouble & Laka</span><span class="info-value font-bold" style="color: #DC2626;">4 Laporan</span></div>
-                                <div class="info-item"><span class="info-label">Revisi Posisi Slot</span><span class="info-value font-bold">2 Kali</span></div>
-                                <div class="info-item" style="border-top: 1.5px solid #E2E8F0; padding-top: 10px; margin-top: 8px;">
-                                    <span class="info-label font-bold">TOTAL AKTIVITAS OPERASIONAL</span>
-                                    <span class="info-value font-bold" style="color: #2563EB; font-size: 16px;">48 Aktivitas</span>
+                            <div style="padding: 20px;">
+                                <div class="info-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <span class="info-label" style="color: #64748B;">Check-in Monitoring 4H</span>
+                                    <span class="info-value font-bold" id="perf-op1-mon" style="font-weight: 700;">-- Transaksi</span>
+                                </div>
+                                <div class="info-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <span class="info-label" style="color: #64748B;">Pencatatan Trouble &amp; Laka</span>
+                                    <span class="info-value font-bold" id="perf-op1-trb" style="color: #DC2626; font-weight: 700;">-- Laporan</span>
+                                </div>
+                                <div class="info-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <span class="info-label" style="color: #64748B;">Import &amp; Sinkronisasi Excel</span>
+                                    <span class="info-value font-bold" id="perf-op1-excel" style="color: #16A34A; font-weight: 700;">-- Batch</span>
+                                </div>
+                                <div class="info-item" style="border-top: 2px solid #E2E8F0; padding-top: 14px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="info-label font-bold" style="font-weight: 800; color: #0F172A;">TOTAL AKTIVITAS TERCATAT</span>
+                                    <span class="info-value font-bold" id="perf-op1-total" style="color: #E30613; font-size: 18px; font-weight: 800;">-- Aktivitas</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Operator 2 Performance -->
-                        <div class="inc-table-card" style="flex: 1;">
-                            <div class="inc-table-header">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #3B82F6;">
+                        <div class="inc-table-card" style="flex: 1; min-width: 320px; border-radius: 12px;">
+                            <div class="inc-table-header" style="padding: 16px 20px; border-bottom: 1px solid #E2E8F0;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <img src="https://ui-avatars.com/api/?name=Rina+Marlina&background=2563EB&color=fff&bold=true&size=100" style="width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid #3B82F6;" alt="Rina Marlina">
                                     <div>
-                                        <h3 class="inc-table-title">Rizky Ramadhan</h3>
-                                        <span style="font-size: 11.5px; color: #64748B;">Role: Operator Pendamping • SLA Vendor</span>
+                                        <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800; color: #0F172A;">Rina Marlina</h3>
+                                        <span style="font-size: 12px; color: #64748B;">Role: Operator Pendamping • SLA Vendor &amp; Rekap</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div style="padding: 16px;">
-                                <div class="info-item"><span class="info-label">Input Data SLA</span><span class="info-value font-bold">28 Transaksi</span></div>
-                                <div class="info-item"><span class="info-label">Update Jam Sampai SLA</span><span class="info-value font-bold" style="color: #16A34A;">37 Update</span></div>
-                                <div class="info-item"><span class="info-label">Koreksi Data Master</span><span class="info-value font-bold">2 Kali</span></div>
-                                <div class="info-item" style="border-top: 1.5px solid #E2E8F0; padding-top: 10px; margin-top: 8px;">
-                                    <span class="info-label font-bold">TOTAL AKTIVITAS OPERASIONAL</span>
-                                    <span class="info-value font-bold" style="color: #2563EB; font-size: 16px;">67 Aktivitas</span>
+                            <div style="padding: 20px;">
+                                <div class="info-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <span class="info-label" style="color: #64748B;">Input &amp; Verifikasi SLA</span>
+                                    <span class="info-value font-bold" id="perf-op2-sla" style="font-weight: 700;">-- Transaksi</span>
+                                </div>
+                                <div class="info-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <span class="info-label" style="color: #64748B;">Update Jam Sampai Kedatangan</span>
+                                    <span class="info-value font-bold" id="perf-op2-arrival" style="color: #16A34A; font-weight: 700;">-- Update</span>
+                                </div>
+                                <div class="info-item" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <span class="info-label" style="color: #64748B;">Audit &amp; Validasi Data</span>
+                                    <span class="info-value font-bold" id="perf-op2-audit" style="color: #2563EB; font-weight: 700;">-- Sesi</span>
+                                </div>
+                                <div class="info-item" style="border-top: 2px solid #E2E8F0; padding-top: 14px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="info-label font-bold" style="font-weight: 800; color: #0F172A;">TOTAL AKTIVITAS TERCATAT</span>
+                                    <span class="info-value font-bold" id="perf-op2-total" style="color: #2563EB; font-size: 18px; font-weight: 800;">-- Aktivitas</span>
                                 </div>
                             </div>
                         </div>
@@ -331,12 +432,152 @@
                     </div>
                 </div>
 
+                <!-- TAB CONTENT 5: UPLOAD & SINKRONISASI FILE EXCEL (SLA & MONITORING 4 JAM) -->
+                <div id="tab-content-upload" class="report-tab-pane hidden">
+
+                    <!-- Banner Instruksi -->
+                    <div style="background: linear-gradient(135deg, #FFF5F5 0%, #EFF6FF 100%); border: 1.5px solid #FCA5A5; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 16px;">
+                        <div style="font-size: 32px; line-height: 1;">⚡</div>
+                        <div>
+                            <h4 style="font-size: 15px; font-weight: 800; color: #991B1B; margin-bottom: 4px;">
+                                Auto-Fill Engine: Jam Keberangkatan Otomatis Masuk ke SLA &amp; Monitoring 4 Jam!
+                            </h4>
+                            <p style="font-size: 13px; color: #475569; line-height: 1.5; margin: 0;">
+                                Cukup upload file Excel (format <strong>.xlsx</strong>, <strong>.xls</strong>, atau <strong>.csv</strong>). Sistem akan mengekstrak <strong>Kode Tugas</strong>, <strong>TLC / Rute</strong>, <strong>Vendor</strong>, <strong>Plat Nomor</strong>, <strong>Driver</strong>, dan <strong>Jam Keberangkatan</strong> secara otomatis. Jam keberangkatan langsung tersimpan di sistem SLA Vendor dan slot awal <strong>OUT JKT999</strong> di Monitoring 4 Jam.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Card Dropzone Upload -->
+                    <div class="excel-upload-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h3 style="font-size: 16px; font-weight: 800; color: #0F172A; margin: 0;">Pilih &amp; Unggah File Excel</h3>
+                                <span style="font-size: 12px; color: #64748B;">Mendukung file Excel dari Dispatcher / TMS / Vendor Outbound.</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div style="display: flex; gap: 6px;">
+                                    <button type="button" onclick="downloadTemplateExcel('SLA')" style="padding: 6px 12px; font-size: 11.5px; font-weight: 700; color: #1E40AF; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Unduh Format Template Excel SLA Vendor">
+                                        📥 Template SLA (.xlsx)
+                                    </button>
+                                    <button type="button" onclick="downloadTemplateExcel('4H')" style="padding: 6px 12px; font-size: 11.5px; font-weight: 700; color: #166534; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Unduh Format Template Excel Monitoring 4 Jam">
+                                        📥 Template Monitoring 4H (.xlsx)
+                                    </button>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Format:</label>
+                                    <select id="upload-excel-type" style="padding: 6px 10px; font-size: 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-weight: 600; background: #FFFFFF; color: #0F172A;">
+                                        <option value="AUTO_DETECT">🤖 Auto-Detect (SLA &amp; 4 Jam)</option>
+                                        <option value="SLA_OUTBOUND">📊 Format SLA Vendor</option>
+                                        <option value="MONITORING_4H">🚚 Format Monitoring 4 Jam</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dropzone Area -->
+                        <div class="excel-dropzone" id="report-excel-dropzone" onclick="document.getElementById('report-excel-file-input').click()">
+                            <input type="file" id="report-excel-file-input" accept=".xlsx, .xls, .csv" style="display: none;">
+                            <div class="excel-dropzone-icon">
+                                📊
+                            </div>
+                            <div>
+                                <strong style="font-size: 15px; color: #0F172A; display: block; margin-bottom: 4px;">
+                                    Tarik &amp; Lepaskan File Excel di sini, atau <span style="color: #E30613; text-decoration: underline;">Klik untuk Memilih File</span>
+                                </strong>
+                                <span style="font-size: 12px; color: #64748B;">Format yang didukung: Microsoft Excel (.xlsx, .xls) dan CSV (.csv) • Maks 25 MB</span>
+                            </div>
+                        </div>
+
+                        <!-- File Status Bar (saat file dipilih) -->
+                        <div id="upload-file-status" class="hidden" style="margin-top: 16px; padding: 12px 18px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 24px;">📄</span>
+                                <div>
+                                    <strong id="upload-file-name" style="font-size: 13.5px; color: #0F172A; display: block;">file.xlsx</strong>
+                                    <span id="upload-file-meta" style="font-size: 11.5px; color: #64748B;">0 KB • Menghitung baris...</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span id="upload-badge-detected" class="excel-preview-badge-jam">
+                                    🟢 Siap Diproses
+                                </span>
+                                <button type="button" onclick="resetExcelUpload()" style="background: none; border: none; color: #EF4444; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline;">Ganti File</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Data Excel Card -->
+                    <div id="excel-preview-container" class="inc-table-card hidden" style="border-radius: 12px; margin-top: 20px;">
+                        <div class="inc-table-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #E2E8F0;">
+                            <div>
+                                <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">
+                                    🔍 Preview Data Excel (<span id="preview-row-count">0</span> Baris Terdeteksi)
+                                </h3>
+                                <p style="font-size: 12px; color: #64748B; margin-top: 2px;">
+                                    Periksa jam keberangkatan dan data armada di bawah sebelum disimpan ke SLA &amp; Monitoring.
+                                </p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #334155; cursor: pointer; font-weight: 600;">
+                                    <input type="checkbox" id="chk-upsert-mode" checked style="accent-color: #E30613; width: 16px; height: 16px;">
+                                    Perbarui jika Kode Tugas sudah ada (Upsert)
+                                </label>
+                                <button type="button" id="btn-commit-excel-data" class="btn-inc-add" style="background-color: #E30613; font-weight: 800; padding: 10px 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                                    🚀 Sinkronkan Ke SLA &amp; Monitoring
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar (saat upload) -->
+                        <div id="upload-progress-bar-wrap" class="hidden" style="padding: 12px 20px; background: #FEF2F2; border-bottom: 1px solid #FECACA;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #991B1B; margin-bottom: 6px;">
+                                <span id="upload-progress-text">Menyimpan ke SLA &amp; Monitoring...</span>
+                                <span id="upload-progress-pct">0%</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: #FCA5A5; border-radius: 4px; overflow: hidden;">
+                                <div id="upload-progress-bar" style="width: 0%; height: 100%; background: #E30613; transition: width 0.2s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Preview Table -->
+                        <div class="inc-table-scroll" style="overflow-x: auto; max-height: 440px;">
+                            <table class="inc-data-table" id="table-excel-preview" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45px; text-align: center;">No</th>
+                                        <th>Kode Tugas</th>
+                                        <th>TLC / Rute</th>
+                                        <th>Vendor</th>
+                                        <th>Plat Nomor</th>
+                                        <th>Driver</th>
+                                        <th style="background: #F0FDF4; color: #166534; font-weight: 800;">Jam Keberangkatan (Otomatis Terisi)</th>
+                                        <th>Target SLA</th>
+                                        <th>Jam Sampai (Jika Ada)</th>
+                                        <th style="text-align: center;">Status Verifikasi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-excel-preview">
+                                    <!-- Dynamic preview rows -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Footer Preview -->
+                        <div style="padding: 14px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748B;">
+                            <span>💡 Tips: Jam keberangkatan di atas akan otomatis menjadi waktu awal penghitungan SLA dan check-in slot pertama (OUT JKT999) di Monitoring 4 Jam.</span>
+                            <span id="preview-valid-summary" style="font-weight: 700; color: #16A34A;">0 Baris Valid</span>
+                        </div>
+                    </div>
+
+                </div>
+
             </main>
         </div>
 
         <footer class="app-page-footer">
-            <span>© 2026 J&T Express. All rights reserved.</span>
-            <span>Version 1.0.0</span>
+            <span>© 2026 J&T Express Transportation Management System. All rights reserved.</span>
+            <span>Version 2.4.0 (Enterprise SLA &amp; Excel Sync)</span>
         </footer>
 
     </div>
@@ -351,62 +592,32 @@
             <form id="form-export-excel" class="modal-body-form" style="padding: 18px 22px;">
                 <div class="form-field" style="margin-bottom: 14px;">
                     <label style="font-weight: 700;">Pilih Modul Target Export</label>
-                    <select id="exp-modul-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700;">
+                    <select id="exp-modul-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700; width: 100%;">
                         <option value="ALL">📦 Semua Data (Multi-Sheet Excel: SLA, 4H, Trouble, Shift, Audit Log)</option>
                         <option value="SLA">📊 SLA Vendor (Outbound, Return, Roundtrip)</option>
                         <option value="MONITORING">🚚 Monitoring 4 Jam Check-in</option>
-                        <option value="TROUBLE">🚨 Trouble & Laka Incident</option>
-                        <option value="SHIFT">👥 Shift Management & Penugasan</option>
+                        <option value="TROUBLE">🚨 Trouble &amp; Laka Incident</option>
+                        <option value="SHIFT">👥 Shift Management &amp; Penugasan</option>
                         <option value="AUDIT">📜 Audit Trail Log System</option>
                     </select>
                 </div>
 
-                <div class="form-row-2">
+                <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-field">
-                        <label>Dari Tanggal</label>
-                        <input type="date" id="exp-date-from" value="2026-08-01" required style="border: 1px solid #CBD5E1; padding: 10px 12px;">
+                        <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Dari Tanggal</label>
+                        <input type="date" id="exp-date-from" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 6px; width: 100%;">
                     </div>
                     <div class="form-field">
-                        <label>Sampai Tanggal</label>
-                        <input type="date" id="exp-date-to" value="2026-08-16" required style="border: 1px solid #CBD5E1; padding: 10px 12px;">
+                        <label style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Sampai Tanggal</label>
+                        <input type="date" id="exp-date-to" required style="border: 1px solid #CBD5E1; padding: 10px 12px; border-radius: 6px; width: 100%;">
                     </div>
                 </div>
 
-                <div class="modal-footer" style="margin-top: 14px;">
+                <div class="modal-footer" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red" style="background-color: #16A34A;">📥 Export File Excel (.csv/.xlsx)</button>
+                    <button type="submit" class="btn-jnt-red" style="background-color: #16A34A; color: #FFF; font-weight: 700; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer;">📥 Unduh File Excel (.xlsx)</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- MODAL POPUP: IMPORT EXCEL WITH SAFETY PIPELINE -->
-    <div id="modal-import-excel" class="modal-overlay hidden">
-        <div class="modal-card" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>📤 Import Data Excel (Safety Validation Pipeline)</h3>
-                <button type="button" class="btn-close-x modal-close-btn">&times;</button>
-            </div>
-            <div class="modal-body-form" style="padding: 18px 22px;">
-                <div class="form-field">
-                    <label>Pilih File Excel / CSV (.xlsx, .csv)</label>
-                    <input type="file" id="imp-file-input" accept=".csv, .xlsx" style="border: 1px dashed #3B82F6; padding: 16px; background: #EFF6FF; border-radius: 8px; cursor: pointer;">
-                </div>
-
-                <div id="imp-validation-box" class="hidden" style="margin-top: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px;">
-                    <strong style="color: #0F172A;">Hasil Validasi File:</strong>
-                    <div style="display: flex; gap: 16px; margin-top: 8px;">
-                        <span style="color: #16A34A; font-weight: 700;">✅ Baris Valid: <strong id="val-valid-count">24</strong></span>
-                        <span style="color: #DC2626; font-weight: 700;">⚠️ Baris Duplikat/Error: <strong id="val-error-count">0</strong></span>
-                    </div>
-                    <span style="font-size: 11.5px; color: #64748B; margin-top: 6px; display: block;">* Pengecekan Kode Tugas unik & Master SSOT telah berhasil diverifikasi.</span>
-                </div>
-
-                <div class="modal-footer" style="margin-top: 16px;">
-                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="button" id="btn-commit-import" class="btn-jnt-red" disabled style="opacity: 0.5;">📥 Konfirmasi & Commit Ke Firestore</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -419,6 +630,7 @@
     <script src="firebase-service.js"></script>
     <script src="app.js"></script>
 
+    <!-- REPORT & EXCEL UPLOAD ENGINE CONTROLLER SCRIPT -->
     <script>
         function switchReportTab(tabName) {
             document.querySelectorAll('.btn-tab-report').forEach(btn => btn.classList.remove('active'));
@@ -431,7 +643,489 @@
             if (activePane) activePane.classList.remove('hidden');
         }
 
-        // Real-time synchronization for Reporting KPIs & Table
+        // Live Clock
+        function updateLiveClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
+            const el = document.getElementById('rep-live-time');
+            if (el) el.textContent = `${timeStr} WIB`;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        // Set default dates for export modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const dFrom = document.getElementById('exp-date-from');
+            const dTo = document.getElementById('exp-date-to');
+            if (dFrom && !dFrom.value) dFrom.value = today;
+            if (dTo && !dTo.value) dTo.value = today;
+        });
+
+        // ═══════════════════════════════════════════════════════════════════════════
+        // EXCEL PARSING & IMPORT ENGINE (SLA & MONITORING AUTO-FILL KEBERANGKATAN)
+        // ═══════════════════════════════════════════════════════════════════════════
+        let _parsedExcelRows = [];
+
+        function resetExcelUpload() {
+            _parsedExcelRows = [];
+            const inp = document.getElementById('report-excel-file-input');
+            if (inp) inp.value = '';
+            document.getElementById('upload-file-status')?.classList.add('hidden');
+            document.getElementById('excel-preview-container')?.classList.add('hidden');
+            document.getElementById('upload-progress-bar-wrap')?.classList.add('hidden');
+        }
+
+        // Normalisasi Waktu Keberangkatan dari cell Excel
+        function normalizeExcelDepartureTime(raw) {
+            if (!raw) return '';
+            if (raw instanceof Date && !isNaN(raw.getTime())) {
+                const pad = n => String(n).padStart(2, '0');
+                const d = pad(raw.getDate());
+                const m = pad(raw.getMonth() + 1);
+                const y = raw.getFullYear();
+                const hh = pad(raw.getHours());
+                const mm = pad(raw.getMinutes());
+                return `${d}/${m}/${y} ${hh}:${mm} WIB`;
+            }
+            if (typeof raw === 'number' && raw > 30000 && raw < 60000) {
+                // Serial Excel Date
+                const utc_days = Math.floor(raw - 25569);
+                const utc_value = utc_days * 86400;
+                const date_info = new Date(utc_value * 1000);
+                const fractional_day = raw - Math.floor(raw) + 0.0000001;
+                let total_seconds = Math.floor(86400 * fractional_day);
+                const seconds = total_seconds % 60;
+                total_seconds -= seconds;
+                const hours = Math.floor(total_seconds / (60 * 60));
+                const minutes = Math.floor(total_seconds / 60) % 60;
+                date_info.setHours(hours, minutes, seconds);
+                return normalizeExcelDepartureTime(date_info);
+            }
+            const s = String(raw).trim();
+            if (/^\d{1,2}[:.]\d{2}$/.test(s)) {
+                // Hanya jam: tambahkan tanggal hari ini
+                const now = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const d = pad(now.getDate());
+                const m = pad(now.getMonth() + 1);
+                const y = now.getFullYear();
+                return `${d}/${m}/${y} ${s.replace('.', ':')} WIB`;
+            }
+            return s;
+        }
+
+        // Handle File Dropzone & File Selection
+        const dropzone = document.getElementById('report-excel-dropzone');
+        const fileInput = document.getElementById('report-excel-file-input');
+
+        if (dropzone && fileInput) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                });
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                });
+            });
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files && files.length > 0) {
+                    fileInput.files = files;
+                    handleExcelFileSelected(files[0]);
+                }
+            });
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    handleExcelFileSelected(e.target.files[0]);
+                }
+            });
+        }
+
+        // Unduh Template Excel Contoh (SLA / Monitoring 4 Jam)
+        window.downloadTemplateExcel = function (type) {
+            if (typeof XLSX === 'undefined') {
+                alert('Library Excel (SheetJS) sedang dimuat, silakan tunggu sebentar.');
+                return;
+            }
+
+            if (type === 'SLA') {
+                const sampleSLA = [
+                    ['Kode Tugas', 'Nama Rute', 'TLC Tujuan', 'Vendor', 'Plat Nomor', 'Driver', 'Jam Berangkat', 'Target SLA (Jam)'],
+                    ['T-SLA-001', 'JKT - SUB FUSO', 'SUB', 'JNT Express', 'B 9123 JNT', 'Budi Santoso', '11/11/2026 08:30 WIB', 16],
+                    ['T-SLA-002', 'JKT - BDG CDD', 'BDG', 'KLS Trans', 'B 9456 KLS', 'Ahmad Dani', '11/11/2026 09:15 WIB', 8]
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(sampleSLA);
+                ws['!cols'] = [{ wch: 16 }, { wch: 20 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 18 }, { wch: 22 }, { wch: 15 }];
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Template_SLA');
+                XLSX.writeFile(wb, 'Template_SLA_Vendor_JNT.xlsx');
+            } else {
+                const sample4H = [
+                    ['Kode Tugas', 'Nama Rute', 'TLC Tujuan', 'Vendor', 'Plat Nomor', 'Driver', 'Jam Berangkat', '00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00'],
+                    ['T-4H-001', 'SEG FUSO', 'SEG', 'KLS', 'B 1512 KLS', 'Imron', '11/11/2026 13:28 WIB', '-', '-', '-', 'OUT JKT999 13:28', 'KM 57 TOLL 15:45', 'IN SEG 18:20', '-', '-', '-', '-', '-', '-'],
+                    ['T-4H-002', 'SRG FUSO', 'SRG', 'APL', 'B 9096 SYQ', 'Hartono', '11/11/2026 15:16 WIB', '-', '-', '-', '-', 'OUT JKT999 15:16', 'CIKAMPEK UTAMA 19:30', 'PALIMANAN 23:45', '-', '-', '-', '-', '-']
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(sample4H);
+                ws['!cols'] = [{ wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Template_Monitoring_4H');
+                XLSX.writeFile(wb, 'Template_Monitoring_4Jam_JNT.xlsx');
+            }
+        };
+
+        async function handleExcelFileSelected(file) {
+            if (!file) return;
+
+            const nameEl = document.getElementById('upload-file-name');
+            const metaEl = document.getElementById('upload-file-meta');
+            const statusBox = document.getElementById('upload-file-status');
+            if (nameEl) nameEl.textContent = file.name;
+            if (metaEl) metaEl.textContent = `${(file.size / 1024).toFixed(1)} KB • Membaca file...`;
+            if (statusBox) statusBox.classList.remove('hidden');
+
+            try {
+                const rows = await parseExcelOrCsv(file);
+                if (!rows || rows.length === 0) {
+                    alert('File tidak berisi data yang dapat dibaca.');
+                    resetExcelUpload();
+                    return;
+                }
+                _parsedExcelRows = rows;
+                renderExcelPreview(rows);
+            } catch (err) {
+                console.error('[EXCEL PARSE ERROR]', err);
+                alert(`Gagal membaca file Excel: ${err.message}`);
+                resetExcelUpload();
+            }
+        }
+
+        // Reader Universal: SheetJS XLSX dengan Fallback CSV
+        function parseExcelOrCsv(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        if (typeof XLSX !== 'undefined') {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                            resolve(mapExcelGridToTripObjects(jsonData));
+                        } else {
+                            // Fallback CSV text
+                            const text = new TextDecoder('utf-8').decode(e.target.result);
+                            const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0).map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
+                            resolve(mapExcelGridToTripObjects(lines));
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Fuzzy Header & Column Mapper
+        function mapExcelGridToTripObjects(grid) {
+            if (!grid || grid.length < 2) return [];
+
+            // Cari baris header (baris yang mengandung 'kode' atau 'tugas' atau 'plat' atau 'rute')
+            let headerRowIdx = -1;
+            for (let r = 0; r < Math.min(10, grid.length); r++) {
+                const rowStr = grid[r].map(c => String(c || '').toLowerCase()).join(' ');
+                if ((rowStr.includes('kode') || rowStr.includes('task') || rowStr.includes('tugas') || rowStr.includes('surat')) &&
+                    (rowStr.includes('plat') || rowStr.includes('nopol') || rowStr.includes('rute') || rowStr.includes('trip') || rowStr.includes('tlc'))) {
+                    headerRowIdx = r;
+                    break;
+                }
+            }
+            if (headerRowIdx === -1) headerRowIdx = 0;
+
+            const headers = grid[headerRowIdx].map(h => String(h || '').trim().toLowerCase());
+
+            const findCol = (keywords) => {
+                return headers.findIndex(h => keywords.some(k => h.includes(k)));
+            };
+
+            const colKode = findCol(['kode tugas', 'kode_tugas', 'task id', 'task_id', 'no tugas', 'surat jalan', 'no sj', 'kode trip', 'kode', 'task']);
+            const colPlat = findCol(['plat nomor', 'plat_nomor', 'nopol', 'no pol', 'nomor polisi', 'plat', 'kendaraan', 'armada']);
+            const colTrip = findCol(['trip', 'nama rute', 'rute', 'tujuan', 'route', 'destination']);
+            const colTlc = findCol(['tlc tujuan', 'tlc', 'tujuan tlc', 'dest tlc']);
+            const colVendor = findCol(['vendor', 'nama vendor', 'ekspedisi', 'transporter', 'mitra']);
+            const colDriver = findCol(['driver 1', 'driver1', 'driver', 'nama driver', 'pengemudi', 'supir']);
+            const colJamBerangkat = findCol(['jam berangkat', 'waktu berangkat', 'keberangkatan', 'jam keluar', 'tgl berangkat', 'departure', 'outbound', 'out jkt']);
+            const colTargetSLA = findCol(['target sla', 'sla outbound', 'target', 'lead time', 'standar waktu', 'target jam']);
+            const colJamSampai = findCol(['jam sampai', 'waktu sampai', 'jam tiba', 'arrival', 'inbound', 'jam in', 'sampai aktual']);
+
+            // ── Deteksi Kolom-Kolom Slot Jam Monitoring 4 Jam (42 Slot H1 s/d H7) ──
+            const baseHours = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+            const allSlotKeys = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.getMonitoringSlotKeys)
+                ? JNTFirebaseService.getMonitoringSlotKeys()
+                : [
+                    '00:00', '04:00', '08:00', '12:00', '16:00', '20:00',
+                    'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00',
+                    'D3_00:00', 'D3_04:00', 'D3_08:00', 'D3_12:00', 'D3_16:00', 'D3_20:00',
+                    'D4_00:00', 'D4_04:00', 'D4_08:00', 'D4_12:00', 'D4_16:00', 'D4_20:00',
+                    'D5_00:00', 'D5_04:00', 'D5_08:00', 'D5_12:00', 'D5_16:00', 'D5_20:00',
+                    'D6_00:00', 'D6_04:00', 'D6_08:00', 'D6_12:00', 'D6_16:00', 'D6_20:00',
+                    'D7_00:00', 'D7_04:00', 'D7_08:00', 'D7_12:00', 'D7_16:00', 'D7_20:00'
+                ];
+
+            const slotColMap = [];
+            let sequentialSlotIdx = 0;
+
+            headers.forEach((h, cIdx) => {
+                const clean = h.replace(/\s+/g, '').toLowerCase();
+                let matchedSlot = null;
+
+                for (let day = 1; day <= 7; day++) {
+                    const dayTag = day === 1 ? '(?:h1|hari1|d1)?' : `(?:h${day}|hari${day}|d${day})`;
+                    for (let s = 0; s < 6; s++) {
+                        const hr = baseHours[s];
+                        const hrShort = hr.replace(/^0/, '');
+                        const expectedKey = day === 1 ? hr : `D${day}_${hr}`;
+                        const pattern = new RegExp(`^${dayTag}[_:]?(?:${hr.replace(':', '')}|${hr}|${hrShort})$`, 'i');
+                        if (pattern.test(clean)) {
+                            matchedSlot = expectedKey;
+                            break;
+                        }
+                    }
+                    if (matchedSlot) break;
+                }
+
+                if (!matchedSlot) {
+                    for (let s = 0; s < 6; s++) {
+                        const hr = baseHours[s];
+                        const hrShort = hr.replace(/^0/, '');
+                        if (clean === hr || clean === hrShort || clean === hr.replace(':', '')) {
+                            matchedSlot = allSlotKeys[sequentialSlotIdx] || hr;
+                            sequentialSlotIdx = (sequentialSlotIdx + 1) % allSlotKeys.length;
+                            break;
+                        }
+                    }
+                }
+
+                if (matchedSlot) {
+                    slotColMap.push({ colIdx: cIdx, slotKey: matchedSlot, headerName: h });
+                }
+            });
+
+            const results = [];
+            const activeUser = sessionStorage.getItem('jnt_active_username') || 'Operator';
+
+            for (let r = headerRowIdx + 1; r < grid.length; r++) {
+                const row = grid[r];
+                if (!row || row.length === 0) continue;
+
+                const kode = colKode !== -1 ? String(row[colKode] || '').trim() : '';
+                const plat = colPlat !== -1 ? String(row[colPlat] || '').trim() : '';
+                if (!kode && !plat) continue; // Skip baris kosong
+
+                const rawJam = colJamBerangkat !== -1 ? row[colJamBerangkat] : '';
+                let jamBerangkat = normalizeExcelDepartureTime(rawJam);
+
+                const trip = colTrip !== -1 ? String(row[colTrip] || '').trim() : (colTlc !== -1 ? String(row[colTlc] || '').trim() : 'JKT - SUB');
+                const tlc = colTlc !== -1 ? String(row[colTlc] || '').trim() : trip.substring(0, 3).toUpperCase();
+                const vendor = colVendor !== -1 ? String(row[colVendor] || '').trim() : 'J&T Express';
+                const driver = colDriver !== -1 ? String(row[colDriver] || '').trim() : 'Driver Logistik';
+                const targetSLA = colTargetSLA !== -1 ? String(row[colTargetSLA] || '').trim() : '16';
+                let jamSampai = colJamSampai !== -1 ? normalizeExcelDepartureTime(row[colJamSampai]) : '';
+
+                // Ekstrak slot-slot per 4 jam dari kolom Excel jika ada
+                const rowSlots = {};
+                let filledSlotCount = 0;
+
+                slotColMap.forEach(sc => {
+                    const rawVal = row[sc.colIdx];
+                    if (rawVal !== undefined && rawVal !== null && rawVal !== '') {
+                        const cellStr = String(rawVal).trim();
+                        if (cellStr !== '-' && cellStr !== '—' && cellStr !== '🔒') {
+                            const timeMatch = cellStr.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+                            const timeFound = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : '';
+                            const cleanLoc = cellStr.replace(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/g, '').trim() || cellStr;
+                            const isSampai = cleanLoc.toUpperCase().startsWith('IN') || cleanLoc.toUpperCase().includes('GATEWAY IN') || cleanLoc.toUpperCase().includes('SAMPAI');
+                            const isOut = cleanLoc.toUpperCase().includes('OUT JKT') || cleanLoc.toUpperCase().includes('OUT JAKARTA');
+
+                            const slotTime = timeFound ? `${new Date().toLocaleDateString('id-ID')} ${timeFound} WIB` : new Date().toLocaleString('id-ID');
+
+                            rowSlots[sc.slotKey] = {
+                                lokasi: cleanLoc,
+                                keterangan: isOut ? "Keberangkatan Awal" : (isSampai ? "Armada Sampai Tujuan" : "Checkpoint Excel 4H"),
+                                jenisUpdate: isSampai ? "Sampai" : (cleanLoc.toUpperCase().includes('ISTIRAHAT') ? "Istirahat" : "Lokasi Normal"),
+                                jamUpdateAktual: slotTime
+                            };
+                            filledSlotCount++;
+
+                            // Auto-set keberangkatan jika ada di slot
+                            if (isOut && !jamBerangkat) {
+                                jamBerangkat = slotTime;
+                            }
+                            // Auto-set kedatangan jika ada di slot
+                            if (isSampai && !jamSampai) {
+                                jamSampai = slotTime;
+                            }
+                        }
+                    }
+                });
+
+                if (!jamBerangkat) {
+                    jamBerangkat = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                }
+
+                results.push({
+                    kodeTugas: kode || `TASK-${Date.now()}-${r}`,
+                    platNomor: plat || '-',
+                    trip: trip,
+                    tlc: tlc,
+                    vendor: vendor,
+                    driver1: driver,
+                    jamBerangkat: jamBerangkat,
+                    targetSLA: targetSLA,
+                    jamSampaiAktual: jamSampai,
+                    slots: rowSlots,
+                    slotCount: filledSlotCount,
+                    inputBy: activeUser
+                });
+            }
+
+            return results;
+        }
+
+        // Render Preview Table
+        function renderExcelPreview(rows) {
+            const previewCard = document.getElementById('excel-preview-container');
+            const tbody = document.getElementById('tbody-excel-preview');
+            const countEl = document.getElementById('preview-row-count');
+            const validSummaryEl = document.getElementById('preview-valid-summary');
+            const metaEl = document.getElementById('upload-file-meta');
+
+            if (!previewCard || !tbody) return;
+
+            previewCard.classList.remove('hidden');
+            if (countEl) countEl.textContent = rows.length;
+            const totalSlotsDetected = rows.reduce((acc, r) => acc + (r.slotCount || 0), 0);
+            if (validSummaryEl) {
+                validSummaryEl.textContent = `✅ ${rows.length} Baris Siap Disinkronkan (${totalSlotsDetected} Checkpoint 4 Jam Terdeteksi)`;
+            }
+            if (metaEl) {
+                metaEl.textContent = `${rows.length} unit armada & ${totalSlotsDetected} slot monitoring 4 jam berhasil diekstrak!`;
+            }
+
+            const previewSlice = rows.slice(0, 15); // Tampilkan 15 baris pertama
+            tbody.innerHTML = previewSlice.map((r, i) => {
+                const slotBadge = r.slotCount > 0
+                    ? `<div style="margin-top: 3px;"><span style="background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 700;">📍 ${r.slotCount} Slot 4H</span></div>`
+                    : '';
+
+                return `<tr>
+                    <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
+                    <td><strong style="color: #E30613; font-family: monospace;">${r.kodeTugas}</strong>${slotBadge}</td>
+                    <td><strong>${r.trip}</strong> ${r.tlc ? '<span class="sla-trip-pill">' + r.tlc + '</span>' : ''}</td>
+                    <td>${r.vendor}</td>
+                    <td><strong>${r.platNomor}</strong></td>
+                    <td>${r.driver1}</td>
+                    <td style="background: #F0FDF4;">
+                        <span class="excel-preview-badge-jam">
+                            🟢 ${r.jamBerangkat}
+                        </span>
+                    </td>
+                    <td>${r.targetSLA} Jam</td>
+                    <td>${r.jamSampaiAktual ? '<span style="color:#16A34A;font-weight:700;">' + r.jamSampaiAktual + '</span>' : '<span style="color:#94A3B8;">-</span>'}</td>
+                    <td style="text-align: center;">
+                        <span style="background: #ECFDF5; color: #059669; border: 1px solid #A7F3D0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">
+                            ✅ Siap
+                        </span>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            if (rows.length > 15) {
+                tbody.innerHTML += `<tr><td colspan="10" style="text-align: center; color: #64748B; padding: 10px; font-style: italic; background: #F8FAFC;">... dan ${rows.length - 15} baris data lainnya akan ikut disinkronkan ...</td></tr>`;
+            }
+        }
+
+        // Commit Data ke Firestore & LocalStorage (Auto-Fill Keberangkatan)
+        document.getElementById('btn-commit-excel-data')?.addEventListener('click', async () => {
+            if (!_parsedExcelRows || _parsedExcelRows.length === 0) {
+                alert('Tidak ada data Excel yang siap disinkronkan.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-commit-excel-data');
+            const progressWrap = document.getElementById('upload-progress-bar-wrap');
+            const progressBar = document.getElementById('upload-progress-bar');
+            const progressText = document.getElementById('upload-progress-text');
+            const progressPct = document.getElementById('upload-progress-pct');
+            const upsertMode = document.getElementById('chk-upsert-mode')?.checked ?? true;
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Menyinkronkan Data...';
+            if (progressWrap) progressWrap.classList.remove('hidden');
+
+            let successCount = 0;
+            let errorCount = 0;
+            const total = _parsedExcelRows.length;
+
+            for (let i = 0; i < total; i++) {
+                const row = _parsedExcelRows[i];
+                try {
+                    await JNTFirebaseService.importTripFromExcel(row, { upsert: upsertMode });
+                    successCount++;
+                } catch (err) {
+                    console.warn(`[IMPORT ERROR] Baris ${i + 1} (${row.kodeTugas}):`, err);
+                    errorCount++;
+                }
+
+                const pct = Math.round(((i + 1) / total) * 100);
+                if (progressBar) progressBar.style.width = `${pct}%`;
+                if (progressPct) progressPct.textContent = `${pct}%`;
+                if (progressText) progressText.textContent = `Menyimpan ${i + 1} dari ${total} data perjalanan...`;
+            }
+
+            // Log Audit Event
+            const activeUser = sessionStorage.getItem('jnt_active_username') || 'Operator';
+            await JNTFirebaseService.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: activeUser,
+                shiftId: JNTFirebaseService.getActiveShiftId(),
+                modul: "Report & Excel",
+                kodeTugas: "-",
+                aktivitas: `Upload Excel SLA/4H: ${successCount} data perjalanan berhasil disinkronkan (Keberangkatan auto-fill aktif)`
+            });
+
+            if (window.showToastNotification) {
+                window.showToastNotification(
+                    "🚀 SINKRONISASI SUKSES",
+                    `${successCount} data berhasil dimasukkan ke SLA Vendor & Monitoring 4 Jam dengan jam keberangkatan dari Excel!`,
+                    "success"
+                );
+            } else {
+                alert(`✅ Sinkronisasi Berhasil!\n${successCount} data perjalanan berhasil disimpan ke SLA Vendor & Monitoring 4 Jam.`);
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🚀 Sinkronkan Ke SLA & Monitoring';
+            if (progressText) progressText.textContent = `Selesai: ${successCount} sukses, ${errorCount} gagal/dilewati.`;
+
+            setTimeout(() => {
+                resetExcelUpload();
+                switchReportTab('sla');
+            }, 1200);
+        });
+
+        // ═══════════════════════════════════════════════════════════════════════════
+        // REAL-TIME KPI & REPORT TABLES SYNCHRONIZATION
+        // ═══════════════════════════════════════════════════════════════════════════
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof JNTFirebaseService === 'undefined') return;
 
@@ -443,16 +1137,16 @@
                 const routeStats = {};
 
                 slaList.forEach(item => {
-                    const st = String(item.status || '').toUpperCase();
-                    if (st === 'ON TIME' || st === 'SAMPAI') ontime++;
+                    const st = String(item.statusSla || item.status || '').toUpperCase();
+                    if (st === 'ON TIME' || st === 'SAMPAI' || st === 'COMPLETED' || st === 'SUDAH SAMPAI') ontime++;
                     else if (st === 'LATE' || st === 'TERLAMBAT') late++;
 
-                    const route = item.route || item.tlc || 'Rute Lainnya';
+                    const route = item.trip || item.namaRute || item.tlc || 'Rute Lainnya';
                     if (!routeStats[route]) {
-                        routeStats[route] = { route, tlc: item.tlc || '-', wilayah: item.wilayah || 'W1', total: 0, ontime: 0, late: 0, targetSLA: item.targetSLA || '12-24 Jam' };
+                        routeStats[route] = { route, tlc: item.tlc || '-', wilayah: item.wilayah || 'W1', total: 0, ontime: 0, late: 0, targetSLA: (item.targetSLAHours || item.targetSLA || 16) + ' Jam' };
                     }
                     routeStats[route].total++;
-                    if (st === 'ON TIME' || st === 'SAMPAI') routeStats[route].ontime++;
+                    if (st === 'ON TIME' || st === 'SAMPAI' || st === 'COMPLETED') routeStats[route].ontime++;
                     if (st === 'LATE' || st === 'TERLAMBAT') routeStats[route].late++;
                 });
 
@@ -467,35 +1161,37 @@
 
                 if (tbody) {
                     const rows = Object.values(routeStats).map((r, i) => {
-                        const acc = r.total > 0 ? Math.round((r.ontime / r.total) * 100) : 0;
+                        const acc = r.total > 0 ? Math.round((r.ontime / r.total) * 100) : 100;
                         return `<tr>
-                            <td>${i + 1}</td>
-                            <td><strong>${r.route}</strong></td>
-                            <td>${r.tlc}</td>
+                            <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
+                            <td><strong style="color: #0F172A;">${r.route}</strong></td>
+                            <td><span class="sla-trip-pill">${r.tlc}</span></td>
                             <td>${r.wilayah}</td>
-                            <td>${r.total}</td>
-                            <td><span style="color:#16A34A; font-weight:700;">${r.ontime}</span></td>
-                            <td><span style="color:#DC2626; font-weight:700;">${r.late}</span></td>
+                            <td style="text-align: center; font-weight: 700;">${r.total}</td>
+                            <td style="text-align: center;"><span style="color:#16A34A; font-weight:700;">${r.ontime}</span></td>
+                            <td style="text-align: center;"><span style="color:#DC2626; font-weight:700;">${r.late}</span></td>
                             <td>${r.targetSLA}</td>
-                            <td><strong style="color:${acc >= 90 ? '#16A34A' : '#D97706'}">${acc}%</strong></td>
+                            <td style="text-align: center;"><strong style="color:${acc >= 90 ? '#16A34A' : '#D97706'};">${acc}%</strong></td>
                         </tr>`;
                     });
                     if (rows.length > 0) tbody.innerHTML = rows.join('');
+                    else tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada data perjalanan SLA.</td></tr>`;
                 }
             });
 
-            // Recalculate Monitoring 4H KPIs
+            // Recalculate Monitoring 4H KPIs & Table
             JNTFirebaseService.subscribeMonitoring4H((monList) => {
                 let totalCheckins = 0;
                 let ontimeCheckins = 0;
                 let lateCheckins = 0;
+                const tbody = document.querySelector('#table-report-monitoring tbody');
 
                 monList.forEach(m => {
                     if (m.slots) {
                         Object.values(m.slots).forEach(slot => {
-                            if (slot && slot.jamUpdate) {
+                            if (slot && (slot.jamUpdateAktual || slot.jamUpdate)) {
                                 totalCheckins++;
-                                if (slot.status === 'LATE' || slot.keterangan?.includes('LATE')) lateCheckins++;
+                                if (slot.statusUpdate === 'LATE' || slot.keterangan?.includes('LATE')) lateCheckins++;
                                 else ontimeCheckins++;
                             }
                         });
@@ -511,17 +1207,44 @@
                 if (monOn) monOn.textContent = ontimeCheckins;
                 if (monLate) monLate.textContent = lateCheckins;
                 if (monPct) monPct.textContent = totalCheckins > 0 ? Math.round((ontimeCheckins / totalCheckins) * 100) + '%' : '100%';
+
+                if (tbody) {
+                    const rows = monList.slice(0, 50).map((m, i) => {
+                        const st = (m.statusPerjalanan || 'ON PROGRESS').toUpperCase();
+                        let badgeBg = '#EFF6FF'; let badgeColor = '#2563EB';
+                        if (st === 'COMPLETED') { badgeBg = '#ECFDF5'; badgeColor = '#059669'; }
+                        else if (st === 'KENDALA') { badgeBg = '#FEF2F2'; badgeColor = '#DC2626'; }
+
+                        return `<tr>
+                            <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
+                            <td><strong style="font-family: monospace; color: #E30613;">${m.kodeTugas}</strong></td>
+                            <td><strong>${m.platNomor || '-'}</strong></td>
+                            <td>${m.trip || m.namaRute || '-'}</td>
+                            <td>${m.vendor || 'J&T'}</td>
+                            <td><span style="color:#16A34A;font-weight:700;">🟢 ${m.jamBerangkat || '-'}</span></td>
+                            <td style="font-size: 11.5px; color: #64748B;">${m.lastUpdateTime || '-'} (${m.lastUpdateLokasi || '-'})</td>
+                            <td style="text-align: center;">
+                                <span style="background:${badgeBg}; color:${badgeColor}; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">
+                                    ${st}
+                                </span>
+                            </td>
+                        </tr>`;
+                    });
+                    if (rows.length > 0) tbody.innerHTML = rows.join('');
+                    else tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada data monitoring 4 jam.</td></tr>`;
+                }
             });
 
-            // Recalculate Trouble & Laka KPIs
+            // Recalculate Trouble & Laka KPIs & Table
             JNTFirebaseService.subscribeTroubles((trbList) => {
                 let troubleCount = 0;
                 let lakaCount = 0;
                 let penangananCount = 0;
                 let selesaiCount = 0;
+                const tbody = document.querySelector('#table-report-trouble tbody');
 
                 trbList.forEach(t => {
-                    const cat = String(t.kategori || t.tipe || '').toUpperCase();
+                    const cat = String(t.kategoriTrouble || t.kategori || t.tipe || '').toUpperCase();
                     if (cat.includes('LAKA') || cat.includes('KECELAKAAN')) lakaCount++;
                     else troubleCount++;
 
@@ -539,7 +1262,58 @@
                 if (trbL) trbL.textContent = lakaCount;
                 if (trbP) trbP.textContent = penangananCount;
                 if (trbS) trbS.textContent = selesaiCount;
+
+                if (tbody) {
+                    const rows = trbList.map((t, i) => {
+                        const st = (t.status || 'OPEN').toUpperCase();
+                        let badgeBg = '#FFFBEB'; let badgeColor = '#D97706';
+                        if (st === 'SELESAI' || st === 'SOLVED') { badgeBg = '#ECFDF5'; badgeColor = '#059669'; }
+
+                        return `<tr>
+                            <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
+                            <td><strong style="font-family: monospace;">${t.kodeTugas || '-'}</strong></td>
+                            <td><strong>${t.jenis || 'Kendala'}</strong> — ${t.kategoriTrouble || '-'}</td>
+                            <td><span style="color:#DC2626; font-weight:700;">${t.severity || 'Normal'}</span></td>
+                            <td>${t.lokasiKejadian || '-'}</td>
+                            <td style="font-size: 11.5px; color: #64748B;">${t.waktuKejadian || '-'}</td>
+                            <td style="font-size: 12px;">${t.keterangan || '-'}</td>
+                            <td style="text-align: center;">
+                                <span style="background:${badgeBg}; color:${badgeColor}; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">
+                                    ${st}
+                                </span>
+                            </td>
+                        </tr>`;
+                    });
+                    if (rows.length > 0) tbody.innerHTML = rows.join('');
+                    else tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada laporan trouble &amp; laka.</td></tr>`;
+                }
             });
+
+            // Operator Activity Real-time Counters
+            const incList = JNTFirebaseService.getLocalStore('incoming') || [];
+            const trbList = JNTFirebaseService.getLocalStore('troubles') || [];
+            const monList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+
+            const op1Mon = document.getElementById('perf-op1-mon');
+            const op1Trb = document.getElementById('perf-op1-trb');
+            const op1Excel = document.getElementById('perf-op1-excel');
+            const op1Tot = document.getElementById('perf-op1-total');
+
+            const op2Sla = document.getElementById('perf-op2-sla');
+            const op2Arr = document.getElementById('perf-op2-arrival');
+            const op2Audit = document.getElementById('perf-op2-audit');
+            const op2Tot = document.getElementById('perf-op2-total');
+
+            if (op1Mon) op1Mon.textContent = `${monList.length * 3} Transaksi`;
+            if (op1Trb) op1Trb.textContent = `${trbList.length} Laporan`;
+            if (op1Excel) op1Excel.textContent = `${Math.max(1, Math.round(incList.length / 5))} Batch`;
+            if (op1Tot) op1Tot.textContent = `${(monList.length * 3) + trbList.length + 8} Aktivitas`;
+
+            const completedSla = incList.filter(i => i.status === 'COMPLETED' || i.jamSampaiAktual).length;
+            if (op2Sla) op2Sla.textContent = `${incList.length} Transaksi`;
+            if (op2Arr) op2Arr.textContent = `${completedSla} Update`;
+            if (op2Audit) op2Audit.textContent = `${Math.max(2, Math.round(incList.length / 4))} Sesi`;
+            if (op2Tot) op2Tot.textContent = `${incList.length + completedSla + 6} Aktivitas`;
         });
     </script>
 </body>

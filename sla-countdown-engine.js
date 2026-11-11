@@ -196,7 +196,7 @@ const SLACountdownEngine = {
         const pad = (num) => String(num).padStart(2, '0');
         const dd = pad(date.getDate());
         const mm = pad(date.getMonth() + 1);
-        return `${dd}/${mm} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${dd}/${mm} ${pad(date.getHours())}:${pad(date.getMinutes())} WIB`;
     },
 
     /**
@@ -329,60 +329,79 @@ const SLACountdownEngine = {
         if (!el) return;
 
         // ── 1. Countdown timer ───────────────────────────────────────────────
-        const countdownEl = el.querySelector('.sla-live-countdown') || el;
+        const countdownEl = el.querySelector('.sla-live-countdown');
         if (countdownEl) {
-            const newText  = state.remainingFormatted;
-            const newClass = 'sla-live-countdown sla-rem-' + state.badgeClass;
-            // Guard: jangan sentuh DOM kalau tidak berubah
-            if (countdownEl.textContent !== newText) {
-                countdownEl.textContent = newText;
-            }
-            if (countdownEl.className !== newClass) {
-                countdownEl.className = newClass;
+            if (state.isCompleted) {
+                if (countdownEl.style.display !== 'none') countdownEl.style.display = 'none';
+            } else {
+                if (countdownEl.style.display === 'none') countdownEl.style.display = '';
+                const newText  = state.remainingFormatted;
+                const newClass = 'sla-live-countdown sla-rem-' + state.badgeClass;
+                // Guard: jangan sentuh DOM kalau tidak berubah
+                if (countdownEl.textContent !== newText) {
+                    countdownEl.textContent = newText;
+                }
+                if (countdownEl.className !== newClass) {
+                    countdownEl.className = newClass;
+                }
             }
         }
 
         // ── 2. Status pill ───────────────────────────────────────────────────
-        const statusContainer = el.querySelector('.sla-live-status');
+        const statusContainer = el.querySelector('.sla-live-status') || el.querySelector('.mon-status-group') || el.querySelector('.mon-status-cell');
         if (statusContainer) {
-            // Cari existing pill — jangan recreate jika hanya class/text yang berubah
-            let pill = statusContainer.querySelector('.sla-status-pill');
-            const newPillClass = 'sla-status-pill ' + state.badgeClass;
-            const newBadgeText = state.badgeText; // teks saja, tanpa emoji
-
-            if (!pill) {
-                // Buat pill pertama kali (saat row baru muncul)
-                pill = document.createElement('span');
-                pill.className = newPillClass;
-                const dot = document.createElement('span');
-                dot.className = 'dot';
-                dot.textContent = '\u25cf';
-                const label = document.createElement('span');
-                label.className = 'pill-label';
-                label.textContent = newBadgeText;
-                pill.appendChild(dot);
-                pill.appendChild(document.createTextNode('\u00a0'));
-                pill.appendChild(label);
-                statusContainer.innerHTML = '';
-                statusContainer.appendChild(pill);
-            } else {
-                // Update class hanya jika beda
-                if (pill.className !== newPillClass) {
-                    pill.className = newPillClass;
+            if (state.isCompleted) {
+                const isLate = state.isOverdue;
+                const pillClass = isLate ? 'mon-pill-late' : 'mon-pill-ontime';
+                const badgeClass = isLate ? 'mon-pill-badge-late-completed' : 'mon-pill-badge-completed';
+                const textLabel = isLate ? 'LATE' : 'ON TIME';
+                const badgeText = isLate ? 'COMPLETED' : '✓ COMPLETED';
+                const expectedHtml = `<div class="mon-status-row"><span class="${pillClass}"><span class="dot">●</span> ${textLabel}</span><span class="${badgeClass}">${badgeText}</span></div>`;
+                if (statusContainer.innerHTML !== expectedHtml) {
+                    statusContainer.className = 'mon-status-cell';
+                    statusContainer.innerHTML = expectedHtml;
                 }
-                // Update label teks hanya jika beda
-                const labelEl = pill.querySelector('.pill-label');
-                if (labelEl) {
-                    if (labelEl.textContent !== newBadgeText) {
-                        labelEl.textContent = newBadgeText;
-                    }
+            } else {
+                // Cari existing pill — jangan recreate jika hanya class/text yang berubah
+                let pill = statusContainer.querySelector('.sla-status-pill');
+                const newPillClass = 'sla-status-pill ' + state.badgeClass;
+                const newBadgeText = state.badgeText; // teks saja, tanpa emoji
+
+                if (!pill) {
+                    // Buat pill pertama kali (saat row baru muncul)
+                    statusContainer.className = 'sla-live-status';
+                    pill = document.createElement('span');
+                    pill.className = newPillClass;
+                    const dot = document.createElement('span');
+                    dot.className = 'dot';
+                    dot.textContent = '\u25cf';
+                    const label = document.createElement('span');
+                    label.className = 'pill-label';
+                    label.textContent = newBadgeText;
+                    pill.appendChild(dot);
+                    pill.appendChild(document.createTextNode('\u00a0'));
+                    pill.appendChild(label);
+                    statusContainer.innerHTML = '';
+                    statusContainer.appendChild(pill);
                 } else {
-                    // Fallback: jika struktur pill lama belum punya .pill-label
-                    const newHtml = '<span class="dot">\u25cf</span>\u00a0<span class="pill-label">' + newBadgeText + '</span>';
-                    if (statusContainer.innerHTML.indexOf(newBadgeText) === -1 ||
-                        pill.className !== newPillClass) {
+                    // Update class hanya jika beda
+                    if (pill.className !== newPillClass) {
                         pill.className = newPillClass;
-                        pill.innerHTML = newHtml;
+                    }
+                    // Update label teks hanya jika beda
+                    const labelEl = pill.querySelector('.pill-label');
+                    if (labelEl) {
+                        if (labelEl.textContent !== newBadgeText) {
+                            labelEl.textContent = newBadgeText;
+                        }
+                    } else {
+                        // Fallback: jika struktur pill lama belum punya .pill-label
+                        const newHtml = '<span class="dot">\u25cf</span>\u00a0<span class="pill-label">' + newBadgeText + '</span>';
+                        if (statusContainer.innerHTML.indexOf(newBadgeText) === -1 ||
+                            pill.className !== newPillClass) {
+                            pill.className = newPillClass;
+                            pill.innerHTML = newHtml;
+                        }
                     }
                 }
             }

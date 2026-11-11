@@ -16,6 +16,8 @@
         rel="stylesheet">
     <!-- Chart.js for smooth SVG/Canvas line chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Anti-Flash Dark Theme Pre-Initialization -->
+    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -35,19 +37,19 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"
-                            alt="Hamdan Avatar" class="user-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150"
+                            alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Hamdan</span>
+                            <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </div>
-                        <span class="profile-role">Operator</span>
+                        <span class="profile-role">ADMIN</span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -107,17 +109,6 @@
                                     <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
                                 <span class="nav-text">Shift Management</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="master.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <path
-                                        d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
-                                    </path>
-                                </svg>
-                                <span class="nav-text">Master Data</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -219,12 +210,12 @@
                             </svg>
                             <span class="inc-bell-badge">5</span>
                         </div>
-                        <div class="inc-user-chip">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                                alt="Hamdan Avatar" class="inc-avatar-img">
+                        <div class="inc-user-chip" id="topbar-user-chip-btn">
+                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100"
+                                alt="User Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name">Hamdan <span>v</span></span>
-                                <span class="inc-user-role">Operator</span>
+                                <span class="inc-user-name">Farizs Hakim <span class="inc-user-chevron">▾</span></span>
+                                <span class="inc-user-role">Admin</span>
                             </div>
                         </div>
                     </div>
@@ -238,17 +229,13 @@
                             <div class="exec-truck-icon-wrap">🚚</div>
                             <div>
                                 <h1 class="exec-main-title">DASHBOARD MONITORING SLA KEBERANGKATAN OUTGOING VENDOR</h1>
-                                <span class="exec-sub-title" id="exec-banner-period">Periode : Oktober 2026</span>
+                                <span class="exec-sub-title" id="exec-banner-period">Periode : Semua Periode</span>
                             </div>
                         </div>
                         <div class="exec-banner-right">
-                            <select class="exec-period-select" id="exec-period-filter">
-                                <option value="OKT2026">Periode Oktober 2026</option>
-                                <option value="SEP2026">Periode September 2026</option>
-                                <option value="AGU2026">Periode Agustus 2026</option>
-                                <option value="JUL2026">Periode Juli 2026</option>
-                                <option value="JUN2026">Periode Juni 2026</option>
-                                <option value="MAY2026">Periode Mei 2026</option>
+                            <label for="exec-period-filter" style="display:none;">Periode</label>
+                            <select class="exec-period-select" id="exec-period-filter" aria-label="Filter Periode">
+                                <option value="ALL">Semua Periode</option>
                             </select>
                             <div class="exec-tagline">
                                 <div>🚀 Tepat Waktu • Tepat Tujuan</div>
@@ -262,24 +249,24 @@
                         <div class="exec-kpi-card blue">
                             <div class="exec-kpi-meta">
                                 <span class="exec-kpi-title">TOTAL RITASE</span>
-                                <span class="exec-kpi-num" id="exec-kpi-total">5.833</span>
-                                <span class="exec-kpi-sub">▲ 3.2% vs bulan lalu</span>
+                                <span class="exec-kpi-num" id="exec-kpi-total">0</span>
+                                <span class="exec-kpi-sub" id="exec-kpi-total-sub">Total Trip Operasional</span>
                             </div>
                             <span class="exec-kpi-icon">🚚</span>
                         </div>
                         <div class="exec-kpi-card green">
                             <div class="exec-kpi-meta">
                                 <span class="exec-kpi-title">ON-TIME</span>
-                                <span class="exec-kpi-num" id="exec-kpi-ontime">4.242</span>
-                                <span class="exec-kpi-sub" id="exec-kpi-ontime-pct">72,7% • ▼ 4.8% vs bulan lalu</span>
+                                <span class="exec-kpi-num" id="exec-kpi-ontime">0</span>
+                                <span class="exec-kpi-sub" id="exec-kpi-ontime-pct">0,0% On-Time</span>
                             </div>
                             <span class="exec-kpi-icon">🕒</span>
                         </div>
                         <div class="exec-kpi-card red">
                             <div class="exec-kpi-meta">
                                 <span class="exec-kpi-title">LATE</span>
-                                <span class="exec-kpi-num" id="exec-kpi-late">1.591</span>
-                                <span class="exec-kpi-sub" id="exec-kpi-late-pct">27,3% • ▲ 4.8% vs bulan lalu</span>
+                                <span class="exec-kpi-num" id="exec-kpi-late">0</span>
+                                <span class="exec-kpi-sub" id="exec-kpi-late-pct">0,0% Terlambat</span>
                             </div>
                             <span class="exec-kpi-icon">⚠️</span>
                         </div>
@@ -294,7 +281,7 @@
                         <div class="exec-kpi-card orange">
                             <div class="exec-kpi-meta">
                                 <span class="exec-kpi-title">JUMLAH VENDOR</span>
-                                <span class="exec-kpi-num" id="exec-kpi-vendor-count">11</span>
+                                <span class="exec-kpi-num" id="exec-kpi-vendor-count">0</span>
                                 <span class="exec-kpi-sub">— Vendor Terdaftar</span>
                             </div>
                             <span class="exec-kpi-icon">👥</span>
@@ -342,11 +329,11 @@
                                 <div style="display:flex; flex-direction:column; gap:6px; font-size:11px; font-weight:700;">
                                     <div style="display:flex; align-items:center; gap:6px;">
                                         <span style="width:10px; height:10px; background:#0284C7; border-radius:50%; display:inline-block;"></span>
-                                        <span>On-Time: <strong id="donut-lbl-ontime" style="color:#0284C7;">4.242 (72,7%)</strong></span>
+                                        <span>On-Time: <strong id="donut-lbl-ontime" style="color:#0284C7;">0 (0,0%)</strong></span>
                                     </div>
                                     <div style="display:flex; align-items:center; gap:6px;">
                                         <span style="width:10px; height:10px; background:#F97316; border-radius:50%; display:inline-block;"></span>
-                                        <span>Late: <strong id="donut-lbl-late" style="color:#F97316;">1.591 (27,3%)</strong></span>
+                                        <span>Late: <strong id="donut-lbl-late" style="color:#F97316;">0 (0,0%)</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -443,9 +430,9 @@
                             <div class="exec-summary-header">
                                 <span>🏆</span> <span>VENDOR TERBAIK</span>
                             </div>
-                            <div class="exec-summary-val" id="sum-best-vendor-name">SERVU</div>
+                            <div class="exec-summary-val" id="sum-best-vendor-name">-</div>
                             <div class="exec-summary-body" id="sum-best-vendor-meta">
-                                <strong style="color:#15803D;">100,0% SLA</strong> • 718 Ritase
+                                <span style="color:#64748B;">Belum ada trip</span>
                             </div>
                         </div>
 
@@ -453,9 +440,9 @@
                             <div class="exec-summary-header">
                                 <span>⚠️</span> <span>VENDOR TERBURUK</span>
                             </div>
-                            <div class="exec-summary-val" id="sum-worst-vendor-name">SOLUSI</div>
+                            <div class="exec-summary-val" id="sum-worst-vendor-name">-</div>
                             <div class="exec-summary-body" id="sum-worst-vendor-meta">
-                                <strong style="color:#B91C1C;">32,0% SLA</strong> • 38 Ritase
+                                <span style="color:#64748B;">Belum ada trip</span>
                             </div>
                         </div>
 
@@ -464,9 +451,7 @@
                                 <span>📍</span> <span>RUTE BERMASALAH</span>
                             </div>
                             <div class="exec-summary-body" id="sum-problematic-routes" style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
-                                <div>JKT - PLB: <strong style="color:#B91C1C;">61,7%</strong></div>
-                                <div>JKT - DPS: <strong style="color:#B91C1C;">68,2%</strong></div>
-                                <div>JKT - MLG: <strong style="color:#B91C1C;">72,5%</strong></div>
+                                <div style="color:#64748B;">Belum ada data perjalanan</div>
                             </div>
                         </div>
 
@@ -474,10 +459,9 @@
                             <div class="exec-summary-header">
                                 <span>💡</span> <span>REKOMENDASI TINDAK LANJUT</span>
                             </div>
-                            <div class="exec-summary-body" style="font-size:10px;">
-                                • Evaluasi performa vendor SOLUSI dan SDE.<br>
-                                • Follow up khusus untuk rute dengan SLA &lt; 70%.<br>
-                                • Tingkatkan koordinasi H-1 keberangkatan.
+                            <div class="exec-summary-body" id="sum-recommendations-list" style="font-size:10px;">
+                                • Pantau performa SLA operasional secara berkala.<br>
+                                • Rekomendasi otomatis terisi saat perjalanan dicatat.
                             </div>
                         </div>
 
@@ -486,7 +470,7 @@
                                 <span>🎯</span> <span>KESIMPULAN</span>
                             </div>
                             <div class="exec-summary-body" id="sum-conclusion-text" style="font-size:10px; color:#CBD5E1;">
-                                Pencapaian SLA bulan Juli 2026 sebesar <strong>72,7%</strong>, masih di bawah target 90%. Perlu perhatian khusus pada vendor SOLUSI, SDE, MTI serta rute JKT - PLB, JKT - DPS, dan JKT - MLG.
+                                Belum ada data perjalanan yang tercatat pada periode ini. Data akan otomatis terhitung secara real-time saat trip diinput atau di-import ke sistem.
                             </div>
                         </div>
                     </div>
@@ -512,77 +496,115 @@
     <script src="firebase-service.js"></script>
     <script src="sla-countdown-engine.js"></script>
     <script src="app.js"></script>
-    <!-- EXECUTIVE SLA DASHBOARD CONTROLLER -->
+    <!-- EXECUTIVE SLA DASHBOARD CONTROLLER (100% PURE REAL-TIME DATABASE ENGINE) -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function initDashboardPage() {
             let execDonutChartInstance = null;
             let execLineChartInstance = null;
+            let _rawSlaList = [];
+            const _rawSlaMap = new Map();
+            let _userHasSelectedPeriod = false;
 
-            // Default Benchmark Data (Match Screenshot baseline)
-            const DEFAULT_VENDOR_DATA = [
-                { name: 'SERVU', ritase: 718, onTime: 481, late: 237, pct: 100.0, status: 'sangat-baik', statusText: 'Sangat Baik' },
-                { name: 'JTS', ritase: 1088, onTime: 947, late: 141, pct: 98.0, status: 'sangat-baik', statusText: 'Sangat Baik' },
-                { name: 'APL', ritase: 1014, onTime: 720, late: 294, pct: 97.7, status: 'baik', statusText: 'Baik' },
-                { name: 'CHIUN', ritase: 453, onTime: 322, late: 131, pct: 96.7, status: 'baik', statusText: 'Baik' },
-                { name: 'KLS', ritase: 226, onTime: 183, late: 43, pct: 94.1, status: 'baik', statusText: 'Baik' },
-                { name: 'AB', ritase: 222, onTime: 204, late: 18, pct: 93.7, status: 'baik', statusText: 'Baik' },
-                { name: 'PAL', ritase: 95, onTime: 81, late: 14, pct: 92.9, status: 'baik', statusText: 'Baik' },
-                { name: 'REYA', ritase: 76, onTime: 68, late: 8, pct: 90.9, status: 'cukup', statusText: 'Cukup' },
-                { name: 'MTI', ritase: 216, onTime: 78, late: 138, pct: 64.8, status: 'kurang', statusText: 'Kurang' },
-                { name: 'SDE', ritase: 73, onTime: 34, late: 39, pct: 53.3, status: 'kurang', statusText: 'Kurang' },
-                { name: 'SOLUSI', ritase: 38, onTime: 7, late: 31, pct: 32.0, status: 'buruk', statusText: 'Buruk' }
-            ];
+            const monthsIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-            const DEFAULT_TOP_TRIPS = [
-                { rute: 'SOC FUSO', fleet: 'FUSO', ritase: 24, onTime: 24, sla: 100.0 },
-                { rute: 'BTN CDD', fleet: 'BANTEN', ritase: 49, onTime: 48, sla: 98.0 },
-                { rute: 'MDR CDD', fleet: 'MADURA', ritase: 87, onTime: 85, sla: 97.7 },
-                { rute: 'BGR FUSO', fleet: 'BOGOR', ritase: 83, onTime: 81, sla: 97.6 },
-                { rute: 'TKG FUSO', fleet: 'LAMPUNG', ritase: 61, onTime: 59, sla: 96.7 },
-                { rute: 'SML CDD', fleet: 'SUKABUMI', ritase: 77, onTime: 74, sla: 96.1 },
-                { rute: 'BGR CDD', fleet: 'BOGOR', ritase: 157, onTime: 149, sla: 94.9 },
-                { rute: 'CKP CDD', fleet: 'CIKAMPEK', ritase: 204, onTime: 192, sla: 94.1 },
-                { rute: 'SUB FUSO', fleet: 'SURABAYA', ritase: 63, onTime: 59, sla: 93.7 },
-                { rute: 'BTN FUSO', fleet: 'BANTEN', ritase: 56, onTime: 52, sla: 92.5 }
-            ];
+            // ── FORMATTER & HELPER FUNCTIONS ─────────────────────────────────────
+            function formatVendorShort(vStr) {
+                if (!vStr) return 'J&T';
+                const v = String(vStr).trim();
+                const match = v.match(/\(([^)]+)\)/);
+                if (match && match[1]) return match[1].trim();
 
-            const DEFAULT_BOTTOM_TRIPS = [
-                { rute: 'PWO CDD', fleet: 'PURWOKERTO', ritase: 85, onTime: 42, sla: 49.4 },
-                { rute: 'PDG CDD', fleet: 'PADANG', ritase: 218, onTime: 107, sla: 49.1 },
-                { rute: 'PRO CDD', fleet: 'PROBOLINGGO', ritase: 80, onTime: 39, sla: 48.8 },
-                { rute: 'LMG CDD', fleet: 'LAMONGAN', ritase: 75, onTime: 34, sla: 45.3 },
-                { rute: 'SUB CDD', fleet: 'SURABAYA', ritase: 120, onTime: 46, sla: 38.3 },
-                { rute: 'PKU CDD', fleet: 'PEKANBARU', ritase: 169, onTime: 59, sla: 34.9 },
-                { rute: 'PDG FUSO', fleet: 'PADANG', ritase: 84, onTime: 29, sla: 34.5 },
-                { rute: 'JOG CDD', fleet: 'YOGYAKARTA', ritase: 118, onTime: 40, sla: 33.9 },
-                { rute: 'DJB CDD', fleet: 'JAMBI', ritase: 47, onTime: 0, sla: 0.0 },
-                { rute: 'CIM FUSO', fleet: 'CIMAHI', ritase: 2, onTime: 0, sla: 0.0 }
-            ];
+                const u = v.toUpperCase();
+                if (u.includes('SERIKAT') || u.includes('SERYU') || u.includes('SERVU')) return 'SERYU';
+                if (u.includes('ASIA PASIFIK') || u.includes('APL')) return 'APL';
+                if (u.includes('KENCANA') || u.includes('KLS')) return 'KLS';
+                if (u.includes('JET TRANSPORT') || u.includes('JTS')) return 'JTS';
+                if (u.includes('CHIJUN') || u.includes('CHIUN')) return 'CHIJUN';
+                if (u.includes('PESONA') || u.includes('PAL')) return 'PAL';
+                if (u.includes('ANUGERAH') || u.includes(' AB')) return 'AB';
+                if (u.includes('SOLUSI TRANSPORTASI') || u === 'SOLUSI' || u.includes('(SOLUSI)')) return 'SOLUSI';
+                if (u.includes('REYA')) return 'REYA';
+                if (u.includes('SOLUSI DUNIA') || u.includes('SDE') || u.includes('(SDE)')) return 'SDE';
+                if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
+                if (u === 'LNP' || u.includes('LNP')) return 'LNP';
 
-            const DEFAULT_ROUTE_ANALYSIS = [
-                { route: 'JKT - BGR', pct: 92.4, color: '#16A34A' },
-                { route: 'JKT - SBY', pct: 88.7, color: '#16A34A' },
-                { route: 'JKT - TNG', pct: 84.3, color: '#F59E0B' },
-                { route: 'JKT - BDG', pct: 80.1, color: '#F59E0B' },
-                { route: 'JKT - SMG', pct: 76.8, color: '#F97316' },
-                { route: 'JKT - MLG', pct: 72.5, color: '#F97316' },
-                { route: 'JKT - DPS', pct: 68.2, color: '#EF4444' },
-                { route: 'JKT - PLB', pct: 61.7, color: '#EF4444' }
-            ];
+                return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
+            }
 
-            // 1. Render Performa Vendor Table
+            function extractFleetType(item) {
+                if (item.tipe) return item.tipe;
+                const trip = (item.trip || item.namaRute || '').toUpperCase();
+                if (trip.includes('KONTAINER') || trip.includes('CONTAINER')) return 'KONTAINER';
+                if (trip.includes('WINGBOX')) return 'WINGBOX';
+                if (trip.includes('FUSO')) return 'FUSO';
+                if (trip.includes('CDD')) return 'CDD';
+                if (trip.includes('CDE')) return 'CDE';
+                if (item.layanan) return item.layanan;
+                return 'Standard';
+            }
+
+            function parseTripDate(dateStr) {
+                if (!dateStr) return null;
+                if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
+                if (typeof dateStr === 'number') return new Date(dateStr);
+
+                const s = String(dateStr).trim();
+                const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                if (dmy) {
+                    const day = parseInt(dmy[1], 10);
+                    const month = parseInt(dmy[2], 10) - 1;
+                    const year = parseInt(dmy[3], 10);
+                    return new Date(year, month, day);
+                }
+
+                const ymd = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+                if (ymd) {
+                    const year = parseInt(ymd[1], 10);
+                    const month = parseInt(ymd[2], 10) - 1;
+                    const day = parseInt(ymd[3], 10);
+                    return new Date(year, month, day);
+                }
+
+                const parsed = new Date(s);
+                return isNaN(parsed.getTime()) ? null : parsed;
+            }
+
+            function filterTripsByPeriod(trips, periodVal) {
+                if (!Array.isArray(trips)) return [];
+                if (!periodVal || periodVal === 'ALL') return trips;
+
+                return trips.filter(t => {
+                    const d = parseTripDate(t.jamBerangkat || t.createdAt || t.tanggal);
+                    if (!d) return true;
+                    const m = monthsIndo[d.getMonth()].toUpperCase().slice(0, 3);
+                    const y = d.getFullYear();
+                    const code = `${m}${y}`;
+                    return code === periodVal;
+                });
+            }
+
+            // ── 1. RENDER PERFORMA VENDOR TABLE ──────────────────────────────────
             function renderVendorTable(vendors) {
                 const tbody = document.getElementById('tbody-performa-vendor');
                 if (!tbody) return;
 
+                if (!vendors || vendors.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:24px; color:#64748B; font-size:12px;">
+                                Belum ada data perjalanan vendor untuk periode ini
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
                 let totRitase = 0, totOnTime = 0, totLate = 0;
-                const rowsHtml = (vendors || []).map((v, idx) => {
+                const rowsHtml = vendors.map((v, idx) => {
                     totRitase += (v.ritase || 0);
                     totOnTime += (v.onTime || 0);
                     totLate += (v.late || 0);
-                    const pctVal = typeof v.pct === 'number' ? v.pct : (v.ritase > 0 ? (v.onTime / v.ritase) * 100 : 100.0);
-                    const stClass = v.status || (pctVal >= 95 ? 'excellent' : pctVal >= 90 ? 'good' : 'warning');
-                    const stTxt = v.statusText || (pctVal >= 95 ? 'Tinggi' : pctVal >= 90 ? 'Sedang' : 'Perlu Perhatian');
+                    const pctVal = v.ritase > 0 ? (v.onTime / v.ritase) * 100 : 0.0;
                     return `
                         <tr>
                             <td>${idx + 1}</td>
@@ -591,12 +613,12 @@
                             <td>${Math.round(((v.onTime || 0) / Math.max(1, v.ritase || 1)) * 100)}%</td>
                             <td>${Math.round(((v.late || 0) / Math.max(1, v.ritase || 1)) * 100)}%</td>
                             <td><strong>${pctVal.toFixed(1).replace('.', ',')}%</strong></td>
-                            <td><span class="badge-sla-status ${stClass}">● ${stTxt}</span></td>
+                            <td><span class="badge-sla-status ${v.status}">● ${v.statusText}</span></td>
                         </tr>
                     `;
                 }).join('');
 
-                const overallPct = totRitase > 0 ? ((totOnTime / totRitase) * 100).toFixed(1) : '0.0';
+                const overallPct = totRitase > 0 ? ((totOnTime / totRitase) * 100).toFixed(1) : '0,0';
                 const totalRowHtml = `
                     <tr class="total-row">
                         <td colspan="2"><strong>Grand Total</strong></td>
@@ -610,74 +632,90 @@
                 tbody.innerHTML = rowsHtml + totalRowHtml;
             }
 
-            // 2. Render Top & Bottom Trips Tables
+            // ── 2. RENDER TOP & BOTTOM TRIPS TABLES ──────────────────────────────
             function renderTripTables(topTrips, bottomTrips) {
                 const tbodyTop = document.getElementById('tbody-top-trips');
                 const tbodyBottom = document.getElementById('tbody-bottom-trips');
 
                 if (tbodyTop) {
-                    tbodyTop.innerHTML = topTrips.map((t, i) => `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td><strong>${t.rute}</strong></td>
-                            <td>${t.fleet}</td>
-                            <td>${t.ritase}</td>
-                            <td>${t.onTime}</td>
-                            <td><strong style="color:#16A34A;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
-                        </tr>
-                    `).join('');
+                    if (!topTrips || topTrips.length === 0) {
+                        tbodyTop.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#64748B;">Belum ada data rute perjalanan</td></tr>`;
+                    } else {
+                        tbodyTop.innerHTML = topTrips.map((t, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td><strong>${t.rute}</strong></td>
+                                <td>${t.fleet}</td>
+                                <td>${t.ritase}</td>
+                                <td>${t.onTime}</td>
+                                <td><strong style="color:#16A34A;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
+                            </tr>
+                        `).join('');
+                    }
                 }
 
                 if (tbodyBottom) {
-                    tbodyBottom.innerHTML = bottomTrips.map((t, i) => `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td><strong>${t.rute}</strong></td>
-                            <td>${t.fleet}</td>
-                            <td>${t.ritase}</td>
-                            <td>${t.onTime}</td>
-                            <td><strong style="color:#DC2626;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
-                        </tr>
-                    `).join('');
+                    if (!bottomTrips || bottomTrips.length === 0) {
+                        tbodyBottom.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#64748B;">Belum ada data rute perjalanan</td></tr>`;
+                    } else {
+                        tbodyBottom.innerHTML = bottomTrips.map((t, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td><strong>${t.rute}</strong></td>
+                                <td>${t.fleet}</td>
+                                <td>${t.ritase}</td>
+                                <td>${t.onTime}</td>
+                                <td><strong style="color:#DC2626;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
+                            </tr>
+                        `).join('');
+                    }
                 }
             }
 
-            // 3. Render Route Analysis Bars
+            // ── 3. RENDER ROUTE ANALYSIS BARS ────────────────────────────────────
             function renderRouteBars(routes) {
                 const container = document.getElementById('exec-route-bars-container');
                 if (!container) return;
 
+                if (!routes || routes.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding:24px; color:#64748B; font-size:12px;">Belum ada data rute perjalanan</div>`;
+                    return;
+                }
+
                 container.innerHTML = routes.map(r => `
                     <div class="exec-route-row">
                         <div class="exec-route-meta">
-                            <span>${r.route}</span>
-                            <span style="color:${r.color};">${r.pct.toFixed(1).replace('.', ',')}%</span>
+                            <span>${r.route} (${r.ritase} trip)</span>
+                            <span style="color:${r.color}; font-weight:700;">${r.pct.toFixed(1).replace('.', ',')}%</span>
                         </div>
                         <div class="exec-route-track">
-                            <div class="exec-route-fill" style="width: ${r.pct}%; background: ${r.color};"></div>
+                            <div class="exec-route-fill" style="width: ${Math.min(100, Math.max(0, r.pct))}%; background: ${r.color};"></div>
                         </div>
                     </div>
                 `).join('');
             }
 
-            // 4. Render Donut Chart (Chart.js)
+            // ── 4. RENDER DONUT CHART (Chart.js) ─────────────────────────────────
             function renderDonutChart(onTime, late, total) {
                 const ctx = document.getElementById('execDonutChart');
                 if (!ctx) return;
 
-                const onTimePct = total > 0 ? ((onTime / total) * 100).toFixed(1) : '0.0';
-                const latePct = total > 0 ? ((late / total) * 100).toFixed(1) : '0.0';
+                const isDark = document.body.classList.contains('dark-body-theme');
+                const onTimePct = total > 0 ? ((onTime / total) * 100).toFixed(1) : '0,0';
+                const latePct = total > 0 ? ((late / total) * 100).toFixed(1) : '0,0';
 
-                document.getElementById('donut-lbl-ontime').textContent = `${onTime.toLocaleString('id-ID')} (${onTimePct.replace('.', ',')}%)`;
-                document.getElementById('donut-lbl-late').textContent = `${late.toLocaleString('id-ID')} (${latePct.replace('.', ',')}%)`;
+                const lblOnTime = document.getElementById('donut-lbl-ontime');
+                const lblLate = document.getElementById('donut-lbl-late');
+                if (lblOnTime) lblOnTime.textContent = `${onTime.toLocaleString('id-ID')} (${onTimePct.replace('.', ',')}%)`;
+                if (lblLate) lblLate.textContent = `${late.toLocaleString('id-ID')} (${latePct.replace('.', ',')}%)`;
 
                 const chartData = {
                     labels: ['On-Time', 'Late'],
                     datasets: [{
-                        data: [onTime, late],
+                        data: total > 0 ? [onTime, late] : [0, 0],
                         backgroundColor: ['#0284C7', '#F97316'],
                         borderWidth: 2,
-                        borderColor: '#FFFFFF'
+                        borderColor: isDark ? '#121824' : '#FFFFFF'
                     }]
                 };
 
@@ -700,27 +738,55 @@
                 }
             }
 
-            // 5. Render Line Chart (Tren SLA Harian)
-            function renderLineChart() {
+            // ── 5. RENDER LINE CHART (TREN SLA HARIAN) ───────────────────────────
+            function renderLineChart(tripsList) {
                 const ctx = document.getElementById('execLineChart');
                 if (!ctx) return;
 
-                const labels = Array.from({ length: 31 }, (_, i) => `${String(i + 1).padStart(2, '0')}-Jul`);
-                const totalData = [120, 130, 115, 140, 150, 160, 145, 135, 150, 165, 170, 155, 140, 150, 160, 175, 180, 165, 150, 160, 170, 185, 190, 175, 160, 170, 180, 195, 200, 185, 170];
-                const onTimeData = [90, 98, 85, 102, 110, 118, 105, 98, 110, 120, 125, 112, 100, 110, 118, 128, 132, 120, 110, 118, 125, 136, 140, 128, 118, 125, 132, 144, 148, 136, 124];
-                const lateData = [30, 32, 30, 38, 40, 42, 40, 37, 40, 45, 45, 43, 40, 40, 42, 47, 48, 45, 40, 42, 45, 49, 50, 47, 42, 45, 48, 51, 52, 49, 46];
+                const isDark = document.body.classList.contains('dark-body-theme');
+                const gridColor = isDark ? '#1E2A3C' : '#F1F5F9';
+                const tickColor = isDark ? '#94A3B8' : '#64748B';
+
+                const dayMap = new Map();
+                for (let i = 1; i <= 31; i++) {
+                    const k = String(i).padStart(2, '0');
+                    dayMap.set(k, { total: 0, onTime: 0, late: 0 });
+                }
+
+                (tripsList || []).forEach(t => {
+                    const d = parseTripDate(t.jamBerangkat || t.createdAt || t.tanggal);
+                    if (d) {
+                        const dayKey = String(d.getDate()).padStart(2, '0');
+                        if (dayMap.has(dayKey)) {
+                            const cur = dayMap.get(dayKey);
+                            cur.total += 1;
+                            const st = (t.statusSla || t.status || t.statusPerjalanan || '').toUpperCase();
+                            const isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (t.lateMinutes && Number(t.lateMinutes) > 0));
+                            if (isLate) cur.late += 1;
+                            else cur.onTime += 1;
+                        }
+                    }
+                });
+
+                const labels = Array.from(dayMap.keys()).map(k => `${k}`);
+                const totalData = Array.from(dayMap.values()).map(v => v.total);
+                const onTimeData = Array.from(dayMap.values()).map(v => v.onTime);
+                const lateData = Array.from(dayMap.values()).map(v => v.late);
 
                 const chartData = {
                     labels: labels,
                     datasets: [
-                        { label: 'Total Ritase', data: totalData, borderColor: '#0284C7', backgroundColor: 'rgba(2, 132, 199, 0.05)', tension: 0.3, fill: true },
-                        { label: 'On-Time', data: onTimeData, borderColor: '#F97316', tension: 0.3 },
-                        { label: 'Late', data: lateData, borderColor: '#10B981', tension: 0.3 }
+                        { label: 'Total Ritase', data: totalData, borderColor: '#0284C7', backgroundColor: isDark ? 'rgba(2, 132, 199, 0.15)' : 'rgba(2, 132, 199, 0.05)', tension: 0.3, fill: true },
+                        { label: 'On-Time', data: onTimeData, borderColor: '#10B981', tension: 0.3 },
+                        { label: 'Late', data: lateData, borderColor: '#EF4444', tension: 0.3 }
                     ]
                 };
 
                 if (execLineChartInstance) {
                     execLineChartInstance.data = chartData;
+                    if (execLineChartInstance.options.scales.x.ticks) execLineChartInstance.options.scales.x.ticks.color = tickColor;
+                    if (execLineChartInstance.options.scales.y.ticks) execLineChartInstance.options.scales.y.ticks.color = tickColor;
+                    if (execLineChartInstance.options.scales.y.grid) execLineChartInstance.options.scales.y.grid.color = gridColor;
                     execLineChartInstance.update();
                 } else {
                     execLineChartInstance = new Chart(ctx, {
@@ -731,147 +797,350 @@
                             maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
                             scales: {
-                                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-                                y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 9 } } }
+                                x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 9 } } },
+                                y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 9 }, stepSize: 1, precision: 0 } }
                             }
                         }
                     });
                 }
             }
 
-            // 6. Primary Controller Data Update
-            function updateExecutiveDashboard(slaList = []) {
-                const liveCount = Array.isArray(slaList) ? slaList.length : 0;
-                const liveOnTime = Array.isArray(slaList) ? slaList.filter(s => {
-                    const st = (s.statusSla || s.status || '').toUpperCase();
-                    return st === 'ON TIME' || st === 'SUDAH SELESAI' || st === 'BERJALAN' || st === 'SEDANG DIPROSES' || st === 'COMPLETED';
-                }).length : 0;
-                const liveLate = Array.isArray(slaList) ? slaList.filter(s => {
-                    const st = (s.statusSla || s.status || '').toUpperCase();
-                    return st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA';
-                }).length : 0;
+            window.addEventListener('jnt-theme-changed', () => {
+                updateExecutiveDashboard();
+            });
 
-                const totalRitase = 5833 + liveCount;
-                const onTimeCount = 4242 + liveOnTime;
-                const lateCount = 1591 + liveLate;
+            // ── 6. PRIMARY CONTROLLER DATA UPDATE (100% REAL DATABASE) ───────────
+            function updateExecutiveDashboard() {
+                const periodSelect = document.getElementById('exec-period-filter');
+                const periodVal = periodSelect ? periodSelect.value : 'ALL';
+                const filteredList = filterTripsByPeriod(_rawSlaList, periodVal);
 
-                const vendorSet = new Set(DEFAULT_VENDOR_DATA.map(v => v.name));
-                if (Array.isArray(slaList)) {
-                    slaList.forEach(s => { if (s.vendor) vendorSet.add(s.vendor); });
-                }
-                const vendorCount = vendorSet.size || 11;
+                const totalRitase = filteredList.length;
+                let onTimeCount = 0;
+                let lateCount = 0;
 
-                const onTimePct = totalRitase > 0 ? ((onTimeCount / totalRitase) * 100).toFixed(1) : '72.7';
-                const latePct = totalRitase > 0 ? ((lateCount / totalRitase) * 100).toFixed(1) : '27.3';
+                filteredList.forEach(s => {
+                    const st = (s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase();
+                    let isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (s.lateMinutes && Number(s.lateMinutes) > 0));
+                    let isOnTime = (st === 'ON TIME' || st === 'SUDAH SELESAI' || st === 'COMPLETED');
 
-                // Set KPIs
-                document.getElementById('exec-kpi-total').textContent = totalRitase.toLocaleString('id-ID');
-                document.getElementById('exec-kpi-ontime').textContent = onTimeCount.toLocaleString('id-ID');
-                document.getElementById('exec-kpi-ontime-pct').textContent = `${onTimePct.replace('.', ',')}% • ▼ 4.8% vs bulan lalu`;
-                document.getElementById('exec-kpi-late').textContent = lateCount.toLocaleString('id-ID');
-                document.getElementById('exec-kpi-late-pct').textContent = `${latePct.replace('.', ',')}% • ▲ 4.8% vs bulan lalu`;
-                document.getElementById('exec-kpi-vendor-count').textContent = vendorCount;
+                    if (!isLate && !isOnTime && window.SLACountdownEngine) {
+                        const slaState = window.SLACountdownEngine.calculateSLAState(
+                            s.jamBerangkat,
+                            s.targetSLAHours || s.targetSLAOutboundHours || 16,
+                            s.jamSampaiAktual
+                        );
+                        if (slaState.isOverdue) isLate = true;
+                        else isOnTime = true;
+                    } else if (!isLate) {
+                        isOnTime = true;
+                    }
 
-                // Dynamically update Vendor Performance Table
-                const vendorMap = new Map();
-                DEFAULT_VENDOR_DATA.forEach(v => {
-                    vendorMap.set(v.name.toUpperCase(), { ...v });
+                    if (isLate) lateCount++;
+                    else if (isOnTime) onTimeCount++;
                 });
 
-                if (Array.isArray(slaList)) {
-                    slaList.forEach(s => {
-                        const vName = (s.vendor || 'J&T LOGISTICS').toUpperCase();
-                        const st = (s.statusSla || s.status || '').toUpperCase();
-                        const isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA');
+                const onTimePct = totalRitase > 0 ? ((onTimeCount / totalRitase) * 100).toFixed(1) : '0,0';
+                const latePct = totalRitase > 0 ? ((lateCount / totalRitase) * 100).toFixed(1) : '0,0';
 
-                        const vData = vendorMap.get(vName) || {
-                            name: s.vendor || 'J&T LOGISTICS',
+                // Hitung vendor aktif dari perjalanan nyata
+                const vendorMap = new Map();
+                filteredList.forEach(s => {
+                    const vName = formatVendorShort(s.vendor || s.namaVendor);
+                    if (!vendorMap.has(vName)) {
+                        vendorMap.set(vName, {
+                            name: vName,
                             ritase: 0,
                             onTime: 0,
-                            late: 0,
-                            pct: 100.0,
-                            status: 'excellent',
-                            statusText: 'Tinggi'
+                            late: 0
+                        });
+                    }
+                    const vData = vendorMap.get(vName);
+                    vData.ritase += 1;
+                    const st = (s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase();
+                    let isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (s.lateMinutes && Number(s.lateMinutes) > 0));
+                    if (!isLate && window.SLACountdownEngine) {
+                        const slaState = window.SLACountdownEngine.calculateSLAState(
+                            s.jamBerangkat,
+                            s.targetSLAHours || s.targetSLAOutboundHours || 16,
+                            s.jamSampaiAktual
+                        );
+                        if (slaState.isOverdue) isLate = true;
+                    }
+                    if (isLate) vData.late += 1;
+                    else vData.onTime += 1;
+                });
+
+                const vendorList = Array.from(vendorMap.values()).map(v => {
+                    const pct = v.ritase > 0 ? (v.onTime / v.ritase) * 100 : 0.0;
+                    let status = 'cukup';
+                    let statusText = 'Belum Ada Trip';
+                    if (v.ritase > 0) {
+                        if (pct >= 95) { status = 'sangat-baik'; statusText = 'Sangat Baik'; }
+                        else if (pct >= 90) { status = 'baik'; statusText = 'Baik'; }
+                        else if (pct >= 75) { status = 'cukup'; statusText = 'Cukup'; }
+                        else if (pct >= 50) { status = 'kurang'; statusText = 'Kurang'; }
+                        else { status = 'buruk'; statusText = 'Buruk'; }
+                    }
+                    return { ...v, pct, status, statusText };
+                });
+
+                vendorList.sort((a, b) => b.ritase - a.ritase || b.pct - a.pct);
+
+                // Update KPI Cards
+                const elTotal = document.getElementById('exec-kpi-total');
+                const elOnTime = document.getElementById('exec-kpi-ontime');
+                const elOnTimePct = document.getElementById('exec-kpi-ontime-pct');
+                const elLate = document.getElementById('exec-kpi-late');
+                const elLatePct = document.getElementById('exec-kpi-late-pct');
+                const elVendorCount = document.getElementById('exec-kpi-vendor-count');
+
+                if (elTotal) elTotal.textContent = totalRitase.toLocaleString('id-ID');
+                if (elOnTime) elOnTime.textContent = onTimeCount.toLocaleString('id-ID');
+                if (elOnTimePct) elOnTimePct.textContent = `${onTimePct.replace('.', ',')}% On-Time`;
+                if (elLate) elLate.textContent = lateCount.toLocaleString('id-ID');
+                if (elLatePct) elLatePct.textContent = `${latePct.replace('.', ',')}% Terlambat`;
+                if (elVendorCount) elVendorCount.textContent = vendorList.length;
+
+                // Render Vendor Table
+                renderVendorTable(vendorList);
+
+                // Compute Top & Bottom Trips by Route
+                const routeMap = new Map();
+                filteredList.forEach(s => {
+                    const rKey = s.trip || s.namaRute || '-';
+                    if (!routeMap.has(rKey)) {
+                        routeMap.set(rKey, {
+                            rute: rKey,
+                            fleet: extractFleetType(s),
+                            ritase: 0,
+                            onTime: 0,
+                            late: 0
+                        });
+                    }
+                    const r = routeMap.get(rKey);
+                    r.ritase += 1;
+                    const st = (s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase();
+                    const isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (s.lateMinutes && Number(s.lateMinutes) > 0));
+                    if (isLate) r.late += 1;
+                    else r.onTime += 1;
+                });
+
+                const allRoutes = Array.from(routeMap.values()).map(r => ({
+                    ...r,
+                    sla: r.ritase > 0 ? (r.onTime / r.ritase) * 100 : 0.0
+                }));
+
+                const topTrips = [...allRoutes].sort((a, b) => b.sla - a.sla || b.ritase - a.ritase).slice(0, 10);
+                const bottomTrips = [...allRoutes].sort((a, b) => a.sla - b.sla || b.ritase - a.ritase).slice(0, 10);
+
+                renderTripTables(topTrips, bottomTrips);
+
+                // Compute Route Analysis Bars
+                const routeAnalysis = [...allRoutes]
+                    .sort((a, b) => b.ritase - a.ritase)
+                    .slice(0, 8)
+                    .map(r => {
+                        const color = r.sla >= 90 ? '#16A34A' : (r.sla >= 80 ? '#F59E0B' : (r.sla >= 70 ? '#F97316' : '#EF4444'));
+                        return {
+                            route: r.rute,
+                            pct: r.sla,
+                            ritase: r.ritase,
+                            color: color
                         };
-                        vData.ritase += 1;
-                        if (isLate) vData.late += 1;
-                        else vData.onTime += 1;
-                        vData.pct = vData.ritase > 0 ? (vData.onTime / vData.ritase) * 100 : 100.0;
-                        if (vData.pct >= 95) { vData.status = 'excellent'; vData.statusText = 'Tinggi'; }
-                        else if (vData.pct >= 90) { vData.status = 'good'; vData.statusText = 'Sedang'; }
-                        else { vData.status = 'warning'; vData.statusText = 'Perlu Perhatian'; }
-                        vendorMap.set(vName, vData);
                     });
+                renderRouteBars(routeAnalysis);
+
+                // Render Charts
+                renderDonutChart(onTimeCount, lateCount, totalRitase);
+                renderLineChart(filteredList);
+
+                // Compute 5 Bottom Summary Cards
+                const activeVendorsWithTrips = vendorList.filter(v => v.ritase > 0);
+                const bestVendorEl = document.getElementById('sum-best-vendor-name');
+                const bestVendorMeta = document.getElementById('sum-best-vendor-meta');
+                const worstVendorEl = document.getElementById('sum-worst-vendor-name');
+                const worstVendorMeta = document.getElementById('sum-worst-vendor-meta');
+                const problematicRoutesEl = document.getElementById('sum-problematic-routes');
+                const recEl = document.getElementById('sum-recommendations-list');
+                const conclusionEl = document.getElementById('sum-conclusion-text');
+
+                if (activeVendorsWithTrips.length > 0) {
+                    const best = [...activeVendorsWithTrips].sort((a, b) => b.pct - a.pct || b.ritase - a.ritase)[0];
+                    const worst = [...activeVendorsWithTrips].sort((a, b) => a.pct - b.pct || a.ritase - b.ritase)[0];
+
+                    if (bestVendorEl) bestVendorEl.textContent = best.name;
+                    if (bestVendorMeta) bestVendorMeta.innerHTML = `<strong style="color:#15803D;">${best.pct.toFixed(1).replace('.', ',')}% SLA</strong> • ${best.ritase} Ritase`;
+
+                    if (worstVendorEl) worstVendorEl.textContent = worst.name;
+                    if (worstVendorMeta) worstVendorMeta.innerHTML = `<strong style="color:#B91C1C;">${worst.pct.toFixed(1).replace('.', ',')}% SLA</strong> • ${worst.ritase} Ritase`;
+                } else {
+                    if (bestVendorEl) bestVendorEl.textContent = '-';
+                    if (bestVendorMeta) bestVendorMeta.innerHTML = `<span style="color:#64748B;">Belum ada trip</span>`;
+                    if (worstVendorEl) worstVendorEl.textContent = '-';
+                    if (worstVendorMeta) worstVendorMeta.innerHTML = `<span style="color:#64748B;">Belum ada trip</span>`;
                 }
 
-                const updatedVendorData = Array.from(vendorMap.values());
-                renderVendorTable(updatedVendorData);
+                const badRoutes = allRoutes.filter(r => r.ritase > 0 && r.sla < 90).sort((a, b) => a.sla - b.sla).slice(0, 3);
+                if (problematicRoutesEl) {
+                    if (badRoutes.length > 0) {
+                        problematicRoutesEl.innerHTML = badRoutes.map(r => `
+                            <div>${r.rute}: <strong style="color:#B91C1C;">${r.sla.toFixed(1).replace('.', ',')}%</strong> (${r.onTime}/${r.ritase})</div>
+                        `).join('');
+                    } else if (allRoutes.length > 0) {
+                        problematicRoutesEl.innerHTML = `<div style="color:#15803D; font-weight:700;">✅ Semua rute memenuhi target SLA &ge; 90%</div>`;
+                    } else {
+                        problematicRoutesEl.innerHTML = `<div style="color:#64748B;">Belum ada data perjalanan</div>`;
+                    }
+                }
 
-                // Render Sub-components
-                renderTripTables(DEFAULT_TOP_TRIPS, DEFAULT_BOTTOM_TRIPS);
-                renderRouteBars(DEFAULT_ROUTE_ANALYSIS);
-                renderDonutChart(onTimeCount, lateCount, totalRitase);
-                renderLineChart();
+                if (recEl) {
+                    if (totalRitase === 0) {
+                        recEl.innerHTML = `• Pantau performa SLA operasional secara berkala.<br>• Rekomendasi otomatis terisi saat perjalanan dicatat.`;
+                    } else {
+                        const recs = [];
+                        const underperformingVendors = activeVendorsWithTrips.filter(v => v.pct < 90);
+                        if (underperformingVendors.length > 0) {
+                            const vendorNames = underperformingVendors.slice(0, 2).map(v => v.name).join(' dan ');
+                            recs.push(`Evaluasi performa vendor ${vendorNames} (SLA &lt; 90%).`);
+                        } else if (activeVendorsWithTrips.length > 0) {
+                            recs.push('Pertahankan performa vendor yang sudah memenuhi target SLA.');
+                        }
+
+                        if (badRoutes.length > 0) {
+                            const routeNames = badRoutes.slice(0, 2).map(r => r.rute).join(', ');
+                            recs.push(`Follow up khusus untuk rute berkendala: ${routeNames}.`);
+                        } else {
+                            recs.push('Pantau ketepatan waktu keberangkatan rute secara berkala.');
+                        }
+
+                        if (lateCount > 0) {
+                            recs.push(`Investigasi ${lateCount} trip terlambat/kendala bersama tim dispatcher.`);
+                        } else {
+                            recs.push('Tingkatkan koordinasi H-1 sebelum jadwal keberangkatan.');
+                        }
+                        recEl.innerHTML = recs.map(r => `• ${r}`).join('<br>');
+                    }
+                }
+
+                if (conclusionEl) {
+                    if (totalRitase === 0) {
+                        conclusionEl.innerHTML = `Belum ada data perjalanan yang tercatat pada periode ini. Data akan otomatis terhitung secara real-time saat trip diinput atau di-import ke sistem.`;
+                    } else {
+                        const curOpt = periodSelect && periodSelect.selectedIndex >= 0 ? periodSelect.options[periodSelect.selectedIndex].text : 'saat ini';
+                        const statusKpi = parseFloat(onTimePct) >= 90 ? 'sudah memenuhi target standar HQ (90%)' : 'masih di bawah target standar HQ (90%)';
+                        const badVendors = activeVendorsWithTrips.filter(v => v.pct < 90).map(v => v.name);
+                        const noteVendor = badVendors.length > 0 ? ` Perlu perhatian khusus pada vendor ${badVendors.join(', ')}.` : '';
+                        conclusionEl.innerHTML = `Pencapaian SLA ${curOpt} tercatat sebesar <strong>${onTimePct.replace('.', ',')}%</strong> (${onTimeCount} dari ${totalRitase} trip tepat waktu), ${statusKpi}.${noteVendor}`;
+                    }
+                }
             }
 
-            // Sinkronkan periode bawah dengan bulan/tahun saat ini (atas) secara otomatis
-            const now = new Date();
-            const monthsIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-            const curMonth = monthsIndo[now.getMonth()];
-            const curYear = now.getFullYear();
-            const periodStr = `${curMonth} ${curYear}`;
-            const valStr = `${curMonth.toUpperCase().slice(0,3)}${curYear}`;
+            // ── SINKRONISASI FILTER PERIODE DENGAN DATA NYATA ────────────────────
+            function syncPeriodDropdown(tripsList) {
+                const periodSelect = document.getElementById('exec-period-filter');
+                if (!periodSelect) return;
+
+                const periodMap = new Map();
+                const now = new Date();
+                const curM = monthsIndo[now.getMonth()];
+                const curY = now.getFullYear();
+                const curVal = `${curM.toUpperCase().slice(0, 3)}${curY}`;
+                periodMap.set(curVal, `Periode ${curM} ${curY}`);
+
+                (tripsList || []).forEach(t => {
+                    const d = parseTripDate(t.jamBerangkat || t.createdAt || t.tanggal);
+                    if (d) {
+                        const m = monthsIndo[d.getMonth()];
+                        const y = d.getFullYear();
+                        const val = `${m.toUpperCase().slice(0, 3)}${y}`;
+                        periodMap.set(val, `Periode ${m} ${y}`);
+                    }
+                });
+
+                const previousVal = periodSelect.value;
+                let optsHtml = '<option value="ALL">Semua Periode</option>';
+                periodMap.forEach((label, val) => {
+                    optsHtml += `<option value="${val}">${label}</option>`;
+                });
+                periodSelect.innerHTML = optsHtml;
+
+                if (_userHasSelectedPeriod && previousVal && periodSelect.querySelector(`option[value="${previousVal}"]`)) {
+                    periodSelect.value = previousVal;
+                } else {
+                    // Default to 'ALL' (Semua Periode) agar data selalu tampil sinkron dengan Monitoring & SLA Vendor
+                    periodSelect.value = 'ALL';
+                }
+                updateBannerText();
+            }
+
+            function updateBannerText() {
+                const periodSelect = document.getElementById('exec-period-filter');
+                const bannerPeriod = document.getElementById('exec-banner-period');
+                if (bannerPeriod && periodSelect && periodSelect.selectedIndex >= 0) {
+                    const txt = periodSelect.options[periodSelect.selectedIndex].text;
+                    bannerPeriod.textContent = txt.startsWith('Semua') ? 'Periode : Semua Periode' : `Periode : ${txt.replace('Periode ', '')}`;
+                }
+            }
 
             const periodSelect = document.getElementById('exec-period-filter');
-            const bannerPeriod = document.getElementById('exec-banner-period');
-
-            if (periodSelect) {
-                let exists = false;
-                for (let opt of periodSelect.options) {
-                    if (opt.text.includes(periodStr) || opt.value === valStr) {
-                        opt.selected = true;
-                        exists = true;
-                        break;
-                    }
-                }
-                if (!exists) {
-                    const newOpt = document.createElement('option');
-                    newOpt.value = valStr;
-                    newOpt.text = `Periode ${periodStr}`;
-                    newOpt.selected = true;
-                    periodSelect.insertBefore(newOpt, periodSelect.firstChild);
-                }
-            }
-
-            if (bannerPeriod) {
-                bannerPeriod.textContent = `Periode : ${periodStr}`;
-            }
-
-            // Period Filter Change Handler
             if (periodSelect) {
                 periodSelect.addEventListener('change', function() {
-                    const txt = periodSelect.options[periodSelect.selectedIndex].text;
-                    if (bannerPeriod) {
-                        bannerPeriod.textContent = `Periode : ${txt.replace('Periode ', '')}`;
-                    }
+                    _userHasSelectedPeriod = true;
+                    updateBannerText();
                     updateExecutiveDashboard();
                 });
             }
 
-            // Render langsung dengan data default (tanpa tunggu Firebase)
-            // Ini menghilangkan delay kosong di awal load dashboard
-            updateExecutiveDashboard();
-
-            // Firebase Live Subscriptions — update KPI saat data real tiba
-            if (typeof JNTFirebaseService !== 'undefined') {
-                JNTFirebaseService.subscribeSLAOutbound(function(slaList) {
-                    if (Array.isArray(slaList)) {
-                        updateExecutiveDashboard(slaList);
+            function mergeAndEmit(tripsList) {
+                if (!Array.isArray(tripsList)) return;
+                tripsList.forEach(t => {
+                    const key = t.kodeTugas || t.id;
+                    if (key) {
+                        const existing = _rawSlaMap.get(key) || {};
+                        _rawSlaMap.set(key, { ...existing, ...t });
                     }
                 });
+                _rawSlaList = Array.from(_rawSlaMap.values());
+                syncPeriodDropdown(_rawSlaList);
+                updateExecutiveDashboard();
             }
 
-            // Clock update setiap detik
+            // Inisialisasi awal dari cache lokal jika ada (incoming + sla_outbound + monitoring_4h)
+            if (typeof JNTFirebaseService !== 'undefined') {
+                mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
+                mergeAndEmit(JNTFirebaseService.getLocalStore('incoming') || []);
+                mergeAndEmit(JNTFirebaseService.getLocalStore('monitoring_4h') || []);
+
+                // Live Real-Time Subscriptions dari Firestore
+                if (typeof JNTFirebaseService.subscribeSLAOutbound === 'function') {
+                    JNTFirebaseService.subscribeSLAOutbound(function(slaList) {
+                        if (Array.isArray(slaList)) mergeAndEmit(slaList);
+                    });
+                }
+                if (typeof JNTFirebaseService.subscribeMonitoring4H === 'function') {
+                    JNTFirebaseService.subscribeMonitoring4H(function(monList) {
+                        if (Array.isArray(monList)) {
+                            const outboundOnly = monList.filter(t => t.tripType !== 'RETURN' && !t.isBalikan);
+                            mergeAndEmit(outboundOnly);
+                        }
+                    });
+                }
+            }
+
+            window.addEventListener('jnt_data_updated', function() {
+                if (typeof JNTFirebaseService !== 'undefined') {
+                    _rawSlaMap.clear();
+                    mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
+                    mergeAndEmit(JNTFirebaseService.getLocalStore('incoming') || []);
+                    const monList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                    const outboundOnly = monList.filter(t => t.tripType !== 'RETURN' && !t.isBalikan);
+                    mergeAndEmit(outboundOnly);
+                }
+                updateExecutiveDashboard();
+            });
+
+            // Update Jam real-time
             const clockEl = document.getElementById('sh-top-clock-text');
             if (clockEl) {
                 function updateClock() {
@@ -883,7 +1152,22 @@
                 setInterval(updateClock, 1000);
             }
 
-            // Update tanggal di topbar sesuai hari ini
+            // Update chip tanggal hari ini
             const dateChip = document.getElementById('sh-top-date-chip');
             if (dateChip) {
-                const t
+                const today = new Date();
+                const dStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                const dateText = dateChip.querySelector('span:first-child');
+                if (dateText) dateText.textContent = dStr;
+            }
+        } // end initDashboardPage
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDashboardPage);
+        } else {
+            initDashboardPage();
+        }
+    </script>
+</body>
+
+</html>

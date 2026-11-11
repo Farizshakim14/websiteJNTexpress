@@ -39,25 +39,56 @@ const JNTFirebaseService = {
 
     // Broadcast data mutation across local listeners and open browser tabs
     notifyDataMutated(detail) {
+        // 1. Trigger local browser window event
         window.dispatchEvent(new CustomEvent('jnt_data_updated', { detail }));
+
+        // 2. Broadcast cross-tab jika multi-tab terbuka
         if (jntSyncChannel) {
             try {
                 jntSyncChannel.postMessage({ type: 'JNT_DATA_MUTATION', detail, timestamp: Date.now() });
             } catch (e) { }
         }
-        // FIREBASE-ONLY: Tidak menulis ke localStorage untuk data pulse.
+
+        // 3. Paksa refresh data subscriber seketika di memori lokal tanpa menunggu network roundtrip
+        if (detail && detail.colName && this.forceRefreshSub) {
+            try {
+                this.forceRefreshSub(detail.colName);
+            } catch (e) { }
+        }
     },
 
-    // ⚡ FIREBASE-ONLY: getLocalStore & saveLocalStore dinonaktifkan.
-    // Data TIDAK disimpan di device. Semua baca/tulis langsung ke Firestore.
+    // ⚡ DUAL CACHE LAYER: Memory Cache + LocalStorage Persistence Fallback
+    // Memastikan saat halaman direfresh atau berpindah menu, data tidak blank (0ms render),
+    // lalu otomatis tersinkronisasi dengan Firestore secara real-time.
     getLocalStore(colName) {
-        // FIREBASE-ONLY: Tidak membaca dari localStorage.
-        return [];
+        this._cachedSubData = this._cachedSubData || {};
+        if (this._cachedSubData[colName] && this._cachedSubData[colName].length > 0) {
+            return this._cachedSubData[colName];
+        }
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const raw = localStorage.getItem('jnt_cache_' + colName);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        this._cachedSubData[colName] = parsed;
+                        return parsed;
+                    }
+                }
+            }
+        } catch (_) { }
+        return this._cachedSubData[colName] || [];
     },
 
     saveLocalStore(colName, list) {
-        // FIREBASE-ONLY: Tidak menyimpan ke localStorage.
-        // Data hanya ada di Firestore cloud.
+        this._cachedSubData = this._cachedSubData || {};
+        const cleanList = Array.isArray(list) ? list : [];
+        this._cachedSubData[colName] = cleanList;
+        try {
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('jnt_cache_' + colName, JSON.stringify(cleanList));
+            }
+        } catch (_) { }
     },
 
     async getDoc(colName, docId) {
@@ -407,9 +438,9 @@ const JNTFirebaseService = {
         delete cloudPayload._cloudVersion;
         cloudPayload.updatedAt = cloudPayload.updatedAt || new Date().toISOString();
 
-        // Tulis langsung ke Firestore — tidak ada fallback localStorage
+        // Tulis langsung ke Firestore
         await window.db.collection(colName).doc(docId).set(cloudPayload, { merge: merge });
-        console.log(`[FIREBASE-ONLY] WRITE SUCCESS [${colName}/${docId}]`);
+        console.log(`[FIREBASE] WRITE SUCCESS [${colName}/${docId}]`);
 
         const updatedObj = {
             id: docId,
@@ -419,29 +450,43 @@ const JNTFirebaseService = {
             _syncStatus: 'SYNCED'
         };
 
+        // Update in-memory & persistent cache seketika
+        const currentList = this.getLocalStore(colName) || [];
+        const idx = currentList.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
+        if (idx >= 0) {
+            currentList[idx] = merge ? { ...currentList[idx], ...updatedObj } : updatedObj;
+        } else {
+            currentList.unshift(updatedObj);
+        }
+        this.saveLocalStore(colName, currentList);
+
         this.notifyDataMutated({ colName, docId, action: 'save', data: updatedObj, syncStatus: 'SYNCED' });
         return updatedObj;
     },
 
     async deleteDoc(colName, docId) {
-        console.log(`[FIREBASE-ONLY] START DELETE [${colName}/${docId}]`);
+        console.log(`[FIREBASE] START DELETE [${colName}/${docId}]`);
 
-        // ⚡ FIREBASE-ONLY: Cek koneksi internet sebelum menghapus
         if (!navigator.onLine) {
             const errMsg = 'Tidak ada koneksi internet. Data tidak dapat dihapus. Hubungkan ke internet dan coba lagi.';
-            console.error(`[FIREBASE-ONLY] DELETE REJECTED - Offline: [${colName}/${docId}]`);
+            console.error(`[FIREBASE] DELETE REJECTED - Offline: [${colName}/${docId}]`);
             throw new Error(errMsg);
         }
 
         if (!window.db) {
             const errMsg = 'Database Firebase tidak terhubung. Periksa koneksi internet Anda.';
-            console.error(`[FIREBASE-ONLY] DELETE REJECTED - DB not initialized: [${colName}/${docId}]`);
+            console.error(`[FIREBASE] DELETE REJECTED - DB not initialized: [${colName}/${docId}]`);
             throw new Error(errMsg);
         }
 
-        // Hapus langsung dari Firestore — tidak ada fallback localStorage
         await window.db.collection(colName).doc(docId).delete();
-        console.log(`[FIREBASE-ONLY] DELETE SUCCESS [${colName}/${docId}]`);
+        console.log(`[FIREBASE] DELETE SUCCESS [${colName}/${docId}]`);
+
+        // Hapus dari in-memory & persistent cache
+        const currentList = this.getLocalStore(colName) || [];
+        const filtered = currentList.filter(i => (i.id !== docId && i.kodeTugas !== docId && i._docId !== docId));
+        this.saveLocalStore(colName, filtered);
+
         this.notifyDataMutated({ colName, docId, action: 'delete', confirmed: true });
         return { success: true, confirmed: true };
     },
@@ -449,13 +494,16 @@ const JNTFirebaseService = {
     // ----------------------------------------------------
     // HELPER: SLOT TIME CALCULATION & NORMALIZATION
     // ----------------------------------------------------
-    /** Urutan 24 slot monitoring (4 hari x 6 slot @4 jam) */
+    /** Urutan 42 slot monitoring (7 hari x 6 slot @4 jam) */
     getMonitoringSlotKeys() {
         return [
             '00:00', '04:00', '08:00', '12:00', '16:00', '20:00',
             'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00',
             'D3_00:00', 'D3_04:00', 'D3_08:00', 'D3_12:00', 'D3_16:00', 'D3_20:00',
-            'D4_00:00', 'D4_04:00', 'D4_08:00', 'D4_12:00', 'D4_16:00', 'D4_20:00'
+            'D4_00:00', 'D4_04:00', 'D4_08:00', 'D4_12:00', 'D4_16:00', 'D4_20:00',
+            'D5_00:00', 'D5_04:00', 'D5_08:00', 'D5_12:00', 'D5_16:00', 'D5_20:00',
+            'D6_00:00', 'D6_04:00', 'D6_08:00', 'D6_12:00', 'D6_16:00', 'D6_20:00',
+            'D7_00:00', 'D7_04:00', 'D7_08:00', 'D7_12:00', 'D7_16:00', 'D7_20:00'
         ];
     },
 
@@ -522,7 +570,7 @@ const JNTFirebaseService = {
     },
 
     isOutJakartaSlot(sVal) {
-        return !!(sVal && typeof sVal === 'object' && (sVal.lokasi === "OUT JAKARTA" || sVal.keterangan === "Keberangkatan Awal"));
+        return !!(sVal && typeof sVal === 'object' && (sVal.lokasi === "OUT JKT999" || sVal.lokasi === "OUT JAKARTA" || sVal.keterangan === "Keberangkatan Awal" || String(sVal.lokasi || '').toUpperCase().includes('OUT JKT') || String(sVal.lokasi || '').toUpperCase().includes('OUT JAKARTA')));
     },
 
     /** Index slot tempat OUT JAKARTA tercatat (-1 jika tidak ada) */
@@ -568,7 +616,7 @@ const JNTFirebaseService = {
         const slotKeys = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
         for (const sKey of slotKeys) {
             const sVal = slots[sKey];
-            if (sVal && sVal.jamUpdateAktual && (sVal.lokasi === "OUT JAKARTA" || sVal.keterangan === "Keberangkatan Awal")) {
+            if (sVal && sVal.jamUpdateAktual && (sVal.lokasi === "OUT JKT999" || sVal.lokasi === "OUT JAKARTA" || sVal.keterangan === "Keberangkatan Awal" || String(sVal.lokasi || '').toUpperCase().includes('OUT JKT'))) {
                 const correctKey = this.getSlotForTime(sVal.jamUpdateAktual);
                 if (correctKey !== sKey) {
                     if (!slots[correctKey]) {
@@ -739,7 +787,7 @@ const JNTFirebaseService = {
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-            operator: sessionStorage.getItem('jnt_active_username') || "Hamdan",
+            operator: sessionStorage.getItem('jnt_active_username') || "Operator",
             shiftId: shiftId,
             modul: "Master SSOT",
             kodeTugas: kodeTugas,
@@ -776,7 +824,7 @@ const JNTFirebaseService = {
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-            operator: meta.inputBy || sessionStorage.getItem('jnt_active_username') || "Hamdan",
+            operator: meta.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
             shiftId: shiftId,
             modul: "Status Engine",
             kodeTugas: kodeTugas,
@@ -884,7 +932,11 @@ const JNTFirebaseService = {
         window.addEventListener('jnt_data_updated', eventHandler);
 
         let unsub = () => { };
-        if (window.db) {
+        let authUnsub = null;
+
+        const attachListener = () => {
+            if (typeof unsub === 'function') unsub();
+            if (!window.db) return;
             try {
                 unsub = window.db.collection(colName).onSnapshot(snap => {
                     const data = [];
@@ -892,18 +944,49 @@ const JNTFirebaseService = {
                     isCloudInitialized = true;
                     emit(data);
                 }, err => {
-                    console.warn(`[SLA UPDATE] FIRESTORE ERROR snapshot [${colName}]: ${err.message}`);
-                    console.log(`[SLA UPDATE] LOCAL STORAGE FALLBACK rendering [${colName}]`);
+                    console.warn(`[FIRESTORE] snapshot notice [${colName}]: ${err.message}`);
                     emit(null);
+                    if (window.auth && (err.code === 'permission-denied' || (err.message && err.message.includes('permission')))) {
+                        if (!authUnsub) {
+                            authUnsub = window.auth.onAuthStateChanged(u => {
+                                if (u && !u.isAnonymous) {
+                                    if (typeof authUnsub === 'function') { authUnsub(); authUnsub = null; }
+                                    attachListener();
+                                }
+                            });
+                        }
+                    }
                 });
+
+                // Proaktif direct get() agar data langsung masuk dari cloud
+                window.db.collection(colName).get().then(snap => {
+                    if (snap && !snap.empty) {
+                        const data = [];
+                        snap.forEach(d => data.push({ id: d.id, ...d.data() }));
+                        isCloudInitialized = true;
+                        emit(data);
+                    }
+                }).catch(() => { });
             } catch (e) {
                 emit(null);
             }
+        };
+
+        attachListener();
+
+        if (window.auth && !window.auth.currentUser) {
+            const initialAuthUnsub = window.auth.onAuthStateChanged(u => {
+                if (u && !u.isAnonymous) {
+                    initialAuthUnsub();
+                    attachListener();
+                }
+            });
         }
 
         return () => {
             window.removeEventListener('jnt_data_updated', eventHandler);
             if (typeof unsub === 'function') unsub();
+            if (typeof authUnsub === 'function') authUnsub();
             // Bersihkan registry saat unsubscribe
             if (this._subRegistry && this._subRegistry[colName]) {
                 delete this._subRegistry[colName];
@@ -934,6 +1017,17 @@ const JNTFirebaseService = {
         return fallbackId;
     },
 
+    getRealOperatorNames() {
+        const users = this.getLocalStore('users') || [];
+        const activeUserName = sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
+        const dummyNames = ['rina marlina', 'dedi setiawan', 'budi santoso', 'hamdan hamdani', 'hamdan', 'rizky ramadhan', 'rizky'];
+        const fromUsers = users
+            .map(u => (u.fullname || u.username || '').trim())
+            .filter(n => n && !dummyNames.includes(n.toLowerCase()));
+        const unique = Array.from(new Set([activeUserName, ...fromUsers]));
+        return unique;
+    },
+
     getActiveShift() {
         const activeId = this.getActiveShiftId();
         const shifts = this.getLocalStore('shifts');
@@ -941,21 +1035,73 @@ const JNTFirebaseService = {
         if (!found) {
             found = shifts.find(s => s.status === 'AKTIF');
         }
+        const activeUserName = sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
+        const realOps = this.getRealOperatorNames();
+        const defaultOp2 = realOps.find(n => n.toLowerCase() !== activeUserName.toLowerCase()) || realOps[0] || activeUserName;
+        const dummyNames = ['rina marlina', 'dedi setiawan', 'budi santoso', 'hamdan hamdani', 'hamdan', 'rizky ramadhan', 'rizky'];
+
         if (!found) {
             const todayStr = new Date().toISOString().slice(0, 10);
             found = {
                 id: activeId,
                 shiftId: activeId,
                 tanggal: todayStr,
-                namaShift: "Shift 1 (08:00 - 20:00 WIB)",
-                jamMulai: "08:00",
-                jamSelesai: "20:00",
+                namaShift: "Shift 1 (08:30 - 20:30 WIB)",
+                jamMulai: "08:30",
+                jamSelesai: "20:30",
                 status: "AKTIF",
-                operator1: { nama: "Hamdan Hamdani", role: "Operator Utama", tugas: "Monitoring 4H & Incident" },
-                operator2: { nama: "Rizky Ramadhan", role: "Operator Pendamping", tugas: "SLA Vendor" },
+                operator1: { nama: activeUserName, role: "Operator Utama", tugas: "Monitoring 4 Jam" },
+                operator2: { nama: defaultOp2, role: "Operator Pendamping", tugas: "SLA" },
                 createdAt: new Date().toISOString()
             };
             this.saveDoc('shifts', activeId, found, true);
+        } else {
+            // Migrasi otomatis jika masih tersimpan nama dummy legacy atau format jam/penugasan lama
+            let modified = false;
+            if (found.operator1 && dummyNames.includes((found.operator1.nama || '').toLowerCase().trim())) {
+                found.operator1.nama = activeUserName;
+                modified = true;
+            }
+            if (found.operator2 && (!found.operator2.nama || dummyNames.includes((found.operator2.nama || '').toLowerCase().trim()))) {
+                if (defaultOp2 && !dummyNames.includes(defaultOp2.toLowerCase())) {
+                    found.operator2.nama = defaultOp2;
+                    modified = true;
+                }
+            }
+            if (found.operator1 && (found.operator1.tugas === "Monitoring 4H & Incident" || found.operator1.tugas === "Monitoring 4H & Trouble/Laka")) {
+                found.operator1.tugas = "Monitoring 4 Jam";
+                modified = true;
+            }
+            if (found.operator2 && (found.operator2.tugas === "SLA Vendor & Master Data" || found.operator2.tugas === "SLA Vendor")) {
+                found.operator2.tugas = "SLA";
+                modified = true;
+            }
+            if (found.jamMulai === "08:00" || found.jamMulai === "08:00 WIB") {
+                found.jamMulai = "08:30";
+                modified = true;
+            }
+            if (found.jamSelesai === "20:00" || found.jamSelesai === "20:00 WIB") {
+                found.jamSelesai = "20:30";
+                modified = true;
+            }
+            if (found.jamMulai === "20:00" || found.jamMulai === "20:00 WIB") {
+                found.jamMulai = "20:30";
+                modified = true;
+            }
+            if (found.jamSelesai === "08:00" || found.jamSelesai === "08:00 WIB") {
+                found.jamSelesai = "09:30";
+                modified = true;
+            }
+            if (found.namaShift === "Shift 1 (08:00 - 20:00 WIB)") {
+                found.namaShift = "Shift 1 (08:30 - 20:30 WIB)";
+                modified = true;
+            } else if (found.namaShift === "Shift 2 (20:00 - 08:00 WIB)") {
+                found.namaShift = "Shift 2 (20:30 - 09:30 WIB)";
+                modified = true;
+            }
+            if (modified) {
+                this.saveDoc('shifts', found.shiftId || found.id, found, true);
+            }
         }
         return found;
     },
@@ -1085,33 +1231,33 @@ const JNTFirebaseService = {
             // B2. Master Vendors (12 Official Vendors)
             const initialVendors = [
                 { code: "SERYU", nama: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)", status: "AKTIF" },
-                { code: "APL",   nama: "PT. ASIA PASIFIK LOGISTIK (APL)",      status: "AKTIF" },
-                { code: "KLS",   nama: "PT. KENCANA LOGISTIK SAMUDERA (KLS)",  status: "AKTIF" },
-                { code: "JTS",   nama: "PT. JET TRANSPORT SERVICES (JTS)",     status: "AKTIF" },
-                { code: "CHIJUN",nama: "PT CHIJUN SMART FREIGHT (CHIJUN)",     status: "AKTIF" },
-                { code: "PAL",   nama: "PT. PESONA ABADI LOGISTIK (PAL)",      status: "AKTIF" },
-                { code: "AB",    nama: "PT ANUGERAH BERSATU (AB)",             status: "AKTIF" },
-                { code: "SOLUSI",nama: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)", status: "AKTIF" },
-                { code: "REYA",  nama: "PT. REYA BAHAGIA ABADI (REYA)",        status: "AKTIF" },
-                { code: "SDE",   nama: "PT. SOLUSI DUNIA EXPEDISI (SDE)",      status: "AKTIF" },
-                { code: "MTI",   nama: "PT. MEDIA TRANS INDO (MTI)",           status: "AKTIF" },
-                { code: "LNP",   nama: "LNP",                                  status: "AKTIF" }
+                { code: "APL", nama: "PT. ASIA PASIFIK LOGISTIK (APL)", status: "AKTIF" },
+                { code: "KLS", nama: "PT. KENCANA LOGISTIK SAMUDERA (KLS)", status: "AKTIF" },
+                { code: "JTS", nama: "PT. JET TRANSPORT SERVICES (JTS)", status: "AKTIF" },
+                { code: "CHIJUN", nama: "PT CHIJUN SMART FREIGHT (CHIJUN)", status: "AKTIF" },
+                { code: "PAL", nama: "PT. PESONA ABADI LOGISTIK (PAL)", status: "AKTIF" },
+                { code: "AB", nama: "PT ANUGERAH BERSATU (AB)", status: "AKTIF" },
+                { code: "SOLUSI", nama: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)", status: "AKTIF" },
+                { code: "REYA", nama: "PT. REYA BAHAGIA ABADI (REYA)", status: "AKTIF" },
+                { code: "SDE", nama: "PT. SOLUSI DUNIA EXPEDISI (SDE)", status: "AKTIF" },
+                { code: "MTI", nama: "PT. MEDIA TRANS INDO (MTI)", status: "AKTIF" },
+                { code: "LNP", nama: "LNP", status: "AKTIF" }
             ];
 
             // Registri singkatan vendor terpusat — dipakai oleh semua modul
             JNTFirebaseService._vendorMap = {
                 SERYU: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)",
-                APL:   "PT. ASIA PASIFIK LOGISTIK (APL)",
-                KLS:   "PT. KENCANA LOGISTIK SAMUDERA (KLS)",
-                JTS:   "PT. JET TRANSPORT SERVICES (JTS)",
-                CHIJUN:"PT CHIJUN SMART FREIGHT (CHIJUN)",
-                PAL:   "PT. PESONA ABADI LOGISTIK (PAL)",
-                AB:    "PT ANUGERAH BERSATU (AB)",
-                SOLUSI:"PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)",
-                REYA:  "PT. REYA BAHAGIA ABADI (REYA)",
-                SDE:   "PT. SOLUSI DUNIA EXPEDISI (SDE)",
-                MTI:   "PT. MEDIA TRANS INDO (MTI)",
-                LNP:   "LNP"
+                APL: "PT. ASIA PASIFIK LOGISTIK (APL)",
+                KLS: "PT. KENCANA LOGISTIK SAMUDERA (KLS)",
+                JTS: "PT. JET TRANSPORT SERVICES (JTS)",
+                CHIJUN: "PT CHIJUN SMART FREIGHT (CHIJUN)",
+                PAL: "PT. PESONA ABADI LOGISTIK (PAL)",
+                AB: "PT ANUGERAH BERSATU (AB)",
+                SOLUSI: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)",
+                REYA: "PT. REYA BAHAGIA ABADI (REYA)",
+                SDE: "PT. SOLUSI DUNIA EXPEDISI (SDE)",
+                MTI: "PT. MEDIA TRANS INDO (MTI)",
+                LNP: "LNP"
             };
             JNTFirebaseService._vendorList = initialVendors;
 
@@ -1172,11 +1318,7 @@ const JNTFirebaseService = {
 
             // E. Seed Users Collection
             const initialUsers = [
-                { username: "hamdan", fullname: "Hamdan Hamdani", email: "hamdan@jtexpress.co.id", phone: "0812-3456-7890", role: "Operator SLA", tlc: "TLC Cikande", status: "Aktif", createdAt: "2026-06-10 14:25" },
-                { username: "rizky", fullname: "Rizky Ramadhan", email: "rizky@jtexpress.co.id", phone: "0812-9876-1234", role: "Operator Monitoring", tlc: "Head Office", status: "Aktif", createdAt: "2026-06-10 14:30" },
-                { username: "rina", fullname: "Rina Marlina", email: "rina@jtexpress.co.id", phone: "0813-9876-5432", role: "Supervisor", tlc: "TLC Serpong", status: "Aktif", createdAt: "2026-05-15 10:00" },
-                { username: "dedi", fullname: "Dedi Setiawan", email: "dedi@jtexpress.co.id", phone: "0815-1122-3344", role: "Admin", tlc: "Head Office", status: "Aktif", createdAt: "2026-05-01 09:00" },
-                { username: "budi", fullname: "Budi Santoso", email: "budi@jtexpress.co.id", phone: "0812-9988-7766", role: "Operator SLA", tlc: "Gateway Surabaya", status: "Nonaktif", createdAt: "2026-07-01 11:00" }
+                { username: "farizs", fullname: "Farizs Hakim", email: "farizs.hakim@jtexpress.co.id", phone: "0812-3456-7890", role: "Super Admin", tlc: "Head Office", status: "Aktif", createdAt: "2026-06-10 14:25" }
             ];
 
             if (this.getLocalStore('users').length === 0) {
@@ -1192,21 +1334,17 @@ const JNTFirebaseService = {
             }
 
             // F. Seed Active Shift Data
+            const realOps = this.getRealOperatorNames();
+            const op2Initial = realOps.find(n => n.toLowerCase() !== "farizs hakim") || realOps[0] || "Farizs Hakim";
             const activeShiftObj = {
-                shiftId: "SHIFT-20260816-01",
-                tanggal: "2026-08-16",
-                namaShift: "Shift 1 (08:00 - 20:00)",
+                shiftId: "SHIFT-20261111-01",
+                tanggal: new Date().toISOString().slice(0, 10),
+                namaShift: "Shift 1 (08:30 - 20:30 WIB)",
                 status: "AKTIF",
-                jamMulai: "08:00 WIB",
-                jamSelesai: "20:00 WIB",
-                operator1: { nama: "Hamdan", role: "Operator", tugas: "Monitoring + Trouble/Laka" },
-                operator2: { nama: "Rizky", role: "Operator", tugas: "SLA + Incoming" },
-                stats: {
-                    inputIncomingCount: 28,
-                    slaUpdateCount: 37,
-                    monitoringCheckinCount: 42,
-                    incidentCount: 4
-                }
+                jamMulai: "08:30",
+                jamSelesai: "20:30",
+                operator1: { nama: "Farizs Hakim", role: "Operator Utama", tugas: "Monitoring 4 Jam" },
+                operator2: { nama: op2Initial, role: "Operator Pendamping", tugas: "SLA" }
             };
 
             if (this.getLocalStore('shifts').length === 0) {
@@ -1235,22 +1373,22 @@ const JNTFirebaseService = {
                     vendor: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)",
                     rute: "JAKARTA - PALEMBANG (PLM FUSO)",
                     deskripsi: "Ban belakang kanan pecah, sedang proses penggantian ban cadangan.",
-                    dilaporkanOleh: "Hamdan",
+                    dilaporkanOleh: "Farizs Hakim",
                     status: "DALAM PENANGANAN",
-                    shiftId: "SHIFT-20260816-01",
+                    shiftId: "SHIFT-20261111-01",
                     createdAt: new Date().toISOString(),
                     history: [
                         {
                             time: "02/10/2026 10:35",
                             note: "Laporan insiden ban pecah diterima dari driver.",
                             status: "OPEN",
-                            user: "Hamdan"
+                            user: "Farizs Hakim"
                         },
                         {
                             time: "02/10/2026 10:45",
                             note: "Tim mekanik rekanan vendor meluncur ke lokasi kejadian.",
                             status: "DALAM PENANGANAN",
-                            user: "Hamdan"
+                            user: "Farizs Hakim"
                         }
                     ]
                 },
@@ -1268,22 +1406,22 @@ const JNTFirebaseService = {
                     vendor: "PT. ASIA PASIFIK LOGISTIK (APL)",
                     rute: "JAKARTA - SEMARANG (SRG FUSO)",
                     deskripsi: "Radiator panas berlebih, air pendingin diganti dan armada kembali jalan.",
-                    dilaporkanOleh: "Rizky",
+                    dilaporkanOleh: "Rina Marlina",
                     status: "SUDAH SELESAI",
-                    shiftId: "SHIFT-20260816-01",
+                    shiftId: "SHIFT-20261111-01",
                     createdAt: new Date().toISOString(),
                     history: [
                         {
                             time: "01/10/2026 23:15",
                             note: "Armada berhenti di Rest Area 208 karena indikator suhu mesin tinggi.",
                             status: "OPEN",
-                            user: "Rizky"
+                            user: "Rina Marlina"
                         },
                         {
                             time: "02/10/2026 00:20",
                             note: "Mesin telah dingin dan air radiator diisi ulang. Unit melanjutkan perjalanan normal.",
                             status: "SUDAH SELESAI",
-                            user: "Rizky"
+                            user: "Rina Marlina"
                         }
                     ]
                 }
@@ -1315,6 +1453,7 @@ const JNTFirebaseService = {
                         tripType: "ADD",
                         wilayah: "JAWA",
                         platNomor: "B 9134 PXX",
+                        vendor: "PT. SERIKAT HANTAR EKSPEDISI (SERYU)",
                         driver1: "Nasrul F.",
                         driver2: "Budi S.",
                         jamBerangkat: "02/10/2026 09:00",
@@ -1325,8 +1464,8 @@ const JNTFirebaseService = {
                         targetSLAOutboundHours: 16,
                         targetSLAReturnHours: 16,
                         targetSLARoundtripHours: 32,
-                        inputBy: "Hamdan",
-                        shiftId: "SHIFT-20260816-01"
+                        inputBy: "Farizs Hakim",
+                        shiftId: "SHIFT-20261111-01"
                     },
                     {
                         kodeTugas: "DBGX2610020002",
@@ -1336,6 +1475,7 @@ const JNTFirebaseService = {
                         tripType: "ADD",
                         wilayah: "JAWA",
                         platNomor: "B 9041 SXX",
+                        vendor: "PT. ASIA PASIFIK LOGISTIK (APL)",
                         driver1: "Dian OS",
                         driver2: "Agus T.",
                         jamBerangkat: "01/10/2026 21:00",
@@ -1346,8 +1486,8 @@ const JNTFirebaseService = {
                         targetSLAOutboundHours: 15,
                         targetSLAReturnHours: 15,
                         targetSLARoundtripHours: 30,
-                        inputBy: "Rizky",
-                        shiftId: "SHIFT-20260816-01"
+                        inputBy: "Rina Marlina",
+                        shiftId: "SHIFT-20261111-01"
                     },
                     {
                         kodeTugas: "DBGX2610020003",
@@ -1357,6 +1497,7 @@ const JNTFirebaseService = {
                         tripType: "ADD",
                         wilayah: "JAWA",
                         platNomor: "B 9201 TXX",
+                        vendor: "PT. SOLUSI DUNIA EXPEDISI (SDE)",
                         driver1: "Heri K.",
                         driver2: "Rahmat M.",
                         jamBerangkat: "02/10/2026 05:30",
@@ -1367,8 +1508,8 @@ const JNTFirebaseService = {
                         targetSLAOutboundHours: 6,
                         targetSLAReturnHours: 6,
                         targetSLARoundtripHours: 12,
-                        inputBy: "Hamdan",
-                        shiftId: "SHIFT-20260816-01"
+                        inputBy: "Farizs Hakim",
+                        shiftId: "SHIFT-20261111-01"
                     },
                     {
                         kodeTugas: "DBGX2610020004",
@@ -1378,6 +1519,7 @@ const JNTFirebaseService = {
                         tripType: "ADD",
                         wilayah: "SUMATERA",
                         platNomor: "B 9356 PKK",
+                        vendor: "PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)",
                         driver1: "Yosep P.",
                         driver2: "Yuda R.",
                         jamBerangkat: "01/10/2026 08:00",
@@ -1388,8 +1530,8 @@ const JNTFirebaseService = {
                         targetSLAOutboundHours: 20,
                         targetSLAReturnHours: 20,
                         targetSLARoundtripHours: 40,
-                        inputBy: "Hamdan",
-                        shiftId: "SHIFT-20260816-01"
+                        inputBy: "Farizs Hakim",
+                        shiftId: "SHIFT-20261111-01"
                     },
                     {
                         kodeTugas: "DBGX2610020005",
@@ -1399,6 +1541,7 @@ const JNTFirebaseService = {
                         tripType: "ADD",
                         wilayah: "JAWA",
                         platNomor: "B 9812 WXX",
+                        vendor: "PT. JET TRANSPORT SERVICES (JTS)",
                         driver1: "Bambang U.",
                         driver2: "Eko S.",
                         jamBerangkat: "01/10/2026 10:00",
@@ -1410,8 +1553,8 @@ const JNTFirebaseService = {
                         targetSLAOutboundHours: 20,
                         targetSLAReturnHours: 20,
                         targetSLARoundtripHours: 40,
-                        inputBy: "Rizky",
-                        shiftId: "SHIFT-20260816-01"
+                        inputBy: "Rina Marlina",
+                        shiftId: "SHIFT-20261111-01"
                     },
                     {
                         kodeTugas: "DBGX2610020006",
@@ -1421,6 +1564,7 @@ const JNTFirebaseService = {
                         tripType: "ADD",
                         wilayah: "SUMATERA",
                         platNomor: "B 9400 ERR",
+                        vendor: "PT. PESONA ABADI LOGISTIK (PAL)",
                         driver1: "Untung S.",
                         driver2: "",
                         jamBerangkat: "",
@@ -1431,8 +1575,8 @@ const JNTFirebaseService = {
                         targetSLAOutboundHours: 0,
                         targetSLAReturnHours: 0,
                         targetSLARoundtripHours: 0,
-                        inputBy: "Hamdan",
-                        shiftId: "SHIFT-20260816-01"
+                        inputBy: "Farizs Hakim",
+                        shiftId: "SHIFT-20261111-01"
                     }
                 ];
 
@@ -1445,6 +1589,10 @@ const JNTFirebaseService = {
                         trip: item.trip,
                         namaRute: item.namaRute,
                         platNomor: item.platNomor,
+                        vendor: item.vendor,
+                        driver1: item.driver1,
+                        driver2: item.driver2,
+                        totalAwb: item.totalAwb || 0,
                         jamBerangkat: item.jamBerangkat,
                         jamSampaiAktual: item.jamSampaiAktual || (item.status === 'SUDAH SELESAI' ? "02/10/2026 05:30" : ""),
                         durasiBerangkatMinutes: item.status === 'SUDAH SELESAI' ? 1170 : 0,
@@ -1469,6 +1617,41 @@ const JNTFirebaseService = {
                         statusRoundtrip: "WAITING_RETURN",
                         keterangan: "⏳ Menunggu data perjalanan balikan dari Gateway"
                     }, true);
+
+                    // Monitoring 4H Record (sinkron langsung saat inisialisasi)
+                    const slotKeys24 = this.getMonitoringSlotKeys();
+                    const depSlotIdx = this.getDepartureSlotIndex(item.jamBerangkat);
+                    const departureSlotKey = slotKeys24[depSlotIdx] || '00:00';
+                    const initialSlots = {};
+                    slotKeys24.forEach(k => { initialSlots[k] = null; });
+                    if (item.jamBerangkat) {
+                        initialSlots[departureSlotKey] = {
+                            lokasi: "OUT JKT999",
+                            keterangan: "Keberangkatan Awal",
+                            jenisUpdate: "Lokasi Normal",
+                            jamUpdateAktual: item.jamBerangkat,
+                            inputBy: item.inputBy,
+                            shiftId: item.shiftId,
+                            statusUpdate: "SUDAH UPDATE"
+                        };
+                    }
+
+                    await this.saveDoc('monitoring_4h', item.kodeTugas, {
+                        kodeTugas: item.kodeTugas,
+                        tanggalMonitoring: item.jamBerangkat ? item.jamBerangkat.split(' ')[0] : new Date().toISOString().split('T')[0],
+                        trip: item.trip,
+                        namaRute: item.namaRute,
+                        platNomor: item.platNomor,
+                        vendor: item.vendor,
+                        driver1: item.driver1,
+                        jamBerangkat: item.jamBerangkat || "",
+                        slots: initialSlots,
+                        lastUpdateSlot: departureSlotKey,
+                        lastUpdateLokasi: "OUT JKT999",
+                        lastUpdateTime: item.jamBerangkat || "",
+                        lastUpdateBy: item.inputBy,
+                        statusPerjalanan: item.status === 'SUDAH SELESAI' ? 'COMPLETED' : (item.status === 'KENDALA' ? 'KENDALA' : 'ON PROGRESS')
+                    }, true);
                 }
             }
 
@@ -1481,10 +1664,47 @@ const JNTFirebaseService = {
     // ----------------------------------------------------
     // 2. MASTER DATA ENGINE (LOOKUP & SAFE DELETION)
     // ----------------------------------------------------
+    resolveTripVendor(item) {
+        if (!item) return 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
+        if (item.vendor && String(item.vendor).trim() !== '' && item.vendor !== 'J&T' && item.vendor !== '-') {
+            return item.vendor;
+        }
+        if (item.namaVendor && String(item.namaVendor).trim() !== '' && item.namaVendor !== 'J&T') {
+            return item.namaVendor;
+        }
+        const platClean = String(item.platNomor || '').replace(/\s+/g, '').toUpperCase();
+        const fleetMap = {
+            'B9134PXX': 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)',
+            'B9041SXX': 'PT. ASIA PASIFIK LOGISTIK (APL)',
+            'B9812BKN': 'PT. JET TRANSPORT SERVICES (JTS)',
+            'B9812WXX': 'PT. JET TRANSPORT SERVICES (JTS)',
+            'B9356PKK': 'PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)',
+            'B9201SKK': 'PT. SOLUSI DUNIA EXPEDISI (SDE)',
+            'B9201TXX': 'PT. SOLUSI DUNIA EXPEDISI (SDE)',
+            'B9400ERR': 'PT. PESONA ABADI LOGISTIK (PAL)'
+        };
+        if (fleetMap[platClean]) return fleetMap[platClean];
+
+        try {
+            const fleets = this.getLocalStore('master_fleets') || [];
+            const found = fleets.find(f => (f.platNomor || '').replace(/\s+/g, '').toUpperCase() === platClean);
+            if (found && found.vendor) return found.vendor;
+        } catch (_) { }
+
+        return item.vendor || 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
+    },
+
     async lookupTripMaster(tripCode) {
         const fallbackMap = {
+            "SEG FUSO": { trip: "SEG FUSO", rute: "JAKARTA - SERANG", tlc: "SERANG", layanan: "FUSO", wilayah: "BANTEN", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+            "SEG CDD": { trip: "SEG CDD", rute: "JAKARTA - SERANG", tlc: "SERANG", layanan: "CDD", wilayah: "BANTEN", targetSLAOutboundHours: 1.5, targetSLAReturnHours: 1.5, targetSLARoundtripHours: 3.0, status: "ACTIVE" },
+            "TKG FUSO": { trip: "TKG FUSO", rute: "JAKARTA - LAMPUNG", tlc: "LAMPUNG", layanan: "FUSO", wilayah: "SUMATERA", targetSLAOutboundHours: 13.5, targetSLAReturnHours: 13.5, targetSLARoundtripHours: 27.0, status: "ACTIVE" },
+            "TKG CDD": { trip: "TKG CDD", rute: "JAKARTA - LAMPUNG", tlc: "LAMPUNG", layanan: "CDD", wilayah: "SUMATERA", targetSLAOutboundHours: 11.0, targetSLAReturnHours: 11.0, targetSLARoundtripHours: 22.0, status: "ACTIVE" },
+            "SRG FUSO": { trip: "SRG FUSO", rute: "JAKARTA - SEMARANG", tlc: "SEMARANG", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 14.0, targetSLAReturnHours: 14.0, targetSLARoundtripHours: 28.0, status: "ACTIVE" },
+            "SRG CDD": { trip: "SRG CDD", rute: "JAKARTA - SEMARANG", tlc: "SEMARANG", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 12.5, targetSLAReturnHours: 12.5, targetSLARoundtripHours: 25.0, status: "ACTIVE" },
+            "BDO FUSO": { trip: "BDO FUSO", rute: "JAKARTA - BANDUNG", tlc: "BANDUNG", layanan: "FUSO", wilayah: "JAWA", targetSLAOutboundHours: 5.5, targetSLAReturnHours: 4.5, targetSLARoundtripHours: 11.0, status: "ACTIVE" },
+            "BDO CDD": { trip: "BDO CDD", rute: "JAKARTA - BANDUNG", tlc: "BANDUNG", layanan: "CDD", wilayah: "JAWA", targetSLAOutboundHours: 5.5, targetSLAReturnHours: 5.5, targetSLARoundtripHours: 11.0, status: "ACTIVE" },
             "JOG CDD": { trip: "JOG CDD", rute: "JAKARTA - YOGYA", tlc: "JOG CDD", layanan: "ADD", wilayah: "JAWA", targetSLAOutboundHours: 16, targetSLAReturnHours: 16, targetSLARoundtripHours: 32, status: "ACTIVE" },
-            "SRG FUSO": { trip: "SRG FUSO", rute: "JAKARTA - SEMARANG", tlc: "SRG FUSO", layanan: "ADD", wilayah: "JAWA", targetSLAOutboundHours: 15, targetSLAReturnHours: 15, targetSLARoundtripHours: 30, status: "ACTIVE" },
             "BDG CDD": { trip: "BDG CDD", rute: "JAKARTA - BANDUNG", tlc: "BDG CDD", layanan: "REG", wilayah: "JAWA", targetSLAOutboundHours: 6, targetSLAReturnHours: 6, targetSLARoundtripHours: 12, status: "ACTIVE" },
             "PLM FUSO": { trip: "PLM FUSO", rute: "JAKARTA - PALEMBANG", tlc: "PLM FUSO", layanan: "ADD", wilayah: "SUMATERA", targetSLAOutboundHours: 24, targetSLAReturnHours: 24, targetSLARoundtripHours: 48, status: "ACTIVE" },
             "SUB FUSO": { trip: "SUB FUSO", rute: "JAKARTA - SURABAYA", tlc: "SUB FUSO", layanan: "ADD", wilayah: "JAWA", targetSLAOutboundHours: 20, targetSLAReturnHours: 20, targetSLARoundtripHours: 40, status: "ACTIVE" }
@@ -1636,7 +1856,7 @@ const JNTFirebaseService = {
             lateMinutes: 0,
             statusSla: "BERJALAN",
             alasan: "",
-            inputBy: tripData.inputBy || "Hamdan",
+            inputBy: tripData.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
             shiftId: shiftId
         }, true);
 
@@ -1652,21 +1872,16 @@ const JNTFirebaseService = {
             keterangan: "Menunggu data perjalanan balikan dari Gateway"
         }, true);
 
-        // Monitoring 4H Record
+        // Monitoring 4H Record (42 slot 7 hari)
         const todayStr = new Date().toISOString().split('T')[0];
-        const slotKeys24 = [
-            '00:00', '04:00', '08:00', '12:00', '16:00', '20:00',
-            'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00',
-            'D3_00:00', 'D3_04:00', 'D3_08:00', 'D3_12:00', 'D3_16:00', 'D3_20:00',
-            'D4_00:00', 'D4_04:00', 'D4_08:00', 'D4_12:00', 'D4_16:00', 'D4_20:00'
-        ];
+        const allSlotKeys = this.getMonitoringSlotKeys();
         const depSlotIdx = this.getDepartureSlotIndex(fullTripData.jamBerangkat);
-        const departureSlotKey = slotKeys24[depSlotIdx] || '00:00';
+        const departureSlotKey = allSlotKeys[depSlotIdx] || '00:00';
         const initialSlots = {};
-        slotKeys24.forEach(k => { initialSlots[k] = null; });
+        allSlotKeys.forEach(k => { initialSlots[k] = null; });
 
         initialSlots[departureSlotKey] = {
-            lokasi: "OUT JAKARTA",
+            lokasi: "OUT JKT999",
             keterangan: "Keberangkatan Awal",
             jenisUpdate: "Lokasi Normal",
             jamUpdateAktual: fullTripData.jamBerangkat,
@@ -1685,7 +1900,7 @@ const JNTFirebaseService = {
             jamBerangkat: fullTripData.jamBerangkat || "",
             slots: initialSlots,
             lastUpdateSlot: departureSlotKey,
-            lastUpdateLokasi: "OUT JAKARTA",
+            lastUpdateLokasi: "OUT JKT999",
             lastUpdateTime: fullTripData.jamBerangkat,
             lastUpdateBy: fullTripData.inputBy,
             statusPerjalanan: "ON PROGRESS"
@@ -1694,7 +1909,7 @@ const JNTFirebaseService = {
         // Log Audit Event
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-            operator: tripData.inputBy || "Hamdan",
+            operator: tripData.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
             shiftId: shiftId,
             modul: "Incoming SSOT",
             kodeTugas: tripData.kodeTugas,
@@ -1708,11 +1923,308 @@ const JNTFirebaseService = {
         return this.saveDoc('incoming', kodeTugas, updateObj, true);
     },
 
+    /**
+     * Import / Sinkronisasi data perjalanan dari Excel (SLA & Monitoring 4 Jam).
+     * Jam keberangkatan otomatis terisi di SLA Vendor dan slot OUT JKT999 Monitoring 4H.
+     */
+    async importTripFromExcel(row, options = { upsert: true }) {
+        if (!row || !row.kodeTugas) {
+            throw new Error('Kode Tugas wajib ada pada setiap baris data Excel.');
+        }
+        const kode = String(row.kodeTugas).trim();
+        const plat = String(row.platNomor || '-').trim();
+        const trip = String(row.trip || row.rute || row.namaRute || row.tlc || 'JKT - SUB').trim();
+        const vendor = String(row.vendor || 'J&T Express').trim();
+        const driver = String(row.driver1 || row.driver || '-').trim();
+        const jamBerangkat = String(row.jamBerangkat || row.waktuBerangkat || '').trim();
+        const targetSLA = row.targetSLA || row.targetSLAOutboundHours || null;
+        const jamSampai = String(row.jamSampai || row.jamSampaiAktual || '').trim();
+        const inputBy = row.inputBy || sessionStorage.getItem('jnt_active_username') || 'Operator';
+        const shiftId = this.getActiveShiftId();
+
+        const existingIncoming = this.getLocalStore('incoming') || [];
+        const existing = existingIncoming.find(i => (i.kodeTugas || i.id) === kode);
+
+        if (existing && !options.upsert) {
+            throw new Error(`Kode Tugas ${kode} sudah terdaftar di sistem.`);
+        }
+
+        const masterInfo = await this.lookupTripMaster(trip || row.tlc);
+
+        // 1. Data SSOT Incoming
+        const tripData = {
+            ...(existing || {}),
+            kodeTugas: kode,
+            platNomor: plat,
+            trip: trip,
+            namaRute: masterInfo.rute || trip,
+            tlc: row.tlc || masterInfo.tlc || trip.substring(0, 3).toUpperCase(),
+            vendor: vendor,
+            driver1: driver,
+            jamBerangkat: jamBerangkat || (existing ? existing.jamBerangkat : new Date().toLocaleString('id-ID')),
+            targetSLAOutboundHours: targetSLA ? parseFloat(targetSLA) : masterInfo.targetSLAOutboundHours,
+            targetSLARoundtripHours: masterInfo.targetSLARoundtripHours,
+            jamSampaiAktual: jamSampai || (existing ? existing.jamSampaiAktual : ''),
+            status: jamSampai ? 'COMPLETED' : (existing ? existing.status : 'ON PROGRESS'),
+            inputBy: inputBy,
+            shiftId: shiftId,
+            updatedAt: new Date().toISOString()
+        };
+        if (!existing) {
+            tripData.createdAt = new Date().toISOString();
+        }
+
+        await this.saveDoc('incoming', kode, tripData, true);
+
+        // 2. Data SLA Outbound (otomatis terisi jam keberangkatan & target SLA)
+        const slaDoc = {
+            kodeTugas: kode,
+            trip: tripData.trip,
+            namaRute: tripData.namaRute,
+            platNomor: tripData.platNomor,
+            vendor: tripData.vendor,
+            driver1: tripData.driver1,
+            jamBerangkat: tripData.jamBerangkat,
+            jamSampaiAktual: tripData.jamSampaiAktual,
+            targetSLAHours: tripData.targetSLAOutboundHours,
+            statusSla: tripData.jamSampaiAktual ? 'COMPLETED' : 'BERJALAN',
+            inputBy: inputBy,
+            shiftId: shiftId,
+            updatedAt: new Date().toISOString()
+        };
+        await this.saveDoc('sla_outbound', kode, slaDoc, true);
+
+        // 3. Data Monitoring 4 Jam (otomatis slot OUT JKT999 pada slot jam berangkat)
+        const allSlotKeys = this.getMonitoringSlotKeys();
+        const existingMon = (this.getLocalStore('monitoring_4h') || []).find(m => (m.kodeTugas || m.id) === kode);
+        const initialSlots = existingMon && existingMon.slots ? { ...existingMon.slots } : {};
+        allSlotKeys.forEach(k => { if (initialSlots[k] === undefined) initialSlots[k] = null; });
+
+        const depSlotIdx = this.getDepartureSlotIndex(tripData.jamBerangkat);
+        const departureSlotKey = allSlotKeys[depSlotIdx] || '00:00';
+
+        initialSlots[departureSlotKey] = {
+            lokasi: "OUT JKT999",
+            keterangan: "Keberangkatan Awal (Auto-Import Excel)",
+            jenisUpdate: "Lokasi Normal",
+            jamUpdateAktual: tripData.jamBerangkat,
+            inputBy: inputBy,
+            shiftId: shiftId,
+            statusUpdate: "SUDAH UPDATE"
+        };
+
+        // Jika file Excel berisi kolom-kolom slot jam checkpoint 4H (H1 s/d H7)
+        let lastFilledSlotKey = departureSlotKey;
+        let lastFilledLokasi = "OUT JKT999";
+        let lastFilledTime = tripData.jamBerangkat;
+        let hasArrival = Boolean(tripData.jamSampaiAktual);
+
+        if (row.slots && typeof row.slots === 'object') {
+            allSlotKeys.forEach(k => {
+                const sData = row.slots[k];
+                if (sData && typeof sData === 'object' && sData.lokasi) {
+                    initialSlots[k] = {
+                        lokasi: sData.lokasi,
+                        keterangan: sData.keterangan || "Update dari Excel Monitoring 4H",
+                        jenisUpdate: sData.jenisUpdate || "Lokasi Normal",
+                        jamUpdateAktual: sData.jamUpdateAktual || tripData.jamBerangkat || new Date().toLocaleString('id-ID'),
+                        inputBy: inputBy,
+                        shiftId: shiftId,
+                        statusUpdate: "SUDAH UPDATE"
+                    };
+                    lastFilledSlotKey = k;
+                    lastFilledLokasi = sData.lokasi;
+                    lastFilledTime = sData.jamUpdateAktual || lastFilledTime;
+
+                    const locUp = String(sData.lokasi).toUpperCase();
+                    if (locUp.startsWith('IN') || locUp.includes('GATEWAY IN') || locUp.includes('SAMPAI') || sData.jenisUpdate === 'Sampai') {
+                        hasArrival = true;
+                        tripData.jamSampaiAktual = sData.jamUpdateAktual || tripData.jamSampaiAktual || new Date().toLocaleString('id-ID');
+                    }
+                }
+            });
+        }
+
+        if (hasArrival && tripData.jamSampaiAktual) {
+            const arrSlotIdx = Math.max(depSlotIdx + 1, Math.min(depSlotIdx + 3, allSlotKeys.length - 1));
+            const arrKey = allSlotKeys[arrSlotIdx];
+            const destCode = (tripData.tlc || 'GATEWAY').substring(0, 3).toUpperCase();
+            if (!initialSlots[arrKey]) {
+                initialSlots[arrKey] = {
+                    lokasi: `IN ${destCode}`,
+                    keterangan: "Armada Sampai Tujuan (Excel)",
+                    jenisUpdate: "Sampai",
+                    jamUpdateAktual: tripData.jamSampaiAktual,
+                    inputBy: inputBy,
+                    shiftId: shiftId,
+                    statusUpdate: "COMPLETED"
+                };
+            }
+            lastFilledSlotKey = arrKey;
+            lastFilledLokasi = initialSlots[arrKey].lokasi;
+            lastFilledTime = tripData.jamSampaiAktual;
+            tripData.status = 'COMPLETED';
+        }
+
+        const monDoc = {
+            ...(existingMon || {}),
+            kodeTugas: kode,
+            trip: tripData.trip,
+            namaRute: tripData.namaRute,
+            platNomor: tripData.platNomor,
+            vendor: tripData.vendor,
+            driver1: tripData.driver1,
+            jamBerangkat: tripData.jamBerangkat,
+            jamSampaiAktual: tripData.jamSampaiAktual,
+            slots: initialSlots,
+            lastUpdateSlot: lastFilledSlotKey,
+            lastUpdateLokasi: lastFilledLokasi,
+            lastUpdateTime: lastFilledTime,
+            lastUpdateBy: inputBy,
+            statusPerjalanan: hasArrival ? "COMPLETED" : "ON PROGRESS",
+            updatedAt: new Date().toISOString()
+        };
+        await this.saveDoc('monitoring_4h', kode, monDoc, true);
+
+        // Jika terdeteksi sampai, sinkronkan ke SLA Outbound juga
+        if (hasArrival) {
+            await this.saveDoc('sla_outbound', kode, {
+                jamSampaiAktual: tripData.jamSampaiAktual,
+                statusSla: 'COMPLETED'
+            }, true);
+            await this.saveDoc('incoming', kode, {
+                jamSampaiAktual: tripData.jamSampaiAktual,
+                status: 'SUDAH SELESAI'
+            }, true);
+        }
+
+        return tripData;
+    },
+
     // ----------------------------------------------------
     // 4. SLA MONITORING 3-TAB ENGINE
     // ----------------------------------------------------
     subscribeSLAOutbound(callback) {
-        return this.createSub('sla_outbound', callback);
+        let slaCache = this.getLocalStore('sla_outbound') || [];
+        let incCache = this.getLocalStore('incoming') || [];
+
+        const emitMergedSLA = () => {
+            const mergedMap = new Map();
+            incCache.forEach(item => {
+                if (item.tripType !== 'RETURN' && !item.isBalikan) {
+                    const k = item.kodeTugas || item.id;
+                    if (k) mergedMap.set(k, { ...item });
+                }
+            });
+            slaCache.forEach(item => {
+                const k = item.kodeTugas || item.id;
+                if (k) {
+                    const existing = mergedMap.get(k) || {};
+                    mergedMap.set(k, { ...existing, ...item });
+                }
+            });
+            const resultList = Array.from(mergedMap.values()).map(item => {
+                item.vendor = this.resolveTripVendor(item);
+                return item;
+            });
+            this.saveLocalStore('sla_outbound', resultList);
+            callback(resultList);
+        };
+
+        // 1. Emit data cache seketika (0ms render)
+        emitMergedSLA();
+
+        const localHandler = () => {
+            slaCache = this.getLocalStore('sla_outbound') || [];
+            incCache = this.getLocalStore('incoming') || [];
+            emitMergedSLA();
+        };
+        window.addEventListener('jnt_data_updated', localHandler);
+
+        let unsubSla = null;
+        let unsubInc = null;
+        let authSub = null;
+
+        const attachCloud = () => {
+            if (!window.db) return;
+            if (typeof unsubSla === 'function') { unsubSla(); unsubSla = null; }
+            if (typeof unsubInc === 'function') { unsubInc(); unsubInc = null; }
+
+            try {
+                unsubSla = window.db.collection('sla_outbound').onSnapshot(snap => {
+                    slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedSLA();
+                }, err => {
+                    console.warn('sla_outbound sub notice:', err.message);
+                    if (window.auth && (err.code === 'permission-denied' || (err.message && err.message.includes('permission')))) {
+                        if (!authSub) {
+                            authSub = window.auth.onAuthStateChanged(u => {
+                                if (u && !u.isAnonymous) {
+                                    if (typeof authSub === 'function') { authSub(); authSub = null; }
+                                    attachCloud();
+                                }
+                            });
+                        }
+                    }
+                });
+            } catch (e) {
+                console.warn('sla_outbound attach error:', e);
+            }
+
+            try {
+                unsubInc = window.db.collection('incoming').onSnapshot(snap => {
+                    incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedSLA();
+                }, err => {
+                    console.warn('incoming sub notice:', err.message);
+                    if (window.auth && (err.code === 'permission-denied' || (err.message && err.message.includes('permission')))) {
+                        if (!authSub) {
+                            authSub = window.auth.onAuthStateChanged(u => {
+                                if (u && !u.isAnonymous) {
+                                    if (typeof authSub === 'function') { authSub(); authSub = null; }
+                                    attachCloud();
+                                }
+                            });
+                        }
+                    }
+                });
+            } catch (e) {
+                console.warn('incoming attach error:', e);
+            }
+
+            // Proaktif get() langsung dari cloud untuk load instan tanpa tunggu stream handshake
+            window.db.collection('sla_outbound').get().then(snap => {
+                if (snap && !snap.empty) {
+                    slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedSLA();
+                }
+            }).catch(() => { });
+
+            window.db.collection('incoming').get().then(snap => {
+                if (snap && !snap.empty) {
+                    incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedSLA();
+                }
+            }).catch(() => { });
+        };
+
+        attachCloud();
+
+        if (window.auth && !window.auth.currentUser) {
+            const onceAuth = window.auth.onAuthStateChanged(u => {
+                if (u && !u.isAnonymous) {
+                    onceAuth();
+                    attachCloud();
+                }
+            });
+        }
+
+        return () => {
+            window.removeEventListener('jnt_data_updated', localHandler);
+            if (typeof unsubSla === 'function') unsubSla();
+            if (typeof unsubInc === 'function') unsubInc();
+            if (typeof authSub === 'function') authSub();
+        };
     },
 
     async saveSLAOutbound(kodeTugas, updateObj) {
@@ -1732,7 +2244,7 @@ const JNTFirebaseService = {
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-            operator: updateObj.inputBy || "Hamdan",
+            operator: updateObj.inputBy || sessionStorage.getItem('jnt_active_username') || "Farizs Hakim",
             shiftId: shiftId,
             modul: "SLA Vendor",
             kodeTugas: kodeTugas,
@@ -1881,31 +2393,34 @@ const JNTFirebaseService = {
                         mergedMap.set(k, { ...existing, ...item, slots: { ...(existing.slots || {}), ...(item.slots || {}) } });
                     }
                 });
-                callback(Array.from(mergedMap.values()).map(item => this.normalizeMonitoringSlots(item)));
+                callback(Array.from(mergedMap.values()).map(item => {
+                    item.vendor = this.resolveTripVendor(item);
+                    return this.normalizeMonitoringSlots(item);
+                }));
             });
         }
 
         // REAL-TIME FIRESTORE MULTI-COLLECTION MERGE LISTENER (sla_outbound + incoming + monitoring_4h)
-        let slaCache = [];
-        let incCache = [];
-        let monCache = [];
+        let slaCache = this.getLocalStore('sla_outbound') || [];
+        let incCache = this.getLocalStore('incoming') || [];
+        let monCache = this.getLocalStore('monitoring_4h') || [];
 
         const emitMergedData = () => {
             const mergedMap = new Map();
 
-            // 1. All SLA Outbound trips from Firestore
+            // 1. All SLA Outbound trips from Firestore / local cache
             slaCache.forEach(item => {
                 const key = item.kodeTugas || item.id;
                 if (key) mergedMap.set(key, { ...item, slots: {} });
             });
 
-            // 2. All Incoming trips from Firestore
+            // 2. All Incoming trips from Firestore / local cache
             incCache.forEach(item => {
                 const key = item.kodeTugas || item.id;
                 if (key && !mergedMap.has(key)) mergedMap.set(key, { ...item, slots: {} });
             });
 
-            // 3. All Monitoring 4H slot check-ins from Firestore
+            // 3. All Monitoring 4H slot check-ins from Firestore / local cache
             monCache.forEach(item => {
                 const key = item.kodeTugas || item.id;
                 if (key) {
@@ -1923,34 +2438,115 @@ const JNTFirebaseService = {
                 }
             });
 
-            const mergedList = Array.from(mergedMap.values()).map(item => this.normalizeMonitoringSlots(item));
+            const mergedList = Array.from(mergedMap.values()).map(item => {
+                item.vendor = this.resolveTripVendor(item);
+                return this.normalizeMonitoringSlots(item);
+            });
+            this.saveLocalStore('monitoring_4h', mergedList);
             callback(mergedList);
         };
 
-        // Real-time Firestore Listeners across all 3 collections (FIREBASE-ONLY)
-        const unsubSla = window.db.collection('sla_outbound').onSnapshot(snap => {
-            slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            emitMergedData();
-        }, err => console.warn('sla_outbound sub error:', err.message));
+        // Emit cached data immediately (0ms delay for tabs & KPI cards)
+        emitMergedData();
 
-        const unsubInc = window.db.collection('incoming').onSnapshot(snap => {
-            incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const localHandler = () => {
+            slaCache = this.getLocalStore('sla_outbound') || [];
+            incCache = this.getLocalStore('incoming') || [];
+            monCache = this.getLocalStore('monitoring_4h') || [];
             emitMergedData();
-        }, err => console.warn('incoming sub error:', err.message));
+        };
+        window.addEventListener('jnt_data_updated', localHandler);
 
-        const unsubMon = window.db.collection('monitoring_4h').onSnapshot(snap => {
-            monCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            emitMergedData();
-        }, err => console.warn('monitoring_4h sub error:', err.message));
+        let unsubSla = null;
+        let unsubInc = null;
+        let unsubMon = null;
+        let authSub = null;
+
+        const attachCloud = () => {
+            if (!window.db) return;
+            if (typeof unsubSla === 'function') { unsubSla(); unsubSla = null; }
+            if (typeof unsubInc === 'function') { unsubInc(); unsubInc = null; }
+            if (typeof unsubMon === 'function') { unsubMon(); unsubMon = null; }
+
+            const onPermError = (err, col) => {
+                console.warn(`${col} sub notice:`, err.message);
+                if (window.auth && (err.code === 'permission-denied' || (err.message && err.message.includes('permission')))) {
+                    if (!authSub) {
+                        authSub = window.auth.onAuthStateChanged(u => {
+                            if (u && !u.isAnonymous) {
+                                if (typeof authSub === 'function') { authSub(); authSub = null; }
+                                attachCloud();
+                            }
+                        });
+                    }
+                }
+            };
+
+            try {
+                unsubSla = window.db.collection('sla_outbound').onSnapshot(snap => {
+                    slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedData();
+                }, err => onPermError(err, 'sla_outbound'));
+            } catch (e) { }
+
+            try {
+                unsubInc = window.db.collection('incoming').onSnapshot(snap => {
+                    incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedData();
+                }, err => onPermError(err, 'incoming'));
+            } catch (e) { }
+
+            try {
+                unsubMon = window.db.collection('monitoring_4h').onSnapshot(snap => {
+                    monCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedData();
+                }, err => onPermError(err, 'monitoring_4h'));
+            } catch (e) { }
+
+            // Proaktif get() langsung
+            window.db.collection('monitoring_4h').get().then(snap => {
+                if (snap && !snap.empty) {
+                    monCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedData();
+                }
+            }).catch(() => { });
+            window.db.collection('sla_outbound').get().then(snap => {
+                if (snap && !snap.empty) {
+                    slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedData();
+                }
+            }).catch(() => { });
+            window.db.collection('incoming').get().then(snap => {
+                if (snap && !snap.empty) {
+                    incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    emitMergedData();
+                }
+            }).catch(() => { });
+        };
+
+        attachCloud();
+
+        if (window.auth && !window.auth.currentUser) {
+            const onceAuth = window.auth.onAuthStateChanged(u => {
+                if (u && !u.isAnonymous) {
+                    onceAuth();
+                    attachCloud();
+                }
+            });
+        }
 
         return () => {
+            window.removeEventListener('jnt_data_updated', localHandler);
             if (typeof unsubSla === 'function') unsubSla();
             if (typeof unsubInc === 'function') unsubInc();
             if (typeof unsubMon === 'function') unsubMon();
+            if (typeof authSub === 'function') authSub();
         };
     },
 
-    async saveMonitoringSlotUpdate(kodeTugas, slotKey, lokasi, keterangan = "", jenisUpdate = "Lokasi Normal", jamUpdateAktual = "", inputBy = "Hamdan", statusPerjalanan = "ON PROGRESS") {
+    async saveMonitoringSlotUpdate(kodeTugas, slotKey, lokasi, keterangan = "", jenisUpdate = "Lokasi Normal", jamUpdateAktual = "", inputBy = "", statusPerjalanan = "ON PROGRESS") {
+        const activeUserName = sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
+        const actualInputBy = inputBy || activeUserName;
         const shiftId = this.getActiveShiftId();
         let existing = {};
         const localList = this.getLocalStore('monitoring_4h');
@@ -1985,7 +2581,7 @@ const JNTFirebaseService = {
             jamBerangkat: existing.jamBerangkat || incData.jamBerangkat || ""
         });
         if (targetIdx < minIdx) {
-            throw new Error(`Slot ${slotKey} berada sebelum/bersamaan dengan OUT JAKARTA. Update posisi 4 jam hanya bisa diinput setelah armada OUT JAKARTA.`);
+            throw new Error(`Slot ${slotKey} berada sebelum/bersamaan dengan OUT JKT999. Update posisi 4 jam hanya bisa diinput setelah armada OUT JKT999.`);
         }
 
         const oldSlotData = existing.slots[slotKey];
@@ -2051,8 +2647,58 @@ const JNTFirebaseService = {
             await this.saveDoc('incoming', kodeTugas, { status: 'KENDALA' }, true);
             await this.saveDoc('sla_outbound', kodeTugas, { statusSla: 'KENDALA' }, true);
         }
-
         return result;
+    },
+    /**
+     * Upload Foto ke Hosting cPanel via upload.php
+     * Menyimpan fisik gambar ke folder /uploads/ di hosting cPanel,
+     * dan mengembalikan URL publik gambar untuk disimpan ke Firestore.
+     * @param {File|Blob|string} photoData - Objek File/Blob atau string Base64 dataURL
+     * @param {string} prefix - Prefix nama file (misal 'sampai', 'trouble')
+     * @returns {Promise<string>} - Mengembalikan URL foto di hosting, atau fallback ke dataURL jika upload gagal
+     */
+    async uploadPhotoToHosting(photoData, prefix = 'bukti') {
+        if (!photoData) return null;
+        if (typeof photoData === 'string' && (photoData.startsWith('http://') || photoData.startsWith('https://') || photoData.startsWith('uploads/'))) {
+            return photoData;
+        }
+
+        try {
+            const uploadEndpoint = 'upload.php';
+            let response = null;
+
+            if (photoData instanceof Blob || photoData instanceof File) {
+                const formData = new FormData();
+                formData.append('file', photoData, (photoData.name || `${prefix}_${Date.now()}.jpg`));
+                formData.append('prefix', prefix);
+                response = await fetch(uploadEndpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+            } else if (typeof photoData === 'string' && photoData.startsWith('data:image')) {
+                response = await fetch(uploadEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: photoData, prefix: prefix })
+                });
+            }
+
+            if (response && response.ok) {
+                const result = await response.json();
+                if (result && result.success && result.url) {
+                    console.log('✅ [HOSTING UPLOAD] Foto tersimpan di cPanel:', result.url);
+                    return result.url;
+                } else if (result && result.message) {
+                    console.warn('⚠️ [HOSTING UPLOAD] Response warning dari upload.php:', result.message);
+                }
+            } else {
+                console.warn('⚠️ [HOSTING UPLOAD] Response status tidak OK:', response ? response.status : 'No response');
+            }
+        } catch (err) {
+            console.warn('⚠️ [HOSTING UPLOAD] Upload ke upload.php tidak dapat dijangkau, fallback ke Base64:', err.message);
+        }
+
+        return typeof photoData === 'string' ? photoData : null;
     },
 
     // ----------------------------------------------------
@@ -2068,10 +2714,10 @@ const JNTFirebaseService = {
         // Prevent duplicate open incident for the same vehicle/kodeTugas
         if (incidentData.kodeTugas && incidentData.kodeTugas !== "-") {
             const existingIncidents = this.getLocalStore('troubles') || [];
-            const hasOpen = existingIncidents.some(i => 
-                i.kodeTugas === incidentData.kodeTugas && 
-                i.status !== 'SUDAH SELESAI' && 
-                i.status !== 'RESOLVED' && 
+            const hasOpen = existingIncidents.some(i =>
+                i.kodeTugas === incidentData.kodeTugas &&
+                i.status !== 'SUDAH SELESAI' &&
+                i.status !== 'RESOLVED' &&
                 i.status !== 'SELESAI'
             );
             if (hasOpen) {
@@ -2100,7 +2746,7 @@ const JNTFirebaseService = {
             vendor: incidentData.vendor || incMaster.vendor || "J&T Logistics",
             rute: incidentData.rute || incMaster.trip || incMaster.namaRute || "-",
             deskripsi: incidentData.deskripsi || "Kejadian terdeteksi pada operasional.",
-            dilaporkanOleh: incidentData.dilaporkanOleh || sessionStorage.getItem('jnt_active_username') || "Hamdan",
+            dilaporkanOleh: incidentData.dilaporkanOleh || sessionStorage.getItem('jnt_active_username') || "Farizs Hakim",
             status: incidentData.status || "DALAM PENANGANAN",
             fotoKejadian: incidentData.fotoKejadian || [],
             fotoSelesai: incidentData.fotoSelesai || [],
@@ -2135,7 +2781,8 @@ const JNTFirebaseService = {
         return fullIncident;
     },
 
-    async updateIncidentStatus(incidentId, newStatus, note = "", user = "Hamdan", restoreTripStatus = true, fotoSelesai = null, extraFotoKejadian = null) {
+    async updateIncidentStatus(incidentId, newStatus, note = "", user = "", restoreTripStatus = true, fotoSelesai = null, extraFotoKejadian = null) {
+        const actualUser = user || sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
         const data = await this.getDoc('troubles', incidentId);
         if (!data) {
             console.warn(`[TROUBLE] Incident with ID ${incidentId} not found.`);
@@ -2152,7 +2799,7 @@ const JNTFirebaseService = {
         });
 
         const existingKejadian = Array.isArray(data.fotoKejadian) ? data.fotoKejadian : [];
-        const existingSelesai  = Array.isArray(data.fotoSelesai)  ? data.fotoSelesai  : [];
+        const existingSelesai = Array.isArray(data.fotoSelesai) ? data.fotoSelesai : [];
 
         const updatedData = {
             ...data,
@@ -2215,7 +2862,7 @@ const JNTFirebaseService = {
 
     async startNewShift(shiftData) {
         const shifts = this.getLocalStore('shifts');
-        
+
         if (!shiftData.operator1 || !shiftData.operator1.nama) {
             throw new Error("Operator 1 wajib diisi!");
         }
@@ -2238,24 +2885,35 @@ const JNTFirebaseService = {
         const nextSeq = String(todayShifts.length + 1).padStart(2, '0');
         const newShiftId = shiftData.shiftId || `SHIFT-${dateStr}-${nextSeq}`;
 
+        const jamMulaiVal = shiftData.jamMulai || "08:30";
+        const jamSelesaiVal = shiftData.jamSelesai || "20:30";
+        const defaultNamaShift = jamMulaiVal === "20:30"
+            ? `Shift 2 (${jamMulaiVal} - ${jamSelesaiVal} WIB)`
+            : `Shift 1 (${jamMulaiVal} - ${jamSelesaiVal} WIB)`;
+
         const newShiftObj = {
             id: newShiftId,
             shiftId: newShiftId,
             tanggal: shiftData.tanggal || new Date().toISOString().slice(0, 10),
-            namaShift: shiftData.namaShift || `Shift (${shiftData.jamMulai || '08:00'} - ${shiftData.jamSelesai || '20:00'})`,
-            jamMulai: shiftData.jamMulai || "08:00",
-            jamSelesai: shiftData.jamSelesai || "20:00",
+            namaShift: shiftData.namaShift || defaultNamaShift,
+            jamMulai: jamMulaiVal,
+            jamSelesai: jamSelesaiVal,
             status: "AKTIF",
             operator1: {
                 nama: shiftData.operator1.nama,
                 role: shiftData.operator1.role || "Operator Utama",
-                tugas: shiftData.operator1.tugas || "Monitoring 4H & Incident"
+                tugas: shiftData.operator1.tugas || "Monitoring 4 Jam"
             },
             operator2: {
                 nama: shiftData.operator2.nama,
                 role: shiftData.operator2.role || "Operator Pendamping",
-                tugas: shiftData.operator2.tugas || "SLA Vendor"
+                tugas: shiftData.operator2.tugas || "SLA"
             },
+            ...(shiftData.handoverFrom ? {
+                handoverFrom: shiftData.handoverFrom,
+                handoverNote: shiftData.handoverNote || "Pergantian Shift Operasional",
+                handoverTime: shiftData.handoverTime || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+            } : {}),
             createdAt: new Date().toISOString()
         };
 
@@ -2270,32 +2928,38 @@ const JNTFirebaseService = {
             shiftId: newShiftId,
             modul: "Shift Management",
             kodeTugas: "-",
-            aktivitas: `Mulai Shift Baru (${newShiftId} - ${newShiftObj.operator1.nama} & ${newShiftObj.operator2.nama})`
+            aktivitas: `Mulai Shift Baru (${newShiftId} - ${newShiftObj.operator1.nama} [${newShiftObj.operator1.tugas}] & ${newShiftObj.operator2.nama} [${newShiftObj.operator2.tugas}])`
         });
 
         return newShiftObj;
     },
 
-    async switchShift(shiftId, newOp1, newOp2, op1Tugas, op2Tugas, reason = "Pergantian Shift Operasional") {
+    async switchShift(shiftId, newOp1, newOp2, op1Tugas, op2Tugas, reason = "Pergantian Shift Operasional", jamMulai = "20:30", jamSelesai = "09:30") {
         const shifts = this.getLocalStore('shifts');
         const currentShift = shifts.find(s => (s.shiftId === shiftId || s.id === shiftId));
 
         let prevOpNames = "Operator Sebelumnya";
+        const activeUserName = sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
+        const realOps = this.getRealOperatorNames();
+        const fallbackOp2 = realOps.find(n => n.toLowerCase() !== activeUserName.toLowerCase()) || realOps[0] || "-";
         if (currentShift) {
-            const op1Prev = currentShift.operator1 ? currentShift.operator1.nama : 'Hamdan Hamdani';
-            const op2Prev = currentShift.operator2 ? currentShift.operator2.nama : 'Rizky Ramadhan';
+            const op1Prev = currentShift.operator1 ? currentShift.operator1.nama : activeUserName;
+            const op2Prev = currentShift.operator2 ? currentShift.operator2.nama : fallbackOp2;
             prevOpNames = `${op1Prev} & ${op2Prev}`;
             await this.saveDoc('shifts', shiftId, { status: 'COMPLETED', endedAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) }, true);
         }
 
         const todayStr = new Date().toISOString().slice(0, 10);
-        const startTimeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const nextNamaShift = jamMulai === "20:30"
+            ? `Shift 2 (${jamMulai} - ${jamSelesai} WIB)`
+            : `Shift 1 (${jamMulai} - ${jamSelesai} WIB)`;
         const nextShift = await this.startNewShift({
             tanggal: todayStr,
-            jamMulai: startTimeStr,
-            jamSelesai: "20:00",
-            operator1: { nama: newOp1, role: "Operator Utama", tugas: op1Tugas || "Monitoring 4H & Incident" },
-            operator2: { nama: newOp2, role: "Operator Pendamping", tugas: op2Tugas || "SLA Vendor" },
+            namaShift: nextNamaShift,
+            jamMulai: jamMulai || "20:30",
+            jamSelesai: jamSelesai || "09:30",
+            operator1: { nama: newOp1, role: "Operator Utama", tugas: op1Tugas || "Monitoring 4 Jam" },
+            operator2: { nama: newOp2, role: "Operator Pendamping", tugas: op2Tugas || "SLA" },
             handoverFrom: prevOpNames,
             handoverNote: reason,
             handoverTime: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
@@ -2332,69 +2996,370 @@ const JNTFirebaseService = {
         return updated;
     },
 
-    calculateShiftMetrics(shiftId) {
-        const targetShiftId = shiftId || this.getActiveShiftId();
-        const logs = this.getLocalStore('audit_logs') || [];
+    getSynthesizedAuditLogs() {
+        const rawLogs = this.getLocalStore('audit_logs') || [];
         const monList = this.getLocalStore('monitoring_4h') || [];
         const slaList = this.getLocalStore('sla_outbound') || [];
+        const slaRetList = this.getLocalStore('sla_return') || [];
         const troubleList = this.getLocalStore('troubles') || [];
         const shiftList = this.getLocalStore('shifts') || [];
+        const activeShiftId = this.getActiveShiftId();
+        const activeUser = sessionStorage.getItem('jnt_active_username') || 'Farizs Hakim';
 
-        const currentShift = shiftList.find(s => s.shiftId === targetShiftId || s.id === targetShiftId);
+        const map = new Map();
+        rawLogs.forEach(l => {
+            const key = l.id || `${l.modul}-${l.kodeTugas}-${l.waktu}-${l.aktivitas}`;
+            map.set(key, l);
+        });
+
+        // Synthesize from monitoring_4h (trip + slots)
+        monList.forEach(m => {
+            const kode = m.kodeTugas || m.id || '-';
+            const sId = m.shiftId || activeShiftId;
+            const op = m.lastUpdateBy || m.inputBy || activeUser;
+            const rute = m.trip || m.namaRute || m.tlc || '-';
+            const plat = m.platNomor || '-';
+
+            if (m.slots && typeof m.slots === 'object') {
+                Object.entries(m.slots).forEach(([slotKey, slotVal]) => {
+                    if (slotVal && (slotVal.lokasi || slotVal.statusUpdate === 'SUDAH UPDATE')) {
+                        const synId = `SYN-MON-${kode}-${slotKey}`;
+                        if (!map.has(synId)) {
+                            const waktuStr = slotVal.jamUpdateAktual || slotVal.checkinTime || m.lastUpdateTime || m.jamBerangkat || '-';
+                            const parsedDate = this.parseMonitoringDate ? this.parseMonitoringDate(waktuStr) : null;
+                            map.set(synId, {
+                                id: synId,
+                                createdAt: parsedDate ? parsedDate.getTime() : Date.now() - 3600000,
+                                waktu: waktuStr,
+                                operator: slotVal.inputBy || op,
+                                shiftId: slotVal.shiftId || sId,
+                                modul: 'Monitoring 4H',
+                                kodeTugas: kode,
+                                aktivitas: `Update Slot [${slotKey}] Armada ${plat} (${rute}) → Posisi: ${slotVal.lokasi}${slotVal.keterangan ? ' (' + slotVal.keterangan + ')' : ''}`
+                            });
+                        }
+                    }
+                });
+            } else {
+                const synId = `SYN-MON-INIT-${kode}`;
+                if (!map.has(synId)) {
+                    const waktuStr = m.lastUpdateTime || m.jamBerangkat || '-';
+                    const parsedDate = this.parseMonitoringDate ? this.parseMonitoringDate(waktuStr) : null;
+                    map.set(synId, {
+                        id: synId,
+                        createdAt: parsedDate ? parsedDate.getTime() : Date.now() - 7200000,
+                        waktu: waktuStr,
+                        operator: op,
+                        shiftId: sId,
+                        modul: 'Monitoring 4H',
+                        kodeTugas: kode,
+                        aktivitas: `Registrasi Monitoring 4 Jam Armada ${plat} (${rute}) — Status: ${m.statusPerjalanan || 'ON PROGRESS'}`
+                    });
+                }
+            }
+        });
+
+        // Synthesize from sla_outbound
+        slaList.forEach(s => {
+            const kode = s.kodeTugas || s.id || '-';
+            const synId = `SYN-SLA-OUT-${kode}`;
+            if (!map.has(synId)) {
+                const waktuStr = s.jamSampaiAktual || s.jamBerangkat || '-';
+                const parsedDate = this.parseMonitoringDate ? this.parseMonitoringDate(waktuStr) : null;
+                const statusSla = s.statusSla || s.status || 'BERJALAN';
+                map.set(synId, {
+                    id: synId,
+                    createdAt: parsedDate ? parsedDate.getTime() : Date.now() - 5400000,
+                    waktu: waktuStr,
+                    operator: s.inputBy || activeUser,
+                    shiftId: s.shiftId || activeShiftId,
+                    modul: 'SLA Vendor',
+                    kodeTugas: kode,
+                    aktivitas: `SLA Outbound ${s.platNomor || '-'} (${s.trip || s.namaRute || '-'} • ${s.vendor || '-'}) — Status: ${statusSla}`
+                });
+            }
+        });
+
+        // Synthesize from sla_return
+        slaRetList.forEach(r => {
+            const kode = r.kodeTugas || r.id || '-';
+            const synId = `SYN-SLA-RET-${kode}`;
+            if (!map.has(synId)) {
+                const waktuStr = r.jamSampaiJkt || r.jamBerangkatBalik || '-';
+                const parsedDate = this.parseMonitoringDate ? this.parseMonitoringDate(waktuStr) : null;
+                map.set(synId, {
+                    id: synId,
+                    createdAt: parsedDate ? parsedDate.getTime() : Date.now() - 4800000,
+                    waktu: waktuStr,
+                    operator: r.inputBy || activeUser,
+                    shiftId: r.shiftId || activeShiftId,
+                    modul: 'SLA Vendor',
+                    kodeTugas: kode,
+                    aktivitas: `SLA Armada Balikan ${r.platNomor || '-'} (${r.trip || '-'}) — Status: ${r.statusSla || r.status || 'BERJALAN'}`
+                });
+            }
+        });
+
+        // Synthesize from troubles
+        troubleList.forEach(t => {
+            const incId = t.incidentId || t.id || '-';
+            const synId = `SYN-TRB-${incId}`;
+            if (!map.has(synId)) {
+                const waktuStr = t.waktuKejadian || '-';
+                const parsedDate = this.parseMonitoringDate ? this.parseMonitoringDate(waktuStr) : null;
+                map.set(synId, {
+                    id: synId,
+                    createdAt: parsedDate ? parsedDate.getTime() : Date.now() - 1800000,
+                    waktu: waktuStr,
+                    operator: t.dilaporkanOleh || activeUser,
+                    shiftId: t.shiftId || activeShiftId,
+                    modul: 'Trouble & Laka',
+                    kodeTugas: t.kodeTugas || incId,
+                    aktivitas: `${t.jenis || 'Trouble'}: ${t.kategoriTrouble || t.deskripsi || '-'} di ${t.lokasiKejadian || '-'} [${t.status || 'OPEN'}]`
+                });
+            }
+        });
+
+        // Synthesize from shifts
+        shiftList.forEach(sh => {
+            const sId = sh.shiftId || sh.id || '-';
+            const synId = `SYN-SHF-${sId}`;
+            if (!map.has(synId)) {
+                const op1 = sh.operator1 ? sh.operator1.nama : activeUser;
+                const op2 = sh.operator2 ? sh.operator2.nama : '-';
+                map.set(synId, {
+                    id: synId,
+                    createdAt: sh.createdAt ? new Date(sh.createdAt).getTime() : Date.now() - 10000000,
+                    waktu: sh.handoverTime || `${sh.tanggal || ''} ${sh.jamMulai || '08:00'}`,
+                    operator: op1,
+                    shiftId: sId,
+                    modul: 'Shift Management',
+                    kodeTugas: '-',
+                    aktivitas: `Penugasan Shift ${sId} (${sh.namaShift || 'Operasional'}) — Op 1: ${op1}, Op 2: ${op2} [${sh.status || 'AKTIF'}]`
+                });
+            }
+        });
+
+        const combined = Array.from(map.values());
+        combined.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || String(b.waktu || '').localeCompare(String(a.waktu || '')));
+        return combined;
+    },
+
+    calculateShiftMetrics(shiftId) {
+        const activeShiftId = this.getActiveShiftId();
+        const targetShiftId = shiftId || activeShiftId;
+        const monList = this.getLocalStore('monitoring_4h') || [];
+        const slaList = this.getLocalStore('sla_outbound') || [];
+        const slaRetList = this.getLocalStore('sla_return') || [];
+        const troubleList = this.getLocalStore('troubles') || [];
+        const shiftList = this.getLocalStore('shifts') || [];
+        const allLogs = this.getSynthesizedAuditLogs();
+
+        const currentShift = shiftList.find(s => s.shiftId === targetShiftId || s.id === targetShiftId) || this.getActiveShift();
+        const isTargetActive = !shiftId || targetShiftId === activeShiftId || (currentShift && currentShift.status === 'AKTIF') || shiftList.length <= 1;
+
         const op1Nama = currentShift && currentShift.operator1 ? currentShift.operator1.nama.toLowerCase() : '';
         const op2Nama = currentShift && currentShift.operator2 ? currentShift.operator2.nama.toLowerCase() : '';
 
-        const shiftLogs = logs.filter(l => l.shiftId === targetShiftId);
+        // Filter or use full operational dataset for active shift so it is 100% synced with Monitoring 4H & SLA Vendor
+        const relevantMon = isTargetActive
+            ? monList
+            : monList.filter(m => m.shiftId === targetShiftId || (m.slots && Object.values(m.slots).some(s => s && s.shiftId === targetShiftId)));
 
-        let monCheckins = 0;
-        let slaUpdates = 0;
-        let incidents = 0;
+        const relevantSla = isTargetActive
+            ? slaList
+            : slaList.filter(s => s.shiftId === targetShiftId);
 
+        const relevantSlaRet = isTargetActive
+            ? slaRetList
+            : slaRetList.filter(r => r.shiftId === targetShiftId);
+
+        const relevantTrouble = isTargetActive
+            ? troubleList
+            : troubleList.filter(t => t.shiftId === targetShiftId);
+
+        const shiftLogs = isTargetActive
+            ? allLogs
+            : allLogs.filter(l => l.shiftId === targetShiftId);
+
+        // 1. Monitoring 4H Breakdown
+        let monFilledSlots = 0;
+        let monCompletedCount = 0;
+        let monOnProgressCount = 0;
+        let monWaitingSlotCount = 0;
+        let monKendalaCount = 0;
+
+        const currentSlotKey = this.getSlotForTime ? this.getSlotForTime(new Date().toTimeString().slice(0, 5)) : '08:00';
+
+        relevantMon.forEach(m => {
+            let hasArrivalSlot = false;
+            let slotsCountForTrip = 0;
+            if (m.slots && typeof m.slots === 'object') {
+                Object.values(m.slots).forEach(slot => {
+                    if (slot && (slot.lokasi || slot.statusUpdate === 'SUDAH UPDATE' || slot.checkinTime || slot.jamUpdateAktual)) {
+                        monFilledSlots++;
+                        slotsCountForTrip++;
+                        const lokUpper = String(slot.lokasi || '').toUpperCase().trim();
+                        const ketUpper = String(slot.keterangan || '').toUpperCase();
+                        if (lokUpper === 'IN' || lokUpper.startsWith('IN ') || ketUpper.includes('SAMPAI')) {
+                            hasArrivalSlot = true;
+                        }
+                    }
+                });
+            }
+            const stUpper = String(m.statusPerjalanan || m.status || '').toUpperCase();
+            if (stUpper === 'COMPLETED' || stUpper === 'SUDAH SELESAI' || stUpper === 'IN' || hasArrivalSlot) {
+                monCompletedCount++;
+            } else if (stUpper === 'KENDALA' || stUpper === 'TROUBLE') {
+                monKendalaCount++;
+            } else {
+                monOnProgressCount++;
+                const curSlotObj = m.slots && m.slots[currentSlotKey];
+                if (!curSlotObj || !curSlotObj.lokasi) {
+                    monWaitingSlotCount++;
+                }
+            }
+        });
+
+        const totalMon = Math.max(monFilledSlots, relevantMon.length);
+
+        // 2. SLA Vendor Breakdown (Outbound + Return)
+        let slaOnTimeCount = 0;
+        let slaLateCount = 0;
+        let slaRunningCount = 0;
+
+        relevantSla.forEach(s => {
+            const st = String(s.statusSla || s.statusSLA || s.status || '').toUpperCase();
+            if (st.includes('LATE') || st.includes('TERLAMBAT') || st.includes('OVERDUE') || (Number(s.lateMinutes) > 0)) {
+                slaLateCount++;
+            } else if (st.includes('ON TIME') || st.includes('TEPAT') || st.includes('SELESAI') || st.includes('COMPLETED') || s.jamSampaiAktual) {
+                slaOnTimeCount++;
+            } else {
+                slaRunningCount++;
+            }
+        });
+
+        const totalSla = relevantSla.length + relevantSlaRet.length;
+
+        // 3. Trouble & Laka Breakdown
+        let troubleOpenCount = 0;
+        let troubleResolvedCount = 0;
+        relevantTrouble.forEach(t => {
+            const st = String(t.status || '').toUpperCase();
+            if (st === 'SUDAH SELESAI' || st === 'SELESAI' || st === 'CLOSED') {
+                troubleResolvedCount++;
+            } else {
+                troubleOpenCount++;
+            }
+        });
+        const totalTrouble = relevantTrouble.length;
+
+        // 4. Total Unique Trips across Monitoring & SLA
+        const uniqueTripSet = new Set();
+        relevantMon.forEach(m => { if (m.kodeTugas || m.id) uniqueTripSet.add(m.kodeTugas || m.id); });
+        relevantSla.forEach(s => { if (s.kodeTugas || s.id) uniqueTripSet.add(s.kodeTugas || s.id); });
+        const totalTrips = uniqueTripSet.size;
+
+        // 5. Total Operational Transactions
+        const totalTransactions = totalMon + totalSla + totalTrouble;
+
+        // 6. Operator Attribution
         let op1Actions = 0;
         let op2Actions = 0;
-
         shiftLogs.forEach(l => {
             const opName = (l.operator || '').toLowerCase();
             if (op1Nama && opName.includes(op1Nama)) op1Actions++;
             else if (op2Nama && opName.includes(op2Nama)) op2Actions++;
-
-            if (l.modul === 'Monitoring 4H') monCheckins++;
-            else if (l.modul === 'SLA Vendor') slaUpdates++;
-            else if (l.modul === 'Trouble & Laka') incidents++;
         });
 
-        const monShiftCount = monList.filter(m => m.shiftId === targetShiftId || (m.slots && Object.values(m.slots).some(s => s && s.shiftId === targetShiftId))).length;
-        const slaShiftCount = slaList.filter(s => s.shiftId === targetShiftId).length;
-        const troubleShiftCount = troubleList.filter(t => t.shiftId === targetShiftId).length;
-
-        const totalMon = Math.max(monCheckins, monShiftCount);
-        const totalSla = Math.max(slaUpdates, slaShiftCount);
-        const totalTrouble = Math.max(incidents, troubleShiftCount);
+        if (op1Actions === 0 && op2Actions === 0) {
+            op1Actions = totalMon + totalTrouble;
+            op2Actions = totalSla;
+        } else if (op2Actions === 0 && totalSla > 0) {
+            op2Actions = totalSla;
+        }
 
         return {
             shiftId: targetShiftId,
-            totalTransactions: totalMon + totalSla + totalTrouble,
+            totalTrips: totalTrips,
+            totalTransactions: totalTransactions,
+            monTotalTrips: relevantMon.length,
             monCheckins: totalMon,
+            monFilledSlots: monFilledSlots,
+            monCompleted: monCompletedCount,
+            monOnProgress: monOnProgressCount,
+            monWaitingSlot: monWaitingSlotCount,
+            monKendala: monKendalaCount,
             slaUpdates: totalSla,
+            slaOutboundCount: relevantSla.length,
+            slaReturnCount: relevantSlaRet.length,
+            slaOnTime: slaOnTimeCount,
+            slaLate: slaLateCount,
+            slaRunning: slaRunningCount,
             incidents: totalTrouble,
-            op1Actions: op1Actions || Math.ceil((totalMon + totalSla + totalTrouble) / 2),
-            op2Actions: op2Actions || Math.floor((totalMon + totalSla + totalTrouble) / 2),
+            incidentsOpen: troubleOpenCount,
+            incidentsResolved: troubleResolvedCount,
+            op1Actions: op1Actions,
+            op2Actions: op2Actions,
             shiftLogs: shiftLogs
         };
     },
 
     subscribeAuditLogs(callback) {
-        return this.createSub('audit_logs', (list) => {
-            const sorted = [...list];
-            sorted.sort((a, b) => (b.waktu || '').localeCompare(a.waktu || ''));
-            callback(sorted);
-        });
+        const emit = (serverLogs = null) => {
+            const local = this.getLocalStore('audit_logs') || [];
+            const map = new Map();
+            local.forEach(i => { if (i.id) map.set(i.id, i); });
+            if (Array.isArray(serverLogs)) {
+                serverLogs.forEach(i => { if (i.id) map.set(i.id, { ...(map.get(i.id) || {}), ...i }); });
+            }
+            const rawList = Array.from(map.values());
+            rawList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0) || (b.waktu || '').localeCompare(a.waktu || ''));
+            const final100 = rawList.slice(0, 100);
+            this.saveLocalStore('audit_logs', final100);
+            const fullSynthesized = this.getSynthesizedAuditLogs().slice(0, 150);
+            callback(fullSynthesized);
+        };
+
+        // 1. Tampilkan data lokal segera (0ms latency)
+        emit();
+
+        // 2. Ambil log terbaru dari endpoint cPanel (log_audit.php)
+        const fetchServerLogs = () => {
+            fetch('log_audit.php?limit=100')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success && Array.isArray(data.logs)) {
+                        emit(data.logs);
+                    }
+                })
+                .catch(err => {
+                    console.debug('[AUDIT] log_audit.php notice:', err.message);
+                });
+        };
+
+        fetchServerLogs();
+
+        // 3. Listener update event lokal (untuk semua perubahan koleksi)
+        const onDataUpdated = () => {
+            emit();
+        };
+        window.addEventListener('jnt_data_updated', onDataUpdated);
+
+        // 4. Polling ringan setiap 30 detik
+        const intervalId = setInterval(fetchServerLogs, 30000);
+
+        return () => {
+            window.removeEventListener('jnt_data_updated', onDataUpdated);
+            clearInterval(intervalId);
+        };
     },
 
     async logAuditEvent(auditObj) {
-        console.log('[AUDIT] START', auditObj);
+        const nowMs = Date.now();
         const entry = {
-            id: `AUDIT-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            id: `AUDIT-${nowMs}-${Math.floor(Math.random() * 1000)}`,
+            createdAt: auditObj.createdAt || nowMs,
             waktu: auditObj.waktu || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
             operator: auditObj.operator || "System",
             shiftId: auditObj.shiftId || this.getActiveShiftId(),
@@ -2403,32 +3368,28 @@ const JNTFirebaseService = {
             aktivitas: auditObj.aktivitas || ""
         };
 
-        // 1. Fallback Local Storage first
+        // 1. Simpan ke Local Storage (untuk respons instan UI dan mode offline)
         try {
-            const localList = this.getLocalStore('audit_logs');
+            const localList = this.getLocalStore('audit_logs') || [];
             localList.unshift(entry);
+            if (localList.length > 200) localList.length = 200;
             this.saveLocalStore('audit_logs', localList);
-            console.log('[AUDIT] FALLBACK SUCCESS');
             window.dispatchEvent(new CustomEvent('jnt_data_updated', { detail: { colName: 'audit_logs', docId: entry.id, data: entry } }));
         } catch (e) {
-            console.warn('[AUDIT] LOCAL STORAGE FAILED:', e.message);
+            console.warn('[AUDIT] LOCAL STORAGE WARNING:', e.message);
         }
 
-        // 2. Try Firestore Cloud write safely without throwing errors
-        if (window.db) {
-            try {
-                await window.db.collection('audit_logs').add({
-                    waktu: entry.waktu,
-                    operator: entry.operator,
-                    shiftId: entry.shiftId,
-                    modul: entry.modul,
-                    kodeTugas: entry.kodeTugas,
-                    aktivitas: entry.aktivitas
-                });
-                console.log('[AUDIT] FIRESTORE SUCCESS');
-            } catch (err) {
-                console.warn('[AUDIT] FIRESTORE FAILED - FALLBACK LOCAL:', err.message);
-            }
+        // 2. Simpan ke cPanel Hosting (log_audit.php) — Menghemat kuota Firestore Write
+        try {
+            fetch('log_audit.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entry)
+            }).catch(err => {
+                console.debug('[AUDIT] cPanel write notice:', err.message);
+            });
+        } catch (err) {
+            console.debug('[AUDIT] Fetch dispatch notice:', err.message);
         }
 
         return entry;
@@ -2462,7 +3423,7 @@ const JNTFirebaseService = {
         try {
             const emailCache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
             if (emailCache[uname]) return emailCache[uname].toLowerCase();
-        } catch (_) {}
+        } catch (_) { }
 
         // ── 2. Cek localStorage users ──
         const localUsers = this.getLocalStore('users') || [];
@@ -2488,7 +3449,7 @@ const JNTFirebaseService = {
                                     const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
                                     cache[uname] = docEmail;
                                     localStorage.setItem('jnt_email_map', JSON.stringify(cache));
-                                } catch (_) {}
+                                } catch (_) { }
                                 return docEmail;
                             }
                         }
@@ -2641,7 +3602,7 @@ const JNTFirebaseService = {
                             const d = snap.docs[0].data();
                             retryEmail = d.email || d.emailPerusahaan;
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                 }
                 // Jika email ditemukan & berbeda dari yang sudah dicoba, retry login
                 if (retryEmail && retryEmail.toLowerCase() !== email.toLowerCase()) {
@@ -2651,7 +3612,7 @@ const JNTFirebaseService = {
                         const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
                         cache[uname] = retryEmail.toLowerCase();
                         localStorage.setItem('jnt_email_map', JSON.stringify(cache));
-                    } catch (_) {}
+                    } catch (_) { }
                     const retryCred = await window.auth.signInWithEmailAndPassword(retryEmail.toLowerCase(), password);
                     const retryProfile = await this.getUserProfileByUid(retryCred.user.uid);
                     if (retryProfile) {
@@ -2687,7 +3648,7 @@ const JNTFirebaseService = {
                 secondaryApp = firebase.initializeApp(firebaseConfig, secondaryName);
                 const secondaryAuth = secondaryApp.auth();
                 if (typeof useEmulator !== 'undefined' && useEmulator) {
-                    try { secondaryAuth.useEmulator('http://127.0.0.1:9099'); } catch (_) {}
+                    try { secondaryAuth.useEmulator('http://127.0.0.1:9099'); } catch (_) { }
                 }
                 cred = await secondaryAuth.createUserWithEmailAndPassword(profileData.email, password);
                 await secondaryAuth.signOut();
@@ -2701,7 +3662,7 @@ const JNTFirebaseService = {
             if (secondaryApp) {
                 try {
                     await secondaryApp.delete();
-                } catch (_) {}
+                } catch (_) { }
             }
         }
 
@@ -2733,7 +3694,7 @@ const JNTFirebaseService = {
             const emailCache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
             emailCache[cleanUname] = newProfile.email;
             localStorage.setItem('jnt_email_map', JSON.stringify(emailCache));
-        } catch (_) {}
+        } catch (_) { }
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -2808,7 +3769,7 @@ const JNTFirebaseService = {
     async logoutFirebaseAuth() {
         // Hapus kunci sesi aktif dari Firestore sebelum sign out
         if (typeof window.jntReleaseSessionLock === 'function') {
-            try { await window.jntReleaseSessionLock(); } catch (_) {}
+            try { await window.jntReleaseSessionLock(); } catch (_) { }
         }
         if (window.auth) {
             try {
@@ -2912,7 +3873,7 @@ const JNTFirebaseService = {
         }
 
         const validCollections = ['incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h', 'troubles', 'shifts', 'master_trips', 'master_fleets', 'master_vendors', 'master_drivers', 'master_reasons', 'users', 'audit_logs'];
-        
+
         let restoredCount = 0;
         for (const colName of Object.keys(jsonObj.collections)) {
             if (!validCollections.includes(colName)) continue;

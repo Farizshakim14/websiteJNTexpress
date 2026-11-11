@@ -178,6 +178,47 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Guard 4: Kriptografis Firebase Authentication (Anti-Inspect / Anti-DevTools Bypass)
+    // Menutup celah pembobolan via Inspect Element (Console / DevTools).
+    // Sekalipun sessionStorage dimanipulasi secara manual, ketiadaan token autentikasi
+    // resmi dari Firebase Auth akan langsung membatalkan akses dan me-redirect ke login.
+    if (window.auth) {
+        window.auth.onAuthStateChanged(async (firebaseUser) => {
+            if (!publicPages.includes(pageName)) {
+                if (!firebaseUser || firebaseUser.isAnonymous) {
+                    console.warn('[SECURITY GUARD] Sesi Firebase Auth tidak valid atau tidak ditemukan. Mengarahkan ke login.');
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                    return;
+                }
+                // Verifikasi status akun aktif di Firestore
+                try {
+                    let prof = null;
+                    if (window.db) {
+                        const profSnap = await window.db.collection('users').doc(firebaseUser.uid).get();
+                        if (profSnap.exists) prof = profSnap.data();
+                        if (!prof) {
+                            const uLogin = sessionStorage.getItem('jnt_username_login');
+                            if (uLogin) {
+                                const uSnap = await window.db.collection('users').where('username', '==', uLogin.toLowerCase().trim()).limit(1).get();
+                                if (!uSnap.empty) prof = uSnap.docs[0].data();
+                            }
+                        }
+                    }
+                    if (prof && String(prof.status || '').toLowerCase() === 'nonaktif') {
+                        alert('⚠️ Akun Anda telah dinonaktifkan oleh Administrator.');
+                        if (window.auth) await window.auth.signOut();
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    }
+                } catch (_) {}
+            } else if (isLoggedIn && firebaseUser && !firebaseUser.isAnonymous) {
+                // Berada di halaman login namun sudah punya sesi login sah
+                window.location.href = 'dashboard.html';
+            }
+        });
+    }
+
     // ----------------------------------------------------
     // SINGLE-SESSION LOCK — 1 akun hanya boleh dipakai 1 pengguna/perangkat.
     // Disimpan di Firestore: active_sessions/{username} = { sessionId, lastSeen }
@@ -469,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btnText)    btnText.style.opacity = '0.5';
             if (btnLogin)   { btnLogin.disabled = true; btnLogin.setAttribute('aria-busy', 'true'); }
 
-            setTimeout(async () => {
+            (async () => {
                 // ============================================================
                 // LOGIN VIA FIREBASE AUTHENTICATION
                 // Akun tersimpan di Firebase Auth, bukan di Firestore.
@@ -657,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (btnText) btnText.style.opacity = '1';
                     if (btnLogin) btnLogin.disabled = false;
                 }
-            }, 300);
+            })();
         };
 
         loginForm.addEventListener('submit', processLogin);
@@ -1558,17 +1599,103 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. SHIFT CONTROL CENTER & AUDIT TRAIL ENGINE (shift-management.html)
     // ----------------------------------------------------
     if (isShiftPage && typeof JNTFirebaseService !== 'undefined') {
-        let allShiftsCache = [];
-        let allAuditLogsCache = [];
+        let allShiftsCache = JNTFirebaseService.getLocalStore('shifts') || [];
+        if (allShiftsCache.length === 0) {
+            allShiftsCache = [JNTFirebaseService.getActiveShift()];
+        }
+        let allAuditLogsCache = JNTFirebaseService.getSynthesizedAuditLogs ? JNTFirebaseService.getSynthesizedAuditLogs() : (JNTFirebaseService.getLocalStore('audit_logs') || []);
+        let allMonCache = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+        let allSlaCache = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+        let allUsersShiftCache = JNTFirebaseService.getLocalStore('users') || [];
         let historyPage = 1;
         const historyPerPage = 5;
+
+        // Tab Switching Logic for Shift Workspace
+        const tabButtons = document.querySelectorAll('[data-sh-tab]');
+        const tabPanels = {
+            fleet: document.getElementById('sh-panel-fleet'),
+            audit: document.getElementById('sh-panel-audit'),
+            history: document.getElementById('sh-panel-history')
+        };
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-sh-tab');
+                tabButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.entries(tabPanels).forEach(([key, panel]) => {
+                    if (panel) {
+                        if (key === target) panel.classList.remove('hidden');
+                        else panel.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // Helper to update Live Preview Card in "Mulai Shift Baru" Modal
+        const updateStartShiftPreview = () => {
+            const dateVal = document.getElementById('st-tanggal-input')?.value || new Date().toISOString().slice(0, 10);
+            const dateStr = dateVal.replace(/-/g, '');
+            const shifts = JNTFirebaseService.getLocalStore('shifts') || [];
+            const todayShifts = shifts.filter(s => (s.shiftId || s.id || '').includes(dateStr));
+            const nextSeq = String(todayShifts.length + 1).padStart(2, '0');
+            const previewId = `SHIFT-${dateStr}-${nextSeq}`;
+
+            const jamMulai = document.getElementById('st-jam-mulai-input')?.value || '08:30';
+            const jamSelesai = document.getElementById('st-jam-selesai-input')?.value || '20:30';
+            const op1Val = document.getElementById('st-op1-select')?.value || '-';
+            const op1Tugas = document.getElementById('st-op1-tugas')?.value || 'Monitoring 4 Jam';
+            const op2Val = document.getElementById('st-op2-select')?.value || '-';
+            const op2Tugas = document.getElementById('st-op2-tugas')?.value || 'SLA';
+
+            const elPrevId = document.getElementById('st-preview-id');
+            const elPrevJam = document.getElementById('st-preview-jam');
+            const elPrevOp1 = document.getElementById('st-preview-op1');
+            const elPrevOp2 = document.getElementById('st-preview-op2');
+
+            if (elPrevId) elPrevId.textContent = `ID: ${previewId}`;
+            if (elPrevJam) elPrevJam.textContent = `${jamMulai} - ${jamSelesai} WIB`;
+            if (elPrevOp1) elPrevOp1.textContent = `${op1Val} (${op1Tugas})`;
+            if (elPrevOp2) elPrevOp2.textContent = `${op2Val} (${op2Tugas})`;
+        };
+
+        // Populate Operator Dropdowns dynamically from user database (Zero Dummy Data)
+        const populateOperatorDropdowns = () => {
+            const users = allUsersShiftCache.length > 0 ? allUsersShiftCache : (JNTFirebaseService.getLocalStore('users') || []);
+            const activeUser = sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
+            const dummyNames = ['rina marlina', 'dedi setiawan', 'budi santoso', 'hamdan hamdani', 'hamdan', 'rizky ramadhan', 'rizky'];
+
+            const userNames = Array.from(new Set([
+                activeUser,
+                ...users.map(u => (u.fullname || u.username || '').trim()).filter(Boolean)
+            ])).filter(n => !dummyNames.includes(n.toLowerCase()));
+
+            const selects = ['st-op1-select', 'st-op2-select', 'sw-op1-select', 'sw-op2-select', 'ed-op1-select', 'ed-op2-select'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const currentVal = el.value;
+                el.innerHTML = userNames.map(name => `<option value="${name}">${name}</option>`).join('');
+                if (currentVal && userNames.includes(currentVal) && !dummyNames.includes(currentVal.toLowerCase())) {
+                    el.value = currentVal;
+                } else if (id.includes('op1')) {
+                    el.value = activeUser;
+                } else if (id.includes('op2')) {
+                    el.value = userNames.find(n => n.toLowerCase() !== activeUser.toLowerCase()) || userNames[0] || activeUser;
+                }
+            });
+
+            updateStartShiftPreview();
+        };
 
         // A. Real-time Clock & Shift Progress Timeline
         const updateShiftClockAndTimeline = (activeShift) => {
             const now = new Date();
             const clockStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
             const clockEl = document.getElementById('sh-top-clock-text');
+            const dateChipEl = document.getElementById('sh-top-date-text');
             if (clockEl) clockEl.textContent = clockStr;
+            if (dateChipEl) dateChipEl.textContent = `📅 ${dateStr}`;
 
             const timeTextEl = document.getElementById('sh-current-time-text');
             if (timeTextEl) timeTextEl.textContent = `WAKTU AKTUAL: ${clockStr}`;
@@ -1637,31 +1764,168 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (alertMsg) alertMsg.textContent = `⚠️ WARNING: Shift aktif hampir selesai (tersisa ${remMinsLeft} menit). Mohon persiapkan pergantian operator!`;
                 } else if (activeShift.status === 'AKTIF' && remMins <= 0) {
                     banner.classList.remove('hidden');
-                    if (alertMsg) alertMsg.textContent = `⌛ PERHATIAN: Jam operasional shift telah berakhir (${activeShift.jamSelesai}). Silakan klik 'Akhiri Shift' atau 'Pergantian Shift'.`;
+                    if (alertMsg) alertMsg.textContent = `⌛ PERHATIAN: Jam operasional shift telah berakhir (${activeShift.jamSelesai}). Silakan klik 'Akhiri Shift' atau 'Handover Shift'.`;
                 } else {
                     banner.classList.add('hidden');
                 }
             }
         };
 
-        // B. Render Main Shift Control Center Dashboard
+        // B. Render Live Fleet Table (Synchronized with Monitoring 4H & SLA Outbound)
+        const renderShiftLiveFleetTable = () => {
+            const tbody = document.getElementById('sh-live-fleet-tbody');
+            if (!tbody) return;
+
+            const searchVal = (document.getElementById('sh-fleet-search')?.value || '').toLowerCase().trim();
+            const statusVal = document.getElementById('sh-fleet-status-filter')?.value || 'ALL';
+
+            const monList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+            const slaList = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+            const slaMap = new Map();
+            slaList.forEach(s => {
+                const k = s.kodeTugas || s.id;
+                if (k) slaMap.set(k, s);
+            });
+
+            // Merge monitoring_4h and sla_outbound by kodeTugas
+            const mergedMap = new Map();
+            monList.forEach(m => {
+                const k = m.kodeTugas || m.id;
+                if (k) mergedMap.set(k, { ...(slaMap.get(k) || {}), ...m });
+            });
+            slaList.forEach(s => {
+                const k = s.kodeTugas || s.id;
+                if (k && !mergedMap.has(k)) mergedMap.set(k, s);
+            });
+
+            let fleetItems = Array.from(mergedMap.values()).map(item => {
+                let filledSlots = 0;
+                let lastSlotKey = item.lastUpdateSlot || '-';
+                let lastLokasi = item.lastUpdateLokasi || '-';
+                let hasArrivalSlot = false;
+
+                if (item.slots && typeof item.slots === 'object') {
+                    const slotKeys = JNTFirebaseService.getMonitoringSlotKeys ? JNTFirebaseService.getMonitoringSlotKeys() : Object.keys(item.slots);
+                    slotKeys.forEach(sk => {
+                        const sv = item.slots[sk];
+                        if (sv && (sv.lokasi || sv.statusUpdate === 'SUDAH UPDATE')) {
+                            filledSlots++;
+                            lastSlotKey = sk.replace('D2_', 'H2 ').replace('D3_', 'H3 ').replace('D4_', 'H4 ').replace('D5_', 'H5 ').replace('D6_', 'H6 ').replace('D7_', 'H7 ');
+                            lastLokasi = sv.lokasi || lastLokasi;
+                            const lokU = String(sv.lokasi || '').toUpperCase().trim();
+                            const ketU = String(sv.keterangan || '').toUpperCase();
+                            if (lokU === 'IN' || lokU.startsWith('IN ') || ketU.includes('SAMPAI')) {
+                                hasArrivalSlot = true;
+                            }
+                        }
+                    });
+                }
+
+                const rawSt = String(item.statusPerjalanan || item.statusSla || item.status || '').toUpperCase();
+                let normStatus = 'ON PROGRESS';
+                if (rawSt === 'COMPLETED' || rawSt === 'SUDAH SELESAI' || rawSt === 'ON TIME' || rawSt === 'IN' || hasArrivalSlot || item.jamSampaiAktual) {
+                    normStatus = 'COMPLETED';
+                } else if (rawSt === 'KENDALA' || rawSt === 'TROUBLE') {
+                    normStatus = 'KENDALA';
+                }
+
+                return {
+                    ...item,
+                    _filledSlots: filledSlots,
+                    _lastSlotKey: lastSlotKey,
+                    _lastLokasi: lastLokasi,
+                    _normStatus: normStatus
+                };
+            });
+
+            if (statusVal !== 'ALL') {
+                fleetItems = fleetItems.filter(f => f._normStatus === statusVal);
+            }
+            if (searchVal) {
+                fleetItems = fleetItems.filter(f =>
+                    String(f.kodeTugas || '').toLowerCase().includes(searchVal) ||
+                    String(f.platNomor || '').toLowerCase().includes(searchVal) ||
+                    String(f.trip || f.namaRute || f.tlc || '').toLowerCase().includes(searchVal) ||
+                    String(f.vendor || '').toLowerCase().includes(searchVal) ||
+                    String(f.driver1 || f.driver || '').toLowerCase().includes(searchVal)
+                );
+            }
+
+            if (fleetItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 28px; color: #94A3B8;">Belum ada data armada yang sesuai filter pada shift ini.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = fleetItems.map((item, idx) => {
+                const kode = item.kodeTugas || item.id || '-';
+                const rute = item.trip || item.namaRute || '-';
+                const tlc = item.tlc || '';
+                const vendor = item.vendor || '-';
+                const plat = item.platNomor || '-';
+                const driver = item.driver1 || item.driver || '-';
+                const jamBerangkat = item.jamBerangkat || '-';
+
+                let badgeHtml = `<span class="badge-status blue-outline" style="font-size: 11px;">🔵 Di Jalan</span>`;
+                if (item._normStatus === 'COMPLETED') {
+                    badgeHtml = `<span class="badge-status green-outline" style="font-size: 11px;">✅ Selesai</span>`;
+                } else if (item._normStatus === 'KENDALA') {
+                    badgeHtml = `<span class="badge-status red-outline" style="font-size: 11px;">🚨 Kendala</span>`;
+                }
+
+                const posisiHtml = item._lastLokasi && item._lastLokasi !== '-'
+                    ? `<div><strong style="color: #0F172A; font-size: 12px;">📍 ${item._lastLokasi}</strong><span style="display: block; font-size: 10.5px; color: #64748B;">Slot ${item._lastSlotKey}</span></div>`
+                    : `<span style="color: #94A3B8; font-size: 11.5px;">Belum Check-in</span>`;
+
+                return `
+                    <tr class="inc-row">
+                        <td class="col-center">${idx + 1}</td>
+                        <td><strong style="color: #E30613; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">${kode}</strong></td>
+                        <td>
+                            <div style="font-weight: 700; color: #1E40AF; font-size: 12px;">${rute}</div>
+                            ${tlc ? `<span style="font-size: 10px; background: #EFF6FF; color: #2563EB; padding: 1px 7px; border-radius: 99px; font-weight: 700;">${tlc}</span>` : ''}
+                        </td>
+                        <td><strong style="font-size: 12px;">${vendor}</strong></td>
+                        <td><strong style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${plat}</strong></td>
+                        <td>${driver}</td>
+                        <td><span style="font-size: 11.5px; color: #475569;">${jamBerangkat}</span></td>
+                        <td>${posisiHtml}</td>
+                        <td><span style="background: #FEF3C7; color: #B45309; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">${item._filledSlots} Slot</span></td>
+                        <td>${badgeHtml}</td>
+                        <td class="col-center">
+                            <div style="display: flex; gap: 5px; justify-content: center;">
+                                <a href="monitoring.html" class="btn-st-outline" style="padding: 4px 8px; font-size: 11px; text-decoration: none;" title="Update Posisi di Monitoring 4 Jam">📍 4H</a>
+                                <a href="sla-vendor.html" class="btn-st-outline" style="padding: 4px 8px; font-size: 11px; text-decoration: none;" title="Lihat di SLA Vendor">⏱️ SLA</a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        };
+
+        // C. Render Main Shift Control Center Dashboard
         const renderShiftControlCenter = () => {
             const activeShift = JNTFirebaseService.getActiveShift();
             const metrics = JNTFirebaseService.calculateShiftMetrics(activeShift.shiftId || activeShift.id);
+            const activeUser = sessionStorage.getItem('jnt_active_username') || 'Farizs Hakim';
+            allAuditLogsCache = JNTFirebaseService.getSynthesizedAuditLogs ? JNTFirebaseService.getSynthesizedAuditLogs() : allAuditLogsCache;
 
             // Update Active Shift Hero
             const elId = document.getElementById('sh-active-id');
             const elTitle = document.getElementById('sh-active-title');
             const elMeta = document.getElementById('sh-active-meta');
             const elBadge = document.getElementById('sh-active-status-badge');
+            const elSyncSum = document.getElementById('sh-active-sync-summary');
             const elStartLbl = document.getElementById('sh-start-time-label');
             const elEndLbl = document.getElementById('sh-end-time-label');
 
             if (elId) elId.textContent = activeShift.shiftId || activeShift.id;
             if (elTitle) elTitle.textContent = activeShift.namaShift || `Shift (${activeShift.jamMulai} - ${activeShift.jamSelesai} WIB)`;
-            if (elMeta) elMeta.textContent = `Tanggal Tugas: ${activeShift.tanggal || 'Hari Ini'} • Durasi Operasional: ${activeShift.jamMulai || '08:00'} - ${activeShift.jamSelesai || '20:00'} WIB`;
-            if (elStartLbl) elStartLbl.textContent = `${activeShift.jamMulai || '08:00'} WIB`;
-            if (elEndLbl) elEndLbl.textContent = `${activeShift.jamSelesai || '20:00'} WIB`;
+            if (elMeta) elMeta.textContent = `Tanggal Tugas: ${activeShift.tanggal || 'Hari Ini'} • Durasi Operasional: ${activeShift.jamMulai || '08:30'} - ${activeShift.jamSelesai || '20:30'} WIB`;
+            if (elStartLbl) elStartLbl.textContent = `${activeShift.jamMulai || '08:30'} WIB`;
+            if (elEndLbl) elEndLbl.textContent = `${activeShift.jamSelesai || '20:30'} WIB`;
+            if (elSyncSum) {
+                elSyncSum.textContent = `⚡ Live Sync: ${metrics.totalTrips} Armada • ${metrics.monCheckins} Check-in 4H • ${metrics.slaUpdates} SLA`;
+            }
 
             if (elBadge) {
                 if (activeShift.status === 'AKTIF') {
@@ -1673,52 +1937,97 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Update Operators Panel
-            const op1 = activeShift.operator1 || { nama: 'Hamdan Hamdani', tugas: 'Monitoring 4H & Incident' };
-            const op2 = activeShift.operator2 || { nama: 'Rizky Ramadhan', tugas: 'SLA Vendor & Master Data' };
+            // Update Operators Panel (sync role & avatar from users collection if available)
+            const realOps = JNTFirebaseService.getRealOperatorNames ? JNTFirebaseService.getRealOperatorNames() : [activeUser];
+            const defaultOp2Name = realOps.find(n => n.toLowerCase() !== activeUser.toLowerCase()) || realOps[0] || activeUser;
+            const op1 = activeShift.operator1 || { nama: activeUser, tugas: 'Monitoring 4 Jam' };
+            const op2 = activeShift.operator2 || { nama: defaultOp2Name, tugas: 'SLA' };
+
+            const users = JNTFirebaseService.getLocalStore('users') || [];
+            const u1Match = users.find(u => (u.fullname || u.username || '').toLowerCase() === (op1.nama || '').toLowerCase());
+            const u2Match = users.find(u => (u.fullname || u.username || '').toLowerCase() === (op2.nama || '').toLowerCase());
+
+            const elOp1Avatar = document.getElementById('sh-op1-avatar');
+            const elOp2Avatar = document.getElementById('sh-op2-avatar');
+            if (elOp1Avatar && op1.nama) {
+                elOp1Avatar.src = (u1Match && u1Match.photoURL) ? u1Match.photoURL : `https://ui-avatars.com/api/?name=${encodeURIComponent(op1.nama)}&background=E30613&color=fff&bold=true`;
+                elOp1Avatar.alt = op1.nama;
+            }
+            if (elOp2Avatar && op2.nama) {
+                elOp2Avatar.src = (u2Match && u2Match.photoURL) ? u2Match.photoURL : `https://ui-avatars.com/api/?name=${encodeURIComponent(op2.nama)}&background=2563EB&color=fff&bold=true`;
+                elOp2Avatar.alt = op2.nama;
+            }
 
             const elOp1Nama = document.getElementById('sh-op1-nama');
+            const elOp1Role = document.getElementById('sh-op1-role');
             const elOp1Tugas = document.getElementById('sh-op1-tugas');
+            const elOp1Trip = document.getElementById('sh-op1-trip-count');
             const elOp1Mon = document.getElementById('sh-op1-mon-count');
             const elOp1Inc = document.getElementById('sh-op1-inc-count');
 
             if (elOp1Nama) elOp1Nama.textContent = op1.nama;
-            if (elOp1Tugas) elOp1Tugas.textContent = op1.tugas || 'Monitoring 4H & Incident';
-            if (elOp1Mon) elOp1Mon.textContent = metrics.monCheckins;
-            if (elOp1Inc) elOp1Inc.textContent = metrics.incidents;
+            if (elOp1Role) elOp1Role.textContent = `Role: ${(u1Match && u1Match.role) ? u1Match.role : (op1.role || 'Admin / Operator Utama')}`;
+            if (elOp1Tugas) elOp1Tugas.textContent = op1.tugas || 'Monitoring 4 Jam';
+            if (elOp1Trip) elOp1Trip.textContent = `${metrics.totalTrips} Trip`;
+            if (elOp1Mon) elOp1Mon.textContent = `${metrics.monCheckins} Slot`;
+            if (elOp1Inc) elOp1Inc.textContent = `${metrics.incidents}`;
 
             const elOp2Nama = document.getElementById('sh-op2-nama');
+            const elOp2Role = document.getElementById('sh-op2-role');
             const elOp2Tugas = document.getElementById('sh-op2-tugas');
             const elOp2Sla = document.getElementById('sh-op2-sla-count');
+            const elOp2Done = document.getElementById('sh-op2-done-count');
             const elOp2Total = document.getElementById('sh-op2-total-count');
 
             if (elOp2Nama) elOp2Nama.textContent = op2.nama;
-            if (elOp2Tugas) elOp2Tugas.textContent = op2.tugas || 'SLA Vendor & Master Data';
-            if (elOp2Sla) elOp2Sla.textContent = metrics.slaUpdates;
-            if (elOp2Total) elOp2Total.textContent = metrics.totalTransactions;
+            if (elOp2Role) elOp2Role.textContent = `Role: ${(u2Match && u2Match.role) ? u2Match.role : (op2.role || 'Operator Pendamping')}`;
+            if (elOp2Tugas) elOp2Tugas.textContent = op2.tugas || 'SLA';
+            if (elOp2Sla) elOp2Sla.textContent = `${metrics.slaUpdates} Trip`;
+            if (elOp2Done) elOp2Done.textContent = `${metrics.monCompleted} Selesai`;
+            if (elOp2Total) elOp2Total.textContent = `${metrics.totalTransactions} Aksi`;
 
             // Update 6 KPI Cards
-            const kpiTx = document.getElementById('kpi-total-tx');
+            const kpiTrips = document.getElementById('kpi-total-trips');
+            const kpiTripsSub = document.getElementById('kpi-trips-subtext');
             const kpiMon = document.getElementById('kpi-mon-checkin');
+            const kpiMonSub = document.getElementById('kpi-mon-subtext');
             const kpiSla = document.getElementById('kpi-sla-update');
+            const kpiSlaSub = document.getElementById('kpi-sla-subtext');
             const kpiInc = document.getElementById('kpi-inc-count');
+            const kpiIncSub = document.getElementById('kpi-inc-subtext');
+            const kpiTx = document.getElementById('kpi-total-tx');
             const kpiDur = document.getElementById('kpi-shift-duration');
             const kpiOps = document.getElementById('kpi-active-ops');
 
-            if (kpiTx) kpiTx.textContent = metrics.totalTransactions;
+            if (kpiTrips) kpiTrips.textContent = metrics.totalTrips;
+            if (kpiTripsSub) kpiTripsSub.textContent = `${metrics.monCompleted} Selesai • ${metrics.monOnProgress} On Progress`;
             if (kpiMon) kpiMon.textContent = metrics.monCheckins;
+            if (kpiMonSub) kpiMonSub.textContent = `${metrics.monWaitingSlot} Belum Update Slot Aktif`;
             if (kpiSla) kpiSla.textContent = metrics.slaUpdates;
+            if (kpiSlaSub) kpiSlaSub.textContent = `${metrics.slaOnTime} Selesai • ${metrics.slaRunning} Berjalan${metrics.slaLate > 0 ? ' • ' + metrics.slaLate + ' Late' : ''}`;
             if (kpiInc) kpiInc.textContent = metrics.incidents;
-            if (kpiDur) kpiDur.textContent = `${activeShift.jamMulai || '08:00'} - ${activeShift.jamSelesai || '20:00'}`;
-            if (kpiOps) kpiOps.textContent = activeShift.status === 'AKTIF' ? '2 Active' : '0 Active';
+            if (kpiIncSub) kpiIncSub.textContent = `${metrics.incidentsOpen} Aktif • ${metrics.incidentsResolved} Selesai`;
+            if (kpiTx) kpiTx.textContent = metrics.totalTransactions;
+            if (kpiDur) kpiDur.textContent = `${activeShift.jamMulai || '08:30'} - ${activeShift.jamSelesai || '20:30'}`;
+            if (kpiOps) kpiOps.textContent = activeShift.status === 'AKTIF' ? `2 Operator (${op1.nama.split(' ')[0]} & ${op2.nama.split(' ')[0]})` : 'Shift Selesai';
 
+            // Update Tab Badges
+            const badgeFleet = document.getElementById('tab-badge-sh-fleet');
+            const badgeAudit = document.getElementById('tab-badge-sh-audit');
+            const badgeHist = document.getElementById('tab-badge-sh-history');
+            if (badgeFleet) badgeFleet.textContent = `${metrics.totalTrips} Armada`;
+            if (badgeAudit) badgeAudit.textContent = `${allAuditLogsCache.length} Log`;
+            if (badgeHist) badgeHist.textContent = `${allShiftsCache.length} Shift`;
+
+            populateOperatorDropdowns();
             updateShiftClockAndTimeline(activeShift);
+            renderShiftLiveFleetTable();
             renderShiftHistoryTable();
             renderHandoverHistoryTable();
             renderAuditTrailTable();
         };
 
-        // C. Render Shift History Table with Search, Filter & Pagination
+        // D. Render Shift History Table with Search, Filter & Pagination
         const renderShiftHistoryTable = () => {
             const tbody = document.getElementById('sh-history-tbody');
             if (!tbody) return;
@@ -1759,9 +2068,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const shiftId = item.shiftId || item.id || '-';
                     const statusClass = item.status === 'AKTIF' ? 'green-outline' : 'blue-outline';
                     const statusText = item.status === 'AKTIF' ? '🟢 AKTIF' : '✅ COMPLETED';
-                    const op1Nama = item.operator1 ? item.operator1.nama : 'Hamdan';
-                    const op2Nama = item.operator2 ? item.operator2.nama : 'Rizky';
-                    const jamText = item.namaShift || `${item.jamMulai || '08:00'} - ${item.jamSelesai || '20:00'}`;
+                    const activeUser = sessionStorage.getItem('jnt_active_username') || 'Farizs Hakim';
+                    const realOps = JNTFirebaseService.getRealOperatorNames ? JNTFirebaseService.getRealOperatorNames() : [activeUser];
+                    const fallbackOp2 = realOps.find(n => n.toLowerCase() !== activeUser.toLowerCase()) || realOps[0] || '-';
+                    const op1Nama = item.operator1 ? item.operator1.nama : activeUser;
+                    const op2Nama = item.operator2 ? item.operator2.nama : fallbackOp2;
+                    const jamText = item.namaShift || `${item.jamMulai || '08:30'} - ${item.jamSelesai || '20:30'}`;
                     const metrics = JNTFirebaseService.calculateShiftMetrics(shiftId);
 
                     return `
@@ -1774,9 +2086,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td><strong>${op2Nama}</strong></td>
                             <td>12 Jam</td>
                             <td><span class="badge-status ${statusClass}">${statusText}</span></td>
-                            <td><strong style="color: #2563EB;">${metrics.totalTransactions} Aktivitas</strong></td>
+                            <td><strong style="color: #2563EB;">${metrics.totalTransactions} Aktivitas (${metrics.totalTrips} Trip)</strong></td>
                             <td>
-                                <div style="display: flex; gap: 6px;">
+                                <div style="display: flex; gap: 6px; justify-content: center;">
                                     <button class="btn-st-outline btn-view-shift-detail" data-shift-id="${shiftId}" style="padding: 4px 8px; font-size: 11.5px;" title="Lihat Detail Shift & Timeline">👁️ View</button>
                                     <button class="btn-st-outline btn-copy-shift-item" data-shift-id="${shiftId}" style="padding: 4px 8px; font-size: 11.5px;" title="Salin ID Shift">📋 Copy</button>
                                 </div>
@@ -1803,7 +2115,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnsHtml += `<button class="btn-st-outline" id="btn-hist-next" ${historyPage >= totalPages ? 'disabled' : ''} style="padding: 4px 10px; font-size: 12px;">Next</button>`;
                 controlsEl.innerHTML = btnsHtml;
 
-                // Event Listeners for Pagination
                 const btnPrev = document.getElementById('btn-hist-prev');
                 const btnNext = document.getElementById('btn-hist-next');
                 if (btnPrev) btnPrev.onclick = () => { if (historyPage > 1) { historyPage--; renderShiftHistoryTable(); } };
@@ -1835,7 +2146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // D. Render Handover (Pergantian Shift) History Table
+        // E. Render Handover (Pergantian Shift) History Table
         const renderHandoverHistoryTable = () => {
             const tbody = document.getElementById('sh-handover-tbody');
             if (!tbody) return;
@@ -1844,17 +2155,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const handoverShifts = shifts.filter(s => s.handoverFrom);
 
             if (handoverShifts.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td class="col-center">1</td>
-                        <td><strong style="color: #2563EB; font-family: monospace;">SHIFT-20261020-02</strong></td>
-                        <td><span style="color: #DC2626; font-weight: 600;">Hamdan Hamdani &amp; Rizky Ramadhan</span></td>
-                        <td><span style="color: #16A34A; font-weight: 600;">Dedi Setiawan &amp; Faris Ramadhan</span></td>
-                        <td><span style="font-weight: 700; color: #0F172A;">12:00 - 20:00 WIB</span></td>
-                        <td>20/10/2026 12:00</td>
-                        <td>Pergantian shift operasional</td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: #94A3B8;">Belum ada riwayat pergantian shift (handover). Gunakan tombol <strong>🔄 Handover Shift</strong> di atas saat pergantian operator.</td></tr>`;
                 return;
             }
 
@@ -1875,20 +2176,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         };
 
-        // E. Render Real-Time Audit Trail Table
+        // F. Render Real-Time Audit Trail Table
         const renderAuditTrailTable = () => {
             const tbody = document.getElementById('audit-table-body');
             if (!tbody) return;
 
             const modFilter = document.getElementById('audit-module-filter')?.value || 'ALL';
+            const searchFilter = (document.getElementById('audit-search-input')?.value || '').toLowerCase().trim();
             let filteredLogs = [...allAuditLogsCache];
 
             if (modFilter !== 'ALL') {
                 filteredLogs = filteredLogs.filter(l => l.modul === modFilter);
             }
+            if (searchFilter) {
+                filteredLogs = filteredLogs.filter(l =>
+                    String(l.kodeTugas || '').toLowerCase().includes(searchFilter) ||
+                    String(l.operator || '').toLowerCase().includes(searchFilter) ||
+                    String(l.aktivitas || '').toLowerCase().includes(searchFilter) ||
+                    String(l.shiftId || '').toLowerCase().includes(searchFilter)
+                );
+            }
 
             if (filteredLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Belum ada log aktivitas untuk modul ini.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Belum ada log aktivitas yang sesuai filter.</td></tr>`;
                 return;
             }
 
@@ -1904,7 +2214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr class="inc-row">
                         <td class="col-center">${idx + 1}</td>
                         <td><strong>${item.waktu || '-'}</strong></td>
-                        <td><span class="badge-status blue-outline font-monospace" style="font-size: 11.5px;">${item.shiftId || 'SHIFT-20261001-01'}</span></td>
+                        <td><span class="badge-status blue-outline font-monospace" style="font-size: 11.5px;">${item.shiftId || 'SHIFT-20261111-01'}</span></td>
                         <td><strong>${item.operator || 'System'}</strong></td>
                         <td><span class="audit-badge ${badgeClass}">${item.modul || 'General'}</span></td>
                         <td><strong style="color: #E30613; font-family: monospace;">${item.kodeTugas || '-'}</strong></td>
@@ -1914,12 +2224,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         };
 
-        // E. Open Shift Detail Modal & Timeline Builder
+        // G. Open Shift Detail Modal & Timeline Builder
         const openShiftDetailModal = (shiftId) => {
             const shifts = JNTFirebaseService.getLocalStore('shifts');
             const targetShift = shifts.find(s => s.shiftId === shiftId || s.id === shiftId) || JNTFirebaseService.getActiveShift();
-            const logs = JNTFirebaseService.getLocalStore('audit_logs') || [];
-            const shiftLogs = logs.filter(l => l.shiftId === shiftId);
+            const metrics = JNTFirebaseService.calculateShiftMetrics(shiftId);
+            const shiftLogs = metrics.shiftLogs || [];
 
             const elId = document.getElementById('dt-modal-id');
             const elStatus = document.getElementById('dt-modal-status');
@@ -1929,12 +2239,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const elOp2 = document.getElementById('dt-modal-op2');
             const timelineBox = document.getElementById('dt-modal-timeline');
 
+            const activeUser = sessionStorage.getItem('jnt_active_username') || 'Farizs Hakim';
+            const realOps = JNTFirebaseService.getRealOperatorNames ? JNTFirebaseService.getRealOperatorNames() : [activeUser];
+            const fallbackOp2 = realOps.find(n => n.toLowerCase() !== activeUser.toLowerCase()) || realOps[0] || '-';
             if (elId) elId.textContent = targetShift.shiftId || targetShift.id;
             if (elStatus) elStatus.textContent = targetShift.status || 'AKTIF';
             if (elTanggal) elTanggal.textContent = targetShift.tanggal || 'Hari Ini';
-            if (elJam) elJam.textContent = targetShift.namaShift || `${targetShift.jamMulai} - ${targetShift.jamSelesai} WIB`;
-            if (elOp1) elOp1.textContent = targetShift.operator1 ? targetShift.operator1.nama : 'Hamdan';
-            if (elOp2) elOp2.textContent = targetShift.operator2 ? targetShift.operator2.nama : 'Rizky';
+            if (elJam) elJam.textContent = targetShift.namaShift || `${targetShift.jamMulai || '08:30'} - ${targetShift.jamSelesai || '20:30'} WIB`;
+            if (elOp1) elOp1.textContent = targetShift.operator1 ? targetShift.operator1.nama : activeUser;
+            if (elOp2) elOp2.textContent = targetShift.operator2 ? targetShift.operator2.nama : fallbackOp2;
 
             if (timelineBox) {
                 if (shiftLogs.length === 0) {
@@ -1945,7 +2258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="timeline-slot-node active-slot">
                                 <div>
                                     <strong style="color: #0F172A; display: block; font-size: 13px;">${l.aktivitas}</strong>
-                                    <span style="font-size: 11.5px; color: #64748B;">👤 ${l.operator} • 🆔 ${l.kodeTugas || '-'}</span>
+                                    <span style="font-size: 11.5px; color: #64748B;">👤 ${l.operator} • 📦 ${l.modul || '-'} • 🆔 ${l.kodeTugas || '-'}</span>
                                 </div>
                                 <span style="font-size: 11.5px; color: #2563EB; font-weight: 700; font-family: monospace;">${l.waktu}</span>
                             </div>
@@ -1957,16 +2270,50 @@ document.addEventListener('DOMContentLoaded', () => {
             openModal('modal-shift-detail');
         };
 
-        // F. Subscriptions & Real-Time Sync Handlers
+        // H. Subscriptions & Real-Time Sync Handlers (Subscribe to ALL Operational Collections!)
         JNTFirebaseService.subscribeShifts((list) => {
-            allShiftsCache = list;
+            allShiftsCache = list && list.length > 0 ? list : [JNTFirebaseService.getActiveShift()];
+            renderShiftControlCenter();
+        });
+
+        JNTFirebaseService.subscribeMonitoring4H((list) => {
+            allMonCache = list || [];
+            renderShiftControlCenter();
+        });
+
+        JNTFirebaseService.subscribeSLAOutbound((list) => {
+            allSlaCache = list || [];
+            renderShiftControlCenter();
+        });
+
+        if (typeof JNTFirebaseService.subscribeSLAReturn === 'function') {
+            JNTFirebaseService.subscribeSLAReturn(() => {
+                renderShiftControlCenter();
+            });
+        }
+
+        JNTFirebaseService.subscribeTroubles(() => {
+            renderShiftControlCenter();
+        });
+
+        JNTFirebaseService.subscribeUsers((list) => {
+            allUsersShiftCache = list || [];
+            populateOperatorDropdowns();
             renderShiftControlCenter();
         });
 
         JNTFirebaseService.subscribeAuditLogs((logs) => {
-            allAuditLogsCache = logs;
+            allAuditLogsCache = logs || [];
             renderShiftControlCenter();
         });
+
+        // Fleet Search & Status Filter Bindings
+        const fleetSearchEl = document.getElementById('sh-fleet-search');
+        const fleetStatusEl = document.getElementById('sh-fleet-status-filter');
+        const auditSearchEl = document.getElementById('audit-search-input');
+        if (fleetSearchEl) fleetSearchEl.oninput = () => renderShiftLiveFleetTable();
+        if (fleetStatusEl) fleetStatusEl.onchange = () => renderShiftLiveFleetTable();
+        if (auditSearchEl) auditSearchEl.oninput = () => renderAuditTrailTable();
 
         // Global Event Bus Listener for Cross-Tab & Internal Sync
         window.addEventListener('jnt_data_updated', () => {
@@ -1980,19 +2327,126 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnEndShift = document.getElementById('btn-open-end-shift');
         const btnCopyId = document.getElementById('btn-copy-shift-id');
 
-        if (btnStartShift) btnStartShift.onclick = () => openModal('modal-start-shift');
-        if (btnSwitchShift) btnSwitchShift.onclick = () => openModal('modal-switch-shift');
+        // Auto-sync Shift Name <-> Jam Mulai <-> Jam Selesai & Penugasan Dropdowns in "Mulai Shift Baru" Modal
+        const stNamaSelect = document.getElementById('st-nama-select');
+        const stJamMulai = document.getElementById('st-jam-mulai-input');
+        const stJamSelesai = document.getElementById('st-jam-selesai-input');
+        const stTanggalInput = document.getElementById('st-tanggal-input');
+        const stOp1Select = document.getElementById('st-op1-select');
+        const stOp2Select = document.getElementById('st-op2-select');
+        const stOp1Tugas = document.getElementById('st-op1-tugas');
+        const stOp2Tugas = document.getElementById('st-op2-tugas');
+
+        if (stNamaSelect) {
+            stNamaSelect.onchange = () => {
+                if (stNamaSelect.value.includes('Shift 2')) {
+                    if (stJamMulai) stJamMulai.value = '20:30';
+                    if (stJamSelesai) stJamSelesai.value = '09:30';
+                } else {
+                    if (stJamMulai) stJamMulai.value = '08:30';
+                    if (stJamSelesai) stJamSelesai.value = '20:30';
+                }
+                updateStartShiftPreview();
+            };
+        }
+        if (stJamMulai) {
+            stJamMulai.onchange = () => {
+                if (stJamMulai.value === '20:30') {
+                    if (stJamSelesai) stJamSelesai.value = '09:30';
+                    if (stNamaSelect) stNamaSelect.value = 'Shift 2 (20:30 - 09:30 WIB)';
+                } else {
+                    if (stJamSelesai) stJamSelesai.value = '20:30';
+                    if (stNamaSelect) stNamaSelect.value = 'Shift 1 (08:30 - 20:30 WIB)';
+                }
+                updateStartShiftPreview();
+            };
+        }
+        if (stJamSelesai) {
+            stJamSelesai.onchange = () => {
+                if (stJamSelesai.value === '09:30') {
+                    if (stJamMulai) stJamMulai.value = '20:30';
+                    if (stNamaSelect) stNamaSelect.value = 'Shift 2 (20:30 - 09:30 WIB)';
+                } else {
+                    if (stJamMulai) stJamMulai.value = '08:30';
+                    if (stNamaSelect) stNamaSelect.value = 'Shift 1 (08:30 - 20:30 WIB)';
+                }
+                updateStartShiftPreview();
+            };
+        }
+        if (stOp1Tugas && stOp2Tugas) {
+            stOp1Tugas.onchange = () => {
+                stOp2Tugas.value = stOp1Tugas.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam';
+                updateStartShiftPreview();
+            };
+            stOp2Tugas.onchange = () => {
+                stOp1Tugas.value = stOp2Tugas.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam';
+                updateStartShiftPreview();
+            };
+        }
+        if (stOp1Select) stOp1Select.onchange = () => updateStartShiftPreview();
+        if (stOp2Select) stOp2Select.onchange = () => updateStartShiftPreview();
+        if (stTanggalInput) stTanggalInput.onchange = () => updateStartShiftPreview();
+
+        // Auto-sync Jam & Penugasan in "Pergantian Shift (Handover)" & "Edit Shift" Modals
+        const swJamMulai = document.getElementById('sw-jam-mulai-input');
+        const swJamSelesai = document.getElementById('sw-jam-selesai-input');
+        const swOp1Tugas = document.getElementById('sw-op1-tugas');
+        const swOp2Tugas = document.getElementById('sw-op2-tugas');
+        if (swJamMulai && swJamSelesai) {
+            swJamMulai.onchange = () => { swJamSelesai.value = swJamMulai.value === '20:30' ? '09:30' : '20:30'; };
+            swJamSelesai.onchange = () => { swJamMulai.value = swJamSelesai.value === '09:30' ? '20:30' : '08:30'; };
+        }
+        if (swOp1Tugas && swOp2Tugas) {
+            swOp1Tugas.onchange = () => { swOp2Tugas.value = swOp1Tugas.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
+            swOp2Tugas.onchange = () => { swOp1Tugas.value = swOp2Tugas.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
+        }
+
+        const edJamMulai = document.getElementById('ed-jam-mulai-input');
+        const edJamSelesai = document.getElementById('ed-jam-selesai-input');
+        const edOp1TugasEl = document.getElementById('ed-op1-tugas');
+        const edOp2TugasEl = document.getElementById('ed-op2-tugas');
+        if (edJamMulai && edJamSelesai) {
+            edJamMulai.onchange = () => { edJamSelesai.value = edJamMulai.value === '20:30' ? '09:30' : '20:30'; };
+            edJamSelesai.onchange = () => { edJamMulai.value = edJamSelesai.value === '09:30' ? '20:30' : '08:30'; };
+        }
+        if (edOp1TugasEl && edOp2TugasEl) {
+            edOp1TugasEl.onchange = () => { edOp2TugasEl.value = edOp1TugasEl.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
+            edOp2TugasEl.onchange = () => { edOp1TugasEl.value = edOp2TugasEl.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
+        }
+
+        if (btnStartShift) btnStartShift.onclick = () => {
+            populateOperatorDropdowns();
+            updateStartShiftPreview();
+            openModal('modal-start-shift');
+        };
+        if (btnSwitchShift) btnSwitchShift.onclick = () => {
+            populateOperatorDropdowns();
+            const active = JNTFirebaseService.getActiveShift();
+            if (swJamMulai && swJamSelesai) {
+                if (active.jamMulai === '08:30') {
+                    swJamMulai.value = '20:30';
+                    swJamSelesai.value = '09:30';
+                } else {
+                    swJamMulai.value = '08:30';
+                    swJamSelesai.value = '20:30';
+                }
+            }
+            openModal('modal-switch-shift');
+        };
         if (btnEditShift) btnEditShift.onclick = () => {
+            populateOperatorDropdowns();
             const active = JNTFirebaseService.getActiveShift();
             const ed1 = document.getElementById('ed-op1-select');
             const ed2 = document.getElementById('ed-op2-select');
             const ed1T = document.getElementById('ed-op1-tugas');
             const ed2T = document.getElementById('ed-op2-tugas');
 
+            if (edJamMulai) edJamMulai.value = active.jamMulai === '20:30' ? '20:30' : '08:30';
+            if (edJamSelesai) edJamSelesai.value = active.jamSelesai === '09:30' ? '09:30' : '20:30';
             if (ed1 && active.operator1) ed1.value = active.operator1.nama;
             if (ed2 && active.operator2) ed2.value = active.operator2.nama;
-            if (ed1T && active.operator1) ed1T.value = active.operator1.tugas || 'Monitoring 4H & Incident';
-            if (ed2T && active.operator2) ed2T.value = active.operator2.tugas || 'SLA Vendor & Master Data';
+            if (ed1T && active.operator1) ed1T.value = (active.operator1.tugas || '').toUpperCase().includes('SLA') ? 'SLA' : 'Monitoring 4 Jam';
+            if (ed2T && active.operator2) ed2T.value = (active.operator2.tugas || '').toUpperCase().includes('MONITORING') ? 'Monitoring 4 Jam' : 'SLA';
 
             openModal('modal-edit-shift');
         };
@@ -2063,15 +2517,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const active = JNTFirebaseService.getActiveShift();
                     const newOp1 = document.getElementById('sw-op1-select').value;
                     const newOp2 = document.getElementById('sw-op2-select').value;
+                    const op1Tugas = document.getElementById('sw-op1-tugas')?.value || 'Monitoring 4 Jam';
+                    const op2Tugas = document.getElementById('sw-op2-tugas')?.value || 'SLA';
+                    const jamMulai = document.getElementById('sw-jam-mulai-input')?.value || '20:30';
+                    const jamSelesai = document.getElementById('sw-jam-selesai-input')?.value || '09:30';
                     const catatan = document.getElementById('sw-catatan').value;
 
                     const nextShift = await JNTFirebaseService.switchShift(
                         active.shiftId || active.id,
                         newOp1,
                         newOp2,
-                        "Monitoring 4H & Incident",
-                        "SLA Vendor & Master Data",
-                        catatan || "Pergantian Shift Operasional"
+                        op1Tugas,
+                        op2Tugas,
+                        catatan || "Pergantian Shift Operasional",
+                        jamMulai,
+                        jamSelesai
                     );
 
                     window.showToastNotification("🔄 PERGANTIAN SHIFT BERHASIL", `Operator Shift Baru: ${newOp1} & ${newOp2}`, "success");
@@ -2090,6 +2550,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 try {
                     const active = JNTFirebaseService.getActiveShift();
+                    const jamMulai = document.getElementById('ed-jam-mulai-input')?.value || active.jamMulai || '08:30';
+                    const jamSelesai = document.getElementById('ed-jam-selesai-input')?.value || active.jamSelesai || '20:30';
+                    const namaShift = jamMulai === '20:30'
+                        ? `Shift 2 (${jamMulai} - ${jamSelesai} WIB)`
+                        : `Shift 1 (${jamMulai} - ${jamSelesai} WIB)`;
                     const op1Nama = document.getElementById('ed-op1-select').value;
                     const op1Tugas = document.getElementById('ed-op1-tugas').value;
                     const op2Nama = document.getElementById('ed-op2-select').value;
@@ -2097,6 +2562,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const updatedObj = {
                         ...active,
+                        namaShift,
+                        jamMulai,
+                        jamSelesai,
                         operator1: { nama: op1Nama, role: "Operator Utama", tugas: op1Tugas },
                         operator2: { nama: op2Nama, role: "Operator Pendamping", tugas: op2Tugas }
                     };
@@ -2108,7 +2576,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         shiftId: active.shiftId || active.id,
                         modul: "Shift Management",
                         kodeTugas: "-",
-                        aktivitas: `Update Penugasan Operator Shift (${op1Nama} & ${op2Nama})`
+                        aktivitas: `Update Penugasan Operator Shift (${op1Nama} [${op1Tugas}] & ${op2Nama} [${op2Tugas}])`
                     });
 
                     window.showToastNotification("💾 PERUBAHAN TERSIMPAN", "Data operator shift berhasil diperbarui!", "success");
@@ -2161,7 +2629,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnExportAudit = document.getElementById('btn-export-audit-log');
         if (btnExportAudit) {
             btnExportAudit.onclick = () => {
-                const logs = JNTFirebaseService.getLocalStore('audit_logs') || [];
+                const logs = allAuditLogsCache.length > 0
+                    ? allAuditLogsCache
+                    : (JNTFirebaseService.getSynthesizedAuditLogs ? JNTFirebaseService.getSynthesizedAuditLogs() : []);
                 if (logs.length === 0) {
                     alert('Tidak ada log aktivitas untuk diexport.');
                     return;
@@ -2294,7 +2764,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const jamBerangkat = data.jamBerangkat || '-';
         const targetSLA = data.targetSLAHours ? `${data.targetSLAHours} Jam` : 'Target Terhubung';
         const totalAwb = data.totalAwb ? `${Number(data.totalAwb).toLocaleString('id-ID')} Paket` : '-';
-        const inputBy = data.inputBy || sessionStorage.getItem('jnt_active_username') || 'Hamdan';
+        const inputBy = data.inputBy || sessionStorage.getItem('jnt_active_username') || 'Operator';
 
         modal.innerHTML = `
             <div class="modal-card modal-card-bounce" style="max-width: 540px; text-align: center; padding: 24px 28px;">
@@ -3575,9 +4045,105 @@ document.addEventListener('DOMContentLoaded', () => {
             formExportExcel.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const targetModul = document.getElementById('exp-modul-select')?.value || 'ALL';
-                const dateFrom = document.getElementById('exp-date-from')?.value || '2026-08-01';
-                const dateTo = document.getElementById('exp-date-to')?.value || '2026-08-16';
+                const dateFrom = document.getElementById('exp-date-from')?.value || new Date().toISOString().split('T')[0];
+                const dateTo = document.getElementById('exp-date-to')?.value || new Date().toISOString().split('T')[0];
 
+                // Cek apakah library SheetJS (XLSX) tersedia untuk multi-sheet .xlsx
+                if (typeof XLSX !== 'undefined') {
+                    const wb = XLSX.utils.book_new();
+
+                    if (targetModul === 'SLA' || targetModul === 'ALL') {
+                        const slaData = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                        const rows = slaData.map((item, idx) => ({
+                            'No': idx + 1,
+                            'Kode Tugas': item.kodeTugas || '',
+                            'Plat Nomor': item.platNomor || '',
+                            'Trip / Rute': item.trip || '',
+                            'Vendor': item.vendor || '',
+                            'Driver': item.driver1 || '',
+                            'Jam Berangkat': item.jamBerangkat || '',
+                            'Target SLA': (item.targetSLAHours || item.targetSLA || 16) + ' Jam',
+                            'Jam Sampai Aktual': item.jamSampaiAktual || '',
+                            'Status SLA': item.statusSla || item.status || 'BERJALAN'
+                        }));
+                        const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data SLA' }]);
+                        XLSX.utils.book_append_sheet(wb, ws, 'SLA_Outbound');
+                    }
+
+                    if (targetModul === 'MONITORING' || targetModul === 'ALL') {
+                        const monData = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                        const rows = monData.map((item, idx) => ({
+                            'No': idx + 1,
+                            'Kode Tugas': item.kodeTugas || '',
+                            'Plat Nomor': item.platNomor || '',
+                            'Trip / Rute': item.trip || item.namaRute || '',
+                            'Vendor': item.vendor || '',
+                            'Jam Berangkat': item.jamBerangkat || '',
+                            'Status Perjalanan': item.statusPerjalanan || '',
+                            'Update Terakhir': item.lastUpdateTime || '',
+                            'Posisi Terakhir': item.lastUpdateLokasi || '',
+                            'Input By': item.lastUpdateBy || ''
+                        }));
+                        const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Monitoring' }]);
+                        XLSX.utils.book_append_sheet(wb, ws, 'Monitoring_4H');
+                    }
+
+                    if (targetModul === 'TROUBLE' || targetModul === 'ALL') {
+                        const trData = JNTFirebaseService.getLocalStore('troubles') || [];
+                        const rows = trData.map((item, idx) => ({
+                            'No': idx + 1,
+                            'Incident ID': item.incidentId || item.id || '',
+                            'Kode Tugas': item.kodeTugas || '',
+                            'Jenis': item.jenis || '',
+                            'Kategori': item.kategoriTrouble || '',
+                            'Tingkat Keparahan': item.severity || '',
+                            'Lokasi Kejadian': item.lokasiKejadian || '',
+                            'Waktu Kejadian': item.waktuKejadian || '',
+                            'Keterangan': item.keterangan || '',
+                            'Status': item.status || ''
+                        }));
+                        const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Trouble' }]);
+                        XLSX.utils.book_append_sheet(wb, ws, 'Trouble_Laka');
+                    }
+
+                    if (targetModul === 'SHIFT' || targetModul === 'ALL') {
+                        const shData = JNTFirebaseService.getLocalStore('shifts') || [];
+                        const rows = shData.map((item, idx) => ({
+                            'No': idx + 1,
+                            'Shift ID': item.shiftId || item.id || '',
+                            'Tanggal': item.tanggal || '',
+                            'Nama Shift': item.namaShift || '',
+                            'Operator 1': item.operator1 ? item.operator1.nama : '',
+                            'Operator 2': item.operator2 ? item.operator2.nama : '',
+                            'Status': item.status || ''
+                        }));
+                        const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Shift' }]);
+                        XLSX.utils.book_append_sheet(wb, ws, 'Shift_Management');
+                    }
+
+                    if (targetModul === 'AUDIT' || targetModul === 'ALL') {
+                        const auData = JNTFirebaseService.getLocalStore('audit_logs') || [];
+                        const rows = auData.map((item, idx) => ({
+                            'No': idx + 1,
+                            'Waktu': item.waktu || '',
+                            'Shift ID': item.shiftId || '',
+                            'Operator': item.operator || '',
+                            'Modul': item.modul || '',
+                            'Kode Tugas': item.kodeTugas || '',
+                            'Aktivitas': item.aktivitas || ''
+                        }));
+                        const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Audit' }]);
+                        XLSX.utils.book_append_sheet(wb, ws, 'Audit_Trail');
+                    }
+
+                    const fileNameXlsx = `JNT_TMS_Report_${targetModul}_${dateFrom}_to_${dateTo}.xlsx`;
+                    XLSX.writeFile(wb, fileNameXlsx);
+                    window.showToastNotification("📥 EXPORT SUKSES", `Laporan Excel ${targetModul} berhasil diunduh (${fileNameXlsx})!`, "success");
+                    closeModal('modal-export-filter');
+                    return;
+                }
+
+                // Fallback CSV jika XLSX belum terload
                 let csvContent = '\uFEFF';
                 let fileName = `JNT_Report_${targetModul}_${dateFrom}_to_${dateTo}.csv`;
 
@@ -3591,45 +4157,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     csvContent += '\n';
                 }
 
-                if (targetModul === 'MONITORING' || targetModul === 'ALL') {
-                    const monData = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
-                    csvContent += '--- REKAP MONITORING 4H ---\n';
-                    csvContent += 'No,Kode Tugas,Plat Nomor,Trip,Status Perjalanan,Update Terakhir,Posisi Terakhir,Input By\n';
-                    monData.forEach((item, idx) => {
-                        csvContent += `"${idx + 1}","${item.kodeTugas || ''}","${item.platNomor || ''}","${item.trip || item.namaRute || ''}","${item.statusPerjalanan || ''}","${item.lastUpdateTime || ''}","${item.lastUpdateLokasi || ''}","${item.lastUpdateBy || ''}"\n`;
-                    });
-                    csvContent += '\n';
-                }
-
-                if (targetModul === 'TROUBLE' || targetModul === 'ALL') {
-                    const trData = JNTFirebaseService.getLocalStore('troubles') || [];
-                    csvContent += '--- REKAP TROUBLE & LAKA ---\n';
-                    csvContent += 'No,Incident ID,Kode Tugas,Jenis,Kategori,Severity,Lokasi Kejadian,Waktu Kejadian,Status,Pelapor\n';
-                    trData.forEach((item, idx) => {
-                        csvContent += `"${idx + 1}","${item.incidentId || item.id || ''}","${item.kodeTugas || ''}","${item.jenis || ''}","${item.kategoriTrouble || ''}","${item.severity || ''}","${item.lokasiKejadian || ''}","${item.waktuKejadian || ''}","${item.status || ''}","${item.dilaporkanOleh || ''}"\n`;
-                    });
-                    csvContent += '\n';
-                }
-
-                if (targetModul === 'SHIFT' || targetModul === 'ALL') {
-                    const shData = JNTFirebaseService.getLocalStore('shifts') || [];
-                    csvContent += '--- REKAP SHIFT OPERASIONAL ---\n';
-                    csvContent += 'No,Shift ID,Tanggal,Nama Shift,Operator 1,Operator 2,Status\n';
-                    shData.forEach((item, idx) => {
-                        csvContent += `"${idx + 1}","${item.shiftId || item.id || ''}","${item.tanggal || ''}","${item.namaShift || ''}","${item.operator1 ? item.operator1.nama : ''}","${item.operator2 ? item.operator2.nama : ''}","${item.status || ''}"\n`;
-                    });
-                    csvContent += '\n';
-                }
-
-                if (targetModul === 'AUDIT' || targetModul === 'ALL') {
-                    const auData = JNTFirebaseService.getLocalStore('audit_logs') || [];
-                    csvContent += '--- REKAP AUDIT TRAIL LOG ---\n';
-                    csvContent += 'No,Waktu,Shift ID,Operator,Modul,Kode Tugas,Aktivitas\n';
-                    auData.forEach((item, idx) => {
-                        csvContent += `"${idx + 1}","${item.waktu || ''}","${item.shiftId || ''}","${item.operator || ''}","${item.modul || ''}","${item.kodeTugas || ''}","${(item.aktivitas || '').replace(/"/g, '""')}"\n`;
-                    });
-                }
-
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
@@ -3640,130 +4167,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 window.showToastNotification("📥 EXPORT SUKSES", `Laporan ${targetModul} berhasil diunduh (${fileName})!`, "success");
                 closeModal('modal-export-filter');
-            });
-        }
-
-        // Import Excel Safety Validation Pipeline
-        let parsedImportRows = [];
-        const fileInput = document.getElementById('imp-file-input');
-        const validationBox = document.getElementById('imp-validation-box');
-        const valValidCount = document.getElementById('val-valid-count');
-        const valErrorCount = document.getElementById('val-error-count');
-        const btnCommitImport = document.getElementById('btn-commit-import');
-
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const text = event.target.result;
-                    const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
-
-                    if (lines.length < 2) {
-                        alert('File CSV/Excel kosong atau tidak memiliki baris data.');
-                        return;
-                    }
-
-                    // Parse header row
-                    const headerLine = lines[0].replace(/"/g, '').toLowerCase();
-                    const headers = headerLine.split(',').map(h => h.trim());
-
-                    const colKode = headers.findIndex(h => h.includes('kode') || h.includes('tugas'));
-                    const colTrip = headers.findIndex(h => h.includes('trip') || h.includes('rute'));
-                    const colPlat = headers.findIndex(h => h.includes('plat') || h.includes('nomor'));
-
-                    if (colKode === -1 || colPlat === -1) {
-                        alert('Format Header tidak valid! File harus mengandung kolom "Kode Tugas" dan "Plat Nomor".');
-                        return;
-                    }
-
-                    const existingIncoming = JNTFirebaseService.getLocalStore('incoming') || [];
-                    const existingCodes = new Set(existingIncoming.map(i => i.kodeTugas));
-
-                    parsedImportRows = [];
-                    let errorCount = 0;
-
-                    for (let i = 1; i < lines.length; i++) {
-                        const rowCols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
-                        const kode = rowCols[colKode];
-                        const plat = rowCols[colPlat];
-                        const trip = colTrip !== -1 ? rowCols[colTrip] : 'JKT - SUB';
-
-                        if (!kode || !plat) {
-                            errorCount++;
-                            continue;
-                        }
-
-                        // Duplicate validation
-                        if (existingCodes.has(kode)) {
-                            errorCount++;
-                            continue;
-                        }
-
-                        existingCodes.add(kode); // Track code to prevent internal duplicates in same batch
-
-                        parsedImportRows.push({
-                            kodeTugas: kode,
-                            platNomor: plat,
-                            trip: trip,
-                            status: 'SEDANG DIPROSES',
-                            driver1: 'Driver Eksternal',
-                            vendor: 'PT J&T Logistics',
-                            totalAwb: '12.500',
-                            jamBerangkat: '08:00',
-                            targetSLA: '18 Jam',
-                            inputBy: activeUsername
-                        });
-                    }
-
-                    if (validationBox) validationBox.classList.remove('hidden');
-                    if (valValidCount) valValidCount.textContent = parsedImportRows.length;
-                    if (valErrorCount) valErrorCount.textContent = errorCount;
-
-                    if (btnCommitImport) {
-                        btnCommitImport.disabled = parsedImportRows.length === 0;
-                        btnCommitImport.style.opacity = parsedImportRows.length > 0 ? '1' : '0.5';
-                    }
-                };
-                reader.readAsText(file);
-            });
-        }
-
-        if (btnCommitImport) {
-            btnCommitImport.addEventListener('click', async () => {
-                if (parsedImportRows.length === 0) return;
-
-                btnCommitImport.disabled = true;
-                btnCommitImport.textContent = '⏳ Mengunggah ke SSOT...';
-
-                try {
-                    let successCount = 0;
-                    for (const row of parsedImportRows) {
-                        await JNTFirebaseService.addIncomingTrip(row);
-                        successCount++;
-                    }
-
-                    await JNTFirebaseService.logAuditEvent({
-                        waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-                        operator: activeUsername,
-                        shiftId: JNTFirebaseService.getActiveShiftId(),
-                        modul: "Report & Excel",
-                        kodeTugas: "-",
-                        aktivitas: `Import File Excel (${successCount} data berhasil di-commit ke SSOT)`
-                    });
-
-                    window.showToastNotification("🚀 IMPORT BERHASIL", `${successCount} data perjalanan berhasil dimasukkan ke SSOT & Monitoring!`, "success");
-                    closeModal('modal-import-excel');
-                    if (fileInput) fileInput.value = '';
-                    if (validationBox) validationBox.classList.add('hidden');
-                } catch (err) {
-                    alert(`Gagal import data: ${err.message}`);
-                } finally {
-                    btnCommitImport.textContent = '📥 Konfirmasi & Commit Ke Firestore';
-                    btnCommitImport.disabled = false;
-                }
             });
         }
     }
@@ -3827,13 +4230,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedThemeMode = localStorage.getItem('jnt_theme_mode') || 'light';
     const savedThemeColor = localStorage.getItem('jnt_theme_color');
 
-    if (savedThemeMode === 'dark') {
-        document.body.classList.remove('light-body-theme');
-        document.body.classList.add('dark-body-theme');
-    } else {
-        document.body.classList.remove('dark-body-theme');
-        document.body.classList.add('light-body-theme');
-    }
+    const applyThemeMode = (mode) => {
+        const isDark = mode === 'dark';
+        document.documentElement.classList.toggle('dark-body-theme', isDark);
+        document.documentElement.classList.toggle('light-body-theme', !isDark);
+        document.body.classList.toggle('dark-body-theme', isDark);
+        document.body.classList.toggle('light-body-theme', !isDark);
+
+        document.querySelectorAll('[data-theme-mode]').forEach((button) => {
+            const isActive = button.dataset.themeMode === (isDark ? 'dark' : 'light');
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+
+        window.dispatchEvent(new CustomEvent('jnt-theme-changed', { detail: { mode, isDark } }));
+    };
+
+    applyThemeMode(savedThemeMode);
+
+    document.querySelectorAll('[data-theme-mode]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const mode = button.dataset.themeMode;
+            if (mode !== 'light' && mode !== 'dark') return;
+            localStorage.setItem('jnt_theme_mode', mode);
+            applyThemeMode(mode);
+        });
+    });
 
     if (savedThemeColor) {
         document.documentElement.style.setProperty('--primary-red', savedThemeColor);
