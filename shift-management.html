@@ -822,36 +822,12 @@
                     </div>
                     <div class="form-field">
                         <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; display: block;">🏷️ Nama
-                            Shift</label>
+                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; display: block;">🏷️ Pilih
+                            Shift (Jam Otomatis)</label>
                         <select id="st-nama-select" required
                             style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
                             <option value="Shift 1 (08:30 - 20:30 WIB)">Shift 1 (08:30 - 20:30 WIB)</option>
-                            <option value="Shift 2 (20:30 - 09:30 WIB)">Shift 2 (20:30 - 09:30 WIB)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row-2"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; display: block;">🕒 Jam
-                            Mulai</label>
-                        <select id="st-jam-mulai-input" required
-                            style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
-                            <option value="08:30" selected>08:30 WIB (Shift 1)</option>
-                            <option value="20:30">20:30 WIB (Shift 2)</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; display: block;">🏁 Jam
-                            Selesai</label>
-                        <select id="st-jam-selesai-input" required
-                            style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
-                            <option value="20:30" selected>20:30 WIB (Shift 1)</option>
-                            <option value="09:30">09:30 WIB (Shift 2)</option>
+                            <option value="Shift 2 (20:30 - 08:30 WIB)">Shift 2 (20:30 - 08:30 WIB)</option>
                         </select>
                     </div>
                 </div>
@@ -943,28 +919,15 @@
                     otomatis.
                 </p>
 
-                <div class="form-row-2"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; margin-bottom: 5px; display: block;">🕒 Jam
-                            Mulai Shift Baru</label>
-                        <select id="sw-jam-mulai-input" required
-                            style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
-                            <option value="08:30">08:30 WIB (Shift 1)</option>
-                            <option value="20:30" selected>20:30 WIB (Shift 2)</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; margin-bottom: 5px; display: block;">🏁 Jam
-                            Selesai Shift Baru</label>
-                        <select id="sw-jam-selesai-input" required
-                            style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
-                            <option value="20:30">20:30 WIB (Shift 1)</option>
-                            <option value="09:30" selected>09:30 WIB (Shift 2)</option>
-                        </select>
-                    </div>
+                <div class="form-field" style="margin-bottom: 12px;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; margin-bottom: 5px; display: block;">🏷️ Pilih
+                        Shift Baru (Jam Operasional Otomatis)</label>
+                    <select id="sw-nama-select" required
+                        style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                        <option value="Shift 1 (08:30 - 20:30 WIB)">Shift 1 (08:30 - 20:30 WIB)</option>
+                        <option value="Shift 2 (20:30 - 08:30 WIB)" selected>Shift 2 (20:30 - 08:30 WIB)</option>
+                    </select>
                 </div>
 
                 <div class="form-row-2"
@@ -1040,28 +1003,15 @@
             </div>
             <form id="form-edit-shift" class="modal-body-form" style="padding: 18px 22px;">
 
-                <div class="form-row-2"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; margin-bottom: 6px; display: block;">🕒 Jam
-                            Mulai</label>
-                        <select id="ed-jam-mulai-input" required
-                            style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
-                            <option value="08:30">08:30 WIB (Shift 1)</option>
-                            <option value="20:30">20:30 WIB (Shift 2)</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; margin-bottom: 6px; display: block;">🏁 Jam
-                            Selesai</label>
-                        <select id="ed-jam-selesai-input" required
-                            style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
-                            <option value="20:30">20:30 WIB (Shift 1)</option>
-                            <option value="09:30">09:30 WIB (Shift 2)</option>
-                        </select>
-                    </div>
+                <div class="form-field" style="margin-bottom: 14px;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #CBD5E1; text-transform: uppercase; margin-bottom: 6px; display: block;">🏷️ Pilih
+                        Shift (Jam Operasional Otomatis)</label>
+                    <select id="ed-nama-select" required
+                        style="border: 1px solid #334155; background-color: #1E293B; color: #F8FAFC; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; width: 100%;">
+                        <option value="Shift 1 (08:30 - 20:30 WIB)">Shift 1 (08:30 - 20:30 WIB)</option>
+                        <option value="Shift 2 (20:30 - 08:30 WIB)">Shift 2 (20:30 - 08:30 WIB)</option>
+                    </select>
                 </div>
 
                 <div class="form-row-2"

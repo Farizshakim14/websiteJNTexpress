@@ -247,7 +247,7 @@
                 </div>
 
                 <!-- EXCEL-STYLE VENDOR SHEET NAVIGATION BAR -->
-                <div class="excel-sheet-nav-container" style="margin-bottom: 12px;">
+                <div class="excel-sheet-nav-container" id="mon-section-sheet-vendor" style="margin-bottom: 12px;">
                     <div class="excel-sheet-header">
                         <div class="excel-sheet-title">
                             <span class="excel-icon">📑</span>
@@ -260,6 +260,10 @@
                                 title="Scroll ke kiri">&lt;</button>
                             <button type="button" class="excel-nav-arrow" onclick="scrollMonExcelTabs(1)"
                                 title="Scroll ke kanan">&gt;</button>
+                            <button type="button" class="btn-collapse-toggle" id="btn-toggle-mon-sheet"
+                                onclick="toggleMonPanel('sheet')">
+                                Tutup <span class="caret-icon">&#9650;</span>
+                            </button>
                         </div>
                     </div>
                     <div class="excel-tabs-scroll-track" id="mon-excel-tabs-track">
@@ -267,62 +271,80 @@
                     </div>
                 </div>
 
-                <!-- Filter Grid Card (Identik dengan SLA Vendor) -->
-                <div class="inc-filter-card"
-                    style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
-                    <div class="filter-inputs-grid"
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
-                        <div class="filter-group">
-                            <label for="filter-mon-date"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
-                            <input type="date" id="filter-mon-date"
-                                style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                        </div>
-                        <div class="filter-group">
-                            <label for="filter-mon-rute"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
-                            <select id="filter-mon-rute"
-                                style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                                <option value="">Semua Rute</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="filter-mon-status"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
-                                SLA</label>
-                            <select id="filter-mon-status"
-                                style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                                <option value="">Semua Status</option>
-                                <option value="OUT">OUT (Di Jalan)</option>
-                                <option value="IN">IN (Sudah Sampai)</option>
-                                <option value="KENDALA">KENDALA</option>
-                            </select>
-                        </div>
-                        <div class="filter-group" style="grid-column: span 2;">
-                            <label for="filter-mon-search"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
-                                Kode Tugas / Plat / Driver / Trip</label>
-                            <div style="position: relative;">
-                                <input type="text" id="filter-mon-search" placeholder="Ketik disini..."
-                                    style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
-                                    style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
+                <!-- Filter Grid Card (Identik dengan SLA Vendor - Collapsible) -->
+                <div class="inc-filter-card collapsible-section-wrapper" id="mon-section-filter-wrapper"
+                    style="background: #FFFFFF; border-radius: 12px; padding: 8px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
+                    <div class="collapsible-section-header">
+                        <span class="collapsible-section-title">🔍 Filter &amp; Pencarian Armada</span>
+                        <button type="button" class="btn-collapse-toggle" id="btn-toggle-mon-filter"
+                            onclick="toggleMonPanel('filter')">
+                            Tutup <span class="caret-icon">&#9650;</span>
+                        </button>
+                    </div>
+                    <div class="collapsible-section-body">
+                        <div class="filter-inputs-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
+                            <div class="filter-group">
+                                <label for="filter-mon-date"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
+                                <input type="date" id="filter-mon-date"
+                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
                             </div>
-                        </div>
-                        <div class="filter-group">
-                            <button type="button" id="btn-reset-monitoring" class="btn-inc-reset"
-                                style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
-                                Reset</button>
+                            <div class="filter-group">
+                                <label for="filter-mon-rute"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
+                                <select id="filter-mon-rute"
+                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                    <option value="">Semua Rute</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-mon-status"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
+                                    SLA</label>
+                                <select id="filter-mon-status"
+                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                    <option value="">Semua Status</option>
+                                    <option value="OUT">OUT (Di Jalan)</option>
+                                    <option value="IN">IN (Sudah Sampai)</option>
+                                    <option value="KENDALA">KENDALA</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" style="grid-column: span 2;">
+                                <label for="filter-mon-search"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
+                                    Kode Tugas / Plat / Driver / Trip</label>
+                                <div style="position: relative;">
+                                    <input type="text" id="filter-mon-search" placeholder="Ketik disini..."
+                                        style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+                                        style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <button type="button" id="btn-reset-monitoring" class="btn-inc-reset"
+                                    style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
+                                    Reset</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- KPI CARDS GRID -->
-                <div class="inc-kpi-grid"
-                    style="margin-bottom: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                <!-- KPI CARDS GRID (COLLAPSIBLE) -->
+                <div class="collapsible-section-wrapper" id="mon-section-kpi-wrapper">
+                    <div class="collapsible-section-header">
+                        <span class="collapsible-section-title">📊 Ringkasan Status Slot &amp; Armada</span>
+                        <button type="button" class="btn-collapse-toggle" id="btn-toggle-mon-kpi"
+                            onclick="toggleMonPanel('kpi')">
+                            Tutup <span class="caret-icon">&#9650;</span>
+                        </button>
+                    </div>
+                    <div class="collapsible-section-body">
+                        <div class="inc-kpi-grid" id="mon-section-kpi-cards"
+                            style="margin-bottom: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                     <!-- Card 1: SLOT AKTIF -->
                     <div class="inc-kpi-card"
                         style="border-left: 4px solid #3B82F6; background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
@@ -431,15 +453,17 @@
                     </div>
                 </div>
 
-                <!-- Info Banner (ringkas) -->
-                <div class="inc-info-banner"
-                    style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
-                    <div
-                        style="background-color: #2563EB; color: #FFFFFF; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 13px;">
-                        ℹ</div>
-                    <div style="color: #1E3A8A; font-size: 12px; line-height: 1.4;">
-                        <strong style="color: #1E40AF;">Cara Check-in:</strong> Input posisi armada setiap 4 jam. Slot:
-                        00-04 | 04-08 | 08-12 | 12-16 | 16-20 | 20-24. Kendala darurat → pilih status 🚨 Trouble/Laka.
+                        <!-- Info Banner (ringkas) -->
+                        <div class="inc-info-banner" id="mon-section-info-banner"
+                            style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 10px; padding: 10px 14px; margin-bottom: 0; display: flex; gap: 10px; align-items: center;">
+                            <div
+                                style="background-color: #2563EB; color: #FFFFFF; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 13px;">
+                                ℹ</div>
+                            <div style="color: #1E3A8A; font-size: 12px; line-height: 1.4;">
+                                <strong style="color: #1E40AF;">Cara Check-in:</strong> Input posisi armada setiap 4 jam. Slot:
+                                00-04 | 04-08 | 08-12 | 12-16 | 16-20 | 20-24. Kendala darurat → pilih status 🚨 Trouble/Laka.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -615,9 +639,18 @@
                         </div>
                     </div>
 
-                    <!-- Bottom Summary & Legend Panels (Below Table) -->
-                    <div class="inc-detail-card"
-                        style="width: 100%; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: stretch;">
+                    <!-- Bottom Summary & Legend Panels (Below Table - Collapsible) -->
+                    <div class="collapsible-section-wrapper" id="mon-section-bottom-wrapper" style="margin-bottom: 0;">
+                        <div class="collapsible-section-header">
+                            <span class="collapsible-section-title">📊 Ringkasan, Legenda Posisi &amp; Timeline Slot 4 Jam</span>
+                            <button type="button" class="btn-collapse-toggle" id="btn-toggle-mon-bottom"
+                                onclick="toggleMonPanel('bottom')">
+                                Tutup <span class="caret-icon">&#9650;</span>
+                            </button>
+                        </div>
+                        <div class="collapsible-section-body">
+                            <div class="inc-detail-card" id="mon-section-bottom-summary"
+                                style="width: 100%; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: stretch;">
 
                         <!-- Ringkasan Hari Ini -->
                         <div class="monitoring-summary-box">
@@ -741,6 +774,8 @@
                                 Pembaruan posisi wajib setiap 4 jam</span>
                         </div>
 
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -1528,7 +1563,8 @@
                 { key: 'REYA', name: 'REYA', fullName: 'PT. REYA BAHAGIA ABADI (REYA)' },
                 { key: 'SDE', name: 'SDE', fullName: 'PT. SOLUSI DUNIA EXPEDISI (SDE)' },
                 { key: 'PAL', name: 'PAL', fullName: 'PT. PESONA ABADI LOGISTIK (PAL)' },
-                { key: 'LNP', name: 'LNP', fullName: 'LNP' }
+                { key: 'LNP', name: 'LNP', fullName: 'LNP' },
+                { key: 'FASTRANS', name: 'FASTRANS', fullName: 'PT. FASTRANS LOGISTIK INDONESIA (FASTRANS)' }
             ];
 
             window._monTripType = 'outbound';      // 'outbound' (Berangkat) | 'return' (Balikan)
@@ -1553,6 +1589,7 @@
                 if (u.includes('SOLUSI TRANSPORTASI') || u.includes('SOLUSI')) return 'SOLUSI';
                 if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
                 if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+                if (u.includes('FASTRANS')) return 'FASTRANS';
 
                 return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
             }
@@ -1584,6 +1621,111 @@
                 const track = document.getElementById('mon-excel-tabs-track');
                 if (track) track.scrollBy({ left: dir * 240, behavior: 'smooth' });
             };
+
+            // ═══════════════════════════════════════════════════════
+            // COLLAPSIBLE PANELS & FULL TABLE VIEW CONTROLLER
+            // ═══════════════════════════════════════════════════════
+            const MON_VIS_STORAGE_KEY = 'jnt_ui_visibility_mon_v1';
+            let _monPanelVisibility = { sheet: true, filter: true, kpi: true, bottom: true };
+            try {
+                const savedVis = localStorage.getItem(MON_VIS_STORAGE_KEY);
+                if (savedVis) {
+                    const parsedVis = JSON.parse(savedVis);
+                    if (parsedVis && typeof parsedVis === 'object') {
+                        _monPanelVisibility = {
+                            sheet: parsedVis.sheet !== false,
+                            filter: parsedVis.filter !== false,
+                            kpi: parsedVis.kpi !== false,
+                            bottom: parsedVis.bottom !== false
+                        };
+                    }
+                }
+            } catch (_) { }
+
+            function applyMonPanelVisibility() {
+                const sheetEl = document.getElementById('mon-section-sheet-vendor');
+                const filterWrap = document.getElementById('mon-section-filter-wrapper');
+                const kpiWrap = document.getElementById('mon-section-kpi-wrapper');
+                const bottomWrap = document.getElementById('mon-section-bottom-wrapper');
+
+                if (sheetEl) sheetEl.classList.toggle('is-collapsed', !_monPanelVisibility.sheet);
+                if (filterWrap) filterWrap.classList.toggle('is-collapsed', !_monPanelVisibility.filter);
+                if (kpiWrap) kpiWrap.classList.toggle('is-collapsed', !_monPanelVisibility.kpi);
+                if (bottomWrap) bottomWrap.classList.toggle('is-collapsed', !_monPanelVisibility.bottom);
+
+                const setToggleText = (btnId, isOpen, openLabel) => {
+                    const btn = document.getElementById(btnId);
+                    if (!btn) return;
+                    btn.innerHTML = isOpen
+                        ? 'Tutup <span class="caret-icon">&#9650;</span>'
+                        : openLabel + ' <span class="caret-icon">&#9660;</span>';
+                };
+
+                setToggleText('btn-toggle-mon-sheet', _monPanelVisibility.sheet, 'Buka Sheet Vendor');
+                setToggleText('btn-toggle-mon-filter', _monPanelVisibility.filter, 'Buka Filter');
+                setToggleText('btn-toggle-mon-kpi', _monPanelVisibility.kpi, 'Buka Ringkasan KPI');
+                setToggleText('btn-toggle-mon-bottom', _monPanelVisibility.bottom, 'Buka Ringkasan &amp; Timeline');
+
+                try {
+                    localStorage.setItem(MON_VIS_STORAGE_KEY, JSON.stringify(_monPanelVisibility));
+                } catch (_) { }
+            }
+
+            window.toggleMonPanel = function (panelKey) {
+                if (!(panelKey in _monPanelVisibility)) return;
+                _monPanelVisibility[panelKey] = !_monPanelVisibility[panelKey];
+                applyMonPanelVisibility();
+                if (typeof window.updateMonTableStickyFreeze === 'function') {
+                    window.updateMonTableStickyFreeze();
+                }
+            };
+
+            applyMonPanelVisibility();
+
+            // ═══════════════════════════════════════════════════════
+            // FREEZE TABLE HEADER & THEAD ON PAGE SCROLL (RELEASE AT TABLE BOTTOM)
+            // ═══════════════════════════════════════════════════════
+            (function initMonTableStickyFreeze() {
+                const mainEl = document.querySelector('.main-incoming-body');
+                const cardEl = document.querySelector('.inc-table-card');
+                const headerBarEl = cardEl ? cardEl.querySelector('.inc-table-header') : null;
+                const scrollWrapEl = document.getElementById('mon-table-wrapper');
+                const tableEl = scrollWrapEl ? scrollWrapEl.querySelector('table') : null;
+                const theadEl = tableEl ? tableEl.querySelector('thead') : null;
+                const tbodyEl = document.getElementById('monitoring-tbody');
+
+                function updateFreeze() {
+                    if (!cardEl || !headerBarEl || !theadEl || !tbodyEl) return;
+                    const mainTop = mainEl ? Math.max(0, mainEl.getBoundingClientRect().top) : 0;
+                    const cardRect = cardEl.getBoundingClientRect();
+                    const rawScrollPast = mainTop - cardRect.top;
+                    const tbodyHeight = tbodyEl.offsetHeight || 0;
+                    // Sisakan tinggi minimal baris paling bawah (~185px) sebelum melepas freeze agar bisa lanjut scroll ke Ringkasan
+                    const minBottomRowsHeight = Math.min(tbodyHeight, 185);
+                    const maxOffset = Math.max(0, tbodyHeight - minBottomRowsHeight);
+
+                    if (rawScrollPast > 0 && maxOffset > 0) {
+                        const offsetY = Math.min(Math.round(rawScrollPast), maxOffset);
+                        headerBarEl.style.transform = `translate3d(0, ${offsetY}px, 0)`;
+                        headerBarEl.classList.add('is-frozen-header');
+                        theadEl.style.transform = `translate3d(0, ${offsetY}px, 0)`;
+                        theadEl.classList.add('is-frozen-thead');
+                        tbodyEl.style.clipPath = `inset(${offsetY}px 0px 0px 0px)`;
+                    } else {
+                        headerBarEl.style.transform = '';
+                        headerBarEl.classList.remove('is-frozen-header');
+                        theadEl.style.transform = '';
+                        theadEl.classList.remove('is-frozen-thead');
+                        tbodyEl.style.clipPath = '';
+                    }
+                }
+
+                window.updateMonTableStickyFreeze = updateFreeze;
+                if (mainEl) mainEl.addEventListener('scroll', updateFreeze, { passive: true });
+                window.addEventListener('scroll', updateFreeze, { passive: true });
+                window.addEventListener('resize', updateFreeze, { passive: true });
+                setTimeout(updateFreeze, 50);
+            })();
 
             window.switchMonitoringTripType = function (type) {
                 window._monTripType = type;
@@ -3395,6 +3537,10 @@
                     _monSmartUpdate(tbody, pageData, startIdx);
 
                     if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
+                }
+
+                if (typeof window.updateMonTableStickyFreeze === 'function') {
+                    window.updateMonTableStickyFreeze();
                 }
 
                 // ── Update KPI Cards (dari filtered, bukan raw) ──

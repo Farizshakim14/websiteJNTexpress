@@ -231,8 +231,17 @@
                     </div>
                 </header>
 
-                <!-- Mini KPI Summary Section -->
-                <div class="sla-kpi-grid" style="margin: 20px 0 16px 0;">
+                <!-- Mini KPI Summary Section (Collapsible) -->
+                <div class="collapsible-section-wrapper" id="sla-section-kpi-wrapper" style="margin-top: 16px;">
+                    <div class="collapsible-section-header">
+                        <span class="collapsible-section-title">📊 Ringkasan Performa SLA</span>
+                        <button type="button" class="btn-collapse-toggle" id="btn-toggle-sla-kpi"
+                            onclick="toggleSLAPanel('kpi')">
+                            Tutup <span class="caret-icon">&#9650;</span>
+                        </button>
+                    </div>
+                    <div class="collapsible-section-body">
+                        <div class="sla-kpi-grid" id="sla-section-kpi-cards" style="margin: 0;">
                     <div class="sla-kpi-card">
                         <div class="sla-kpi-icon total">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -299,6 +308,8 @@
                             </div>
                         </div>
                     </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 2 SLA Segmented Navigation -->
@@ -312,7 +323,7 @@
                 </div>
 
                 <!-- EXCEL-STYLE VENDOR SHEET NAVIGATION BAR -->
-                <div class="excel-sheet-nav-container" style="margin-bottom: 12px;">
+                <div class="excel-sheet-nav-container" id="sla-section-sheet-vendor" style="margin-bottom: 12px;">
                     <div class="excel-sheet-header">
                         <div class="excel-sheet-title">
                             <span class="excel-icon">📑</span>
@@ -325,6 +336,10 @@
                                 title="Scroll ke kiri">&lt;</button>
                             <button type="button" class="excel-nav-arrow" onclick="scrollExcelTabs(1)"
                                 title="Scroll ke kanan">&gt;</button>
+                            <button type="button" class="btn-collapse-toggle" id="btn-toggle-sla-sheet"
+                                onclick="toggleSLAPanel('sheet')">
+                                Tutup <span class="caret-icon">&#9650;</span>
+                            </button>
                         </div>
                     </div>
                     <div class="excel-tabs-scroll-track" id="excel-tabs-track">
@@ -332,57 +347,66 @@
                     </div>
                 </div>
 
-                <!-- FILTER GRID CARD FOR SLA (CARI ARMADA & FILTER IDENTIK MONITORING 4 JAM) -->
-                <div class="inc-filter-card"
-                    style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
-                    <div class="filter-inputs-grid"
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
-                        <div class="filter-group">
-                            <label for="filter-sla-date"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
-                            <input type="date" id="filter-sla-date" onchange="renderFilteredSLATables()"
-                                style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                        </div>
-                        <div class="filter-group">
-                            <label for="filter-sla-rute"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
-                            <select id="filter-sla-rute" onchange="renderFilteredSLATables()"
-                                style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                                <option value="">Semua Rute</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label for="filter-sla-status"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
-                                SLA</label>
-                            <select id="filter-sla-status" onchange="renderFilteredSLATables()"
-                                style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                                <option value="">Semua Status</option>
-                                <option value="OUT">OUT (Di Jalan)</option>
-                                <option value="IN">IN (Sudah Sampai)</option>
-                                <option value="KENDALA">KENDALA</option>
-                            </select>
-                        </div>
-                        <div class="filter-group" style="grid-column: span 2;">
-                            <label for="filter-sla-search"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
-                                Kode Tugas / Plat / Driver / Trip</label>
-                            <div style="position: relative;">
-                                <input type="text" id="filter-sla-search" oninput="window.onSLASearchInput && window.onSLASearchInput()"
-                                    placeholder="Ketik disini..."
-                                    style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
-                                    style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                </svg>
+                <!-- FILTER GRID CARD FOR SLA (CARI ARMADA & FILTER IDENTIK MONITORING 4 JAM - COLLAPSIBLE) -->
+                <div class="inc-filter-card collapsible-section-wrapper" id="sla-section-filter-wrapper"
+                    style="background: #FFFFFF; border-radius: 12px; padding: 8px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
+                    <div class="collapsible-section-header">
+                        <span class="collapsible-section-title">🔍 Filter &amp; Pencarian Armada</span>
+                        <button type="button" class="btn-collapse-toggle" id="btn-toggle-sla-filter"
+                            onclick="toggleSLAPanel('filter')">
+                            Tutup <span class="caret-icon">&#9650;</span>
+                        </button>
+                    </div>
+                    <div class="collapsible-section-body">
+                        <div class="filter-inputs-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
+                            <div class="filter-group">
+                                <label for="filter-sla-date"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
+                                <input type="date" id="filter-sla-date" onchange="renderFilteredSLATables()"
+                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
                             </div>
-                        </div>
-                        <div class="filter-group">
-                            <button type="button" id="btn-reset-sla-filter" onclick="resetSLAFilters()"
-                                class="btn-inc-reset"
-                                style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
-                                Reset</button>
+                            <div class="filter-group">
+                                <label for="filter-sla-rute"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
+                                <select id="filter-sla-rute" onchange="renderFilteredSLATables()"
+                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                    <option value="">Semua Rute</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-sla-status"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
+                                    SLA</label>
+                                <select id="filter-sla-status" onchange="renderFilteredSLATables()"
+                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                    <option value="">Semua Status</option>
+                                    <option value="OUT">OUT (Di Jalan)</option>
+                                    <option value="IN">IN (Sudah Sampai)</option>
+                                    <option value="KENDALA">KENDALA</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" style="grid-column: span 2;">
+                                <label for="filter-sla-search"
+                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
+                                    Kode Tugas / Plat / Driver / Trip</label>
+                                <div style="position: relative;">
+                                    <input type="text" id="filter-sla-search" oninput="window.onSLASearchInput && window.onSLASearchInput()"
+                                        placeholder="Ketik disini..."
+                                        style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
+                                        style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <button type="button" id="btn-reset-sla-filter" onclick="resetSLAFilters()"
+                                    class="btn-inc-reset"
+                                    style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
+                                    Reset</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1383,14 +1407,23 @@
             let onTime = 0, late = 0, transit = 0;
             list.forEach(function (i) {
                 const st = (i.statusSla || '').toUpperCase();
-                let isLate = (st === 'LATE' || st === 'KENDALA' || (i.lateMinutes && Number(i.lateMinutes) > 0));
-                const cleanArr = (i.jamSampaiAktual && !/^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(String(i.jamSampaiAktual).trim())) ? i.jamSampaiAktual.trim() : '';
+                const cleanArr = (i.jamSampaiAktual && !/^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(String(i.jamSampaiAktual).trim())) ? i.jamSampaiAktual.trim() : '';
+                const targetH = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.resolveEffectiveTargetSLAHours)
+                    ? JNTFirebaseService.resolveEffectiveTargetSLAHours(i)
+                    : (parseFloat(i.targetSLAHours || i.targetSLAOutboundHours) || 16);
+
+                let isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (i.lateMinutes && Number(i.lateMinutes) > 0));
                 let isCompleted = (st === 'ON TIME' || st === 'COMPLETED' || cleanArr !== '');
 
-                if (!isLate && !isCompleted && window.SLACountdownEngine) {
-                    const state = window.SLACountdownEngine.calculateSLAState(i.jamBerangkat, i.targetSLAHours || 16, i.jamSampaiAktual);
-                    if (state.isOverdue) isLate = true;
-                    else if (state.isCompleted) isCompleted = true;
+                if (window.SLACountdownEngine && i.jamBerangkat) {
+                    const state = window.SLACountdownEngine.calculateSLAState(i.jamBerangkat, targetH, cleanArr);
+                    if (cleanArr) {
+                        isCompleted = true;
+                        isLate = state.isOverdue || st === 'KENDALA';
+                    } else if (!isLate && !isCompleted) {
+                        if (state.isOverdue) isLate = true;
+                        else if (state.isCompleted) isCompleted = true;
+                    }
                 }
 
                 if (isLate) late++;
@@ -1504,6 +1537,7 @@
             if (u.includes('SOLUSI DUNIA') || u.includes('SDE') || u.includes('(SDE)')) return 'SDE';
             if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
             if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+            if (u.includes('FASTRANS')) return 'FASTRANS';
 
             return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
         }
@@ -1709,7 +1743,9 @@
 
         // ── ROW BUILDERS ──────────────────────────────────────────────────────
         function buildOutboundRowHTML(i) {
-            var targetHours = i.targetSLAHours || 16;
+            var targetHours = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.resolveEffectiveTargetSLAHours)
+                ? JNTFirebaseService.resolveEffectiveTargetSLAHours(i)
+                : (i.targetSLAHours || 16);
             var departureStr = i.jamBerangkat || '-';
             var actualArrival = i.jamSampaiAktual || '-';
 
@@ -1837,7 +1873,8 @@
             { key: 'REYA', name: 'REYA', fullName: 'PT. REYA BAHAGIA ABADI (REYA)' },
             { key: 'SDE', name: 'SDE', fullName: 'PT. SOLUSI DUNIA EXPEDISI (SDE)' },
             { key: 'PAL', name: 'PAL', fullName: 'PT. PESONA ABADI LOGISTIK (PAL)' },
-            { key: 'LNP', name: 'LNP', fullName: 'LNP' }
+            { key: 'LNP', name: 'LNP', fullName: 'LNP' },
+            { key: 'FASTRANS', name: 'FASTRANS', fullName: 'PT. FASTRANS LOGISTIK INDONESIA (FASTRANS)' }
         ];
 
         function isVendorMatch(itemVendor, filterKey) {
@@ -1858,6 +1895,111 @@
                 track.scrollBy({ left: direction * 240, behavior: 'smooth' });
             }
         };
+
+        // ── COLLAPSIBLE PANELS & FULL TABLE VIEW CONTROLLER (SLA VENDOR) ──
+        var SLA_VIS_STORAGE_KEY = 'jnt_ui_visibility_sla_v1';
+        var _slaPanelVisibility = { kpi: true, sheet: true, filter: true };
+        try {
+            var savedSlaVis = localStorage.getItem(SLA_VIS_STORAGE_KEY);
+            if (savedSlaVis) {
+                var parsedSlaVis = JSON.parse(savedSlaVis);
+                if (parsedSlaVis && typeof parsedSlaVis === 'object') {
+                    _slaPanelVisibility = {
+                        kpi: parsedSlaVis.kpi !== false,
+                        sheet: parsedSlaVis.sheet !== false,
+                        filter: parsedSlaVis.filter !== false
+                    };
+                }
+            }
+        } catch (e) { }
+
+        function applySLAPanelVisibility() {
+            var kpiWrap = document.getElementById('sla-section-kpi-wrapper');
+            var sheetEl = document.getElementById('sla-section-sheet-vendor');
+            var filterWrap = document.getElementById('sla-section-filter-wrapper');
+
+            if (kpiWrap) kpiWrap.classList.toggle('is-collapsed', !_slaPanelVisibility.kpi);
+            if (sheetEl) sheetEl.classList.toggle('is-collapsed', !_slaPanelVisibility.sheet);
+            if (filterWrap) filterWrap.classList.toggle('is-collapsed', !_slaPanelVisibility.filter);
+
+            var setToggleText = function (btnId, isOpen, openLabel) {
+                var btn = document.getElementById(btnId);
+                if (!btn) return;
+                btn.innerHTML = isOpen
+                    ? 'Tutup <span class="caret-icon">&#9650;</span>'
+                    : openLabel + ' <span class="caret-icon">&#9660;</span>';
+            };
+            setToggleText('btn-toggle-sla-kpi', _slaPanelVisibility.kpi, 'Buka Ringkasan SLA');
+            setToggleText('btn-toggle-sla-sheet', _slaPanelVisibility.sheet, 'Buka Sheet Vendor');
+            setToggleText('btn-toggle-sla-filter', _slaPanelVisibility.filter, 'Buka Filter');
+
+            try {
+                localStorage.setItem(SLA_VIS_STORAGE_KEY, JSON.stringify(_slaPanelVisibility));
+            } catch (e) { }
+        }
+
+        window.toggleSLAPanel = function (panelKey) {
+            if (!(panelKey in _slaPanelVisibility)) return;
+            _slaPanelVisibility[panelKey] = !_slaPanelVisibility[panelKey];
+            applySLAPanelVisibility();
+            if (typeof window.updateSLATableStickyFreeze === 'function') {
+                window.updateSLATableStickyFreeze();
+            }
+        };
+
+        applySLAPanelVisibility();
+
+        // ── FREEZE TABLE HEADER & THEAD ON PAGE SCROLL (RELEASE AT TABLE BOTTOM) ──
+        (function initSLATableStickyFreeze() {
+            var mainEl = document.querySelector('.main-incoming-body');
+            function updateFreeze() {
+                var sections = ['section-sla-outbound', 'section-sla-return'];
+                for (var sIdx = 0; sIdx < sections.length; sIdx++) {
+                    var cardEl = document.getElementById(sections[sIdx]);
+                    if (!cardEl) continue;
+                    var headerBarEl = cardEl.querySelector('.sla-card-header-bar');
+                    var theadEl = cardEl.querySelector('thead');
+                    var tbodyEl = cardEl.querySelector('tbody');
+                    if (!headerBarEl || !theadEl || !tbodyEl) continue;
+
+                    if (cardEl.classList.contains('hidden')) {
+                        headerBarEl.style.transform = '';
+                        headerBarEl.classList.remove('is-frozen-header');
+                        theadEl.style.transform = '';
+                        theadEl.classList.remove('is-frozen-thead');
+                        tbodyEl.style.clipPath = '';
+                        continue;
+                    }
+
+                    var mainTop = mainEl ? Math.max(0, mainEl.getBoundingClientRect().top) : 0;
+                    var cardRect = cardEl.getBoundingClientRect();
+                    var rawScrollPast = mainTop - cardRect.top;
+                    var tbodyHeight = tbodyEl.offsetHeight || 0;
+                    var minBottomRowsHeight = Math.min(tbodyHeight, 175);
+                    var maxOffset = Math.max(0, tbodyHeight - minBottomRowsHeight);
+
+                    if (rawScrollPast > 0 && maxOffset > 0) {
+                        var offsetY = Math.min(Math.round(rawScrollPast), maxOffset);
+                        headerBarEl.style.transform = 'translate3d(0, ' + offsetY + 'px, 0)';
+                        headerBarEl.classList.add('is-frozen-header');
+                        theadEl.style.transform = 'translate3d(0, ' + offsetY + 'px, 0)';
+                        theadEl.classList.add('is-frozen-thead');
+                        tbodyEl.style.clipPath = 'inset(' + offsetY + 'px 0px 0px 0px)';
+                    } else {
+                        headerBarEl.style.transform = '';
+                        headerBarEl.classList.remove('is-frozen-header');
+                        theadEl.style.transform = '';
+                        theadEl.classList.remove('is-frozen-thead');
+                        tbodyEl.style.clipPath = '';
+                    }
+                }
+            }
+            window.updateSLATableStickyFreeze = updateFreeze;
+            if (mainEl) mainEl.addEventListener('scroll', updateFreeze, { passive: true });
+            window.addEventListener('scroll', updateFreeze, { passive: true });
+            window.addEventListener('resize', updateFreeze, { passive: true });
+            setTimeout(updateFreeze, 50);
+        })();
 
         window.selectVendorTab = function (vendorKey) {
             window._currentVendorFilter = vendorKey;
@@ -2185,6 +2327,7 @@
             }
 
             if (window.SLACountdownEngine) window.SLACountdownEngine.tick();
+            if (typeof window.updateSLATableStickyFreeze === 'function') window.updateSLATableStickyFreeze();
         } catch (err) {
             console.error('[SLA Render Error]', err);
         }

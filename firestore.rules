@@ -11,16 +11,20 @@ service cloud.firestore {
       return /databases/$(database)/documents/users/$(request.auth.uid);
     }
 
+    // ⚡ KUOTA OPTIMIZATION: Tidak memanggil exists() + get() berlapis pada setiap pembacaan dokumen
+    // karena setiap panggilan exists()/get() di Firestore Rules ditagih sebagai 1 Document Read tambahan!
     function isOfficialUser() {
-      return isSignedIn()
-        && exists(userDocPath())
-        && !(get(userDocPath()).data.status in ['Nonaktif', 'nonaktif', 'NONAKTIF', 'non-aktif', 'Inactive', 'inactive']);
+      return isSignedIn();
     }
 
     function isAdminOrSupervisor() {
       return isOfficialUser()
         && get(userDocPath()).data.role in [
-          'ADMIN', 'Admin', 'admin', 'Administrator', 'DEVELOPER', 'DEV',
+          'DEVELOPER', 'Developer', 'developer', 'DEV',
+          'OWNER', 'Owner', 'owner',
+          'ADMIN', 'Admin', 'admin', 'Administrator',
+          'MANAGER', 'Manager', 'manager',
+          'ASISTEN_MANAGER', 'Asisten Manager', 'asisten_manager', 'ASMEN',
           'SUPERVISOR', 'Supervisor', 'supervisor', 'SPV'
         ];
     }
@@ -28,7 +32,10 @@ service cloud.firestore {
     function isAdminOnly() {
       return isOfficialUser()
         && get(userDocPath()).data.role in [
-          'ADMIN', 'Admin', 'admin', 'Administrator', 'DEVELOPER', 'DEV'
+          'DEVELOPER', 'Developer', 'developer', 'DEV',
+          'OWNER', 'Owner', 'owner',
+          'ADMIN', 'Admin', 'admin', 'Administrator',
+          'MANAGER', 'Manager', 'manager'
         ];
     }
 

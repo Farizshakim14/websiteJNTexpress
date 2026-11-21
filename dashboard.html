@@ -200,14 +200,16 @@
                         </button>
                         <div>
                             <h2 class="inc-main-title" style="font-size: 20px;">Dashboard Executive SLA</h2>
-                            <span class="inc-breadcrumb" style="color: #64748B;">Monitoring SLA Keberangkatan Outgoing Vendor</span>
+                            <span class="inc-breadcrumb" style="color: #64748B;">Monitoring SLA Keberangkatan Outgoing
+                                Vendor</span>
                         </div>
                     </div>
 
                     <div class="inc-top-right">
                         <div class="inc-date-chip" id="sh-top-date-chip">
                             <span>22 Juli 2026</span>
-                            <span id="sh-top-clock-text" style="color:#E30613; font-weight:800; margin-left:6px;">--:--:-- WIB</span>
+                            <span id="sh-top-clock-text"
+                                style="color:#E30613; font-weight:800; margin-left:6px;">--:--:-- WIB</span>
                         </div>
                         <div class="inc-notif-bell">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -301,9 +303,9 @@
                         <div class="exec-card-box">
                             <div class="exec-card-header">
                                 <span class="exec-card-title">🏆 PERFORMA VENDOR</span>
-                                <span style="font-size:10px; color:#64748B; font-weight:700;">Top 10 ∨</span>
+                                <span style="font-size:10px; color:#64748B; font-weight:700;">Real-Time</span>
                             </div>
-                            <div style="overflow-x:auto;">
+                            <div class="inc-table-scroll" style="overflow-x:auto;">
                                 <table class="exec-mini-table">
                                     <thead>
                                         <tr>
@@ -328,18 +330,24 @@
                             <div class="exec-card-header">
                                 <span class="exec-card-title">📊 PERBANDINGAN ON-TIME & LATE</span>
                             </div>
-                            <div style="display:flex; align-items:center; justify-content:center; flex-direction:column; height:100%; gap:12px; padding:10px 0;">
+                            <div
+                                style="display:flex; align-items:center; justify-content:center; flex-direction:column; height:100%; gap:12px; padding:10px 0;">
                                 <div style="width:130px; height:130px; position:relative;">
                                     <canvas id="execDonutChart"></canvas>
                                 </div>
-                                <div style="display:flex; flex-direction:column; gap:6px; font-size:11px; font-weight:700;">
+                                <div
+                                    style="display:flex; flex-direction:column; gap:6px; font-size:11px; font-weight:700;">
                                     <div style="display:flex; align-items:center; gap:6px;">
-                                        <span style="width:10px; height:10px; background:#0284C7; border-radius:50%; display:inline-block;"></span>
-                                        <span>On-Time: <strong id="donut-lbl-ontime" style="color:#0284C7;">0 (0,0%)</strong></span>
+                                        <span
+                                            style="width:10px; height:10px; background:#0284C7; border-radius:50%; display:inline-block;"></span>
+                                        <span>On-Time: <strong id="donut-lbl-ontime" style="color:#0284C7;">0
+                                                (0,0%)</strong></span>
                                     </div>
                                     <div style="display:flex; align-items:center; gap:6px;">
-                                        <span style="width:10px; height:10px; background:#F97316; border-radius:50%; display:inline-block;"></span>
-                                        <span>Late: <strong id="donut-lbl-late" style="color:#F97316;">0 (0,0%)</strong></span>
+                                        <span
+                                            style="width:10px; height:10px; background:#F97316; border-radius:50%; display:inline-block;"></span>
+                                        <span>Late: <strong id="donut-lbl-late" style="color:#F97316;">0
+                                                (0,0%)</strong></span>
                                     </div>
                                 </div>
                             </div>
@@ -350,7 +358,7 @@
                             <div class="exec-card-header">
                                 <span class="exec-card-title">🏆 TOP 10 SLA PERJALANAN</span>
                             </div>
-                            <div style="overflow-x:auto;">
+                            <div class="inc-table-scroll" style="overflow-x:auto;">
                                 <table class="exec-mini-table">
                                     <thead>
                                         <tr>
@@ -374,7 +382,7 @@
                             <div class="exec-card-header">
                                 <span class="exec-card-title" style="color:#DC2626;">⚠️ BOTTOM 10 SLA PERJALANAN</span>
                             </div>
-                            <div style="overflow-x:auto;">
+                            <div class="inc-table-scroll" style="overflow-x:auto;">
                                 <table class="exec-mini-table">
                                     <thead>
                                         <tr>
@@ -397,7 +405,8 @@
 
                     <!-- SUBNOTE STRIP -->
                     <div class="exec-subnote-bar">
-                        <strong>Note :</strong> Target yang diberikan oleh Pusat (HQ) adalah <strong>90%</strong>. Data berdasarkan Tim Monitoring GPS (Real) yang ditemukan di lapangan.
+                        <strong>Note :</strong> Target yang diberikan oleh Pusat (HQ) adalah <strong>90%</strong>. Data
+                        berdasarkan Tim Monitoring GPS (Real) yang ditemukan di lapangan.
                     </div>
 
                     <!-- 4. LOWER SECTION (2 COLUMNS) -->
@@ -456,7 +465,8 @@
                             <div class="exec-summary-header">
                                 <span>📍</span> <span>RUTE BERMASALAH</span>
                             </div>
-                            <div class="exec-summary-body" id="sum-problematic-routes" style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
+                            <div class="exec-summary-body" id="sum-problematic-routes"
+                                style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
                                 <div style="color:#64748B;">Belum ada data perjalanan</div>
                             </div>
                         </div>
@@ -475,8 +485,10 @@
                             <div class="exec-summary-header">
                                 <span>🎯</span> <span>KESIMPULAN</span>
                             </div>
-                            <div class="exec-summary-body" id="sum-conclusion-text" style="font-size:10px; color:#CBD5E1;">
-                                Belum ada data perjalanan yang tercatat pada periode ini. Data akan otomatis terhitung secara real-time saat trip diinput atau di-import ke sistem.
+                            <div class="exec-summary-body" id="sum-conclusion-text"
+                                style="font-size:10px; color:#CBD5E1;">
+                                Belum ada data perjalanan yang tercatat pada periode ini. Data akan otomatis terhitung
+                                secara real-time saat trip diinput atau di-import ke sistem.
                             </div>
                         </div>
                     </div>
@@ -533,20 +545,91 @@
                 if (u.includes('SOLUSI DUNIA') || u.includes('SDE') || u.includes('(SDE)')) return 'SDE';
                 if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
                 if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+                if (u.includes('FASTRANS')) return 'FASTRANS';
 
                 return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
             }
 
+            const JNT_CITY_MAP = {
+                'SEG': 'SERANG', 'TKG': 'LAMPUNG', 'SRG': 'SEMARANG', 'BDO': 'BANDUNG',
+                'PLM': 'PALEMBANG', 'SOC': 'SOLO', 'JOG': 'YOGYAKARTA', 'PMH': 'PRABUMULIH',
+                'SUB': 'SURABAYA', 'BKS': 'BENGKULU', 'DJB': 'JAMBI', 'LLG': 'LUBUKLINGGAU',
+                'PKU': 'PEKANBARU', 'PDG': 'PADANG', 'RPT': 'RANTAUPRAPAT', 'MES': 'MEDAN',
+                'BTJ': 'ACEH', 'GSK': 'GRESIK', 'TGR': 'TANGERANG', 'DPK': 'DEPOK',
+                'BGR': 'BOGOR', 'BKI': 'BEKASI', 'CKR': 'CIKARANG', 'JAT': 'JAT',
+                'SMI': 'SUKABUMI', 'TSK': 'TASIKMALAYA', 'TSM': 'TASIKMALAYA', 'CRN': 'CIREBON',
+                'CBN': 'CIREBON', 'CKP': 'CIKAMPEK', 'PTI': 'PATI', 'PWO': 'PURWOKERTO',
+                'PWT': 'PURWOKERTO', 'MDN': 'MADIUN', 'KDR': 'KEDIRI', 'MLG': 'MALANG',
+                'TGL': 'TEGAL', 'BAL': 'BALARAJA', 'DPS': 'BALI', 'WRG': 'WARINGIN',
+                'SDP': 'SDP', 'JBR': 'JEMBER', 'MDR': 'MADURA', 'PRO': 'PROBOLINGGO',
+                'LMG': 'LAMONGAN', 'BTN': 'BANTEN', 'CIM': 'CIMAHI'
+            };
+
             function extractFleetType(item) {
-                if (item.tipe) return item.tipe;
-                const trip = (item.trip || item.namaRute || '').toUpperCase();
-                if (trip.includes('KONTAINER') || trip.includes('CONTAINER')) return 'KONTAINER';
-                if (trip.includes('WINGBOX')) return 'WINGBOX';
-                if (trip.includes('FUSO')) return 'FUSO';
-                if (trip.includes('CDD')) return 'CDD';
-                if (trip.includes('CDE')) return 'CDE';
-                if (item.layanan) return item.layanan;
-                return 'Standard';
+                const combined = ((item.tipe || '') + ' ' + (item.jenisMobil || '') + ' ' + (item.tlc || '') + ' ' + (item.trip || '') + ' ' + (item.namaRute || '') + ' ' + (item.layanan || '')).toUpperCase();
+                if (combined.includes('KONTAINER') || combined.includes('CONTAINER')) return 'KONTAINER';
+                if (combined.includes('WINGBOX')) return 'WINGBOX';
+                if (combined.includes('CDD') || combined.includes('ENGKEL')) return 'CDD';
+                if (combined.includes('CDE')) return 'CDE';
+                if (combined.includes('FUSO')) return 'FUSO';
+                return 'FUSO';
+            }
+
+            function extractRouteName(item) {
+                const raw = String(item.namaRute || item.trip || item.tlc || '-').toUpperCase().trim();
+                const clean = raw.replace(/^JAKARTA\s*-\s*/i, '').replace(/\b(CDD|FUSO|KONTAINER|CONTAINER|WINGBOX|CDE)\b/g, '').trim();
+                if (JNT_CITY_MAP[clean]) return JNT_CITY_MAP[clean];
+                const firstWord = clean.split(/[\s\-_/]+/)[0];
+                if (JNT_CITY_MAP[firstWord]) return JNT_CITY_MAP[firstWord];
+                return clean || raw || '-';
+            }
+
+            /**
+             * Single Source of Truth Evaluasi Status SLA Perjalanan (100% Sinkron di Semua Widget Dashboard & SLA Vendor)
+             */
+            function evaluateTripSLA(s) {
+                if (!s) return { isLate: false, isOnTime: true };
+                const st = String(s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase().trim();
+                const targetH = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.resolveEffectiveTargetSLAHours)
+                    ? JNTFirebaseService.resolveEffectiveTargetSLAHours(s)
+                    : (parseFloat(s.targetSLAHours || s.targetSLAOutboundHours) || 16);
+                let cleanArr = (s.jamSampaiAktual && !/^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(String(s.jamSampaiAktual).trim()))
+                    ? String(s.jamSampaiAktual).trim()
+                    : '';
+
+                if (cleanArr && typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeArrivalAgainstDeparture) {
+                    cleanArr = JNTFirebaseService.normalizeArrivalAgainstDeparture(s.jamBerangkat, cleanArr, targetH, s.slots || null);
+                }
+
+                if (st === 'KENDALA') {
+                    return { isLate: true, isOnTime: false };
+                }
+
+                // 1. Jika ada jam berangkat dan jam sampai aktual yang valid -> bandingkan durasi aktual vs target SLA
+                if (cleanArr && s.jamBerangkat && window.SLACountdownEngine) {
+                    const state = window.SLACountdownEngine.calculateSLAState(s.jamBerangkat, targetH, cleanArr);
+                    if (state && state.departureDate && state.targetDate) {
+                        return { isLate: Boolean(state.isOverdue), isOnTime: !state.isOverdue };
+                    }
+                }
+
+                // 2. Jika ada lateMinutes eksplisit atau status eksplisit
+                if ((s.lateMinutes !== undefined && Number(s.lateMinutes) > 0) || st === 'LATE' || st === 'TERLAMBAT') {
+                    return { isLate: true, isOnTime: false };
+                }
+                if (st === 'ON TIME' || st === 'COMPLETED' || st === 'SUDAH SELESAI') {
+                    return { isLate: false, isOnTime: true };
+                }
+
+                // 3. Jika perjalanan masih berjalan (belum sampai) -> cek live countdown apakah sudah overdue
+                if (s.jamBerangkat && window.SLACountdownEngine) {
+                    const state = window.SLACountdownEngine.calculateSLAState(s.jamBerangkat, targetH, '');
+                    if (state && state.isOverdue) {
+                        return { isLate: true, isOnTime: false };
+                    }
+                }
+
+                return { isLate: false, isOnTime: true };
             }
 
             function parseTripDate(dateStr) {
@@ -605,7 +688,7 @@
                     return;
                 }
 
-                const escDash = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
+                const escDash = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
                 let totRitase = 0, totOnTime = 0, totLate = 0;
                 const rowsHtml = vendors.map((v, idx) => {
                     totRitase += (v.ritase || 0);
@@ -644,7 +727,7 @@
                 const tbodyTop = document.getElementById('tbody-top-trips');
                 const tbodyBottom = document.getElementById('tbody-bottom-trips');
 
-                const escTrip = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
+                const escTrip = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
                 if (tbodyTop) {
                     if (!topTrips || topTrips.length === 0) {
                         tbodyTop.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#64748B;">Belum ada data rute perjalanan</td></tr>`;
@@ -666,16 +749,19 @@
                     if (!bottomTrips || bottomTrips.length === 0) {
                         tbodyBottom.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#64748B;">Belum ada data rute perjalanan</td></tr>`;
                     } else {
-                        tbodyBottom.innerHTML = bottomTrips.map((t, i) => `
+                        tbodyBottom.innerHTML = bottomTrips.map((t, i) => {
+                            const slaColor = t.sla >= 90 ? '#16A34A' : (t.sla >= 75 ? '#F59E0B' : '#DC2626');
+                            return `
                             <tr>
                                 <td>${i + 1}</td>
                                 <td><strong>${escTrip(t.rute)}</strong></td>
                                 <td>${escTrip(t.fleet)}</td>
                                 <td>${Number(t.ritase) || 0}</td>
                                 <td>${Number(t.onTime) || 0}</td>
-                                <td><strong style="color:#DC2626;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
+                                <td><strong style="color:${slaColor};">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
                             </tr>
-                        `).join('');
+                        `;
+                        }).join('');
                     }
                 }
             }
@@ -768,8 +854,7 @@
                         if (dayMap.has(dayKey)) {
                             const cur = dayMap.get(dayKey);
                             cur.total += 1;
-                            const st = (t.statusSla || t.status || t.statusPerjalanan || '').toUpperCase();
-                            const isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (t.lateMinutes && Number(t.lateMinutes) > 0));
+                            const { isLate } = evaluateTripSLA(t);
                             if (isLate) cur.late += 1;
                             else cur.onTime += 1;
                         }
@@ -817,7 +902,7 @@
                 updateExecutiveDashboard();
             });
 
-            // ── 6. PRIMARY CONTROLLER DATA UPDATE (100% REAL DATABASE) ───────────
+            // ── 6. PRIMARY CONTROLLER DATA UPDATE (100% REAL DATABASE & UNIFIED SLA FORMULA) ──
             function updateExecutiveDashboard() {
                 const periodSelect = document.getElementById('exec-period-filter');
                 const periodVal = periodSelect ? periodSelect.value : 'ALL';
@@ -827,33 +912,15 @@
                 let onTimeCount = 0;
                 let lateCount = 0;
 
-                filteredList.forEach(s => {
-                    const st = (s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase();
-                    let isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (s.lateMinutes && Number(s.lateMinutes) > 0));
-                    let isOnTime = (st === 'ON TIME' || st === 'SUDAH SELESAI' || st === 'COMPLETED');
-
-                    if (!isLate && !isOnTime && window.SLACountdownEngine) {
-                        const slaState = window.SLACountdownEngine.calculateSLAState(
-                            s.jamBerangkat,
-                            s.targetSLAHours || s.targetSLAOutboundHours || 16,
-                            s.jamSampaiAktual
-                        );
-                        if (slaState.isOverdue) isLate = true;
-                        else isOnTime = true;
-                    } else if (!isLate) {
-                        isOnTime = true;
-                    }
-
-                    if (isLate) lateCount++;
-                    else if (isOnTime) onTimeCount++;
-                });
-
-                const onTimePct = totalRitase > 0 ? ((onTimeCount / totalRitase) * 100).toFixed(1) : '0,0';
-                const latePct = totalRitase > 0 ? ((lateCount / totalRitase) * 100).toFixed(1) : '0,0';
-
-                // Hitung vendor aktif dari perjalanan nyata
                 const vendorMap = new Map();
+                const routeMap = new Map();
+
                 filteredList.forEach(s => {
+                    const { isLate } = evaluateTripSLA(s);
+                    if (isLate) lateCount++;
+                    else onTimeCount++;
+
+                    // 1. Aggregate per Vendor
                     const vName = formatVendorShort(s.vendor || s.namaVendor);
                     if (!vendorMap.has(vName)) {
                         vendorMap.set(vName, {
@@ -865,19 +932,28 @@
                     }
                     const vData = vendorMap.get(vName);
                     vData.ritase += 1;
-                    const st = (s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase();
-                    let isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (s.lateMinutes && Number(s.lateMinutes) > 0));
-                    if (!isLate && window.SLACountdownEngine) {
-                        const slaState = window.SLACountdownEngine.calculateSLAState(
-                            s.jamBerangkat,
-                            s.targetSLAHours || s.targetSLAOutboundHours || 16,
-                            s.jamSampaiAktual
-                        );
-                        if (slaState.isOverdue) isLate = true;
-                    }
                     if (isLate) vData.late += 1;
                     else vData.onTime += 1;
+
+                    // 2. Aggregate per Route
+                    const rKey = extractRouteName(s);
+                    if (!routeMap.has(rKey)) {
+                        routeMap.set(rKey, {
+                            rute: rKey,
+                            fleet: extractFleetType(s),
+                            ritase: 0,
+                            onTime: 0,
+                            late: 0
+                        });
+                    }
+                    const rData = routeMap.get(rKey);
+                    rData.ritase += 1;
+                    if (isLate) rData.late += 1;
+                    else rData.onTime += 1;
                 });
+
+                const onTimePct = totalRitase > 0 ? ((onTimeCount / totalRitase) * 100).toFixed(1) : '0,0';
+                const latePct = totalRitase > 0 ? ((lateCount / totalRitase) * 100).toFixed(1) : '0,0';
 
                 const vendorList = Array.from(vendorMap.values()).map(v => {
                     const pct = v.ritase > 0 ? (v.onTime / v.ritase) * 100 : 0.0;
@@ -912,27 +988,6 @@
 
                 // Render Vendor Table
                 renderVendorTable(vendorList);
-
-                // Compute Top & Bottom Trips by Route
-                const routeMap = new Map();
-                filteredList.forEach(s => {
-                    const rKey = s.trip || s.namaRute || '-';
-                    if (!routeMap.has(rKey)) {
-                        routeMap.set(rKey, {
-                            rute: rKey,
-                            fleet: extractFleetType(s),
-                            ritase: 0,
-                            onTime: 0,
-                            late: 0
-                        });
-                    }
-                    const r = routeMap.get(rKey);
-                    r.ritase += 1;
-                    const st = (s.statusSla || s.status || s.statusPerjalanan || '').toUpperCase();
-                    const isLate = (st === 'LATE' || st === 'TERLAMBAT' || st === 'KENDALA' || (s.lateMinutes && Number(s.lateMinutes) > 0));
-                    if (isLate) r.late += 1;
-                    else r.onTime += 1;
-                });
 
                 const allRoutes = Array.from(routeMap.values()).map(r => ({
                     ...r,
@@ -974,14 +1029,16 @@
                 const conclusionEl = document.getElementById('sum-conclusion-text');
 
                 if (activeVendorsWithTrips.length > 0) {
-                    const best = [...activeVendorsWithTrips].sort((a, b) => b.pct - a.pct || b.ritase - a.ritase)[0];
-                    const worst = [...activeVendorsWithTrips].sort((a, b) => a.pct - b.pct || a.ritase - b.ritase)[0];
+                    const majorVendors = activeVendorsWithTrips.filter(v => v.ritase >= 5);
+                    const vendorPool = majorVendors.length > 0 ? majorVendors : activeVendorsWithTrips;
+                    const best = [...vendorPool].sort((a, b) => b.pct - a.pct || b.ritase - a.ritase)[0];
+                    const worst = [...vendorPool].sort((a, b) => a.pct - b.pct || b.ritase - a.ritase)[0];
 
                     if (bestVendorEl) bestVendorEl.textContent = best.name;
-                    if (bestVendorMeta) bestVendorMeta.innerHTML = `<strong style="color:#15803D;">${best.pct.toFixed(1).replace('.', ',')}% SLA</strong> • ${best.ritase} Ritase`;
+                    if (bestVendorMeta) bestVendorMeta.innerHTML = `<strong style="color:#15803D;">${best.pct.toFixed(1).replace('.', ',')}% SLA</strong> • ${best.ritase.toLocaleString('id-ID')} Ritase`;
 
                     if (worstVendorEl) worstVendorEl.textContent = worst.name;
-                    if (worstVendorMeta) worstVendorMeta.innerHTML = `<strong style="color:#B91C1C;">${worst.pct.toFixed(1).replace('.', ',')}% SLA</strong> • ${worst.ritase} Ritase`;
+                    if (worstVendorMeta) worstVendorMeta.innerHTML = `<strong style="color:#B91C1C;">${worst.pct.toFixed(1).replace('.', ',')}% SLA</strong> • ${worst.ritase.toLocaleString('id-ID')} Ritase`;
                 } else {
                     if (bestVendorEl) bestVendorEl.textContent = '-';
                     if (bestVendorMeta) bestVendorMeta.innerHTML = `<span style="color:#64748B;">Belum ada trip</span>`;
@@ -1093,50 +1150,60 @@
 
             const periodSelect = document.getElementById('exec-period-filter');
             if (periodSelect) {
-                periodSelect.addEventListener('change', function() {
+                periodSelect.addEventListener('change', function () {
                     _userHasSelectedPeriod = true;
                     updateBannerText();
                     updateExecutiveDashboard();
                 });
             }
 
+            const DEMO_TRIP_IDS = new Set([
+                'DBGX2610020001', 'DBGX2610020002', 'DBGX2610020003',
+                'DBGX2610020004', 'DBGX2610020005', 'DBGX2610020006',
+                '4234234', 'DBDBDBDB'
+            ]);
+
             function mergeAndEmit(tripsList) {
                 if (!Array.isArray(tripsList)) return;
                 tripsList.forEach(t => {
                     const key = t.kodeTugas || t.id;
-                    if (key) {
-                        const existing = _rawSlaMap.get(key) || {};
-                        _rawSlaMap.set(key, { ...existing, ...t });
+                    if (!key || DEMO_TRIP_IDS.has(key)) return;
+                    if (t.tripType === 'RETURN' || t.isBalikan || String(key).toUpperCase().includes('-RET')) return;
+                    const existing = _rawSlaMap.get(key) || {};
+                    const merged = { ...existing };
+                    for (const [k, v] of Object.entries(t)) {
+                        if (v !== '' && v !== null && v !== undefined && v !== '-') {
+                            merged[k] = v;
+                        } else if (!(k in merged)) {
+                            merged[k] = v;
+                        }
                     }
+                    _rawSlaMap.set(key, merged);
                 });
                 _rawSlaList = Array.from(_rawSlaMap.values());
                 syncPeriodDropdown(_rawSlaList);
                 updateExecutiveDashboard();
             }
 
-            // Inisialisasi awal dari cache lokal jika ada (incoming + sla_outbound + monitoring_4h)
+            // Inisialisasi awal dari cache lokal & live subscription (100% Real Data tanpa data dummy)
             if (typeof JNTFirebaseService !== 'undefined') {
-                mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
-                mergeAndEmit(JNTFirebaseService.getLocalStore('incoming') || []);
-                mergeAndEmit(JNTFirebaseService.getLocalStore('monitoring_4h') || []);
-
-                // Live Real-Time Subscriptions dari Firestore
-                if (typeof JNTFirebaseService.subscribeSLAOutbound === 'function') {
-                    JNTFirebaseService.subscribeSLAOutbound(function(slaList) {
-                        if (Array.isArray(slaList)) mergeAndEmit(slaList);
-                    });
+                if (typeof JNTFirebaseService._purgeLegacyDemoData === 'function') {
+                    JNTFirebaseService._purgeLegacyDemoData();
                 }
-                if (typeof JNTFirebaseService.subscribeMonitoring4H === 'function') {
-                    JNTFirebaseService.subscribeMonitoring4H(function(monList) {
-                        if (Array.isArray(monList)) {
-                            const outboundOnly = monList.filter(t => t.tripType !== 'RETURN' && !t.isBalikan);
-                            mergeAndEmit(outboundOnly);
+                mergeAndEmit(JNTFirebaseService.getLocalStore('incoming') || []);
+                mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
+
+                if (typeof JNTFirebaseService.subscribeSLAOutbound === 'function') {
+                    JNTFirebaseService.subscribeSLAOutbound(function (slaList) {
+                        if (Array.isArray(slaList)) {
+                            _rawSlaMap.clear();
+                            mergeAndEmit(slaList);
                         }
                     });
                 }
             }
 
-            window.addEventListener('jnt_data_updated', function() {
+            window.addEventListener('jnt_data_updated', function () {
                 if (typeof JNTFirebaseService !== 'undefined') {
                     _rawSlaMap.clear();
                     mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);

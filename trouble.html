@@ -576,13 +576,30 @@
             </div>
             <form id="form-add-trouble" class="modal-body-form" style="padding: 16px 20px;">
                 
-                <!-- SSOT Auto-Pull Kode Tugas -->
+                <!-- SSOT Auto-Pull Kode Tugas / Plat Nomor (Searchable Combobox + Dropdown) -->
                 <div class="form-field">
-                    <label class="form-label-highlight">Pilih Kode Tugas Armada (Data Operasional Shift Aktif)</label>
-                    <select id="tr-kode-tugas-select" class="form-select-highlight" required>
-                        <option value="">-- Pilih Armada Terlibat Incident --</option>
-                    </select>
-                    <span class="form-hint-text">* Data Plat, Vendor, Rute, TLC &amp; Driver otomatis tersinkronisasi dari SSOT.</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label-highlight" for="tr-armada-search-input" style="margin-bottom: 0;">Pilih / Ketik Kode Tugas atau Plat Nomor Armada (Data Operasional)</label>
+                        <span id="tr-armada-count-badge" class="tr-combobox-count-badge">Memuat data...</span>
+                    </div>
+                    <div class="tr-combobox-wrap" id="tr-armada-combobox">
+                        <div class="tr-combobox-input-box">
+                            <svg class="tr-combobox-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="tr-armada-search-input" class="tr-combobox-input" placeholder="Ketik Kode Tugas atau Plat Nomor Armada (contoh: DBGX... / B 9376 VXR)..." autocomplete="off">
+                            <button type="button" id="tr-armada-clear-btn" class="tr-combobox-clear hidden" title="Bersihkan pilihan" aria-label="Bersihkan pilihan">&times;</button>
+                            <button type="button" id="tr-armada-toggle-btn" class="tr-combobox-toggle" title="Tampilkan daftar armada" aria-label="Tampilkan daftar armada">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="hidden" id="tr-kode-tugas-select" value="">
+                        <div id="tr-armada-dropdown-list" class="tr-combobox-dropdown hidden" role="listbox"></div>
+                    </div>
+                    <span class="form-hint-text">* Ketik Kode Tugas atau Plat Nomor untuk memfilter opsi dropdown. Data Plat, Vendor, Rute, TLC &amp; Driver otomatis terisi dari SSOT.</span>
                 </div>
 
                 <div class="form-row-2">

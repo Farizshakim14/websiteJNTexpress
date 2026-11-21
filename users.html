@@ -260,8 +260,14 @@
                             <label>Role</label>
                             <select id="usr-filter-role">
                                 <option value="">Semua Role</option>
+                                <option value="Developer">Developer</option>
+                                <option value="Owner">Owner</option>
                                 <option value="Admin">Admin</option>
-                                <option value="Supervisor">Supervisor</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Asisten Manager">Asisten Manager</option>
+                                <option value="Supervisor">Supervisor (SPV)</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Vendor">Vendor</option>
                                 <option value="Staff Vehicle Dispatch">Staff Vehicle Dispatch</option>
                             </select>
                         </div>
@@ -383,44 +389,17 @@
                             <button type="button" id="btn-edit-user-action" class="btn-white-outline-full">✏️ Edit User</button>
                             <button type="button" id="btn-reset-password-action" class="btn-white-outline-full">🔓 Reset Password</button>
                             <button type="button" id="btn-toggle-active-user-action" class="btn-red-outline-full">🙅‍♂️ Nonaktifkan Akun</button>
+                            <button type="button" id="btn-delete-user-action" class="btn-red-outline-full" style="border-color: #DC2626; background: rgba(220, 38, 38, 0.1); color: #EF4444; font-weight: 800;">🗑️ Hapus Akun Permanen</button>
                         </div>
 
-                        <!-- Riwayat Login Terakhir Section -->
+                        <!-- Riwayat Login & Aktivitas Terakhir Section (100% Sinkron Data Nyata) -->
                         <div class="user-login-history-section">
-                            <span class="history-heading">Riwayat Login Terakhir</span>
-                            <div class="history-items-list">
-                                <div class="login-history-item">
-                                    <div class="history-left">
-                                        <span class="green-dot-sm">🟢</span>
-                                        <div>
-                                            <span class="history-time">22/07/2026 10:15</span>
-                                            <span class="history-device">Chrome - Windows</span>
-                                        </div>
-                                    </div>
-                                    <span class="history-ip">192.168.1.10</span>
-                                </div>
-                                <div class="login-history-item">
-                                    <div class="history-left">
-                                        <span class="green-dot-sm">🟢</span>
-                                        <div>
-                                            <span class="history-time">22/07/2026 09:20</span>
-                                            <span class="history-device">Chrome - Windows</span>
-                                        </div>
-                                    </div>
-                                    <span class="history-ip">192.168.1.10</span>
-                                </div>
-                                <div class="login-history-item">
-                                    <div class="history-left">
-                                        <span class="green-dot-sm">🟢</span>
-                                        <div>
-                                            <span class="history-time">22/07/2026 08:55</span>
-                                            <span class="history-device">Mobile - Android</span>
-                                        </div>
-                                    </div>
-                                    <span class="history-ip">192.168.1.15</span>
+                            <span class="history-heading">Riwayat Aktivitas &amp; Login User</span>
+                            <div class="history-items-list" id="usr-login-history-list">
+                                <div style="font-size: 11.5px; color: #94A3B8; text-align: center; padding: 12px;">
+                                    Pilih pengguna untuk melihat riwayat aktivitas &amp; login.
                                 </div>
                             </div>
-                            <button id="btn-view-all-history" class="btn-view-all-history">Lihat Semua Riwayat</button>
                         </div>
 
                     </div>
@@ -473,8 +452,14 @@
                         <label>Role / Akses Jabatan</label>
                         <select id="usr-role" class="form-control">
                             <option value="Staff Vehicle Dispatch">Staff Vehicle Dispatch</option>
-                            <option value="Supervisor">Supervisor</option>
+                            <option value="Supervisor">Supervisor (SPV)</option>
+                            <option value="Asisten Manager">Asisten Manager</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Vendor">Vendor</option>
                             <option value="Admin">Admin</option>
+                            <option value="Owner">Owner</option>
+                            <option value="Developer">Developer</option>
                         </select>
                     </div>
                     <div class="form-field">
@@ -565,8 +550,14 @@
                         <label>Role / Akses Jabatan</label>
                         <select id="edit-usr-role" class="form-control">
                             <option value="Staff Vehicle Dispatch">Staff Vehicle Dispatch</option>
-                            <option value="Supervisor">Supervisor</option>
+                            <option value="Supervisor">Supervisor (SPV)</option>
+                            <option value="Asisten Manager">Asisten Manager</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Vendor">Vendor</option>
                             <option value="Admin">Admin</option>
+                            <option value="Owner">Owner</option>
+                            <option value="Developer">Developer</option>
                         </select>
                     </div>
                     <div class="form-field">
@@ -617,17 +608,6 @@
                 <div class="form-field" style="margin-bottom: 16px;">
                     <label>Konfirmasi Password Baru <span style="color: #E30613;">*</span></label>
                     <input type="password" id="reset-usr-confirm-pass" class="form-control" placeholder="Ulangi password baru" required minlength="6">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red">🔑 Simpan Password</button>
-                </div>
-            </form>
-        </div>
-    </div>
-                <div class="form-field" style="margin-bottom: 16px;">
-                    <label>Konfirmasi Password Baru <span style="color: #E30613;">*</span></label>
-                    <input type="password" id="reset-usr-confirm-pass" placeholder="Ulangi password baru" required minlength="6" style="padding: 10px 12px; font-size: 13px;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>

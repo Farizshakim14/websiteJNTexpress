@@ -1056,18 +1056,28 @@
                 return String(parseFloat((hrs + (mins / 60)).toFixed(2)));
             }
             if (typeof raw === 'number') {
-                if (raw > 0 && raw < 1) {
+                // Di Excel, durasi waktu format [h]:mm disimpan sebagai pecahan hari (1.0 = 24 jam, 1.6667 = 40 jam)
+                if (raw > 0 && raw < 4.5 && (!Number.isInteger(raw) || raw <= 3)) {
                     const totalHours = raw * 24;
                     return String(parseFloat(totalHours.toFixed(2)));
                 }
                 return String(raw);
             }
             const s = String(raw).trim();
-            if (!s) return '16';
+            if (!s || /^#(N\/A|VALUE!|REF!|DIV\/0!|NAME\?)$/i.test(s)) return null;
             if (/^\d+(\.\d+)?$/.test(s)) return s;
 
             const numMatch = s.match(/^(\d+(?:\.\d+)?)\s*(?:jam|h|hours?)?$/i);
             if (numMatch) return numMatch[1];
+
+            // Format durasi jam:menit di Excel (termasuk >= 24 jam seperti "40:00", "22:00", "71:00")
+            const durMatch = s.match(/^(\d{1,3})[:.](\d{2})(?:[:.]\d{2})?$/);
+            if (durMatch) {
+                const h = parseInt(durMatch[1], 10);
+                const m = parseInt(durMatch[2], 10);
+                if (m === 0) return String(h);
+                return String(parseFloat((h + (m / 60)).toFixed(2)));
+            }
 
             if (s.includes('1899') || s.includes('1900') || s.includes('GMT') || s.includes('UTC')) {
                 const parsed = new Date(s);
@@ -1172,7 +1182,7 @@
             const knownVendorKeywords = [
                 'SERYU', 'SERIKAT', 'APL', 'ASIA PASIFIK', 'KLS', 'KENCANA',
                 'MTI', 'MEDIA TRANS', 'CHIJUN', 'SDE', 'SOLUSI DUNIA', 'SOLUSI TRANSPORTASI',
-                'JTS', 'JET TRANSPORT', 'ANUGERAH', 'REYA', 'PAL', 'PESONA', 'LNP'
+                'JTS', 'JET TRANSPORT', 'ANUGERAH', 'REYA', 'PAL', 'PESONA', 'LNP', 'FASTRANS'
             ];
 
             for (let c = 0; c < headers.length; c++) {
@@ -1447,6 +1457,11 @@
 
                 const rawJam = colJamBerangkat !== -1 ? row[colJamBerangkat] : '';
                 let jamBerangkat = normalizeExcelDepartureTime(rawJam);
+                if (!jamBerangkat && kode && typeof JNTFirebaseService !== 'undefined') {
+                    const existingInc = (JNTFirebaseService.getLocalStore('incoming') || []).find(x => (x.kodeTugas || x.id) === kode);
+                    const existingSla = (JNTFirebaseService.getLocalStore('sla_outbound') || []).find(x => (x.kodeTugas || x.id) === kode);
+                    jamBerangkat = (existingSla && existingSla.jamBerangkat) || (existingInc && existingInc.jamBerangkat) || '';
+                }
 
                 const trip = colTrip !== -1 ? String(row[colTrip] || '').trim() : (colTlc !== -1 ? String(row[colTlc] || '').trim() : 'JKT - SUB');
                 const tlc = colTlc !== -1 ? String(row[colTlc] || '').trim() : trip.substring(0, 3).toUpperCase();
@@ -1498,9 +1513,9 @@
                     ? JNTFirebaseService.extractDriverAndPhone(rawDriver2, explicitPhone2)
                     : (rawDriver2 ? { driver1: rawDriver2, driverPhone: explicitPhone2 } : { driver1: '', driverPhone: '' });
 
-                const targetSLA = colTargetSLA !== -1 ? parseTargetSLAValue(row[colTargetSLA]) : '16';
+                const targetSLA = colTargetSLA !== -1 ? parseTargetSLAValue(row[colTargetSLA]) : null;
                 let jamSampai = colJamSampai !== -1 ? normalizeExcelDepartureTime(row[colJamSampai]) : '';
-                if (jamSampai && /^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(jamSampai.trim())) {
+                if (jamSampai && /^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(jamSampai.trim())) {
                     jamSampai = '';
                 }
                 const totalAwb = colTotalAwb !== -1 ? parseExcelTotalAwb(row[colTotalAwb]) : null;

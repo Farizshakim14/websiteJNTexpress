@@ -152,7 +152,19 @@ document.addEventListener('DOMContentLoaded', () => {
         : (rawPageName.includes('.') ? rawPageName : `${rawPageName}.html`);
 
     const publicPages = ['index.html', ''];
-    const VALID_ROLES = ['ADMIN', 'SUPERVISOR', 'OPERATOR_SLA', 'OPERATOR_MONITORING'];
+    const VALID_ROLES = [
+        'DEVELOPER',
+        'OWNER',
+        'ADMIN',
+        'MANAGER',
+        'ASISTEN_MANAGER',
+        'SUPERVISOR',
+        'FINANCE',
+        'VENDOR',
+        'STAFF_VEHICLE_DISPATCH',
+        'OPERATOR_SLA',
+        'OPERATOR_MONITORING'
+    ];
 
     const jntSafeRedirect = (targetUrl) => {
         try {
@@ -234,26 +246,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     jntSafeRedirect('index.html');
                     return;
                 }
-                // Verifikasi status akun aktif di Firestore
+                // Verifikasi status akun aktif di Firestore (di-throttle maksimal 1x setiap 10 menit untuk menghemat kuota Read Firestore)
                 try {
-                    let prof = null;
-                    if (window.db) {
-                        const profSnap = await window.db.collection('users').doc(firebaseUser.uid).get();
-                        if (profSnap.exists) prof = profSnap.data();
-                        if (!prof) {
-                            const uLogin = sessionStorage.getItem('jnt_username_login');
-                            if (uLogin) {
-                                const uSnap = await window.db.collection('users').where('username', '==', uLogin.toLowerCase().trim()).limit(1).get();
-                                if (!uSnap.empty) prof = uSnap.docs[0].data();
+                    const lastCheckTs = Number(sessionStorage.getItem('_jnt_prof_check_ts') || '0');
+                    if (Date.now() - lastCheckTs > 600000) {
+                        sessionStorage.setItem('_jnt_prof_check_ts', String(Date.now()));
+                        let prof = null;
+                        if (window.db) {
+                            const profSnap = await window.db.collection('users').doc(firebaseUser.uid).get();
+                            if (profSnap.exists) prof = profSnap.data();
+                            if (!prof) {
+                                const uLogin = sessionStorage.getItem('jnt_username_login');
+                                if (uLogin) {
+                                    const uSnap = await window.db.collection('users').where('username', '==', uLogin.toLowerCase().trim()).limit(1).get();
+                                    if (!uSnap.empty) prof = uSnap.docs[0].data();
+                                }
                             }
                         }
-                    }
-                    if (prof && String(prof.status || '').toLowerCase() === 'nonaktif') {
-                        alert('⚠️ Akun Anda telah dinonaktifkan oleh Administrator.');
-                        try { if (typeof jntReleaseSessionLock === 'function') await jntReleaseSessionLock(); } catch (_) { }
-                        if (window.auth) await window.auth.signOut();
-                        sessionStorage.clear();
-                        jntSafeRedirect('index.html');
+                        if (prof && String(prof.status || '').toLowerCase() === 'nonaktif') {
+                            alert('⚠️ Akun Anda telah dinonaktifkan oleh Administrator.');
+                            try { if (typeof jntReleaseSessionLock === 'function') await jntReleaseSessionLock(); } catch (_) { }
+                            if (window.auth) await window.auth.signOut();
+                            sessionStorage.clear();
+                            jntSafeRedirect('index.html');
+                        }
                     }
                 } catch (_) { }
             } else if (!window.__jntLoginInProgress
@@ -271,8 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Disimpan di Firestore: active_sessions/{username} = { sessionId, lastSeen }
     // Sesi dianggap mati jika tidak ada heartbeat > SESSION_STALE_MS.
     // ----------------------------------------------------
-    const SESSION_HEARTBEAT_MS = 30000;
-    const SESSION_STALE_MS = 90000;
+    const SESSION_HEARTBEAT_MS = 300000; // 5 menit (menghemat 90% kuota Read & Write Firestore dibanding 30 detik)
+    const SESSION_STALE_MS = 600000;     // 10 menit
     function jntSessionKey(u) { return String(u || '').toLowerCase().replace(/[\/.#$\[\]]/g, '_'); }
     function jntSessionRef(u) {
         return (window.db && u) ? window.db.collection('active_sessions').doc(jntSessionKey(u)) : null;
@@ -874,18 +890,29 @@ document.addEventListener('DOMContentLoaded', () => {
         window.jntSafeUrl = jntSafeUrl;
     }
 
+    function jntFormatRoleLabel(r) {
+        if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.formatRoleLabel === 'function') {
+            return JNTFirebaseService.formatRoleLabel(r);
+        }
+        const up = String(r || '').toUpperCase().trim().replace(/[\s\-]+/g, '_');
+        if (up.includes('DEVELOPER') || up === 'DEV') return 'Developer';
+        if (up.includes('OWNER')) return 'Owner';
+        if (up.includes('ADMIN')) return 'Admin';
+        if (up.includes('ASISTEN') || up === 'ASMEN') return 'Asisten Manager';
+        if (up.includes('MANAGER')) return 'Manager';
+        if (up.includes('SUPERVISOR') || up === 'SPV') return 'Supervisor (SPV)';
+        if (up.includes('FINANCE') || up.includes('KEUANGAN')) return 'Finance';
+        if (up.includes('VENDOR') || up.includes('3PL')) return 'Vendor';
+        if (up.includes('OPERATOR') || up.includes('STAFF') || up.includes('DISPATCH')) return 'Staff Vehicle Dispatch';
+        return String(r || 'Staff Vehicle Dispatch').replace(/_/g, ' ');
+    }
+
     function jntGetLiveUser() {
         const rawRole = sessionStorage.getItem('jnt_user_role') || '';
         return {
             fullname: sessionStorage.getItem('jnt_active_username') || '',
             role: rawRole,
-            roleLabel: (function (r) {
-                const up = String(r).toUpperCase();
-                if (up.includes('ADMIN')) return 'Admin';
-                if (up.includes('SUPERVISOR')) return 'Supervisor';
-                if (up.includes('OPERATOR') || up.includes('STAFF') || up.includes('DISPATCH')) return 'Staff Vehicle Dispatch';
-                return String(r).replace(/_/g, ' ');
-            })(rawRole),
+            roleLabel: jntFormatRoleLabel(rawRole),
             email: sessionStorage.getItem('jnt_user_email') || '',
             jabatan: sessionStorage.getItem('jnt_user_jabatan') || ''
         };
@@ -974,12 +1001,32 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('jnt:user-updated', syncUserIdentityAcrossAllPages);
 
 
-    // PERMISSION MATRIX ROUTE GUARD
+    // PERMISSION MATRIX ROUTE GUARD (9 ROLES)
     const roleUpper = (activeRole || '').toUpperCase();
-    const isAllowedForUsersPage = roleUpper.includes('ADMIN') || roleUpper.includes('SUPERVISOR') || roleUpper.includes('DEV');
+    const isSuperAdminRole = ['DEVELOPER', 'OWNER', 'ADMIN'].some(k => roleUpper.includes(k));
+    const isManagerialRole = ['MANAGER', 'ASISTEN_MANAGER', 'SUPERVISOR', 'SPV'].some(k => roleUpper.includes(k));
+    const isFinanceRole = roleUpper.includes('FINANCE');
+    const isVendorRole = roleUpper.includes('VENDOR');
+    const isAllowedForUsersPage = isSuperAdminRole || isManagerialRole;
 
     if (pageName === 'users.html' && !isAllowedForUsersPage) {
-        alert(`⚠️ Akses Dibatasi: Halaman User Management hanya dapat diakses oleh Admin, Supervisor, dan Developer.\nAnda telah diarahkan kembali ke Dashboard.`);
+        alert(`⚠️ Akses Dibatasi: Halaman User Management hanya dapat diakses oleh Developer, Owner, Admin, Manager, Asisten Manager, dan Supervisor.\nAnda telah diarahkan kembali ke Dashboard.`);
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    // Finance focus: Dashboard, SLA Vendor, Report & Export, Profile
+    const restrictedPagesForFinance = ['users.html', 'master.html', 'shift-management.html', 'settings.html'];
+    if (isFinanceRole && !isSuperAdminRole && restrictedPagesForFinance.includes(pageName)) {
+        alert(`⚠️ Akses Dibatasi: Role Finance difokuskan pada Dashboard, SLA Vendor, dan Report & Export.\nAnda telah diarahkan kembali ke Dashboard.`);
+        window.location.href = 'dashboard.html';
+        return;
+    }
+
+    // Vendor focus: Dashboard, Monitoring 4 Jam, SLA Vendor, Trouble & Laka, Report & Export, Profile
+    const restrictedPagesForVendor = ['users.html', 'master.html', 'shift-management.html', 'settings.html'];
+    if (isVendorRole && !isSuperAdminRole && restrictedPagesForVendor.includes(pageName)) {
+        alert(`⚠️ Akses Dibatasi: Role Vendor tidak memiliki akses ke halaman ${pageName}.\nAnda telah diarahkan kembali ke Dashboard.`);
         window.location.href = 'dashboard.html';
         return;
     }
@@ -1210,9 +1257,9 @@ document.addEventListener('DOMContentLoaded', () => {
         dateChips.forEach(chip => {
             const spans = chip.querySelectorAll('span');
             if (chip.id === 'sh-top-date-chip') {
-                const dateEl = chip.querySelector('span:first-child');
+                const dateEl = document.getElementById('sh-top-date-text') || chip.querySelector('span:first-child');
                 const clockEl = document.getElementById('sh-top-clock-text');
-                if (dateEl) dateEl.textContent = `📅 ${dateStr}`;
+                if (dateEl) dateEl.textContent = `📅 ${dayStr}, ${dateStr}`;
                 if (clockEl) clockEl.textContent = `${timeStr} WIB`;
             } else if (spans.length >= 2) {
                 spans[0].textContent = `${dateStr}`;
@@ -1224,7 +1271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const shiftClockEl = document.getElementById('sh-current-time-text');
         if (shiftClockEl) {
-            shiftClockEl.textContent = `WAKTU AKTUAL: ${timeStr.slice(0, 5)} WIB`;
+            shiftClockEl.textContent = `WAKTU AKTUAL: ${timeStr} WIB`;
         }
     }
 
@@ -1348,45 +1395,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Shared Active Trips Cache
     let activeIncomingMap = {};
+    let activeIncomingList = [];
 
     if (typeof JNTFirebaseService !== 'undefined') {
-        JNTFirebaseService.subscribeActiveIncomingForMonitoring((activeTrips) => {
-            activeTrips.forEach(trip => {
-                activeIncomingMap[trip.kodeTugas] = trip;
+        // ⚡ KUOTA OPTIMIZATION: Hanya jalankan subscribeActiveIncomingForMonitoring pada halaman yang membutuhkan
+        // dropdown pilihan armada (Trouble & Laka / Monitoring), BUKAN di semua halaman (seperti Users, Settings, Profile).
+        const needsActiveIncomingSub = Boolean(
+            document.getElementById('tr-kode-tugas-select') ||
+            document.getElementById('tr-armada-search-input') ||
+            document.getElementById('mon-kode-tugas-select')
+        );
+        if (needsActiveIncomingSub) {
+            JNTFirebaseService.subscribeActiveIncomingForMonitoring((activeTrips) => {
+                activeIncomingMap = {};
+                activeIncomingList = Array.isArray(activeTrips) ? activeTrips : [];
+                activeIncomingList.forEach(trip => {
+                    if (trip && trip.kodeTugas) {
+                        activeIncomingMap[trip.kodeTugas] = trip;
+                    }
+                });
+
+                const countBadge = document.getElementById('tr-armada-count-badge');
+                if (countBadge) {
+                    countBadge.textContent = `${activeIncomingList.length.toLocaleString('id-ID')} Armada Sinkron`;
+                }
+                if (typeof window._refreshTroubleArmadaCombobox === 'function') {
+                    window._refreshTroubleArmadaCombobox();
+                }
+
+                const monKodeSelect = document.getElementById('mon-kode-tugas-select');
+                if (monKodeSelect && monKodeSelect.tagName === 'SELECT') {
+                    const curVal = monKodeSelect.value;
+                    monKodeSelect.innerHTML = '<option value="">-- Pilih Armada Aktif --</option>';
+                    activeIncomingList.slice(0, 300).forEach(trip => {
+                        const opt = document.createElement('option');
+                        opt.value = trip.kodeTugas;
+                        opt.textContent = `${trip.kodeTugas} - ${trip.platNomor} (${trip.namaRute || trip.trip})`;
+                        monKodeSelect.appendChild(opt);
+                    });
+                    if (curVal && activeIncomingMap[curVal]) {
+                        monKodeSelect.value = curVal;
+                    }
+                }
             });
-
-            // Populate Trouble Select
-            const trKodeSelect = document.getElementById('tr-kode-tugas-select');
-            if (trKodeSelect) {
-                const curVal = trKodeSelect.value;
-                trKodeSelect.innerHTML = '<option value="">-- Pilih Armada Terlibat Incident --</option>';
-                activeTrips.forEach(trip => {
-                    const opt = document.createElement('option');
-                    opt.value = trip.kodeTugas;
-                    opt.textContent = `${trip.kodeTugas} - ${trip.platNomor} (${trip.namaRute || trip.trip})`;
-                    trKodeSelect.appendChild(opt);
-                });
-                if (curVal && activeIncomingMap[curVal]) {
-                    trKodeSelect.value = curVal;
-                }
-            }
-
-            // Populate Monitoring Select
-            const monKodeSelect = document.getElementById('mon-kode-tugas-select');
-            if (monKodeSelect) {
-                const curVal = monKodeSelect.value;
-                monKodeSelect.innerHTML = '<option value="">-- Pilih Armada Aktif --</option>';
-                activeTrips.forEach(trip => {
-                    const opt = document.createElement('option');
-                    opt.value = trip.kodeTugas;
-                    opt.textContent = `${trip.kodeTugas} - ${trip.platNomor} (${trip.namaRute || trip.trip})`;
-                    monKodeSelect.appendChild(opt);
-                });
-                if (curVal && activeIncomingMap[curVal]) {
-                    monKodeSelect.value = curVal;
-                }
-            }
-        });
+        }
 
         // ----------------------------------------------------
         // 3. REAL-TIME NOTIFICATION CENTER BELL WIDGET
@@ -1843,6 +1895,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // Helper to resolve automatic jamMulai & jamSelesai from selected Shift (Shift 1: 08:30 - 20:30, Shift 2: 20:30 - 08:30)
+        const resolveShiftHours = (namaShiftStr) => {
+            const isShift2 = String(namaShiftStr || '').includes('Shift 2') || String(namaShiftStr || '').includes('20:30');
+            return {
+                namaShift: isShift2 ? 'Shift 2 (20:30 - 08:30 WIB)' : 'Shift 1 (08:30 - 20:30 WIB)',
+                jamMulai: isShift2 ? '20:30' : '08:30',
+                jamSelesai: isShift2 ? '08:30' : '20:30'
+            };
+        };
+
         // Helper to update Live Preview Card in "Mulai Shift Baru" Modal
         const updateStartShiftPreview = () => {
             const dateVal = document.getElementById('st-tanggal-input')?.value || new Date().toISOString().slice(0, 10);
@@ -1852,8 +1914,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const nextSeq = String(todayShifts.length + 1).padStart(2, '0');
             const previewId = `SHIFT-${dateStr}-${nextSeq}`;
 
-            const jamMulai = document.getElementById('st-jam-mulai-input')?.value || '08:30';
-            const jamSelesai = document.getElementById('st-jam-selesai-input')?.value || '20:30';
+            const namaVal = document.getElementById('st-nama-select')?.value || 'Shift 1 (08:30 - 20:30 WIB)';
+            const { jamMulai, jamSelesai } = resolveShiftHours(namaVal);
             const op1Val = document.getElementById('st-op1-select')?.value || '-';
             const op1Tugas = document.getElementById('st-op1-tugas')?.value || 'Monitoring 4 Jam';
             const op2Val = document.getElementById('st-op2-select')?.value || '-';
@@ -1899,20 +1961,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateStartShiftPreview();
         };
 
-        // A. Real-time Clock & Shift Progress Timeline
+        // A. Real-time Shift Progress Timeline (Jam & Tanggal Header dihandle tunggal oleh updateGlobalHeaderDateTime agar tidak bentrok/kedap-kedip)
         const updateShiftClockAndTimeline = (activeShift) => {
-            const now = new Date();
-            const clockStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
-            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-            const clockEl = document.getElementById('sh-top-clock-text');
-            const dateChipEl = document.getElementById('sh-top-date-text');
-            if (clockEl) clockEl.textContent = clockStr;
-            if (dateChipEl) dateChipEl.textContent = `📅 ${dateStr}`;
-
-            const timeTextEl = document.getElementById('sh-current-time-text');
-            if (timeTextEl) timeTextEl.textContent = `WAKTU AKTUAL: ${clockStr}`;
-
             if (!activeShift) return;
+            const now = new Date();
 
             // Parse start & end times
             let startHour = 8, startMin = 0;
@@ -1992,8 +2044,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const searchVal = (document.getElementById('sh-fleet-search')?.value || '').toLowerCase().trim();
             const statusVal = document.getElementById('sh-fleet-status-filter')?.value || 'ALL';
 
-            const monList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
-            const slaList = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+            const DEMO_TRIP_IDS = new Set([
+                'DBGX2610020001', 'DBGX2610020002', 'DBGX2610020003',
+                'DBGX2610020004', 'DBGX2610020005', 'DBGX2610020006',
+                '4234234', 'DBDBDBDB'
+            ]);
+            const monList = (allMonCache && allMonCache.length > 0 ? allMonCache : (JNTFirebaseService.getLocalStore('monitoring_4h') || []))
+                .filter(m => !DEMO_TRIP_IDS.has(m.kodeTugas || m.id));
+            const slaList = (allSlaCache && allSlaCache.length > 0 ? allSlaCache : (JNTFirebaseService.getLocalStore('sla_outbound') || []))
+                .filter(s => !DEMO_TRIP_IDS.has(s.kodeTugas || s.id));
             const slaMap = new Map();
             slaList.forEach(s => {
                 const k = s.kodeTugas || s.id;
@@ -2227,8 +2286,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const op2 = activeShift.operator2 || { nama: defaultOp2Name, tugas: 'SLA' };
 
             const users = JNTFirebaseService.getLocalStore('users') || [];
-            const u1Match = users.find(u => (u.fullname || u.username || '').toLowerCase() === (op1.nama || '').toLowerCase());
-            const u2Match = users.find(u => (u.fullname || u.username || '').toLowerCase() === (op2.nama || '').toLowerCase());
+            const u1Match = users.find(u => (u.fullname || '').toLowerCase() === (op1.nama || '').toLowerCase() || (u.username || '').toLowerCase() === (op1.nama || '').toLowerCase());
+            const u2Match = users.find(u => (u.fullname || '').toLowerCase() === (op2.nama || '').toLowerCase() || (u.username || '').toLowerCase() === (op2.nama || '').toLowerCase());
 
             const elOp1Avatar = document.getElementById('sh-op1-avatar');
             const elOp2Avatar = document.getElementById('sh-op2-avatar');
@@ -2249,7 +2308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const elOp1Inc = document.getElementById('sh-op1-inc-count');
 
             if (elOp1Nama) elOp1Nama.textContent = op1.nama;
-            if (elOp1Role) elOp1Role.textContent = `Role: ${(u1Match && u1Match.role) ? u1Match.role : (op1.role || 'Admin / Operator Utama')}`;
+            if (elOp1Role) elOp1Role.textContent = `Role: ${u1Match ? jntFormatRoleLabel(u1Match.role) : jntFormatRoleLabel(op1.role || 'Staff Vehicle Dispatch')}`;
             if (elOp1Tugas) elOp1Tugas.textContent = op1.tugas || 'Monitoring 4 Jam';
             if (elOp1Trip) elOp1Trip.textContent = `${metrics.totalTrips} Trip`;
             if (elOp1Mon) elOp1Mon.textContent = `${metrics.monCheckins} Slot`;
@@ -2263,7 +2322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const elOp2Total = document.getElementById('sh-op2-total-count');
 
             if (elOp2Nama) elOp2Nama.textContent = op2.nama;
-            if (elOp2Role) elOp2Role.textContent = `Role: ${(u2Match && u2Match.role) ? u2Match.role : (op2.role || 'Operator Pendamping')}`;
+            if (elOp2Role) elOp2Role.textContent = `Role: ${u2Match ? jntFormatRoleLabel(u2Match.role) : jntFormatRoleLabel(op2.role || 'Staff Vehicle Dispatch')}`;
             if (elOp2Tugas) elOp2Tugas.textContent = op2.tugas || 'SLA';
             if (elOp2Sla) elOp2Sla.textContent = `${metrics.slaUpdates} Trip`;
             if (elOp2Done) elOp2Done.textContent = `${metrics.monCompleted} Selesai`;
@@ -2632,10 +2691,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnEndShift = document.getElementById('btn-open-end-shift');
         const btnCopyId = document.getElementById('btn-copy-shift-id');
 
-        // Auto-sync Shift Name <-> Jam Mulai <-> Jam Selesai & Penugasan Dropdowns in "Mulai Shift Baru" Modal
+        // Auto-sync Shift Name & Penugasan Dropdowns in "Mulai Shift Baru", "Handover", & "Edit Shift" Modals
         const stNamaSelect = document.getElementById('st-nama-select');
-        const stJamMulai = document.getElementById('st-jam-mulai-input');
-        const stJamSelesai = document.getElementById('st-jam-selesai-input');
         const stTanggalInput = document.getElementById('st-tanggal-input');
         const stOp1Select = document.getElementById('st-op1-select');
         const stOp2Select = document.getElementById('st-op2-select');
@@ -2643,40 +2700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stOp2Tugas = document.getElementById('st-op2-tugas');
 
         if (stNamaSelect) {
-            stNamaSelect.onchange = () => {
-                if (stNamaSelect.value.includes('Shift 2')) {
-                    if (stJamMulai) stJamMulai.value = '20:30';
-                    if (stJamSelesai) stJamSelesai.value = '09:30';
-                } else {
-                    if (stJamMulai) stJamMulai.value = '08:30';
-                    if (stJamSelesai) stJamSelesai.value = '20:30';
-                }
-                updateStartShiftPreview();
-            };
-        }
-        if (stJamMulai) {
-            stJamMulai.onchange = () => {
-                if (stJamMulai.value === '20:30') {
-                    if (stJamSelesai) stJamSelesai.value = '09:30';
-                    if (stNamaSelect) stNamaSelect.value = 'Shift 2 (20:30 - 09:30 WIB)';
-                } else {
-                    if (stJamSelesai) stJamSelesai.value = '20:30';
-                    if (stNamaSelect) stNamaSelect.value = 'Shift 1 (08:30 - 20:30 WIB)';
-                }
-                updateStartShiftPreview();
-            };
-        }
-        if (stJamSelesai) {
-            stJamSelesai.onchange = () => {
-                if (stJamSelesai.value === '09:30') {
-                    if (stJamMulai) stJamMulai.value = '20:30';
-                    if (stNamaSelect) stNamaSelect.value = 'Shift 2 (20:30 - 09:30 WIB)';
-                } else {
-                    if (stJamMulai) stJamMulai.value = '08:30';
-                    if (stNamaSelect) stNamaSelect.value = 'Shift 1 (08:30 - 20:30 WIB)';
-                }
-                updateStartShiftPreview();
-            };
+            stNamaSelect.onchange = () => updateStartShiftPreview();
         }
         if (stOp1Tugas && stOp2Tugas) {
             stOp1Tugas.onchange = () => {
@@ -2692,28 +2716,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stOp2Select) stOp2Select.onchange = () => updateStartShiftPreview();
         if (stTanggalInput) stTanggalInput.onchange = () => updateStartShiftPreview();
 
-        // Auto-sync Jam & Penugasan in "Pergantian Shift (Handover)" & "Edit Shift" Modals
-        const swJamMulai = document.getElementById('sw-jam-mulai-input');
-        const swJamSelesai = document.getElementById('sw-jam-selesai-input');
+        const swNamaSelect = document.getElementById('sw-nama-select');
         const swOp1Tugas = document.getElementById('sw-op1-tugas');
         const swOp2Tugas = document.getElementById('sw-op2-tugas');
-        if (swJamMulai && swJamSelesai) {
-            swJamMulai.onchange = () => { swJamSelesai.value = swJamMulai.value === '20:30' ? '09:30' : '20:30'; };
-            swJamSelesai.onchange = () => { swJamMulai.value = swJamSelesai.value === '09:30' ? '20:30' : '08:30'; };
-        }
         if (swOp1Tugas && swOp2Tugas) {
             swOp1Tugas.onchange = () => { swOp2Tugas.value = swOp1Tugas.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
             swOp2Tugas.onchange = () => { swOp1Tugas.value = swOp2Tugas.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
         }
 
-        const edJamMulai = document.getElementById('ed-jam-mulai-input');
-        const edJamSelesai = document.getElementById('ed-jam-selesai-input');
+        const edNamaSelect = document.getElementById('ed-nama-select');
         const edOp1TugasEl = document.getElementById('ed-op1-tugas');
         const edOp2TugasEl = document.getElementById('ed-op2-tugas');
-        if (edJamMulai && edJamSelesai) {
-            edJamMulai.onchange = () => { edJamSelesai.value = edJamMulai.value === '20:30' ? '09:30' : '20:30'; };
-            edJamSelesai.onchange = () => { edJamMulai.value = edJamSelesai.value === '09:30' ? '20:30' : '08:30'; };
-        }
         if (edOp1TugasEl && edOp2TugasEl) {
             edOp1TugasEl.onchange = () => { edOp2TugasEl.value = edOp1TugasEl.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
             edOp2TugasEl.onchange = () => { edOp1TugasEl.value = edOp2TugasEl.value === 'Monitoring 4 Jam' ? 'SLA' : 'Monitoring 4 Jam'; };
@@ -2727,14 +2740,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnSwitchShift) btnSwitchShift.onclick = () => {
             populateOperatorDropdowns();
             const active = JNTFirebaseService.getActiveShift();
-            if (swJamMulai && swJamSelesai) {
-                if (active.jamMulai === '08:30') {
-                    swJamMulai.value = '20:30';
-                    swJamSelesai.value = '09:30';
-                } else {
-                    swJamMulai.value = '08:30';
-                    swJamSelesai.value = '20:30';
-                }
+            if (swNamaSelect) {
+                swNamaSelect.value = (active.jamMulai === '08:30' || !String(active.namaShift || '').includes('Shift 2'))
+                    ? 'Shift 2 (20:30 - 08:30 WIB)'
+                    : 'Shift 1 (08:30 - 20:30 WIB)';
             }
             openModal('modal-switch-shift');
         };
@@ -2746,8 +2755,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const ed1T = document.getElementById('ed-op1-tugas');
             const ed2T = document.getElementById('ed-op2-tugas');
 
-            if (edJamMulai) edJamMulai.value = active.jamMulai === '20:30' ? '20:30' : '08:30';
-            if (edJamSelesai) edJamSelesai.value = active.jamSelesai === '09:30' ? '09:30' : '20:30';
+            if (edNamaSelect) {
+                edNamaSelect.value = (active.jamMulai === '20:30' || String(active.namaShift || '').includes('Shift 2'))
+                    ? 'Shift 2 (20:30 - 08:30 WIB)'
+                    : 'Shift 1 (08:30 - 20:30 WIB)';
+            }
             if (ed1 && active.operator1) ed1.value = active.operator1.nama;
             if (ed2 && active.operator2) ed2.value = active.operator2.nama;
             if (ed1T && active.operator1) ed1T.value = (active.operator1.tugas || '').toUpperCase().includes('SLA') ? 'SLA' : 'Monitoring 4 Jam';
@@ -2787,9 +2799,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 try {
                     const tanggal = document.getElementById('st-tanggal-input').value;
-                    const namaShift = document.getElementById('st-nama-select').value;
-                    const jamMulai = document.getElementById('st-jam-mulai-input').value;
-                    const jamSelesai = document.getElementById('st-jam-selesai-input').value;
+                    const rawNamaShift = document.getElementById('st-nama-select').value;
+                    const { namaShift, jamMulai, jamSelesai } = resolveShiftHours(rawNamaShift);
                     const op1Nama = document.getElementById('st-op1-select').value;
                     const op1Tugas = document.getElementById('st-op1-tugas').value;
                     const op2Nama = document.getElementById('st-op2-select').value;
@@ -2824,11 +2835,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newOp2 = document.getElementById('sw-op2-select').value;
                     const op1Tugas = document.getElementById('sw-op1-tugas')?.value || 'Monitoring 4 Jam';
                     const op2Tugas = document.getElementById('sw-op2-tugas')?.value || 'SLA';
-                    const jamMulai = document.getElementById('sw-jam-mulai-input')?.value || '20:30';
-                    const jamSelesai = document.getElementById('sw-jam-selesai-input')?.value || '09:30';
+                    const rawSwShift = document.getElementById('sw-nama-select')?.value || 'Shift 2 (20:30 - 08:30 WIB)';
+                    const { jamMulai, jamSelesai } = resolveShiftHours(rawSwShift);
                     const catatan = document.getElementById('sw-catatan').value;
 
-                    const nextShift = await JNTFirebaseService.switchShift(
+                    await JNTFirebaseService.switchShift(
                         active.shiftId || active.id,
                         newOp1,
                         newOp2,
@@ -2855,11 +2866,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 try {
                     const active = JNTFirebaseService.getActiveShift();
-                    const jamMulai = document.getElementById('ed-jam-mulai-input')?.value || active.jamMulai || '08:30';
-                    const jamSelesai = document.getElementById('ed-jam-selesai-input')?.value || active.jamSelesai || '20:30';
-                    const namaShift = jamMulai === '20:30'
-                        ? `Shift 2 (${jamMulai} - ${jamSelesai} WIB)`
-                        : `Shift 1 (${jamMulai} - ${jamSelesai} WIB)`;
+                    const rawEdShift = document.getElementById('ed-nama-select')?.value || active.namaShift || 'Shift 1 (08:30 - 20:30 WIB)';
+                    const { namaShift, jamMulai, jamSelesai } = resolveShiftHours(rawEdShift);
                     const op1Nama = document.getElementById('ed-op1-select').value;
                     const op1Tugas = document.getElementById('ed-op1-tugas').value;
                     const op2Nama = document.getElementById('ed-op2-select').value;
@@ -2956,11 +2964,11 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        // Live Clock interval ticker every 1 second
+        // Live Progress Timeline ticker every 10 seconds (Clock seconds handled smoothly by single updateGlobalHeaderDateTime interval)
         setInterval(() => {
-            const active = JNTFirebaseService.getActiveShift();
+            const active = allShiftsCache.find(s => s && s.status === 'AKTIF') || allShiftsCache[0] || JNTFirebaseService.getActiveShift();
             updateShiftClockAndTimeline(active);
-        }, 1000);
+        }, 10000);
 
         // Set default date input in modal to today
         const stDate = document.getElementById('st-tanggal-input');
@@ -3212,39 +3220,309 @@ document.addEventListener('DOMContentLoaded', () => {
             if (u.includes('SOLUSI DUNIA') || u.includes('SDE') || u.includes('(SDE)')) return 'SDE';
             if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
             if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+            if (u.includes('FASTRANS')) return 'FASTRANS';
 
             return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
         };
 
-        // Auto-fill form fields when Kode Tugas selected in modal
+        // Searchable Combobox & Auto-fill form fields when Kode Tugas or Plat Nomor is typed/selected in modal
         const trSelect = document.getElementById('tr-kode-tugas-select');
+        const trSearchInput = document.getElementById('tr-armada-search-input');
+        const trDropdownList = document.getElementById('tr-armada-dropdown-list');
+        const trClearBtn = document.getElementById('tr-armada-clear-btn');
+        const trToggleBtn = document.getElementById('tr-armada-toggle-btn');
+        const trComboboxWrap = document.getElementById('tr-armada-combobox');
         const trWaktuKejadian = document.getElementById('tr-waktu-kejadian');
         if (trWaktuKejadian) {
             trWaktuKejadian.value = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
         }
 
-        if (trSelect) {
-            trSelect.addEventListener('change', () => {
-                const kode = trSelect.value;
-                const trip = activeIncomingMap[kode];
-                const platInput = document.getElementById('tr-plat');
-                const vendorInput = document.getElementById('tr-vendor');
-                const driverInput = document.getElementById('tr-driver');
-                const driverPhoneInput = document.getElementById('tr-driver-phone');
-                const ruteInput = document.getElementById('tr-rute-tlc');
+        const fillTroubleArmadaFields = (trip) => {
+            const platInput = document.getElementById('tr-plat');
+            const vendorInput = document.getElementById('tr-vendor');
+            const driverInput = document.getElementById('tr-driver');
+            const driverPhoneInput = document.getElementById('tr-driver-phone');
+            const ruteInput = document.getElementById('tr-rute-tlc');
 
-                if (trip) {
-                    if (platInput) platInput.value = trip.platNomor || '-';
-                    if (vendorInput) vendorInput.value = trip.vendor || 'J&T Logistics';
-                    if (driverInput) driverInput.value = trip.driver1 || trip.driver || '-';
-                    if (driverPhoneInput) driverPhoneInput.value = trip.driverPhone || trip.driverPhone1 || '-';
-                    if (ruteInput) ruteInput.value = `${trip.trip || trip.namaRute || '-'} (${trip.tlc || '-'})`;
-                } else {
-                    if (platInput) platInput.value = '';
-                    if (vendorInput) vendorInput.value = '';
-                    if (driverInput) driverInput.value = '';
-                    if (driverPhoneInput) driverPhoneInput.value = '';
-                    if (ruteInput) ruteInput.value = '';
+            if (trip) {
+                const ruteLabel = trip.namaRute || trip.trip || '-';
+                const tlcLabel = trip.tlc || trip.trip || '-';
+                if (trSelect) trSelect.value = trip.kodeTugas || '';
+                if (trSearchInput) {
+                    trSearchInput.value = `${trip.kodeTugas} - ${trip.platNomor || '-'} (${ruteLabel})`;
+                }
+                if (trClearBtn) trClearBtn.classList.remove('hidden');
+                if (platInput) platInput.value = trip.platNomor || '-';
+                if (vendorInput) vendorInput.value = trip.vendor || 'J&T Express';
+                if (driverInput) driverInput.value = trip.driver1 || trip.driver || '-';
+                if (driverPhoneInput) driverPhoneInput.value = (trip.driverPhone && trip.driverPhone !== '-') ? trip.driverPhone : '-';
+                if (ruteInput) {
+                    ruteInput.value = (ruteLabel !== tlcLabel && tlcLabel !== '-')
+                        ? `${ruteLabel} (${tlcLabel})`
+                        : ruteLabel;
+                }
+            } else {
+                if (trSelect) trSelect.value = '';
+                if (platInput) platInput.value = '';
+                if (vendorInput) vendorInput.value = '';
+                if (driverInput) driverInput.value = '';
+                if (driverPhoneInput) driverPhoneInput.value = '';
+                if (ruteInput) ruteInput.value = '';
+            }
+        };
+
+        let _trActiveOptionIdx = -1;
+        let _trCurrentMatches = [];
+
+        const renderTroubleArmadaDropdown = (rawQuery = '') => {
+            if (!trDropdownList) return;
+            const q = String(rawQuery || '').toLowerCase().trim();
+            const qCompact = q.replace(/\s+/g, '');
+
+            const sourceList = activeIncomingList.length > 0
+                ? activeIncomingList
+                : Object.values(activeIncomingMap);
+
+            let matches = sourceList;
+            if (q) {
+                matches = sourceList.filter(t => {
+                    const kode = String(t.kodeTugas || '').toLowerCase();
+                    const plat = String(t.platNomor || '').toLowerCase();
+                    const platCompact = plat.replace(/\s+/g, '');
+                    const rute = String(t.namaRute || t.trip || '').toLowerCase();
+                    const tlc = String(t.tlc || '').toLowerCase();
+                    const vendor = String(t.vendor || '').toLowerCase();
+                    const driver = String(t.driver1 || t.driver || '').toLowerCase();
+                    return kode.includes(q) ||
+                        plat.includes(q) ||
+                        (qCompact.length >= 2 && platCompact.includes(qCompact)) ||
+                        rute.includes(q) ||
+                        tlc.includes(q) ||
+                        vendor.includes(q) ||
+                        driver.includes(q);
+                });
+            }
+
+            const totalMatches = matches.length;
+            const MAX_RENDER = 80;
+            _trCurrentMatches = matches.slice(0, MAX_RENDER);
+            _trActiveOptionIdx = _trCurrentMatches.length > 0 ? 0 : -1;
+
+            if (totalMatches === 0) {
+                trDropdownList.innerHTML = `
+                    <div class="tr-combobox-empty">
+                        Tidak ditemukan armada dengan Kode Tugas / Plat Nomor <strong>"${jntEscapeHtml(rawQuery)}"</strong>.
+                    </div>
+                `;
+                return;
+            }
+
+            const headerHtml = `
+                <div class="tr-combobox-meta-bar">
+                    <span>Menampilkan <strong>${_trCurrentMatches.length}</strong> dari <strong>${totalMatches.toLocaleString('id-ID')}</strong> armada${q ? ' yang cocok' : ''}</span>
+                    <span>Pilih atau tekan Enter ↵</span>
+                </div>
+            `;
+
+            const itemsHtml = _trCurrentMatches.map((t, idx) => {
+                const kode = jntEscapeHtml(t.kodeTugas || '-');
+                const plat = jntEscapeHtml(t.platNomor || '-');
+                const rute = jntEscapeHtml(t.namaRute || t.trip || '-');
+                const tlc = jntEscapeHtml(t.tlc || '');
+                const vShort = jntEscapeHtml(formatVendorShort(t.vendor));
+                const driver = jntEscapeHtml(t.driver1 || t.driver || '-');
+                const statusBadge = t._isActiveOnRoad
+                    ? `<span class="tr-opt-status onroad">ON ROAD</span>`
+                    : `<span class="tr-opt-status done">SELESAI</span>`;
+
+                return `
+                    <div class="tr-combobox-option ${idx === 0 ? 'is-highlighted' : ''}" role="option" data-kode="${kode}" data-idx="${idx}">
+                        <div class="tr-opt-top">
+                            <span class="tr-opt-kode">${kode}</span>
+                            <span class="tr-opt-plat">🚛 ${plat}</span>
+                            <span class="tr-opt-vendor">${vShort}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="tr-opt-sub">
+                            <span>🗺️ ${rute}${tlc && tlc !== rute ? ' (' + tlc + ')' : ''}</span>
+                            <span>👤 ${driver}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            trDropdownList.innerHTML = headerHtml + itemsHtml;
+
+            trDropdownList.querySelectorAll('.tr-combobox-option').forEach(optEl => {
+                optEl.addEventListener('mousedown', (ev) => {
+                    ev.preventDefault(); // prevent input blur before selection
+                    const chosenKode = optEl.getAttribute('data-kode');
+                    const trip = activeIncomingMap[chosenKode];
+                    if (trip) {
+                        fillTroubleArmadaFields(trip);
+                        trDropdownList.classList.add('hidden');
+                    }
+                });
+            });
+        };
+
+        window._refreshTroubleArmadaCombobox = () => {
+            const countBadge = document.getElementById('tr-armada-count-badge');
+            if (countBadge) {
+                countBadge.textContent = `${activeIncomingList.length.toLocaleString('id-ID')} Armada Sinkron`;
+            }
+            if (trDropdownList && !trDropdownList.classList.contains('hidden')) {
+                const q = trSearchInput ? trSearchInput.value : '';
+                renderTroubleArmadaDropdown(q);
+            }
+        };
+
+        if (trSearchInput && trDropdownList) {
+            const openDropdown = (filterQuery = '') => {
+                renderTroubleArmadaDropdown(filterQuery);
+                trDropdownList.classList.remove('hidden');
+            };
+
+            trSearchInput.addEventListener('focus', () => {
+                // If an item is already selected, show all options when user clicks to search/change, or filter by current text
+                const currentKode = trSelect ? trSelect.value : '';
+                const queryToUse = currentKode ? '' : trSearchInput.value;
+                openDropdown(queryToUse);
+            });
+
+            trSearchInput.addEventListener('click', () => {
+                if (trDropdownList.classList.contains('hidden')) {
+                    const currentKode = trSelect ? trSelect.value : '';
+                    openDropdown(currentKode ? '' : trSearchInput.value);
+                }
+            });
+
+            trSearchInput.addEventListener('input', () => {
+                const val = trSearchInput.value;
+                if (trClearBtn) {
+                    trClearBtn.classList.toggle('hidden', !val);
+                }
+                // Clear previously locked selection while user is typing a new search
+                if (trSelect && trSelect.value) {
+                    fillTroubleArmadaFields(null);
+                    trSearchInput.value = val;
+                    if (trClearBtn) trClearBtn.classList.toggle('hidden', !val);
+                }
+                openDropdown(val);
+
+                // Auto-match if user typed an exact Kode Tugas or exact Plat Nomor (when only 1 match exists)
+                const cleanQ = val.trim().toUpperCase();
+                const cleanQCompact = cleanQ.replace(/\s+/g, '');
+                if (cleanQ.length >= 4) {
+                    const exactKodeTrip = activeIncomingMap[cleanQ] || activeIncomingList.find(t => String(t.kodeTugas || '').toUpperCase() === cleanQ);
+                    if (exactKodeTrip) {
+                        const platInput = document.getElementById('tr-plat');
+                        const vendorInput = document.getElementById('tr-vendor');
+                        const driverInput = document.getElementById('tr-driver');
+                        const driverPhoneInput = document.getElementById('tr-driver-phone');
+                        const ruteInput = document.getElementById('tr-rute-tlc');
+                        if (trSelect) trSelect.value = exactKodeTrip.kodeTugas;
+                        if (platInput) platInput.value = exactKodeTrip.platNomor || '-';
+                        if (vendorInput) vendorInput.value = exactKodeTrip.vendor || 'J&T Express';
+                        if (driverInput) driverInput.value = exactKodeTrip.driver1 || exactKodeTrip.driver || '-';
+                        if (driverPhoneInput) driverPhoneInput.value = exactKodeTrip.driverPhone || '-';
+                        if (ruteInput) ruteInput.value = `${exactKodeTrip.namaRute || exactKodeTrip.trip || '-'} (${exactKodeTrip.tlc || '-'})`;
+                    } else if (_trCurrentMatches.length === 1) {
+                        const onlyMatch = _trCurrentMatches[0];
+                        const matchPlatCompact = String(onlyMatch.platNomor || '').toUpperCase().replace(/\s+/g, '');
+                        if (matchPlatCompact === cleanQCompact) {
+                            const platInput = document.getElementById('tr-plat');
+                            const vendorInput = document.getElementById('tr-vendor');
+                            const driverInput = document.getElementById('tr-driver');
+                            const driverPhoneInput = document.getElementById('tr-driver-phone');
+                            const ruteInput = document.getElementById('tr-rute-tlc');
+                            if (trSelect) trSelect.value = onlyMatch.kodeTugas;
+                            if (platInput) platInput.value = onlyMatch.platNomor || '-';
+                            if (vendorInput) vendorInput.value = onlyMatch.vendor || 'J&T Express';
+                            if (driverInput) driverInput.value = onlyMatch.driver1 || onlyMatch.driver || '-';
+                            if (driverPhoneInput) driverPhoneInput.value = onlyMatch.driverPhone || '-';
+                            if (ruteInput) ruteInput.value = `${onlyMatch.namaRute || onlyMatch.trip || '-'} (${onlyMatch.tlc || '-'})`;
+                        }
+                    }
+                }
+            });
+
+            trSearchInput.addEventListener('keydown', (ev) => {
+                if (trDropdownList.classList.contains('hidden')) {
+                    if (ev.key === 'ArrowDown' || ev.key === 'Enter') {
+                        ev.preventDefault();
+                        openDropdown(trSelect && trSelect.value ? '' : trSearchInput.value);
+                    }
+                    return;
+                }
+                const optEls = trDropdownList.querySelectorAll('.tr-combobox-option');
+                if (ev.key === 'ArrowDown') {
+                    ev.preventDefault();
+                    if (optEls.length > 0) {
+                        _trActiveOptionIdx = (_trActiveOptionIdx + 1) % optEls.length;
+                        optEls.forEach((el, i) => el.classList.toggle('is-highlighted', i === _trActiveOptionIdx));
+                        optEls[_trActiveOptionIdx].scrollIntoView({ block: 'nearest' });
+                    }
+                } else if (ev.key === 'ArrowUp') {
+                    ev.preventDefault();
+                    if (optEls.length > 0) {
+                        _trActiveOptionIdx = (_trActiveOptionIdx - 1 + optEls.length) % optEls.length;
+                        optEls.forEach((el, i) => el.classList.toggle('is-highlighted', i === _trActiveOptionIdx));
+                        optEls[_trActiveOptionIdx].scrollIntoView({ block: 'nearest' });
+                    }
+                } else if (ev.key === 'Enter') {
+                    if (_trActiveOptionIdx >= 0 && _trCurrentMatches[_trActiveOptionIdx]) {
+                        ev.preventDefault();
+                        fillTroubleArmadaFields(_trCurrentMatches[_trActiveOptionIdx]);
+                        trDropdownList.classList.add('hidden');
+                    }
+                } else if (ev.key === 'Escape') {
+                    trDropdownList.classList.add('hidden');
+                }
+            });
+
+            if (trClearBtn) {
+                trClearBtn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    trSearchInput.value = '';
+                    trClearBtn.classList.add('hidden');
+                    fillTroubleArmadaFields(null);
+                    openDropdown('');
+                    trSearchInput.focus();
+                });
+            }
+
+            if (trToggleBtn) {
+                trToggleBtn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    if (trDropdownList.classList.contains('hidden')) {
+                        openDropdown('');
+                        trSearchInput.focus();
+                    } else {
+                        trDropdownList.classList.add('hidden');
+                    }
+                });
+            }
+
+            document.addEventListener('click', (ev) => {
+                if (trComboboxWrap && !trComboboxWrap.contains(ev.target)) {
+                    trDropdownList.classList.add('hidden');
+                    // If user typed something and clicked outside without clicking an option, snap to best match if exact
+                    if (trSelect && !trSelect.value && _trCurrentMatches.length === 1) {
+                        fillTroubleArmadaFields(_trCurrentMatches[0]);
+                    }
+                }
+            });
+        }
+
+        const btnReportIncident = document.getElementById('btn-report-incident');
+        if (btnReportIncident) {
+            btnReportIncident.addEventListener('click', () => {
+                if (trWaktuKejadian) {
+                    trWaktuKejadian.value = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                }
+                if (typeof window._refreshTroubleArmadaCombobox === 'function') {
+                    window._refreshTroubleArmadaCombobox();
                 }
             });
         }
@@ -3489,6 +3767,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const vendorShort = formatVendorShort(item.vendor);
                     const safeId = jntEscapeHtml(item.id || item.incidentId || '');
+                    const matchedTrip = activeIncomingMap[item.kodeTugas] || {};
+                    const resolvedTlc = item.tlc || matchedTrip.tlc || matchedTrip.trip || item.rute || '-';
+                    const resolvedRute = item.rute || matchedTrip.namaRute || matchedTrip.trip || '-';
 
                     return `
                         <tr class="inc-row trouble-row ${isSelected ? 'active-selected' : ''}" data-incident-id="${safeId}">
@@ -3496,8 +3777,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td><span class="time-main" style="font-size: 11.5px; font-weight: 700;">${jntEscapeHtml(item.waktuKejadian || '-')}</span></td>
                             <td><span class="kode-tugas-mono font-bold">${jntEscapeHtml(item.kodeTugas || '-')}</span></td>
                             <td style="text-align: center; min-width: 120px;">
-                                <div style="font-weight: 700; font-size: 11.5px; color: #38BDF8;">${jntEscapeHtml(item.tlc || 'PLM FUSO')}</div>
-                                <div style="margin-top: 2px;"><span class="sla-trip-pill" style="font-size: 10px;">${jntEscapeHtml(item.rute || item.trip || '-')}</span></div>
+                                <div style="font-weight: 700; font-size: 11.5px; color: #38BDF8;">${jntEscapeHtml(resolvedTlc)}</div>
+                                <div style="margin-top: 2px;"><span class="sla-trip-pill" style="font-size: 10px;">${jntEscapeHtml(resolvedRute)}</span></div>
                             </td>
                             <td>
                                 <div style="font-weight: 800; font-size: 12.5px;">${jntEscapeHtml(item.platNomor || '-')}</div>
@@ -3716,7 +3997,11 @@ document.addEventListener('DOMContentLoaded', () => {
             formAddTrouble.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 try {
-                    const kodeTugas = document.getElementById('tr-kode-tugas-select')?.value;
+                    let kodeTugas = document.getElementById('tr-kode-tugas-select')?.value;
+                    if (!kodeTugas && _trCurrentMatches && _trCurrentMatches.length === 1) {
+                        fillTroubleArmadaFields(_trCurrentMatches[0]);
+                        kodeTugas = _trCurrentMatches[0].kodeTugas;
+                    }
                     const platNomor = document.getElementById('tr-plat')?.value;
                     const vendor = document.getElementById('tr-vendor')?.value;
                     const driver = document.getElementById('tr-driver')?.value;
@@ -3730,7 +4015,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const dampak = document.getElementById('tr-dampak')?.value || '';
 
                     if (!kodeTugas) {
-                        alert('Harap pilih Kode Tugas armada yang terlibat.');
+                        alert('Harap ketik dan pilih Kode Tugas atau Plat Nomor armada yang terlibat dari dropdown.');
+                        document.getElementById('tr-armada-search-input')?.focus();
                         return;
                     }
 
@@ -3757,6 +4043,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.showToastNotification("🚨 INCIDENT DILAPORKAN", `Laporan ${jenis} untuk ${kodeTugas} (${platNomor}) berhasil dicatat. Status armada dialihkan ke KENDALA.`, "success");
                     closeModal('modal-add-trouble');
                     formAddTrouble.reset();
+                    fillTroubleArmadaFields(null);
+                    if (trSearchInput) trSearchInput.value = '';
+                    if (trClearBtn) trClearBtn.classList.add('hidden');
                     populateTroubleDetail(newIncident);
                 } catch (err) {
                     alert(err.message);
@@ -3863,29 +4152,57 @@ document.addEventListener('DOMContentLoaded', () => {
         let usersCurrentPage = 1;
         const usersPerPage = 10;
         let onlineUsersMap = new Map();
+        let onlineSessionDetailsMap = new Map();
 
         if (window.db) {
             window.db.collection('active_sessions').onSnapshot((snapshot) => {
                 onlineUsersMap.clear();
+                onlineSessionDetailsMap.clear();
                 const now = Date.now();
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const uname = (data.username || doc.id).toLowerCase();
                     const lastSeen = data.lastSeen || 0;
+                    onlineSessionDetailsMap.set(uname, data);
                     if ((now - lastSeen) < 90000) {
                         onlineUsersMap.set(uname, true);
                     }
                 });
                 renderUsersTable();
+                if (selectedUser) populateUserDetail(selectedUser);
             });
         }
+
+        const getRoleBadgeClass = (roleVal) => {
+            const r = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                ? JNTFirebaseService.normalizeRole(roleVal)
+                : String(roleVal || '').toUpperCase();
+            if (r === 'DEVELOPER') return 'role-developer';
+            if (r === 'OWNER') return 'role-owner';
+            if (r === 'ADMIN') return 'role-admin';
+            if (r === 'MANAGER') return 'role-manager';
+            if (r === 'ASISTEN_MANAGER') return 'role-asisten-manager';
+            if (r === 'SUPERVISOR') return 'role-supervisor';
+            if (r === 'FINANCE') return 'role-finance';
+            if (r === 'VENDOR') return 'role-vendor';
+            return 'role-operator';
+        };
 
         // Render User KPI Counters
         const renderUserKPIs = (list) => {
             const total = list.length;
-            const adminCount = list.filter(u => (u.role || '').toUpperCase().includes('ADMIN') || (u.role || '').toUpperCase().includes('DEV')).length;
-            const spvCount = list.filter(u => (u.role || '').toUpperCase().includes('SUPERVISOR')).length;
-            const staffCount = list.filter(u => (u.role || '').toUpperCase().includes('STAFF') || (u.role || '').toUpperCase().includes('DISPATCH') || (u.role || '').toUpperCase().includes('OPERATOR')).length;
+            const adminCount = list.filter(u => {
+                const r = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole) ? JNTFirebaseService.normalizeRole(u.role) : (u.role || '').toUpperCase();
+                return ['DEVELOPER', 'OWNER', 'ADMIN'].includes(r);
+            }).length;
+            const spvCount = list.filter(u => {
+                const r = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole) ? JNTFirebaseService.normalizeRole(u.role) : (u.role || '').toUpperCase();
+                return ['MANAGER', 'ASISTEN_MANAGER', 'SUPERVISOR'].includes(r);
+            }).length;
+            const staffCount = list.filter(u => {
+                const r = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole) ? JNTFirebaseService.normalizeRole(u.role) : (u.role || '').toUpperCase();
+                return ['STAFF_VEHICLE_DISPATCH', 'FINANCE', 'VENDOR'].includes(r);
+            }).length;
             const inactiveCount = list.filter(u => (u.status || '').toUpperCase() === 'NONAKTIF' || (u.status || '').toUpperCase() === 'INACTIVE').length;
 
             const elTot = document.getElementById('usr-kpi-total');
@@ -3919,28 +4236,90 @@ document.addEventListener('DOMContentLoaded', () => {
             const dtLastLogin = document.getElementById('usr-dt-lastlogin');
             const btnToggleStatus = document.getElementById('btn-toggle-active-user-action');
 
-            const displayRole = (u.role || 'Staff Vehicle Dispatch').replace(/OPERATOR.*/i, 'Staff Vehicle Dispatch');
+            const displayRole = jntFormatRoleLabel(u.role);
+            const unameLower = (u.username || '').toLowerCase().trim();
+            const sessInfo = onlineSessionDetailsMap.get(unameLower);
+            const isOnlineNow = onlineUsersMap.has(unameLower);
+            const resolvedLastLogin = u.lastLogin
+                || (sessInfo && sessInfo.lastSeen ? new Date(sessInfo.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB' : '')
+                || (isOnlineNow ? 'Sedang Online' : '-');
+            const resolvedCreated = u.createdAt
+                ? (isNaN(new Date(u.createdAt).getTime()) ? String(u.createdAt) : new Date(u.createdAt).toLocaleDateString('id-ID'))
+                : '-';
 
-            if (dtAvatar) dtAvatar.src = u.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
+            if (dtAvatar) dtAvatar.src = jntSafeUrl(u.photoURL, jntMakeAvatarUrl(u.fullname || u.username, 150));
             if (dtName) dtName.textContent = u.fullname || u.username;
             if (dtUname) dtUname.textContent = u.username;
             if (dtRole) dtRole.textContent = displayRole;
-            if (dtEmail) dtEmail.textContent = u.email || `${u.username.toLowerCase()}@jtexpress.co.id`;
+            if (dtEmail) dtEmail.textContent = u.email || u.emailPerusahaan || `${unameLower}@jtexpress.co.id`;
             if (dtPhone) dtPhone.textContent = u.phone || '-';
             if (dtRoleItem) dtRoleItem.textContent = displayRole;
             if (dtTlc) dtTlc.textContent = u.tlc || 'Head Office';
-            if (dtCreated) dtCreated.textContent = u.createdAt ? new Date(u.createdAt).toLocaleDateString('id-ID') : '10/06/2026';
-            if (dtLastLogin) dtLastLogin.textContent = u.lastLogin || '22/07/2026 10:15 WIB';
+            if (dtCreated) dtCreated.textContent = resolvedCreated;
+            if (dtLastLogin) dtLastLogin.textContent = resolvedLastLogin;
 
             const isActive = (u.status || 'Aktif').toLowerCase() === 'aktif';
             if (dtChip) {
-                dtChip.textContent = isActive ? 'Aktif' : 'Nonaktif';
+                dtChip.textContent = isActive ? (isOnlineNow ? '🟢 Online' : 'Aktif') : 'Nonaktif';
                 dtChip.className = isActive ? 'user-active-chip' : 'user-inactive-chip';
             }
 
             if (btnToggleStatus) {
                 btnToggleStatus.textContent = isActive ? '🙅‍♂️ Nonaktifkan Akun' : '🟢 Aktifkan Akun';
                 btnToggleStatus.className = isActive ? 'btn-red-outline-full' : 'btn-white-outline-full';
+            }
+
+            // Sinkronkan Riwayat Aktivitas & Login User dari Audit Logs & Active Sessions Nyata
+            const histContainer = document.getElementById('usr-login-history-list');
+            if (histContainer) {
+                const allLogs = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.getSynthesizedAuditLogs)
+                    ? JNTFirebaseService.getSynthesizedAuditLogs()
+                    : (JNTFirebaseService.getLocalStore('audit_logs') || []);
+                const fullNameLower = (u.fullname || '').toLowerCase().trim();
+                const userLogs = allLogs.filter(l => {
+                    const op = String(l.operator || '').toLowerCase().trim();
+                    const act = String(l.aktivitas || '').toLowerCase();
+                    return (op && (op === unameLower || op === fullNameLower || (fullNameLower && op.includes(fullNameLower))))
+                        || act.includes(`(${unameLower}`);
+                }).slice(0, 5);
+
+                if (userLogs.length === 0 && !sessInfo) {
+                    histContainer.innerHTML = `<div style="font-size: 11.5px; color: #94A3B8; text-align: center; padding: 12px;">Belum ada riwayat aktivitas tercatat untuk pengguna ini.</div>`;
+                } else {
+                    const itemsHtml = [];
+                    if (sessInfo && sessInfo.lastSeen) {
+                        const tStr = new Date(sessInfo.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB';
+                        const ua = String(sessInfo.userAgent || '');
+                        const devLabel = ua.includes('Mobile') ? 'Mobile Browser' : (ua.includes('Windows') ? 'Browser - Windows' : 'Web Session');
+                        itemsHtml.push(`
+                            <div class="login-history-item">
+                                <div class="history-left">
+                                    <span class="green-dot-sm">${isOnlineNow ? '🟢' : '⚪'}</span>
+                                    <div>
+                                        <span class="history-time">${jntEscapeHtml(tStr)}</span>
+                                        <span class="history-device">${jntEscapeHtml(devLabel)}</span>
+                                    </div>
+                                </div>
+                                <span class="history-ip">${isOnlineNow ? 'Sesi Aktif' : 'Sesi Terakhir'}</span>
+                            </div>
+                        `);
+                    }
+                    userLogs.forEach(l => {
+                        itemsHtml.push(`
+                            <div class="login-history-item">
+                                <div class="history-left">
+                                    <span class="green-dot-sm">🔹</span>
+                                    <div>
+                                        <span class="history-time">${jntEscapeHtml(l.waktu || '-')}</span>
+                                        <span class="history-device" style="display:block; max-width:210px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${jntEscapeHtml(l.aktivitas || '-')}">${jntEscapeHtml(l.aktivitas || '-')}</span>
+                                    </div>
+                                </div>
+                                <span class="history-ip">${jntEscapeHtml(l.modul || 'Sistem')}</span>
+                            </div>
+                        `);
+                    });
+                    histContainer.innerHTML = itemsHtml.slice(0, 5).join('');
+                }
             }
         };
 
@@ -3964,7 +4343,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
             }
             if (filterRole) {
-                filtered = filtered.filter(u => (u.role || '').toLowerCase().includes(filterRole));
+                const targetNorm = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                    ? JNTFirebaseService.normalizeRole(filterRole)
+                    : filterRole.toUpperCase();
+                filtered = filtered.filter(u => {
+                    const uNorm = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                        ? JNTFirebaseService.normalizeRole(u.role)
+                        : (u.role || '').toUpperCase();
+                    return uNorm === targetNorm || jntFormatRoleLabel(u.role).toLowerCase().includes(filterRole);
+                });
             }
             if (filterTlc) {
                 filtered = filtered.filter(u => (u.tlc || '').toLowerCase().includes(filterTlc));
@@ -4000,14 +4387,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         statusHtml = `<span class="status-dot-inactive" style="color: #64748B;">⚪ Offline</span>`;
                     }
 
-                    const displayRole = (u.role || 'Staff Vehicle Dispatch').replace(/OPERATOR.*/i, 'Staff Vehicle Dispatch');
-                    const roleClass = (u.role || '').toLowerCase().includes('admin') ? 'role-admin' : ((u.role || '').toLowerCase().includes('supervisor') ? 'role-supervisor' : 'role-operator');
-                    const photo = jntSafeUrl(u.photoURL, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80');
+                    const displayRole = jntFormatRoleLabel(u.role);
+                    const roleClass = getRoleBadgeClass(u.role);
+                    const photo = jntSafeUrl(u.photoURL, jntMakeAvatarUrl(u.fullname || u.username, 80));
                     const safeUname = jntEscapeHtml(u.username || '');
                     const safeFullname = jntEscapeHtml(u.fullname || u.username || '-');
-                    const safeEmail = jntEscapeHtml(u.email || '-');
+                    const safeEmail = jntEscapeHtml(u.email || u.emailPerusahaan || '-');
                     const safeTlc = jntEscapeHtml(u.tlc || 'Head Office');
-                    const safeLastLogin = jntEscapeHtml(u.lastLogin || '22/07/2026 10:15');
+                    const sessData = onlineSessionDetailsMap.get(unameLower);
+                    const rawLastLogin = u.lastLogin
+                        || (sessData && sessData.lastSeen ? new Date(sessData.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '')
+                        || (isOnline ? 'Sedang Online' : '-');
+                    const safeLastLogin = jntEscapeHtml(rawLastLogin);
                     const safeRole = jntEscapeHtml(displayRole);
 
                     return `
@@ -4025,6 +4416,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="user-actions-row">
                                     <button type="button" class="btn-action-sm btn-table-edit-user" data-uname="${safeUname}" title="Edit User">✏️</button>
                                     <button type="button" class="btn-action-sm btn-table-reset-pass" data-uname="${safeUname}" title="Reset Password">🔓</button>
+                                    <button type="button" class="btn-action-sm btn-table-delete-user" data-uname="${safeUname}" title="Hapus Akun Permanen" style="color: #EF4444;">🗑️</button>
                                 </div>
                             </td>
                         </tr>
@@ -4061,6 +4453,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const uname = btn.getAttribute('data-uname');
                     const target = allUsersCache.find(u => u.username === uname);
                     if (target) openResetPasswordModal(target);
+                };
+            });
+
+            tbody.querySelectorAll('.btn-table-delete-user').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const uname = btn.getAttribute('data-uname');
+                    const target = allUsersCache.find(u => u.username === uname);
+                    if (target) handleDeleteUserAccount(target);
                 };
             });
 
@@ -4191,9 +4592,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
-                    // RBAC check: Only ADMIN can create Admin role
-                    if (role === 'Admin' && activeRole !== 'ADMIN') {
-                        alert('⚠️ Akses Dibatasi: Hanya Administrator yang dapat membuat akun dengan role Admin.');
+                    // RBAC check: Only DEVELOPER, OWNER, or ADMIN can create top-level privileged roles
+                    const normNewRole = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                        ? JNTFirebaseService.normalizeRole(role)
+                        : String(role || '').toUpperCase();
+                    if (['DEVELOPER', 'OWNER', 'ADMIN'].includes(normNewRole) && !['DEVELOPER', 'OWNER', 'ADMIN'].includes(activeRole)) {
+                        alert('⚠️ Akses Dibatasi: Hanya Developer, Owner, atau Administrator yang dapat membuat akun dengan role Developer / Owner / Admin.');
                         return;
                     }
 
@@ -4245,7 +4649,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inpFull) inpFull.value = target.fullname || target.username;
             if (inpEmail) inpEmail.value = target.email || target.emailPerusahaan || '';
             if (inpPhone) inpPhone.value = target.phone || '';
-            if (selRole) selRole.value = target.role || 'Staff Vehicle Dispatch';
+            if (selRole) {
+                const labelVal = jntFormatRoleLabel(target.role).replace(' (SPV)', '');
+                selRole.value = labelVal;
+                if (!selRole.value) selRole.value = 'Staff Vehicle Dispatch';
+            }
             if (selTlc) selTlc.value = target.tlc || 'JKT999';
             if (selStatus) selStatus.value = target.status || 'Aktif';
 
@@ -4266,9 +4674,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const tlc = document.getElementById('edit-usr-tlc')?.value;
                     const status = document.getElementById('edit-usr-status')?.value;
 
-                    // Role escalation protection: Non-admin cannot escalate role to Admin
-                    if (role === 'Admin' && activeRole !== 'ADMIN') {
-                        alert('⚠️ Akses Dibatasi: Anda tidak dapat menaikkan hak akses menjadi Admin.');
+                    // Role escalation protection: Non-super-admin cannot escalate role to Developer/Owner/Admin
+                    const normEditedRole = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                        ? JNTFirebaseService.normalizeRole(role)
+                        : String(role || '').toUpperCase();
+                    if (['DEVELOPER', 'OWNER', 'ADMIN'].includes(normEditedRole) && !['DEVELOPER', 'OWNER', 'ADMIN'].includes(activeRole)) {
+                        alert('⚠️ Akses Dibatasi: Anda tidak dapat menaikkan hak akses menjadi Developer / Owner / Admin.');
                         return;
                     }
 
@@ -4278,7 +4689,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         email,
                         emailPerusahaan: email,
                         phone,
-                        role,
+                        role: normEditedRole,
                         tlc,
                         status,
                         updatedAt: new Date().toISOString()
@@ -4368,10 +4779,57 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
+        // Delete User Handler (Synced with Firestore, Local Store, Shift Management & Audit Trail)
+        const handleDeleteUserAccount = async (target) => {
+            if (!target || !target.username) return;
+            const cleanTargetUname = String(target.username).toLowerCase().trim();
+            const currentLoginUname = String(sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
+            const currentFullname = String(sessionStorage.getItem('jnt_active_username') || '').toLowerCase().trim();
+
+            if (cleanTargetUname === currentLoginUname || (target.fullname && target.fullname.toLowerCase().trim() === currentFullname)) {
+                alert('⚠️ Tindakan Ditolak: Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif login saat ini.');
+                return;
+            }
+
+            const targetNormRole = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                ? JNTFirebaseService.normalizeRole(target.role)
+                : String(target.role || '').toUpperCase();
+
+            if (['DEVELOPER', 'OWNER', 'ADMIN'].includes(targetNormRole) && !['DEVELOPER', 'OWNER', 'ADMIN'].includes(activeRole)) {
+                alert('⚠️ Akses Dibatasi: Hanya Developer, Owner, atau Administrator yang dapat menghapus akun dengan level Developer / Owner / Admin.');
+                return;
+            }
+
+            const roleDisplay = jntFormatRoleLabel(target.role);
+            const confirmMsg = `🗑️ KONFIRMASI HAPUS AKUN PERMANEN:\n\n` +
+                `• Nama Lengkap: ${target.fullname || target.username}\n` +
+                `• Username: ${target.username}\n` +
+                `• Role: ${roleDisplay}\n` +
+                `• Email: ${target.email || target.emailPerusahaan || '-'}\n\n` +
+                `Apakah Anda yakin ingin menghapus akun ini secara permanen dari database dan menghentikan akses loginnya?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            try {
+                await JNTFirebaseService.deleteUser(target.username, target.uid || target.id || '');
+                allUsersCache = allUsersCache.filter(u => String(u.username || '').toLowerCase().trim() !== cleanTargetUname);
+                if (selectedUser && String(selectedUser.username || '').toLowerCase().trim() === cleanTargetUname) {
+                    selectedUser = allUsersCache[0] || null;
+                    if (selectedUser) populateUserDetail(selectedUser);
+                }
+                renderUserKPIs(allUsersCache);
+                renderUsersTable();
+                window.showToastNotification("🗑️ AKUN DIHAPUS", `Akun ${target.fullname || target.username} (${target.username}) telah dihapus permanen dari sistem.`, "success");
+            } catch (err) {
+                alert(`❌ Gagal menghapus akun: ${err.message}`);
+            }
+        };
+
         // Right Detail Action Buttons Bindings
         const btnEditUserAction = document.getElementById('btn-edit-user-action');
         const btnResetPassAction = document.getElementById('btn-reset-password-action');
         const btnToggleActiveAction = document.getElementById('btn-toggle-active-user-action');
+        const btnDeleteUserAction = document.getElementById('btn-delete-user-action');
 
         if (btnEditUserAction) {
             btnEditUserAction.onclick = () => {
@@ -4382,6 +4840,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnResetPassAction) {
             btnResetPassAction.onclick = () => {
                 if (selectedUser) openResetPasswordModal(selectedUser);
+            };
+        }
+
+        if (btnDeleteUserAction) {
+            btnDeleteUserAction.onclick = () => {
+                if (selectedUser) handleDeleteUserAccount(selectedUser);
             };
         }
 

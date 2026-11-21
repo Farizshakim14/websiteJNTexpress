@@ -40,6 +40,12 @@ if (typeof firebase !== 'undefined') {
         } catch (err) {
             console.warn('Emulator connection failed:', err.message);
         }
+    } else if (window.db && typeof window.db.enablePersistence === 'function') {
+        // ⚡ KUOTA OPTIMIZATION: Aktifkan IndexedDB Cache Persistence lintas tab agar pindah halaman / refresh
+        // mengambil dokumen dari cache lokal IndexedDB dan hanya membaca dokumen yang berubah (delta reads).
+        window.db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+            console.debug('[FIRESTORE CACHE] Persistence notice:', err.code || err.message);
+        });
     }
 
     // ✅ NO ANONYMOUS AUTH — Returns current real (email/password) user saja.
