@@ -15,8 +15,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <!-- Anti-Flash Dark Theme Pre-Initialization -->
-    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <!-- Anti-Flash Dark Theme, Font Size & Density Pre-Initialization -->
+    <script>
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -214,10 +220,13 @@
                 </header>
 
                 <!-- Top Right Action Button Row -->
-                <div class="inc-action-row">
-                    <button id="btn-report-incident" class="btn-inc-add" onclick="document.getElementById('modal-add-trouble').classList.remove('hidden')"
-                        style="background-color: #E30613; padding: 10px 22px; font-size: 13.5px; border-radius: 8px; cursor: pointer;">
-                        + Laporkan Kejadian
+                <div class="inc-action-row" style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+                    <button type="button" id="btn-report-incident" class="btn-inc-add" onclick="document.getElementById('modal-add-trouble').classList.remove('hidden')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 16px; height: 16px;">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Laporkan Kejadian
                     </button>
                 </div>
 
@@ -397,23 +406,23 @@
                             <table class="inc-data-table">
                                 <thead>
                                     <tr>
-                                        <th>No</th>
-                                        <th>Waktu Kejadian</th>
-                                        <th>Kode Tugas</th>
-                                        <th>TLC</th>
-                                        <th>Rute</th>
-                                        <th>Plat Nomor</th>
-                                        <th>Jenis</th>
-                                        <th>Lokasi Kejadian</th>
-                                        <th>Status</th>
-                                        <th>Aksi</th>
+                                        <th style="width: 45px; text-align: center;">No</th>
+                                        <th style="min-width: 130px;">Waktu Kejadian</th>
+                                        <th style="min-width: 120px;">Kode Tugas</th>
+                                        <th style="min-width: 130px; text-align: center;">TLC / Rute</th>
+                                        <th style="min-width: 140px;">Armada &amp; Vendor</th>
+                                        <th style="min-width: 150px;">Driver &amp; Kontak</th>
+                                        <th style="min-width: 125px;">Jenis &amp; Severity</th>
+                                        <th style="min-width: 140px;">Lokasi Kejadian</th>
+                                        <th style="min-width: 110px; text-align: center;">Status</th>
+                                        <th style="width: 60px; text-align: center;">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="trouble-table-tbody">
                                     <!-- Dynamic rows from JNTFirebaseService.subscribeTroubles -->
                                     <tr>
                                         <td colspan="10" style="text-align: center; padding: 30px; color: #64748B;">
-                                            Memuat data Trouble & Laka...
+                                            Memuat data Trouble &amp; Laka...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -436,8 +445,8 @@
                         </div>
 
                         <!-- Hero Box Incident -->
-                        <div class="detail-hero-box" id="dt-hero-box" style="background-color: #FEF2F2; border: 1px solid #FEE2E2;">
-                            <div class="detail-hero-icon" style="background-color: #FEE2E2; color: #EF4444;">
+                        <div class="detail-hero-box" id="dt-hero-box">
+                            <div class="detail-hero-icon" id="dt-hero-icon">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path
                                         d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
@@ -449,8 +458,7 @@
                             <div class="detail-hero-meta">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span class="detail-code" id="dt-incident-code">-</span>
-                                    <span id="dt-incident-type-tag"
-                                        style="background-color: #FEE2E2; color: #DC2626; font-size: 10.5px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Trouble</span>
+                                    <span id="dt-incident-type-tag" class="incident-badge-type">Trouble</span>
                                 </div>
                                 <span class="detail-route" id="dt-incident-route">-</span>
                             </div>
@@ -467,6 +475,10 @@
                                 <span class="info-value" id="dt-incident-lokasi">-</span>
                             </div>
                             <div class="info-item">
+                                <span class="info-label">🏢 Vendor Armada</span>
+                                <span class="info-value font-bold" id="dt-incident-vendor" style="color: #38BDF8;">-</span>
+                            </div>
+                            <div class="info-item">
                                 <span class="info-label">🚛 Plat Nomor</span>
                                 <span class="info-value font-bold" id="dt-incident-plat">-</span>
                             </div>
@@ -475,16 +487,24 @@
                                 <span class="info-value" id="dt-incident-driver">-</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">👤 Driver 2</span>
+                                <span class="info-label">📞 No. HP Driver</span>
+                                <span class="info-value" id="dt-incident-driver-phone">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">👥 Driver 2 (Cadangan)</span>
                                 <span class="info-value" id="dt-incident-driver2">-</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">🔧 Jenis Trouble</span>
+                                <span class="info-label">⚠️ Tingkat Keparahan</span>
+                                <span class="badge-status orange-outline" id="dt-incident-severity">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🔧 Jenis Kendala</span>
                                 <span class="info-value font-bold" id="dt-incident-jenis" style="color: #EF4444;">-</span>
                             </div>
                             <div class="info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                                <span class="info-label">📝 Keterangan</span>
-                                <span class="info-value" id="dt-incident-keterangan" style="font-size: 11.5px; line-height: 1.4; color: #475569;">
+                                <span class="info-label">📝 Keterangan &amp; Kronologi</span>
+                                <span class="info-value" id="dt-incident-keterangan" style="font-size: 11.5px; line-height: 1.45;">
                                     Pilih kejadian pada tabel untuk melihat detail.
                                 </span>
                             </div>
@@ -502,9 +522,9 @@
                         <!-- Incident Photo Gallery Section (Foto Kejadian) -->
                         <div class="incident-gallery-section" style="display: flex; flex-direction: column; gap: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 12.5px; font-weight: 700; color: #0F172A;">📷 Foto Kejadian (Awal)</span>
+                                <span class="incident-section-label">📷 Foto Kejadian (Awal)</span>
                                 <input type="file" id="dt-add-photo-file" accept="image/*" multiple style="display:none;">
-                                <button type="button" id="btn-dt-add-photo" onclick="document.getElementById('dt-add-photo-file').click()" style="font-size: 11px; font-weight: 700; color: #2563EB; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 3px 8px; cursor: pointer;">+ Tambah Foto</button>
+                                <button type="button" id="btn-dt-add-photo" class="btn-add-photo-chip" onclick="document.getElementById('dt-add-photo-file').click()">+ Tambah Foto</button>
                             </div>
                             <div class="photo-thumbnails-grid" id="dt-incident-gallery-kejadian" style="display: flex; gap: 6px; flex-wrap: wrap;">
                                 <div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto kejadian</div>
@@ -513,14 +533,14 @@
 
                         <!-- Incident Photo Gallery Section (Foto Bukti Selesai) -->
                         <div class="incident-gallery-section" id="wrap-dt-gallery-selesai" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
-                            <span style="font-size: 12.5px; font-weight: 700; color: #16A34A;">✅ Foto Bukti Selesai Penanganan</span>
+                            <span class="incident-section-label" style="color: #16A34A;">✅ Foto Bukti Selesai Penanganan</span>
                             <div class="photo-thumbnails-grid" id="dt-incident-gallery-selesai" style="display: flex; gap: 6px; flex-wrap: wrap;">
                                 <div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto bukti selesai</div>
                             </div>
                         </div>
 
                         <!-- Riwayat Penanganan Timeline -->
-                        <div class="timeline-container" style="margin-top: 4px;">
+                        <div class="timeline-container" id="dt-timeline-container" style="margin-top: 4px;">
                             <span class="timeline-heading">Riwayat Penanganan</span>
                             <div class="incident-history-timeline" id="dt-incident-timeline"
                                 style="display: flex; flex-direction: column; gap: 12px; margin-top: 6px;">
@@ -535,7 +555,7 @@
                             <div class="btn-group-2">
                                 <button type="button" id="btn-open-update-status" class="btn-white-outline" style="flex: 1;">🔄 Update Status</button>
                             </div>
-                            <button type="button" id="btn-close-incident" class="btn-red-full" style="background-color: #C8000A;">
+                            <button type="button" id="btn-close-incident" class="btn-red-full">
                                 🛑 Tutup Kejadian (Selesai)
                             </button>
                         </div>
@@ -549,41 +569,52 @@
 
     <!-- MODAL POPUP: LAPORKAN KEJADIAN TROUBLE & LAKA (SSOT INTEGRATED) -->
     <div id="modal-add-trouble" class="modal-overlay hidden">
-        <div class="modal-card" style="max-width: 620px;">
+        <div class="modal-card" style="max-width: 640px;">
             <div class="modal-header">
-                <h3>🚨 Laporkan Kejadian Incident (Trouble & Laka)</h3>
+                <h3>🚨 Laporkan Kejadian Incident (Trouble &amp; Laka)</h3>
                 <button type="button" class="btn-close-x modal-close-btn">&times;</button>
             </div>
-            <form id="form-add-trouble" class="modal-body-form" style="padding: 18px 22px;">
+            <form id="form-add-trouble" class="modal-body-form" style="padding: 16px 20px;">
                 
                 <!-- SSOT Auto-Pull Kode Tugas -->
-                <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700; color: #1E293B;">Pilih Kode Tugas Armada (Data Operasional)</label>
-                    <select id="tr-kode-tugas-select" required style="background-color: #172030; border: 1.5px solid #EF4444; border-radius: 6px; padding: 11px 14px; color: #FFFFFF; font-size: 14px; font-weight: 700;">
+                <div class="form-field">
+                    <label class="form-label-highlight">Pilih Kode Tugas Armada (Data Operasional Shift Aktif)</label>
+                    <select id="tr-kode-tugas-select" class="form-select-highlight" required>
                         <option value="">-- Pilih Armada Terlibat Incident --</option>
                     </select>
-                    <span style="font-size: 11px; color: #64748B; margin-top: 4px; display: block;">* Identitas Armada, Rute, Plat, & Driver otomatis ditarik dari SSOT tanpa ketik ulang.</span>
+                    <span class="form-hint-text">* Data Plat, Vendor, Rute, TLC &amp; Driver otomatis tersinkronisasi dari SSOT.</span>
                 </div>
 
                 <div class="form-row-2">
                     <div class="form-field">
                         <label>Plat Nomor Armada</label>
-                        <input type="text" id="tr-plat" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155; font-weight: 700;">
+                        <input type="text" id="tr-plat" class="form-input-readonly font-bold" placeholder="Otomatis dari SSOT..." readonly>
                     </div>
                     <div class="form-field">
-                        <label>Driver Utama</label>
-                        <input type="text" id="tr-driver" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155;">
+                        <label>Vendor Armada</label>
+                        <input type="text" id="tr-vendor" class="form-input-readonly font-bold" placeholder="Otomatis dari SSOT..." readonly style="color: #38BDF8;">
                     </div>
                 </div>
 
                 <div class="form-row-2">
                     <div class="form-field">
-                        <label>Rute & TLC</label>
-                        <input type="text" id="tr-rute-tlc" placeholder="Otomatis dari SSOT..." readonly style="background-color: #F8FAFC; color: #334155;">
+                        <label>Driver Utama</label>
+                        <input type="text" id="tr-driver" class="form-input-readonly" placeholder="Otomatis dari SSOT..." readonly>
                     </div>
                     <div class="form-field">
-                        <label>Tingkat Tingkat Keparahan (Severity Level)</label>
-                        <select id="tr-severity" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white); font-weight: 700;">
+                        <label>No. HP Driver</label>
+                        <input type="text" id="tr-driver-phone" class="form-input-readonly" placeholder="Otomatis dari SSOT..." readonly>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>Rute &amp; TLC</label>
+                        <input type="text" id="tr-rute-tlc" class="form-input-readonly" placeholder="Otomatis dari SSOT..." readonly>
+                    </div>
+                    <div class="form-field">
+                        <label>Tingkat Keparahan (Severity Level)</label>
+                        <select id="tr-severity" class="form-control" required>
                             <option value="LOW">🟢 LOW (Ringan / Penanganan cepat)</option>
                             <option value="MEDIUM" selected>🟡 MEDIUM (Sedang / Perlu Bantuan Mekanik)</option>
                             <option value="HIGH">🔴 HIGH (Berat / Perlu Unit Derek)</option>
@@ -595,14 +626,14 @@
                 <div class="form-row-2">
                     <div class="form-field">
                         <label>Jenis Kejadian</label>
-                        <select id="tr-jenis" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                        <select id="tr-jenis" class="form-control" required>
                             <option value="Trouble">⚠️ Trouble Kendaraan</option>
                             <option value="Laka">💥 Kecelakaan / Laka Lantas</option>
                         </select>
                     </div>
                     <div class="form-field">
                         <label>Kategori Kendala</label>
-                        <select id="tr-kategori-select" required style="background-color: #172030; border: 1px solid var(--border-dark); border-radius: 6px; padding: 10px 12px; color: var(--text-white);">
+                        <select id="tr-kategori-select" class="form-control" required>
                             <option value="Ban Pecah / Kerusakan Ban">Ban Pecah / Kerusakan Ban</option>
                             <option value="Mogok / Mesin Overheat">Mogok / Mesin Overheat</option>
                             <option value="Kemacetan Parah Jalur Tol">Kemacetan Parah Jalur Tol</option>
@@ -617,39 +648,39 @@
                 <div class="form-row-2">
                     <div class="form-field">
                         <label>Lokasi Kejadian Tepat</label>
-                        <input type="text" id="tr-lokasi" placeholder="Contoh: Tol Cikampek KM 47 / Rest Area 208" required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                        <input type="text" id="tr-lokasi" class="form-control" placeholder="Contoh: Tol Cikampek KM 47 / Rest Area 208" required>
                     </div>
                     <div class="form-field">
                         <label>Waktu Kejadian</label>
-                        <input type="text" id="tr-waktu-kejadian" readonly style="background-color: #F8FAFC; color: #DC2626; font-weight: 700;">
+                        <input type="text" id="tr-waktu-kejadian" class="form-input-readonly font-bold" readonly style="color: #EF4444;">
                     </div>
                 </div>
 
-                <div class="form-field" style="margin-bottom: 12px;">
+                <div class="form-field">
                     <label>Kronologi Ringkas Kejadian</label>
-                    <textarea id="tr-kronologi" rows="2" placeholder="Jelaskan kronologi singkat bagaimana kejadian terjadi..." required style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px; font-family: inherit;"></textarea>
+                    <textarea id="tr-kronologi" class="form-control" rows="2" placeholder="Jelaskan kronologi singkat bagaimana kejadian terjadi..." required></textarea>
                 </div>
 
-                <div class="form-field" style="margin-bottom: 12px;">
-                    <label>Dampak Terhadap Perjalanan & Paket</label>
-                    <input type="text" id="tr-dampak" placeholder="Contoh: Potensi keterlambatan 2 Jam, barang paket aman terkuci" style="border: 1px solid #CBD5E1; padding: 10px 12px; font-size: 13px;">
+                <div class="form-field">
+                    <label>Dampak Terhadap Perjalanan &amp; Paket</label>
+                    <input type="text" id="tr-dampak" class="form-control" placeholder="Contoh: Potensi keterlambatan 2 Jam, barang paket aman terkunci">
                 </div>
 
                 <!-- Foto Kejadian Upload Field -->
-                <div class="form-field" style="margin-bottom: 12px;">
-                    <label style="font-weight: 700; color: #1E293B;">Upload Foto Kejadian (Awal)</label>
+                <div class="form-field">
+                    <label class="font-bold">Upload Foto Kejadian (Awal)</label>
                     <input type="file" id="tr-foto-kejadian-file" accept="image/*" multiple style="display:none;">
-                    <div id="tr-upload-area-kejadian" onclick="document.getElementById('tr-foto-kejadian-file').click()" style="border: 2px dashed #CBD5E1; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; background: #F8FAFC;">
-                        <span style="font-size: 20px;">📷</span>
-                        <div style="font-size: 12px; font-weight: 700; color: #2563EB;">Klik untuk Unggah Foto Kejadian</div>
-                        <span style="font-size: 11px; color: #64748B;">Bisa pilih multiple gambar (Max 5MB per foto)</span>
+                    <div id="tr-upload-area-kejadian" class="drop-upload-box" onclick="document.getElementById('tr-foto-kejadian-file').click()">
+                        <span style="font-size: 22px;">📷</span>
+                        <div class="drop-upload-title">Klik untuk Unggah Foto Kejadian</div>
+                        <span class="drop-upload-sub">Format JPEG/PNG (Max 5MB per foto)</span>
                     </div>
                     <div id="tr-preview-container-kejadian" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
                 </div>
 
-                <div class="modal-footer" style="margin-top: 14px;">
+                <div class="modal-footer" style="margin-top: 10px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red">🚨 Simpan Laporan Incident (Firestore)</button>
+                    <button type="submit" class="btn-jnt-red">🚨 Simpan Laporan Incident</button>
                 </div>
             </form>
         </div>
@@ -657,44 +688,48 @@
 
     <!-- MODAL POPUP: UPDATE STATUS INCIDENT -->
     <div id="modal-update-status-trouble" class="modal-overlay hidden">
-        <div class="modal-card" style="max-width: 500px;">
+        <div class="modal-card" style="max-width: 520px;">
             <div class="modal-header">
-                <h3>🔄 Update Status & Penanganan Incident</h3>
+                <h3>🔄 Update Status &amp; Penanganan Incident</h3>
                 <button type="button" class="btn-close-x modal-close-btn">&times;</button>
             </div>
-            <form id="form-update-status-trouble" class="modal-body-form" style="padding: 18px 22px;">
+            <form id="form-update-status-trouble" class="modal-body-form" style="padding: 16px 20px;">
                 <input type="hidden" id="upd-incident-id" value="">
-                <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700; color: #1E293B;">Pilih Status Terbaru</label>
-                    <select id="upd-incident-status" required style="background-color: #172030; border: 1.5px solid #2563EB; border-radius: 6px; padding: 10px 12px; color: #FFFFFF; font-weight: 700;">
-                        <option value="DALAM PENANGANAN">🟡 DALAM PENANGANAN (Mekanik dihubungi/menuju lokasi)</option>
+                
+                <div class="form-field">
+                    <label class="form-label-highlight">Pilih Status Terbaru</label>
+                    <select id="upd-incident-status" class="form-select-highlight" required>
+                        <option value="DALAM PENANGANAN">🟡 DALAM PENANGANAN (Mekanik dihubungi / menuju lokasi)</option>
                         <option value="SUDAH SELESAI">🟢 SUDAH SELESAI (Perbaikan selesai, armada jalan kembali)</option>
                         <option value="OPEN">🔴 OPEN (Menunggu verifikasi lebih lanjut)</option>
                     </select>
                 </div>
-                <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700; color: #1E293B;">Petugas / Teknisi / Pelapor</label>
-                    <input type="text" id="upd-incident-petugas" placeholder="Nama teknisi / dispatcher..." required style="border: 1px solid #CBD5E1; padding: 9px 12px; font-size: 13px;">
+
+                <div class="form-field">
+                    <label>Petugas / Teknisi / Dispatcher</label>
+                    <input type="text" id="upd-incident-petugas" class="form-control" placeholder="Nama teknisi / dispatcher..." required>
                 </div>
-                <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700; color: #1E293B;">Catatan / Tindakan Penanganan</label>
-                    <textarea id="upd-incident-catatan" rows="3" placeholder="Contoh: Unit derek sudah tiba dan menarik armada ke bengkel..." required style="border: 1px solid #CBD5E1; padding: 9px 12px; font-size: 13px; font-family: inherit;"></textarea>
+
+                <div class="form-field">
+                    <label>Catatan / Tindakan Penanganan</label>
+                    <textarea id="upd-incident-catatan" class="form-control" rows="3" placeholder="Contoh: Unit derek sudah tiba dan menarik armada ke bengkel..." required></textarea>
                 </div>
 
                 <!-- Foto Bukti Selesai Penanganan Upload Field -->
-                <div class="form-field" id="wrap-upd-foto-selesai" style="margin-bottom: 14px;">
-                    <label style="font-weight: 700; color: #1E293B;">Foto Bukti Selesai Penanganan <span style="color: #E30613;">* (Wajib jika status SUDAH SELESAI)</span></label>
+                <div class="form-field" id="wrap-upd-foto-selesai">
+                    <label class="font-bold">Foto Bukti Selesai Penanganan <span style="color: #EF4444;">* (Wajib jika status SUDAH SELESAI)</span></label>
                     <input type="file" id="tr-foto-selesai-file" accept="image/*" multiple style="display:none;">
-                    <div id="tr-upload-area-selesai" onclick="document.getElementById('tr-foto-selesai-file').click()" style="border: 2px dashed #BBF7D0; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; background: #F0FDF4;">
-                        <span style="font-size: 20px;">✅ 📸</span>
-                        <div style="font-size: 12px; font-weight: 700; color: #16A34A;">Klik untuk Unggah Foto Bukti Selesai Penanganan</div>
-                        <span style="font-size: 11px; color: #15803D;">Wajib diunggah saat menyelesaikan kejadian</span>
+                    <div id="tr-upload-area-selesai" class="drop-upload-box drop-upload-box-success" onclick="document.getElementById('tr-foto-selesai-file').click()">
+                        <span style="font-size: 22px;">✅ 📸</span>
+                        <div class="drop-upload-title" style="color: #16A34A;">Klik untuk Unggah Foto Bukti Selesai Penanganan</div>
+                        <span class="drop-upload-sub">Wajib diunggah saat menutup status kejadian</span>
                     </div>
                     <div id="tr-preview-container-selesai" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
                 </div>
-                <div class="modal-footer" style="margin-top: 14px;">
+
+                <div class="modal-footer" style="margin-top: 10px;">
                     <button type="button" class="btn-dark-outline modal-close-btn">Batal</button>
-                    <button type="submit" class="btn-jnt-red">💾 Simpan Status</button>
+                    <button type="submit" class="btn-jnt-red">💾 Simpan Status Penanganan</button>
                 </div>
             </form>
         </div>

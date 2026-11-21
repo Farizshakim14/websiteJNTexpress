@@ -28,8 +28,9 @@ if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
     }
 
-    window.db   = firebase.firestore();
+    window.db = firebase.firestore();
     window.auth = firebase.auth();
+    window.storage = (typeof firebase.storage === 'function') ? firebase.storage() : null;
 
     if (useEmulator) {
         try {

@@ -20,6 +20,10 @@
     <script>
         document.documentElement.classList.add('login-page-root');
         if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
     </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">

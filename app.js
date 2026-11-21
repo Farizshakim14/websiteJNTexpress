@@ -40,7 +40,7 @@
         'jnt_audit_logs'
     ];
     operationalKeys.forEach(key => {
-        try { localStorage.removeItem(key); } catch (e) {}
+        try { localStorage.removeItem(key); } catch (e) { }
     });
     console.log('[FIREBASE-ONLY] Auto-cleanup: data operasional lama di localStorage telah dibersihkan.');
 })();
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cleaned = stored.filter(acc => acc && acc.uid !== 'dev-001' && acc.username !== 'devoleper');
             if (cleaned.length !== stored.length) localStorage.setItem('jnt_local_accounts', JSON.stringify(cleaned));
         }
-    } catch (_) {}
+    } catch (_) { }
 
     // Hanya inisialisasi jika belum ada data — jangan pernah timpa akun yang sudah ada
     if (!localStorage.getItem('jnt_local_accounts')) {
@@ -145,36 +145,76 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const path = window.location.pathname;
-    const pageName = path.split('/').pop() || 'index.html';
+    const rawPageName = path.split('/').pop() || 'index.html';
+    // Normalisasi cleanUrls Firebase Hosting ("/", "/index", "/dashboard") agar cocok dgn "*.html"
+    const pageName = (rawPageName === '' || rawPageName === 'index' || rawPageName === 'index.html')
+        ? 'index.html'
+        : (rawPageName.includes('.') ? rawPageName : `${rawPageName}.html`);
 
     const publicPages = ['index.html', ''];
+    const VALID_ROLES = ['ADMIN', 'SUPERVISOR', 'OPERATOR_SLA', 'OPERATOR_MONITORING'];
+
+    const jntSafeRedirect = (targetUrl) => {
+        try {
+            const now = Date.now();
+            const prevTs = Number(sessionStorage.getItem('_jnt_redir_ts') || '0');
+            let count = (now - prevTs < 4000) ? Number(sessionStorage.getItem('_jnt_redir_count') || '0') : 0;
+            count += 1;
+            sessionStorage.setItem('_jnt_redir_ts', String(now));
+            sessionStorage.setItem('_jnt_redir_count', String(count));
+            // Hentikan redirect loop otomatis jika terjadi bolak-balik halaman
+            if (count > 3) {
+                console.warn('[AUTH GUARD] Redirect loop terdeteksi, menghentikan redirect otomatis.');
+                sessionStorage.removeItem('jnt_is_logged_in');
+                sessionStorage.removeItem('_jnt_redir_count');
+                return false;
+            }
+        } catch (_) { }
+        window.location.href = targetUrl;
+        return true;
+    };
+
+    try {
+        if (localStorage.getItem('jnt_force_signout') === '1') {
+            localStorage.removeItem('jnt_force_signout');
+            if (window.auth && typeof window.auth.signOut === 'function') {
+                window.__jntPendingSignOut = window.auth.signOut().catch(() => { });
+            }
+        }
+    } catch (_) { }
+
     const isLoggedIn = sessionStorage.getItem('jnt_is_logged_in') === 'true';
 
     // FIX BUG-2: Hapus fallback 'ADMIN' dan 'Developer Admin'.
     // Nilai null berarti tidak ada sesi — jangan pernah berasumsi role apapun.
     const activeUsername = sessionStorage.getItem('jnt_active_username') || null;
-    const activeRole    = sessionStorage.getItem('jnt_user_role')       || null;
+    const rawStoredRole = sessionStorage.getItem('jnt_user_role') || null;
+    const activeRole = (rawStoredRole && typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.normalizeRole === 'function')
+        ? JNTFirebaseService.normalizeRole(rawStoredRole)
+        : rawStoredRole;
+    if (activeRole && rawStoredRole !== activeRole) {
+        try { sessionStorage.setItem('jnt_user_role', activeRole); } catch (_) { }
+    }
 
     // Guard 1: Pengguna tidak login → redirect ke halaman login
     if (!isLoggedIn && !publicPages.includes(pageName)) {
-        window.location.href = 'index.html';
+        jntSafeRedirect('index.html');
         return;
     }
 
-    // Guard 2: Pengguna sudah login → jangan izinkan akses ke halaman publik
-    if (isLoggedIn && publicPages.includes(pageName)) {
-        window.location.href = 'dashboard.html';
-        return;
-    }
-
-    // Guard 3: Sesi tidak lengkap (login=true tapi role/username hilang atau kosong).
-    // Ini terjadi jika sessionStorage dimanipulasi secara parsial melalui DevTools.
-    // Tindakan: batalkan sesi sepenuhnya dan minta login ulang.
-    const VALID_ROLES = ['ADMIN', 'SUPERVISOR', 'OPERATOR_SLA', 'OPERATOR_MONITORING'];
+    // Guard 2: Sesi tidak lengkap / role tidak dikenal → bersihkan sesi SEBELUM redirect ke dashboard
     if (isLoggedIn && (!activeRole || !activeUsername || !VALID_ROLES.includes(activeRole))) {
         console.warn('[AUTH GUARD] Sesi tidak valid atau role tidak dikenal. Membersihkan sesi dan redirect ke login.');
         sessionStorage.clear();
-        window.location.href = 'index.html';
+        if (!publicPages.includes(pageName)) {
+            jntSafeRedirect('index.html');
+            return;
+        }
+    }
+
+    // Guard 3: Pengguna sudah login dgn sesi valid → jangan izinkan akses ke halaman publik
+    if (sessionStorage.getItem('jnt_is_logged_in') === 'true' && VALID_ROLES.includes(activeRole) && publicPages.includes(pageName)) {
+        jntSafeRedirect('dashboard.html');
         return;
     }
 
@@ -187,8 +227,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!publicPages.includes(pageName)) {
                 if (!firebaseUser || firebaseUser.isAnonymous) {
                     console.warn('[SECURITY GUARD] Sesi Firebase Auth tidak valid atau tidak ditemukan. Mengarahkan ke login.');
+                    try {
+                        if (typeof jntReleaseSessionLock === 'function') await jntReleaseSessionLock();
+                    } catch (_) { }
                     sessionStorage.clear();
-                    window.location.href = 'index.html';
+                    jntSafeRedirect('index.html');
                     return;
                 }
                 // Verifikasi status akun aktif di Firestore
@@ -207,14 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (prof && String(prof.status || '').toLowerCase() === 'nonaktif') {
                         alert('⚠️ Akun Anda telah dinonaktifkan oleh Administrator.');
+                        try { if (typeof jntReleaseSessionLock === 'function') await jntReleaseSessionLock(); } catch (_) { }
                         if (window.auth) await window.auth.signOut();
                         sessionStorage.clear();
-                        window.location.href = 'index.html';
+                        jntSafeRedirect('index.html');
                     }
-                } catch (_) {}
-            } else if (isLoggedIn && firebaseUser && !firebaseUser.isAnonymous) {
+                } catch (_) { }
+            } else if (!window.__jntLoginInProgress
+                && sessionStorage.getItem('jnt_is_logged_in') === 'true'
+                && VALID_ROLES.includes(sessionStorage.getItem('jnt_user_role') || '')
+                && firebaseUser && !firebaseUser.isAnonymous) {
                 // Berada di halaman login namun sudah punya sesi login sah
-                window.location.href = 'dashboard.html';
+                jntSafeRedirect('dashboard.html');
             }
         });
     }
@@ -225,14 +272,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sesi dianggap mati jika tidak ada heartbeat > SESSION_STALE_MS.
     // ----------------------------------------------------
     const SESSION_HEARTBEAT_MS = 30000;
-    const SESSION_STALE_MS     = 90000;
+    const SESSION_STALE_MS = 90000;
     function jntSessionKey(u) { return String(u || '').toLowerCase().replace(/[\/.#$\[\]]/g, '_'); }
     function jntSessionRef(u) {
         return (window.db && u) ? window.db.collection('active_sessions').doc(jntSessionKey(u)) : null;
     }
     async function jntAcquireSessionLock(username) {
         if (typeof window.ensureFirebaseAuth === 'function') {
-            try { await window.ensureFirebaseAuth(); } catch (_) {}
+            try { await window.ensureFirebaseAuth(); } catch (_) { }
         }
         const ref = jntSessionRef(username);
         if (!ref) return { ok: true }; // Firestore tidak tersedia, izinkan login
@@ -327,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── System Status Badge ──────────────────────────────────────────────────
     (function updateSystemStatusBar() {
-        const dotEl   = document.getElementById('status-dot');
+        const dotEl = document.getElementById('status-dot');
         const labelEl = document.getElementById('status-label');
         const footerAuthEl = document.getElementById('footer-auth-mode');
         if (!dotEl && !labelEl && !footerAuthEl) return;
@@ -338,9 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Remember Me: restore saved username (never password) ─────────────────
     // Saves only the username (not password) to localStorage if the box is checked.
-    const rememberMeBox  = document.getElementById('remember-me');
-    const usernameInput  = document.getElementById('username-input');
-    const savedUsername  = localStorage.getItem('jnt_remember_username');
+    const rememberMeBox = document.getElementById('remember-me');
+    const usernameInput = document.getElementById('username-input');
+    const savedUsername = localStorage.getItem('jnt_remember_username');
     if (savedUsername && usernameInput) {
         usernameInput.value = savedUsername;
         if (rememberMeBox) rememberMeBox.checked = true;
@@ -351,26 +398,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Password toggle with aria-pressed ────────────────────────────────────
     if (togglePasswordBtn) {
         togglePasswordBtn.addEventListener('click', () => {
-            const pwdInput   = document.getElementById('password-input');
-            const eyeIcon    = document.getElementById('eye-icon');
+            const pwdInput = document.getElementById('password-input');
+            const eyeIcon = document.getElementById('eye-icon');
             const eyeOffIcon = document.getElementById('eye-off-icon');
             if (!pwdInput) return;
 
             const isHidden = pwdInput.type === 'password';
-            pwdInput.type  = isHidden ? 'text' : 'password';
+            pwdInput.type = isHidden ? 'text' : 'password';
             togglePasswordBtn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
             togglePasswordBtn.setAttribute('aria-label',
                 isHidden ? 'Sembunyikan password' : 'Tampilkan password');
 
-            if (eyeIcon)    eyeIcon.classList.toggle('hidden', !isHidden);
-            if (eyeOffIcon) eyeOffIcon.classList.toggle('hidden',  isHidden);
+            if (eyeIcon) eyeIcon.classList.toggle('hidden', !isHidden);
+            if (eyeOffIcon) eyeOffIcon.classList.toggle('hidden', isHidden);
         });
     }
 
     // ── Forgot Password / Help Modal ─────────────────────────────────────────
-    const forgotModal     = document.getElementById('forgot-modal-overlay');
-    const btnForgot       = document.getElementById('btn-forgot-help');
-    const btnCloseForgot  = document.getElementById('btn-close-forgot');
+    const forgotModal = document.getElementById('forgot-modal-overlay');
+    const btnForgot = document.getElementById('btn-forgot-help');
+    const btnCloseForgot = document.getElementById('btn-close-forgot');
 
     function openForgotModal() {
         if (forgotModal) {
@@ -384,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnForgot?.focus();
         }
     }
-    if (btnForgot)      btnForgot.addEventListener('click', openForgotModal);
+    if (btnForgot) btnForgot.addEventListener('click', openForgotModal);
     if (btnCloseForgot) btnCloseForgot.addEventListener('click', closeForgotModal);
     if (forgotModal) {
         forgotModal.addEventListener('click', (e) => {
@@ -424,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const d = docSnap.data();
                         emailToReset = (d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`).toLowerCase().trim();
                     }
-                } catch (_) {}
+                } catch (_) { }
             }
 
             if (!emailToReset) emailToReset = `${val.toLowerCase()}@jtexpress.co.id`;
@@ -450,23 +497,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── Legacy activate-account button (kept for backward compat) ────────────
+    // ── Legacy activate-account button (disabled for security: requires Admin) ─
     const btnActivateAccount = document.getElementById('btn-activate-account');
     if (btnActivateAccount) {
-        btnActivateAccount.addEventListener('click', async () => {
-            const identifier = prompt('Masukkan Username atau Email akun lama Anda:');
-            if (!identifier) return;
-            const newPass = prompt('Masukkan Password baru untuk akun Anda (min. 6 karakter):');
-            if (!newPass || newPass.length < 6) { alert('Password minimal 6 karakter.'); return; }
-            try {
-                if (typeof JNTFirebaseService === 'undefined') throw new Error('Layanan Firebase TMS belum diinisialisasi.');
-                alert('⏳ Memproses aktivasi akun ke Firebase Authentication...');
-                await JNTFirebaseService.activateLegacyUser(identifier.trim(), newPass.trim());
-                alert(`✅ Akun berhasil diaktifkan. Silakan login.`);
-                if (usernameInput) usernameInput.value = identifier.trim();
-            } catch (err) {
-                alert(`❌ Aktivasi gagal: ${err.message}`);
-            }
+        btnActivateAccount.addEventListener('click', () => {
+            alert('⚠️ Aktivasi akun mandiri dinonaktifkan demi keamanan. Silakan hubungi Administrator untuk aktivasi atau reset akun resmi Anda.');
         });
     }
 
@@ -481,15 +516,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (_loginInProgress) return; // prevent double-submit
 
             const passwordInput = document.getElementById('password-input');
-            const btnLogin      = document.getElementById('btn-login');
-            const btnSpinner    = btnLogin ? btnLogin.querySelector('.btn-spinner')      : null;
-            const btnText       = btnLogin ? btnLogin.querySelector('.btn-text-content') : null;
-            const uInput        = document.getElementById('username-input');
+            const btnLogin = document.getElementById('btn-login');
+            const btnSpinner = btnLogin ? btnLogin.querySelector('.btn-spinner') : null;
+            const btnText = btnLogin ? btnLogin.querySelector('.btn-text-content') : null;
+            const uInput = document.getElementById('username-input');
 
             // Hide any previous error
             if (alertBox) alertBox.classList.add('hidden');
 
-            const username = uInput        ? uInput.value.trim()        : '';
+            const username = uInput ? uInput.value.trim() : '';
             const password = passwordInput ? passwordInput.value.trim() : '';
 
             // Validate fields
@@ -504,129 +539,243 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Show loading state — prevent double submit
+            const resetLoginUi = (msg) => {
+                _loginInProgress = false;
+                window.__jntLoginInProgress = false;
+                if (msg && alertBox) {
+                    if (alertMessage) alertMessage.textContent = msg;
+                    alertBox.classList.remove('hidden');
+                }
+                if (btnSpinner) btnSpinner.classList.add('hidden');
+                if (btnText) btnText.style.opacity = '1';
+                if (btnLogin) {
+                    btnLogin.disabled = false;
+                    btnLogin.removeAttribute('aria-busy');
+                }
+            };
+
+            // Show loading state — prevent double submit and pause auth guard redirect mid-login
             _loginInProgress = true;
+            window.__jntLoginInProgress = true;
             if (btnSpinner) btnSpinner.classList.remove('hidden');
-            if (btnText)    btnText.style.opacity = '0.5';
-            if (btnLogin)   { btnLogin.disabled = true; btnLogin.setAttribute('aria-busy', 'true'); }
+            if (btnText) btnText.style.opacity = '0.5';
+            if (btnLogin) { btnLogin.disabled = true; btnLogin.setAttribute('aria-busy', 'true'); }
 
             (async () => {
-                // ============================================================
-                // LOGIN VIA FIREBASE AUTHENTICATION
-                // Akun tersimpan di Firebase Auth, bukan di Firestore.
-                // Firestore hanya dipakai untuk ambil data profil (nama, role, dll)
-                // setelah autentikasi berhasil — bukan untuk cek password.
-                // ============================================================
+                try {
+                    if (!window.auth) {
+                        resetLoginUi('Firebase Auth belum siap. Coba refresh halaman.');
+                        return;
+                    }
 
-                // Bersihkan sesi anonymous jika ada
-                if (window.auth && window.auth.currentUser && window.auth.currentUser.isAnonymous) {
-                    try { await window.auth.signOut(); } catch (_) {}
-                }
+                    // Pastikan persistence aktif agar sesi bertahan saat pindah ke dashboard.html
+                    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
+                        try {
+                            await window.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                        } catch (_) {
+                            try { await window.auth.setPersistence(firebase.auth.Auth.Persistence.SESSION); } catch (_) { }
+                        }
+                    }
 
-                let authResult = null; // { user, email }
-                let lastAuthError = null;
+                    // Tunggu pending signOut dari logout sebelum melakukan signIn baru
+                    if (window.__jntPendingSignOut) {
+                        try { await window.__jntPendingSignOut; } catch (_) { }
+                        window.__jntPendingSignOut = null;
+                    }
 
-                if (!window.auth) {
-                    lastAuthError = { message: 'Firebase Auth belum siap. Coba refresh halaman.' };
-                } else {
-                    // ── Tentukan email dari input ──
-                    // Jika input langsung berupa email → pakai langsung
-                    // Jika username → cari di cache localStorage (disimpan saat buat akun)
-                    let emailToUse = '';
+                    // Bersihkan sesi anonymous atau sisa forced sign-out jika ada
+                    if (window.auth.currentUser && window.auth.currentUser.isAnonymous) {
+                        try { await window.auth.signOut(); } catch (_) { }
+                    }
 
-                    if (username.includes('@')) {
-                        // Input adalah email langsung
-                        emailToUse = username.toLowerCase().trim();
+                    const rawTrim = username.trim();
+                    const uname = rawTrim.toLowerCase();
+                    const candidateEmails = [];
+                    const addCandidate = (em) => {
+                        const clean = String(em || '').toLowerCase().trim();
+                        if (clean && clean.includes('@') && !candidateEmails.includes(clean)) {
+                            candidateEmails.push(clean);
+                        }
+                    };
+
+                    if (rawTrim.includes('@')) {
+                        addCandidate(rawTrim);
                     } else {
-                        // Input adalah username → resolve ke email dari cache
-                        const uname = username.toLowerCase().trim();
                         try {
                             const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
-                            if (cache[uname]) emailToUse = cache[uname];
-                        } catch (_) {}
+                            if (cache[uname]) addCandidate(cache[uname]);
+                        } catch (_) { }
 
-                        // Lookup email dari Firestore (Cek direct doc ID "users/{username}" dulu)
-                        if (!emailToUse && window.db) {
+                        if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.resolveEmailFromIdentifier === 'function') {
+                            try {
+                                const resolved = await JNTFirebaseService.resolveEmailFromIdentifier(rawTrim);
+                                addCandidate(resolved);
+                            } catch (_) { }
+                        }
+
+                        if (window.db) {
+                            try {
+                                const lookupSnap = await window.db.collection('user_lookup').doc(uname).get();
+                                if (lookupSnap.exists) {
+                                    addCandidate((lookupSnap.data() || {}).email);
+                                }
+                            } catch (_) { }
+
                             try {
                                 const docSnap = await window.db.collection('users').doc(uname).get();
                                 if (docSnap.exists) {
                                     const d = docSnap.data();
-                                    const em = (d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`).toLowerCase().trim();
-                                    emailToUse = em;
+                                    addCandidate(d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`);
                                 }
-                            } catch (_) {}
+                            } catch (_) { }
 
-                            if (!emailToUse) {
+                            try {
+                                const snapLower = await window.db.collection('users')
+                                    .where('username', '==', uname).limit(1).get();
+                                if (!snapLower.empty) {
+                                    const d = snapLower.docs[0].data();
+                                    addCandidate(d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`);
+                                }
+                            } catch (_) { }
+
+                            if (rawTrim !== uname) {
                                 try {
-                                    const snap = await window.db.collection('users')
-                                        .where('username', '==', uname).limit(1).get();
-                                    if (!snap.empty) {
-                                        const d = snap.docs[0].data();
-                                        const em = (d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`).toLowerCase().trim();
-                                        if (em) emailToUse = em;
+                                    const snapExact = await window.db.collection('users')
+                                        .where('username', '==', rawTrim).limit(1).get();
+                                    if (!snapExact.empty) {
+                                        const d = snapExact.docs[0].data();
+                                        addCandidate(d.email || d.emailPerusahaan || `${uname}@jtexpress.co.id`);
                                     }
-                                } catch (_) {}
+                                } catch (_) { }
                             }
 
-                            if (emailToUse) {
+                            // Case-insensitive scan fallback jika doc ID adalah UID dan username tersimpan huruf besar
+                            if (candidateEmails.length === 0) {
                                 try {
-                                    const c = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
-                                    c[uname] = emailToUse;
-                                    localStorage.setItem('jnt_email_map', JSON.stringify(c));
-                                } catch (_) {}
+                                    const allSnap = await window.db.collection('users').limit(200).get();
+                                    allSnap.forEach((doc) => {
+                                        const d = doc.data() || {};
+                                        const docUname = String(d.username || doc.id || '').toLowerCase().trim();
+                                        const docName = String(d.fullname || '').toLowerCase().trim();
+                                        if (docUname === uname || docName === uname) {
+                                            addCandidate(d.email || d.emailPerusahaan || `${docUname || uname}@jtexpress.co.id`);
+                                        }
+                                    });
+                                } catch (_) { }
                             }
                         }
+
+                        // Fallback domain default perusahaan jika akun Auth memakai <username>@jtexpress.co.id
+                        addCandidate(`${uname}@jtexpress.co.id`);
                     }
 
-                    // ── Login ke Firebase Authentication ──
-                    if (emailToUse) {
+                    let authResult = null;
+                    let lastAuthError = null;
+
+                    for (const emailToUse of candidateEmails) {
                         try {
                             const cred = await window.auth.signInWithEmailAndPassword(emailToUse, password);
-                            authResult = { user: cred.user, email: emailToUse };
+                            authResult = { user: cred.user, email: cred.user.email || emailToUse };
+                            break;
                         } catch (e) {
                             lastAuthError = e;
-                            console.warn('[AUTH] Firebase signIn gagal:', e.code, e.message);
+                            console.warn('[AUTH] Firebase signIn gagal untuk', emailToUse, ':', e.code, e.message);
+                            if (e.code === 'auth/too-many-requests' || e.code === 'auth/user-disabled' || e.code === 'auth/network-request-failed') {
+                                break;
+                            }
                         }
-                    } else {
-                        // Email tidak ditemukan → akun mungkin belum dibuat atau username salah
-                        lastAuthError = { code: 'auth/user-not-found', message: 'Username tidak ditemukan. Pastikan username benar atau gunakan email untuk login.' };
                     }
 
-                }
+                    if (!authResult) {
+                        let displayMsg = 'Username/email atau password salah. Periksa kembali dan coba lagi.';
+                        if (lastAuthError) {
+                            if (lastAuthError.code === 'auth/too-many-requests') {
+                                displayMsg = 'Terlalu banyak percobaan login. Coba lagi beberapa menit kemudian.';
+                            } else if (lastAuthError.code === 'auth/user-disabled') {
+                                displayMsg = 'Akun ini telah dinonaktifkan. Hubungi Administrator.';
+                            } else if (lastAuthError.code === 'auth/network-request-failed') {
+                                displayMsg = 'Koneksi internet / Firebase terputus. Periksa jaringan Anda lalu coba lagi.';
+                            }
+                        }
+                        resetLoginUi(displayMsg);
+                        return;
+                    }
 
-                // ── Proses setelah autentikasi berhasil ──
-                if (authResult) {
-                    // Ambil profil dari Firestore (untuk nama, role, dll)
-                    let profile = null;
-                    if (!profile && window.db && authResult.user.uid) {
+                    // Cache resolved email locally and ensure minimal /user_lookup/{uname} alias stays synced
+                    try {
+                        const emailCache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                        if (!rawTrim.includes('@')) emailCache[uname] = authResult.email;
+                        localStorage.setItem('jnt_email_map', JSON.stringify(emailCache));
+                    } catch (_) { }
+                    if (window.db && authResult.email) {
+                        const aliasKey = rawTrim.includes('@') ? String(authResult.email).split('@')[0].toLowerCase().trim() : uname;
+                        if (aliasKey) {
+                            window.db.collection('user_lookup').doc(aliasKey).set({
+                                email: String(authResult.email).toLowerCase().trim()
+                            }, { merge: true }).catch(() => { });
+                        }
+                    }
+
+                    // Ambil profil dari Firestore across UID, JNTFirebaseService, username doc, email, & fallback scan
+                    let profile = authResult.profile || null;
+                    const emailPrefix = String(authResult.email || '').split('@')[0].toLowerCase().trim();
+                    const lookupUname = rawTrim.includes('@') ? emailPrefix : uname;
+
+                    if (!profile && window.db && authResult.user && authResult.user.uid) {
                         try {
                             const profSnap = await window.db.collection('users').doc(authResult.user.uid).get();
                             if (profSnap.exists) profile = profSnap.data();
-                        } catch (_) {}
-                        // Jika tidak ketemu berdasarkan UID, cari berdasarkan username
-                        if (!profile) {
-                            try {
-                                const profSnap2 = await window.db.collection('users')
-                                    .where('username', '==', username.toLowerCase().trim()).limit(1).get();
-                                if (!profSnap2.empty) profile = profSnap2.docs[0].data();
-                            } catch (_) {}
-                        }
+                        } catch (_) { }
                     }
+                    if (!profile && typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.getUserProfileByUid === 'function' && authResult.user?.uid) {
+                        try { profile = await JNTFirebaseService.getUserProfileByUid(authResult.user.uid); } catch (_) { }
+                    }
+                    if (!profile && window.db && lookupUname) {
+                        try {
+                            const unameDoc = await window.db.collection('users').doc(lookupUname).get();
+                            if (unameDoc.exists) profile = unameDoc.data();
+                        } catch (_) { }
+                    }
+                    if (!profile && window.db && lookupUname) {
+                        try {
+                            const profSnap2 = await window.db.collection('users')
+                                .where('username', '==', lookupUname).limit(1).get();
+                            if (!profSnap2.empty) profile = profSnap2.docs[0].data();
+                        } catch (_) { }
+                    }
+                    if (!profile && window.db && authResult.email) {
+                        try {
+                            const profByEmail = await window.db.collection('users')
+                                .where('email', '==', authResult.email.toLowerCase()).limit(1).get();
+                            if (!profByEmail.empty) profile = profByEmail.docs[0].data();
+                        } catch (_) { }
+                    }
+                    if (!profile && window.db) {
+                        try {
+                            const allProfSnap = await window.db.collection('users').limit(200).get();
+                            const targetEmail = String(authResult.email || '').toLowerCase().trim();
+                            allProfSnap.forEach((doc) => {
+                                if (profile) return;
+                                const d = doc.data() || {};
+                                const dUid = String(d.uid || '').trim();
+                                const dEmail = String(d.email || d.emailPerusahaan || '').toLowerCase().trim();
+                                const dUser = String(d.username || doc.id || '').toLowerCase().trim();
+                                if ((authResult.user?.uid && dUid === authResult.user.uid)
+                                    || (targetEmail && dEmail === targetEmail)
+                                    || (lookupUname && dUser === lookupUname)) {
+                                    profile = d;
+                                }
+                            });
+                        } catch (_) { }
+                    }
+
                     // SECURITY: Tolak login jika profil tidak ada di Firestore atau akun nonaktif
-                    // (sebelumnya fallback otomatis ke role OPERATOR_SLA).
                     const profileStatus = profile ? String(profile.status || 'Aktif').toLowerCase() : '';
                     if (!profile || profileStatus === 'nonaktif' || profileStatus === 'non-aktif' || profileStatus === 'inactive') {
-                        _loginInProgress = false;
-                        if (window.auth) { try { await window.auth.signOut(); } catch (_) {} }
-                        if (alertBox) {
-                            if (alertMessage) alertMessage.textContent = !profile
-                                ? 'Akun belum terdaftar di sistem. Hubungi Administrator.'
-                                : 'Akun ini telah dinonaktifkan. Hubungi Administrator.';
-                            alertBox.classList.remove('hidden');
-                        }
-                        if (btnSpinner) btnSpinner.classList.add('hidden');
-                        if (btnText) btnText.style.opacity = '1';
-                        if (btnLogin) { btnLogin.disabled = false; btnLogin.removeAttribute('aria-busy'); }
+                        if (window.auth) { try { await window.auth.signOut(); } catch (_) { } }
+                        resetLoginUi(!profile
+                            ? 'Akun belum terdaftar di sistem. Hubungi Administrator.'
+                            : 'Akun ini telah dinonaktifkan. Hubungi Administrator.');
                         return;
                     }
 
@@ -636,18 +785,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Validasi Single-Session Lock (1 akun hanya boleh 1 device aktif)
-                    const targetUname = profile.username || username.toLowerCase().trim();
-                    const lockRes = await jntAcquireSessionLock(targetUname);
+                    const targetUname = String(profile.username || lookupUname).toLowerCase().trim();
+                    let lockRes = { ok: true };
+                    try {
+                        lockRes = await jntAcquireSessionLock(targetUname);
+                    } catch (lockErr) {
+                        console.warn('[AUTH] Session lock check bypassed due to network/firestore error:', lockErr);
+                    }
                     if (!lockRes.ok) {
-                        _loginInProgress = false;
-                        if (window.auth) { try { await window.auth.signOut(); } catch (_) {} }
-                        if (alertBox) {
-                            if (alertMessage) alertMessage.textContent = 'Akun ini sedang digunakan di perangkat/browser lain. Silakan logout dari perangkat tersebut terlebih dahulu.';
-                            alertBox.classList.remove('hidden');
-                        }
-                        if (btnSpinner) btnSpinner.classList.add('hidden');
-                        if (btnText) btnText.style.opacity = '1';
-                        if (btnLogin) { btnLogin.disabled = false; btnLogin.removeAttribute('aria-busy'); }
+                        if (window.auth) { try { await window.auth.signOut(); } catch (_) { } }
+                        resetLoginUi('Akun ini sedang digunakan di perangkat/browser lain. Silakan logout dari perangkat tersebut terlebih dahulu.');
                         return;
                     }
 
@@ -659,53 +806,36 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.removeItem('jnt_remember_username');
                     }
 
-                    // Set session
-                    sessionStorage.setItem('jnt_is_logged_in',    'true');
+                    // Clear previous redirect loop counter and persist session
+                    try {
+                        sessionStorage.removeItem('_jnt_redir_count');
+                        sessionStorage.removeItem('_jnt_redir_ts');
+                        localStorage.removeItem('jnt_force_signout');
+                    } catch (_) { }
+
+                    sessionStorage.setItem('jnt_is_logged_in', 'true');
                     sessionStorage.setItem('jnt_active_username', profile.fullname || profile.username || username);
-                    sessionStorage.setItem('jnt_user_role',       profile.role || 'OPERATOR_SLA');
-                    sessionStorage.setItem('jnt_user_uid',        profile.uid || authResult.user.uid || '');
-                    sessionStorage.setItem('jnt_user_email',      profile.email || profile.emailPerusahaan || authResult.email || '');
-                    sessionStorage.setItem('jnt_user_phone',      profile.phone || '');
-                    sessionStorage.setItem('jnt_user_nik',        profile.nik || '');
-                    sessionStorage.setItem('jnt_user_jabatan',    profile.jabatan || '');
-                    sessionStorage.setItem('jnt_user_tlc',        profile.tlc || '');
+                    sessionStorage.setItem('jnt_user_role', profile.role || 'OPERATOR_SLA');
+                    sessionStorage.setItem('jnt_user_uid', profile.uid || authResult.user.uid || '');
+                    sessionStorage.setItem('jnt_user_email', profile.email || profile.emailPerusahaan || authResult.email || '');
+                    sessionStorage.setItem('jnt_user_phone', profile.phone || '');
+                    sessionStorage.setItem('jnt_user_nik', profile.nik || '');
+                    sessionStorage.setItem('jnt_user_jabatan', profile.jabatan || '');
+                    sessionStorage.setItem('jnt_user_tlc', profile.tlc || '');
                     sessionStorage.setItem('jnt_user_departemen', profile.departemen || '');
-                    sessionStorage.setItem('jnt_user_bergabung',  profile.bergabung || '');
-                    sessionStorage.setItem('jnt_username_login',  profile.username || username.toLowerCase().trim());
+                    sessionStorage.setItem('jnt_user_bergabung', profile.bergabung || '');
+                    sessionStorage.setItem('jnt_username_login', targetUname);
 
+                    window.__jntLoginInProgress = false;
                     window.location.href = 'dashboard.html';
-
-                } else {
-                    // Login gagal
-                    _loginInProgress = false;
-                    let displayMsg = 'Username/email atau password salah. Periksa kembali dan coba lagi.';
-                    if (lastAuthError) {
-                        if (lastAuthError.code === 'auth/too-many-requests') {
-                            displayMsg = 'Terlalu banyak percobaan login. Coba lagi beberapa menit kemudian.';
-                        } else if (lastAuthError.code === 'auth/user-disabled') {
-                            displayMsg = 'Akun ini telah dinonaktifkan. Hubungi Administrator.';
-                        } else if (lastAuthError.message && lastAuthError.message.includes('tidak ditemukan')) {
-                            displayMsg = lastAuthError.message;
-                        }
-                    }
-
-                    if (alertBox) {
-                        if (alertMessage) alertMessage.textContent = displayMsg;
-                        alertBox.classList.remove('hidden');
-                    }
-
-                    if (btnSpinner) btnSpinner.classList.add('hidden');
-                    if (btnText) btnText.style.opacity = '1';
-                    if (btnLogin) btnLogin.disabled = false;
+                } catch (fatalErr) {
+                    console.error('[AUTH] Unexpected login failure:', fatalErr);
+                    resetLoginUi('Terjadi kesalahan saat proses login. Silakan coba lagi.');
                 }
             })();
         };
 
         loginForm.addEventListener('submit', processLogin);
-        const btnLoginBtn = document.getElementById('btn-login');
-        if (btnLoginBtn) {
-            btnLoginBtn.addEventListener('click', processLogin);
-        }
     }
 
     // ===================================================================
@@ -728,11 +858,27 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    function jntSafeUrl(url, fallback) {
+        const s = String(url || '').trim();
+        if (/^https?:\/\//i.test(s)
+            || /^uploads\//i.test(s)
+            || /^assets\//i.test(s)
+            || /^data:image\/(jpeg|jpg|png|webp|gif);base64,/i.test(s)) {
+            return s;
+        }
+        return fallback || '';
+    }
+
+    if (typeof window !== 'undefined') {
+        window.jntEscapeHtml = jntEscapeHtml;
+        window.jntSafeUrl = jntSafeUrl;
+    }
+
     function jntGetLiveUser() {
         const rawRole = sessionStorage.getItem('jnt_user_role') || '';
         return {
             fullname: sessionStorage.getItem('jnt_active_username') || '',
-            role:     rawRole,
+            role: rawRole,
             roleLabel: (function (r) {
                 const up = String(r).toUpperCase();
                 if (up.includes('ADMIN')) return 'Admin';
@@ -740,8 +886,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (up.includes('OPERATOR') || up.includes('STAFF') || up.includes('DISPATCH')) return 'Staff Vehicle Dispatch';
                 return String(r).replace(/_/g, ' ');
             })(rawRole),
-            email:    sessionStorage.getItem('jnt_user_email') || '',
-            jabatan:  sessionStorage.getItem('jnt_user_jabatan') || ''
+            email: sessionStorage.getItem('jnt_user_email') || '',
+            jabatan: sessionStorage.getItem('jnt_user_jabatan') || ''
         };
     }
 
@@ -848,6 +994,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reusable Authentic Logout Trigger
     function performLogout() {
         try {
+            if (typeof jntReleaseSessionLock === 'function') {
+                jntReleaseSessionLock().catch(() => { });
+            }
+        } catch (_) { }
+
+        try {
+            if (typeof window !== 'undefined' && window.auth && typeof window.auth.signOut === 'function') {
+                window.auth.signOut().catch(() => { });
+            }
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('jnt_force_signout', '1');
+            }
+        } catch (_) { }
+
+        try {
             if (typeof global !== 'undefined' && global.sessionStorage) {
                 if (typeof global.sessionStorage.clear === 'function') {
                     global.sessionStorage.clear();
@@ -874,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.sessionStorage.removeItem('jnt_is_logged_in');
                 }
             }
-        } catch (_) {}
+        } catch (_) { }
 
         try {
             if (typeof window !== 'undefined' && window.location) {
@@ -883,13 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof global !== 'undefined' && global.window && global.window.location) {
                 global.window.location.href = 'index.html';
             }
-        } catch (_) {}
-
-        try {
-            if (typeof jntReleaseSessionLock === 'function') {
-                jntReleaseSessionLock().catch(() => {});
-            }
-        } catch (_) {}
+        } catch (_) { }
     }
 
     const logoutBtns = document.querySelectorAll('#btn-logout, .btn-logout-action');
@@ -1321,9 +1476,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const iconMap = {
                     'critical': { icon: '🚨', cls: 'critical' },
-                    'warning':  { icon: '⚠️',  cls: 'warning'  },
-                    'info':     { icon: '🔔',  cls: 'info'     },
-                    'success':  { icon: '✅',  cls: 'success'  },
+                    'warning': { icon: '⚠️', cls: 'warning' },
+                    'info': { icon: '🔔', cls: 'info' },
+                    'success': { icon: '✅', cls: 'success' },
                 };
                 const now = new Date();
                 body.innerHTML = alertsList.map((a, i) => {
@@ -1337,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const h = Math.floor(diff / 60);
                             if (h < 24) return `${h} jam lalu`;
                             return `${Math.floor(h / 24)} hari lalu`;
-                          })()
+                        })()
                         : 'Baru saja';
                     return `
                         <div class="jnt-notif-item unread ${meta.cls}" data-idx="${i}">
@@ -1424,33 +1579,90 @@ document.addEventListener('DOMContentLoaded', () => {
             'setting-language', 'setting-font-size', 'setting-density'
         ];
 
+        const fontSelect = document.getElementById('setting-font-size');
+        const densitySelect = document.getElementById('setting-density');
+
         // Restore saved values on load
         SETTINGS_KEYS.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
             const saved = localStorage.getItem('jnt_' + id);
             if (saved) el.value = saved;
-            // Live-save on change
+        });
+
+        // Live preview on font size change
+        if (fontSelect) {
+            fontSelect.addEventListener('change', () => {
+                if (typeof applyFontSize === 'function') {
+                    applyFontSize(fontSelect.value);
+                } else {
+                    localStorage.setItem('jnt_setting-font-size', fontSelect.value);
+                    document.documentElement.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
+                    document.documentElement.classList.add('font-size-' + fontSelect.value);
+                }
+            });
+        }
+
+        // Live preview on density change
+        if (densitySelect) {
+            densitySelect.addEventListener('change', () => {
+                if (typeof applyDensity === 'function') {
+                    applyDensity(densitySelect.value);
+                } else {
+                    localStorage.setItem('jnt_setting-density', densitySelect.value);
+                    document.documentElement.classList.remove('density-compact', 'density-normal', 'density-comfortable');
+                    document.documentElement.classList.add('density-' + densitySelect.value);
+                }
+            });
+        }
+
+        // Other settings dropdown change listener
+        SETTINGS_KEYS.forEach(id => {
+            if (id === 'setting-font-size' || id === 'setting-density') return;
+            const el = document.getElementById(id);
+            if (!el) return;
             el.addEventListener('change', () => {
                 localStorage.setItem('jnt_' + id, el.value);
             });
         });
 
-        // Wire "Simpan Perubahan" buttons to also persist dropdown values
+        // Wire "Simpan Perubahan" buttons to persist and apply all settings immediately
+        const handleSaveSettings = (e) => {
+            if (e) e.stopPropagation();
+            SETTINGS_KEYS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) localStorage.setItem('jnt_' + id, el.value);
+            });
+
+            if (fontSelect) {
+                if (typeof applyFontSize === 'function') applyFontSize(fontSelect.value);
+                else {
+                    document.documentElement.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
+                    document.documentElement.classList.add('font-size-' + fontSelect.value);
+                }
+            }
+
+            if (densitySelect) {
+                if (typeof applyDensity === 'function') applyDensity(densitySelect.value);
+                else {
+                    document.documentElement.classList.remove('density-compact', 'density-normal', 'density-comfortable');
+                    document.documentElement.classList.add('density-' + densitySelect.value);
+                }
+            }
+
+            const sizeText = fontSelect?.options[fontSelect.selectedIndex]?.text || 'Sedang';
+            const densityText = densitySelect?.options[densitySelect.selectedIndex]?.text || 'Normal';
+
+            if (window.showToastNotification) {
+                window.showToastNotification('✅ Pengaturan Disimpan', `Ukuran Font (${sizeText}) & Kepadatan (${densityText}) berhasil diterapkan ke sistem!`, 'success');
+            } else {
+                alert(`✅ Pengaturan Disimpan: Ukuran Font (${sizeText}) & Kepadatan (${densityText}) telah berhasil diterapkan!`);
+            }
+        };
+
         document.querySelectorAll('.btn-st-red, .btn-st-outline').forEach(btn => {
             if (btn.textContent.trim().includes('Simpan')) {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // prevent bubbling to the global click delegation
-                    SETTINGS_KEYS.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) localStorage.setItem('jnt_' + id, el.value);
-                    });
-                    if (window.showToastNotification) {
-                        window.showToastNotification('✅ Pengaturan Disimpan', 'Perubahan sistem telah berhasil disimpan.', 'success');
-                    } else {
-                        alert('✅ Pengaturan Berhasil Disimpan: Perubahan sistem telah disimpan ke profil.');
-                    }
-                });
+                btn.addEventListener('click', handleSaveSettings);
             }
         });
     }
@@ -1772,6 +1984,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // B. Render Live Fleet Table (Synchronized with Monitoring 4H & SLA Outbound)
+        let _shFleetCurrentPage = 1;
         const renderShiftLiveFleetTable = () => {
             const tbody = document.getElementById('sh-live-fleet-tbody');
             if (!tbody) return;
@@ -1847,22 +2060,92 @@ document.addEventListener('DOMContentLoaded', () => {
                     String(f.platNomor || '').toLowerCase().includes(searchVal) ||
                     String(f.trip || f.namaRute || f.tlc || '').toLowerCase().includes(searchVal) ||
                     String(f.vendor || '').toLowerCase().includes(searchVal) ||
-                    String(f.driver1 || f.driver || '').toLowerCase().includes(searchVal)
+                    String(f.driver1 || f.driver || '').toLowerCase().includes(searchVal) ||
+                    String(f.driverPhone || '').toLowerCase().includes(searchVal) ||
+                    String(f.driver2 || '').toLowerCase().includes(searchVal)
                 );
             }
 
-            if (fleetItems.length === 0) {
+            const totalItems = fleetItems.length;
+            const perPageEl = document.getElementById('sh-fleet-per-page');
+            const perPageVal = perPageEl ? parseInt(perPageEl.value, 10) : 10;
+            const perPage = (isNaN(perPageVal) || perPageVal <= 0) ? (totalItems || 10) : perPageVal;
+            const totalPages = Math.ceil(totalItems / perPage) || 1;
+
+            if (_shFleetCurrentPage > totalPages) _shFleetCurrentPage = Math.max(1, totalPages);
+            if (_shFleetCurrentPage < 1) _shFleetCurrentPage = 1;
+
+            const startIdx = (_shFleetCurrentPage - 1) * perPage;
+            const pageItems = fleetItems.slice(startIdx, startIdx + perPage);
+
+            // Update Pagination Info
+            const pagInfo = document.getElementById('sh-fleet-pagination-info');
+            if (pagInfo) {
+                if (totalItems === 0) {
+                    pagInfo.textContent = 'Menampilkan 0 data';
+                } else {
+                    const from = startIdx + 1;
+                    const to = Math.min(startIdx + pageItems.length, totalItems);
+                    pagInfo.textContent = `Menampilkan ${from}-${to} dari ${totalItems} data`;
+                }
+            }
+
+            // Update Pagination Controls
+            const pagControls = document.getElementById('sh-fleet-pagination-controls');
+            if (pagControls) {
+                if (totalPages <= 1) {
+                    pagControls.innerHTML = '';
+                } else {
+                    let html = `<button type="button" class="p-btn" onclick="window._shChangeFleetPage(${_shFleetCurrentPage - 1})" ${_shFleetCurrentPage <= 1 ? 'disabled' : ''}>&lt;</button>`;
+                    for (let p = 1; p <= totalPages; p++) {
+                        if (totalPages > 7 && Math.abs(p - _shFleetCurrentPage) > 2 && p !== 1 && p !== totalPages) {
+                            if (p === _shFleetCurrentPage - 3 || p === _shFleetCurrentPage + 3) {
+                                html += `<span class="page-dots" style="padding: 0 4px; color: #94A3B8;">...</span>`;
+                            }
+                            continue;
+                        }
+                        html += `<button type="button" class="p-btn ${p === _shFleetCurrentPage ? 'active' : ''}" onclick="window._shChangeFleetPage(${p})">${p}</button>`;
+                    }
+                    html += `<button type="button" class="p-btn" onclick="window._shChangeFleetPage(${_shFleetCurrentPage + 1})" ${_shFleetCurrentPage >= totalPages ? 'disabled' : ''}>&gt;</button>`;
+                    pagControls.innerHTML = html;
+                }
+            }
+
+            if (totalItems === 0) {
                 tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 28px; color: #94A3B8;">Belum ada data armada yang sesuai filter pada shift ini.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = fleetItems.map((item, idx) => {
+            tbody.innerHTML = pageItems.map((item, idx) => {
                 const kode = item.kodeTugas || item.id || '-';
                 const rute = item.trip || item.namaRute || '-';
                 const tlc = item.tlc || '';
-                const vendor = item.vendor || '-';
+                const vendorShort = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatVendorShort)
+                    ? JNTFirebaseService.formatVendorShort(item.vendor)
+                    : (() => {
+                        const str = String(item.vendor || '').trim();
+                        const m = str.match(/\(([^)]+)\)/);
+                        if (m && m[1]) return m[1].trim();
+                        const u = str.toUpperCase();
+                        if (u.includes('SERIKAT') || u.includes('SERYU')) return 'SERYU';
+                        if (u.includes('ASIA PASIFIK') || u.includes('APL')) return 'APL';
+                        if (u.includes('KENCANA') || u.includes('KLS')) return 'KLS';
+                        if (u.includes('JET TRANSPORT') || u.includes('JTS')) return 'JTS';
+                        if (u.includes('CHIJUN')) return 'CHIJUN';
+                        if (u.includes('PESONA') || u.includes('PAL')) return 'PAL';
+                        if (u.includes('ANUGERAH') || /\bAB\b/.test(u)) return 'AB';
+                        if (u.includes('SOLUSI TRANSPORTASI') || u === 'SOLUSI') return 'SOLUSI';
+                        if (u.includes('REYA')) return 'REYA';
+                        if (u.includes('SOLUSI DUNIA') || u.includes('SDE')) return 'SDE';
+                        if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
+                        if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+                        const clean = str.replace(/^(PT\.|PT|CV\.|CV|UD\.)\s+/i, '').trim();
+                        return clean.split(/\s+/)[0]?.toUpperCase() || '-';
+                    })();
                 const plat = item.platNomor || '-';
-                const driver = item.driver1 || item.driver || '-';
+                const driverDisplay = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatDriverDisplay)
+                    ? JNTFirebaseService.formatDriverDisplay(item.driver1 || item.driver, item.driverPhone, item.driver2, item.driver2Phone)
+                    : `<strong>${jntEscapeHtml(item.driver1 || item.driver || '-')}</strong>`;
                 const jamBerangkat = item.jamBerangkat || '-';
 
                 let badgeHtml = `<span class="badge-status blue-outline" style="font-size: 11px;">🔵 Di Jalan</span>`;
@@ -1873,23 +2156,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const posisiHtml = item._lastLokasi && item._lastLokasi !== '-'
-                    ? `<div><strong style="color: #0F172A; font-size: 12px;">📍 ${item._lastLokasi}</strong><span style="display: block; font-size: 10.5px; color: #64748B;">Slot ${item._lastSlotKey}</span></div>`
+                    ? `<div><strong class="sh-posisi-text">📍 ${jntEscapeHtml(item._lastLokasi)}</strong><span style="display: block; font-size: 10.5px; color: #64748B;">Slot ${jntEscapeHtml(item._lastSlotKey)}</span></div>`
                     : `<span style="color: #94A3B8; font-size: 11.5px;">Belum Check-in</span>`;
 
                 return `
                     <tr class="inc-row">
-                        <td class="col-center">${idx + 1}</td>
+                        <td class="col-center">${startIdx + idx + 1}</td>
                         <td><strong style="color: #E30613; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">${kode}</strong></td>
                         <td>
-                            <div style="font-weight: 700; color: #1E40AF; font-size: 12px;">${rute}</div>
-                            ${tlc ? `<span style="font-size: 10px; background: #EFF6FF; color: #2563EB; padding: 1px 7px; border-radius: 99px; font-weight: 700;">${tlc}</span>` : ''}
+                            <div class="sh-rute-title font-bold">${rute}</div>
+                            ${tlc ? `<span class="sh-tlc-badge">${tlc}</span>` : ''}
                         </td>
-                        <td><strong style="font-size: 12px;">${vendor}</strong></td>
+                        <td><span class="sh-vendor-badge" style="color: #38BDF8; font-weight: 800; font-size: 12px;">${vendorShort}</span></td>
                         <td><strong style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${plat}</strong></td>
-                        <td>${driver}</td>
+                        <td>${driverDisplay}</td>
                         <td><span style="font-size: 11.5px; color: #475569;">${jamBerangkat}</span></td>
                         <td>${posisiHtml}</td>
-                        <td><span style="background: #FEF3C7; color: #B45309; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">${item._filledSlots} Slot</span></td>
+                        <td><span class="sh-slot-badge">${item._filledSlots} Slot</span></td>
                         <td>${badgeHtml}</td>
                         <td class="col-center">
                             <div style="display: flex; gap: 5px; justify-content: center;">
@@ -2213,12 +2496,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `
                     <tr class="inc-row">
                         <td class="col-center">${idx + 1}</td>
-                        <td><strong>${item.waktu || '-'}</strong></td>
-                        <td><span class="badge-status blue-outline font-monospace" style="font-size: 11.5px;">${item.shiftId || 'SHIFT-20261111-01'}</span></td>
-                        <td><strong>${item.operator || 'System'}</strong></td>
-                        <td><span class="audit-badge ${badgeClass}">${item.modul || 'General'}</span></td>
-                        <td><strong style="color: #E30613; font-family: monospace;">${item.kodeTugas || '-'}</strong></td>
-                        <td>${item.aktivitas || '-'}</td>
+                        <td><strong>${jntEscapeHtml(item.waktu || '-')}</strong></td>
+                        <td><span class="badge-status blue-outline font-monospace" style="font-size: 11.5px;">${jntEscapeHtml(item.shiftId || 'SHIFT-20261111-01')}</span></td>
+                        <td><strong>${jntEscapeHtml(item.operator || 'System')}</strong></td>
+                        <td><span class="audit-badge ${badgeClass}">${jntEscapeHtml(item.modul || 'General')}</span></td>
+                        <td><strong style="color: #E30613; font-family: monospace;">${jntEscapeHtml(item.kodeTugas || '-')}</strong></td>
+                        <td>${jntEscapeHtml(item.aktivitas || '-')}</td>
                     </tr>
                 `;
             }).join('');
@@ -2257,10 +2540,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         return `
                             <div class="timeline-slot-node active-slot">
                                 <div>
-                                    <strong style="color: #0F172A; display: block; font-size: 13px;">${l.aktivitas}</strong>
-                                    <span style="font-size: 11.5px; color: #64748B;">👤 ${l.operator} • 📦 ${l.modul || '-'} • 🆔 ${l.kodeTugas || '-'}</span>
+                                    <strong style="color: #0F172A; display: block; font-size: 13px;">${jntEscapeHtml(l.aktivitas || '-')}</strong>
+                                    <span style="font-size: 11.5px; color: #64748B;">👤 ${jntEscapeHtml(l.operator || '-')} • 📦 ${jntEscapeHtml(l.modul || '-')} • 🆔 ${jntEscapeHtml(l.kodeTugas || '-')}</span>
                                 </div>
-                                <span style="font-size: 11.5px; color: #2563EB; font-weight: 700; font-family: monospace;">${l.waktu}</span>
+                                <span style="font-size: 11.5px; color: #2563EB; font-weight: 700; font-family: monospace;">${jntEscapeHtml(l.waktu || '-')}</span>
                             </div>
                         `;
                     }).join('');
@@ -2307,12 +2590,34 @@ document.addEventListener('DOMContentLoaded', () => {
             renderShiftControlCenter();
         });
 
-        // Fleet Search & Status Filter Bindings
+        // Fleet Search, Status Filter & Pagination Bindings
+        window._shChangeFleetPage = (page) => {
+            _shFleetCurrentPage = page;
+            renderShiftLiveFleetTable();
+        };
+
         const fleetSearchEl = document.getElementById('sh-fleet-search');
         const fleetStatusEl = document.getElementById('sh-fleet-status-filter');
+        const fleetPerPageEl = document.getElementById('sh-fleet-per-page');
         const auditSearchEl = document.getElementById('audit-search-input');
-        if (fleetSearchEl) fleetSearchEl.oninput = () => renderShiftLiveFleetTable();
-        if (fleetStatusEl) fleetStatusEl.onchange = () => renderShiftLiveFleetTable();
+        if (fleetSearchEl) {
+            fleetSearchEl.oninput = () => {
+                _shFleetCurrentPage = 1;
+                renderShiftLiveFleetTable();
+            };
+        }
+        if (fleetStatusEl) {
+            fleetStatusEl.onchange = () => {
+                _shFleetCurrentPage = 1;
+                renderShiftLiveFleetTable();
+            };
+        }
+        if (fleetPerPageEl) {
+            fleetPerPageEl.onchange = () => {
+                _shFleetCurrentPage = 1;
+                renderShiftLiveFleetTable();
+            };
+        }
         if (auditSearchEl) auditSearchEl.oninput = () => renderAuditTrailTable();
 
         // Global Event Bus Listener for Cross-Tab & Internal Sync
@@ -2887,6 +3192,30 @@ document.addEventListener('DOMContentLoaded', () => {
         let troubleCurrentPage = 1;
         const troublePerPage = 10;
 
+        // Helper Vendor Short Formatter for Trouble Module
+        const formatVendorShort = (vStr) => {
+            if (!vStr) return 'J&T';
+            const v = String(vStr).trim();
+            const match = v.match(/\(([^)]+)\)/);
+            if (match && match[1]) return match[1].trim();
+
+            const u = v.toUpperCase();
+            if (u.includes('SERIKAT') || u.includes('SERYU')) return 'SERYU';
+            if (u.includes('ASIA PASIFIK') || u.includes('APL')) return 'APL';
+            if (u.includes('KENCANA') || u.includes('KLS')) return 'KLS';
+            if (u.includes('JET TRANSPORT') || u.includes('JTS')) return 'JTS';
+            if (u.includes('CHIJUN')) return 'CHIJUN';
+            if (u.includes('PESONA') || u.includes('PAL')) return 'PAL';
+            if (u.includes('ANUGERAH') || u.includes(' AB')) return 'AB';
+            if (u.includes('SOLUSI TRANSPORTASI') || u === 'SOLUSI' || u.includes('(SOLUSI)')) return 'SOLUSI';
+            if (u.includes('REYA')) return 'REYA';
+            if (u.includes('SOLUSI DUNIA') || u.includes('SDE') || u.includes('(SDE)')) return 'SDE';
+            if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
+            if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+
+            return v.length <= 8 ? v.toUpperCase() : v.replace(/^(PT\.|PT|CV\.|CV)\s+/i, '').split(' ')[0].toUpperCase();
+        };
+
         // Auto-fill form fields when Kode Tugas selected in modal
         const trSelect = document.getElementById('tr-kode-tugas-select');
         const trWaktuKejadian = document.getElementById('tr-waktu-kejadian');
@@ -2899,16 +3228,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const kode = trSelect.value;
                 const trip = activeIncomingMap[kode];
                 const platInput = document.getElementById('tr-plat');
+                const vendorInput = document.getElementById('tr-vendor');
                 const driverInput = document.getElementById('tr-driver');
+                const driverPhoneInput = document.getElementById('tr-driver-phone');
                 const ruteInput = document.getElementById('tr-rute-tlc');
 
                 if (trip) {
                     if (platInput) platInput.value = trip.platNomor || '-';
+                    if (vendorInput) vendorInput.value = trip.vendor || 'J&T Logistics';
                     if (driverInput) driverInput.value = trip.driver1 || trip.driver || '-';
+                    if (driverPhoneInput) driverPhoneInput.value = trip.driverPhone || trip.driverPhone1 || '-';
                     if (ruteInput) ruteInput.value = `${trip.trip || trip.namaRute || '-'} (${trip.tlc || '-'})`;
                 } else {
                     if (platInput) platInput.value = '';
+                    if (vendorInput) vendorInput.value = '';
                     if (driverInput) driverInput.value = '';
+                    if (driverPhoneInput) driverPhoneInput.value = '';
                     if (ruteInput) ruteInput.value = '';
                 }
             });
@@ -2973,9 +3308,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const dtRoute = document.getElementById('dt-incident-route');
             const dtWaktu = document.getElementById('dt-incident-waktu');
             const dtLokasi = document.getElementById('dt-incident-lokasi');
+            const dtVendor = document.getElementById('dt-incident-vendor');
             const dtPlat = document.getElementById('dt-incident-plat');
             const dtDriver = document.getElementById('dt-incident-driver');
+            const dtDriverPhone = document.getElementById('dt-incident-driver-phone');
             const dtDriver2 = document.getElementById('dt-incident-driver2');
+            const dtSeverity = document.getElementById('dt-incident-severity');
             const dtJenis = document.getElementById('dt-incident-jenis');
             const dtKet = document.getElementById('dt-incident-keterangan');
             const dtStatus = document.getElementById('dt-incident-status');
@@ -2993,16 +3331,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dtCode) dtCode.textContent = incident.kodeTugas || incident.incidentId || '-';
             if (dtTypeTag) {
                 dtTypeTag.textContent = incident.jenis || 'Trouble';
-                dtTypeTag.style.backgroundColor = incident.jenis === 'Laka' ? '#F3E8FF' : '#FEE2E2';
-                dtTypeTag.style.color = incident.jenis === 'Laka' ? '#9333EA' : '#DC2626';
+                dtTypeTag.className = (incident.jenis || '').includes('Laka') ? 'incident-badge-type laka-type' : 'incident-badge-type trouble-type';
             }
 
             if (dtRoute) dtRoute.textContent = incident.rute || incident.trip || '-';
             if (dtWaktu) dtWaktu.textContent = `${incident.waktuKejadian || '-'} WIB`;
             if (dtLokasi) dtLokasi.textContent = incident.lokasiKejadian || incident.lokasi || '-';
+            if (dtVendor) dtVendor.textContent = incident.vendor || 'J&T Express';
             if (dtPlat) dtPlat.textContent = incident.platNomor || '-';
             if (dtDriver) dtDriver.textContent = incident.driver || '-';
+            if (dtDriverPhone) dtDriverPhone.textContent = incident.driverPhone && incident.driverPhone !== '-' ? incident.driverPhone : '-';
             if (dtDriver2) dtDriver2.textContent = incident.driver2 || '-';
+
+            // Severity Badge
+            const sev = (incident.severity || 'MEDIUM').toUpperCase();
+            let sevClass = 'orange-outline';
+            if (sev === 'LOW') sevClass = 'green-outline';
+            else if (sev === 'HIGH' || sev === 'CRITICAL') sevClass = 'red-outline';
+            if (dtSeverity) {
+                dtSeverity.className = `badge-status ${sevClass}`;
+                dtSeverity.textContent = sev;
+            }
+
             if (dtJenis) dtJenis.textContent = incident.kategoriTrouble || incident.jenis || '-';
             if (dtKet) dtKet.textContent = incident.deskripsi || incident.keterangan || incident.kronologi || '-';
 
@@ -3027,12 +3377,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const container = document.getElementById(containerId);
                 if (!container) return;
                 if (!Array.isArray(photos) || photos.length === 0) {
-                    container.innerHTML = `<div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto ${captionPrefix.toLowerCase()}</div>`;
+                    container.innerHTML = `<div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto ${jntEscapeHtml(captionPrefix.toLowerCase())}</div>`;
                     return;
                 }
-                container.innerHTML = photos.map((p, idx) => `
-                    <img src="${p}" alt="${captionPrefix} ${idx + 1}" class="incident-thumb" onclick="openPhotoPreviewModal('${p}', '${captionPrefix} #${idx + 1}')" style="width: 55px; height: 55px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1.5px solid #CBD5E1; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
-                `).join('');
+                const validPhotos = photos.map(p => jntSafeUrl(p, '')).filter(Boolean);
+                if (validPhotos.length === 0) {
+                    container.innerHTML = `<div style="font-size: 11px; color: #94A3B8; text-align: center; padding: 8px; width: 100%;">Belum ada foto ${jntEscapeHtml(captionPrefix.toLowerCase())}</div>`;
+                    return;
+                }
+                container.innerHTML = validPhotos.map((safeP, idx) => {
+                    const cap = `${captionPrefix} #${idx + 1}`;
+                    return `<img src="${jntEscapeHtml(safeP)}" alt="${jntEscapeHtml(cap)}" class="incident-thumb" data-photo-src="${jntEscapeHtml(safeP)}" data-photo-cap="${jntEscapeHtml(cap)}" style="width: 55px; height: 55px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1.5px solid #CBD5E1; transition: transform 0.2s;">`;
+                }).join('');
+                container.querySelectorAll('.incident-thumb').forEach(imgEl => {
+                    imgEl.addEventListener('click', () => {
+                        if (typeof openPhotoPreviewModal === 'function') {
+                            openPhotoPreviewModal(imgEl.getAttribute('data-photo-src'), imgEl.getAttribute('data-photo-cap'));
+                        }
+                    });
+                });
             };
 
             renderPhotoGallery('dt-incident-gallery-kejadian', incident.fotoKejadian || [], 'Foto Kejadian');
@@ -3054,12 +3417,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     return `
                         <div class="history-step" style="display: flex; gap: 10px; align-items: flex-start;">
                             <div class="step-dot ${h.status === 'SUDAH SELESAI' ? 'green-dot' : 'orange-dot'}"></div>
-                            <div class="step-meta">
+                            <div class="step-meta" style="flex: 1;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 11px; font-weight: 700; color: #0F172A;">${h.time || '-'}</span>
+                                    <span class="timeline-step-time">${jntEscapeHtml(h.time || '-')}</span>
                                 </div>
-                                <span style="font-size: 11px; color: #334155; line-height: 1.3; display: block;">${h.note || '-'}</span>
-                                <span style="font-size: 10px; color: #94A3B8;">oleh ${h.user || 'Petugas'}</span>
+                                <span class="timeline-step-note">${jntEscapeHtml(h.note || '-')}</span>
+                                <span class="timeline-step-user">oleh ${jntEscapeHtml(h.user || 'Petugas')}</span>
                             </div>
                         </div>
                     `;
@@ -3095,6 +3458,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     (t.driver || '').toLowerCase().includes(filterSearch) ||
                     (t.lokasiKejadian || '').toLowerCase().includes(filterSearch) ||
                     (t.rute || '').toLowerCase().includes(filterSearch) ||
+                    (t.vendor || '').toLowerCase().includes(filterSearch) ||
                     (t.incidentId || '').toLowerCase().includes(filterSearch)
                 );
             }
@@ -3107,28 +3471,52 @@ document.addEventListener('DOMContentLoaded', () => {
             const pageData = filtered.slice(startIdx, startIdx + troublePerPage);
 
             if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 28px; color: #94A3B8;">Tidak ada data Trouble & Laka yang sesuai filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 28px; color: #94A3B8;">Tidak ada data Trouble &amp; Laka yang sesuai filter.</td></tr>`;
             } else {
                 tbody.innerHTML = pageData.map((item, idx) => {
                     const rowNum = startIdx + idx + 1;
                     const isSelected = selectedIncident && (selectedIncident.id === item.id || selectedIncident.incidentId === item.incidentId);
                     const isSelesai = item.status === 'SUDAH SELESAI' || item.status === 'SELESAI';
                     const badgeClass = isSelesai ? 'green-outline' : (item.status === 'OPEN' ? 'red-outline' : 'orange-outline');
-                    const jenisColor = (item.jenis || '').includes('Laka') ? '#9333EA' : '#EF4444';
-                    const jenisIcon = (item.jenis || '').includes('Laka') ? '💥 Laka' : '⚠️ Trouble';
+                    const isLaka = (item.jenis || '').includes('Laka');
+                    const jenisColor = isLaka ? '#A855F7' : '#EF4444';
+                    const jenisIcon = isLaka ? '💥 Laka' : '⚠️ Trouble';
+
+                    const sev = (item.severity || 'MEDIUM').toUpperCase();
+                    let sevBadgeClass = 'orange-outline';
+                    if (sev === 'LOW') sevBadgeClass = 'green-outline';
+                    else if (sev === 'HIGH' || sev === 'CRITICAL') sevBadgeClass = 'red-outline';
+
+                    const vendorShort = formatVendorShort(item.vendor);
+                    const safeId = jntEscapeHtml(item.id || item.incidentId || '');
 
                     return `
-                        <tr class="inc-row trouble-row ${isSelected ? 'active-selected' : ''}" data-incident-id="${item.id || item.incidentId}" style="cursor: pointer; ${isSelected ? 'background-color: #FEF2F2;' : ''}">
-                            <td class="col-center">${rowNum}</td>
-                            <td><span class="time-main">${item.waktuKejadian || '-'}</span></td>
-                            <td><strong>${item.kodeTugas || '-'}</strong></td>
-                            <td>${item.tlc || 'PLM FUSO'}</td>
-                            <td>${item.rute || item.trip || '-'}</td>
-                            <td>${item.platNomor || '-'}</td>
-                            <td><span style="color: ${jenisColor}; font-weight: 700;">${jenisIcon}</span></td>
-                            <td>${item.lokasiKejadian || '-'}</td>
-                            <td><span class="badge-status ${badgeClass}">${item.status || 'OPEN'}</span></td>
-                            <td class="col-center"><button type="button" class="btn-view-eye" data-incident-id="${item.id || item.incidentId}">👁️</button></td>
+                        <tr class="inc-row trouble-row ${isSelected ? 'active-selected' : ''}" data-incident-id="${safeId}">
+                            <td class="col-center" style="font-weight: 600; color: #94A3B8;">${rowNum}</td>
+                            <td><span class="time-main" style="font-size: 11.5px; font-weight: 700;">${jntEscapeHtml(item.waktuKejadian || '-')}</span></td>
+                            <td><span class="kode-tugas-mono font-bold">${jntEscapeHtml(item.kodeTugas || '-')}</span></td>
+                            <td style="text-align: center; min-width: 120px;">
+                                <div style="font-weight: 700; font-size: 11.5px; color: #38BDF8;">${jntEscapeHtml(item.tlc || 'PLM FUSO')}</div>
+                                <div style="margin-top: 2px;"><span class="sla-trip-pill" style="font-size: 10px;">${jntEscapeHtml(item.rute || item.trip || '-')}</span></div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 800; font-size: 12.5px;">${jntEscapeHtml(item.platNomor || '-')}</div>
+                                <div style="margin-top: 2px;"><span class="vendor-tag-chip" style="font-size: 10.5px; font-weight: 800; color: #38BDF8;">${jntEscapeHtml(vendorShort)}</span></div>
+                            </td>
+                            <td style="font-size: 11.5px;">
+                                <div class="font-bold">${jntEscapeHtml(item.driver || '-')}</div>
+                                ${item.driverPhone && item.driverPhone !== '-' ? `<div style="font-size: 10.5px; color: #38BDF8; font-weight: 600;">${jntEscapeHtml(item.driverPhone)}</div>` : ''}
+                                ${item.driver2 && item.driver2 !== '-' ? `<div style="font-size: 10px; color: #94A3B8;">Cad: ${jntEscapeHtml(item.driver2)}</div>` : ''}
+                            </td>
+                            <td>
+                                <div><span style="color: ${jenisColor}; font-weight: 800; font-size: 11.5px;">${jenisIcon}</span></div>
+                                <div style="margin-top: 3px;"><span class="badge-status ${sevBadgeClass}" style="font-size: 9.5px; padding: 1px 6px;">${jntEscapeHtml(sev)}</span></div>
+                            </td>
+                            <td style="font-size: 11.5px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${jntEscapeHtml(item.lokasiKejadian || '-')}">
+                                ${jntEscapeHtml(item.lokasiKejadian || '-')}
+                            </td>
+                            <td class="col-center"><span class="badge-status ${badgeClass}" style="font-size: 10.5px; padding: 2px 8px;">${jntEscapeHtml(item.status || 'OPEN')}</span></td>
+                            <td class="col-center"><button type="button" class="btn-view-eye" data-incident-id="${safeId}" title="Lihat Detail Kejadian">👁️</button></td>
                         </tr>
                     `;
                 }).join('');
@@ -3242,12 +3630,23 @@ document.addEventListener('DOMContentLoaded', () => {
         function renderPreviewContainer(containerId, photosArray, arrayName) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            container.innerHTML = photosArray.map((p, idx) => `
+            container.innerHTML = photosArray.map((p, idx) => {
+                const safeP = jntSafeUrl(p, '');
+                if (!safeP) return '';
+                return `
                 <div style="position: relative; display: inline-block;">
-                    <img src="${p}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #CBD5E1;">
-                    <button type="button" onclick="removePendingPhoto('${arrayName}', ${idx})" style="position: absolute; top: -5px; right: -5px; background: #DC2626; color: #FFF; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+                    <img src="${jntEscapeHtml(safeP)}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #CBD5E1;">
+                    <button type="button" class="btn-rm-pending-photo" data-arr="${jntEscapeHtml(arrayName)}" data-idx="${idx}" style="position: absolute; top: -5px; right: -5px; background: #DC2626; color: #FFF; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
                 </div>
-            `).join('');
+            `;
+            }).join('');
+            container.querySelectorAll('.btn-rm-pending-photo').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const arr = btn.getAttribute('data-arr');
+                    const i = parseInt(btn.getAttribute('data-idx'), 10);
+                    if (arr && !isNaN(i)) window.removePendingPhoto(arr, i);
+                });
+            });
         }
 
         window.removePendingPhoto = (arrayName, idx) => {
@@ -3319,7 +3718,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const kodeTugas = document.getElementById('tr-kode-tugas-select')?.value;
                     const platNomor = document.getElementById('tr-plat')?.value;
+                    const vendor = document.getElementById('tr-vendor')?.value;
                     const driver = document.getElementById('tr-driver')?.value;
+                    const driverPhone = document.getElementById('tr-driver-phone')?.value;
                     const rute = document.getElementById('tr-rute-tlc')?.value;
                     const severity = document.getElementById('tr-severity')?.value || 'MEDIUM';
                     const jenis = document.getElementById('tr-jenis')?.value || 'Trouble';
@@ -3336,7 +3737,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newIncident = await JNTFirebaseService.addTroubleIncident({
                         kodeTugas,
                         platNomor,
+                        vendor,
                         driver,
+                        driverPhone,
                         rute,
                         severity,
                         jenis,
@@ -3599,23 +4002,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const displayRole = (u.role || 'Staff Vehicle Dispatch').replace(/OPERATOR.*/i, 'Staff Vehicle Dispatch');
                     const roleClass = (u.role || '').toLowerCase().includes('admin') ? 'role-admin' : ((u.role || '').toLowerCase().includes('supervisor') ? 'role-supervisor' : 'role-operator');
-                    const photo = u.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80';
+                    const photo = jntSafeUrl(u.photoURL, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80');
+                    const safeUname = jntEscapeHtml(u.username || '');
+                    const safeFullname = jntEscapeHtml(u.fullname || u.username || '-');
+                    const safeEmail = jntEscapeHtml(u.email || '-');
+                    const safeTlc = jntEscapeHtml(u.tlc || 'Head Office');
+                    const safeLastLogin = jntEscapeHtml(u.lastLogin || '22/07/2026 10:15');
+                    const safeRole = jntEscapeHtml(displayRole);
 
                     return `
-                        <tr class="inc-row user-row ${isSelected ? 'active-selected' : ''}" data-uname="${u.username}" style="cursor: pointer;">
+                        <tr class="inc-row user-row ${isSelected ? 'active-selected' : ''}" data-uname="${safeUname}" style="cursor: pointer;">
                             <td class="col-center">${rowNum}</td>
-                            <td><img src="${photo}" class="user-row-avatar"></td>
-                            <td><strong>${u.fullname || u.username}</strong></td>
-                            <td class="text-dim">${u.username}</td>
-                            <td class="text-dim">${u.email || '-'}</td>
-                            <td><span class="role-badge ${roleClass}">${displayRole}</span></td>
-                            <td>${u.tlc || 'Head Office'}</td>
+                            <td><img src="${jntEscapeHtml(photo)}" class="user-row-avatar"></td>
+                            <td><strong>${safeFullname}</strong></td>
+                            <td class="text-dim">${safeUname}</td>
+                            <td class="text-dim">${safeEmail}</td>
+                            <td><span class="role-badge ${roleClass}">${safeRole}</span></td>
+                            <td>${safeTlc}</td>
                             <td>${statusHtml}</td>
-                            <td>${u.lastLogin || '22/07/2026 10:15'}</td>
+                            <td>${safeLastLogin}</td>
                             <td class="col-center">
                                 <div class="user-actions-row">
-                                    <button type="button" class="btn-action-sm btn-table-edit-user" data-uname="${u.username}" title="Edit User">✏️</button>
-                                    <button type="button" class="btn-action-sm btn-table-reset-pass" data-uname="${u.username}" title="Reset Password">🔓</button>
+                                    <button type="button" class="btn-action-sm btn-table-edit-user" data-uname="${safeUname}" title="Edit User">✏️</button>
+                                    <button type="button" class="btn-action-sm btn-table-reset-pass" data-uname="${safeUname}" title="Reset Password">🔓</button>
                                 </div>
                             </td>
                         </tr>
@@ -4187,10 +4596,10 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('jnt:user-updated', async () => {
             try {
                 await JNTFirebaseService.saveUserProfile(profileDocId, {
-                    fullname:  sessionStorage.getItem('jnt_active_username') || '',
-                    email:     sessionStorage.getItem('jnt_user_email') || '',
-                    phone:     sessionStorage.getItem('jnt_user_phone') || '',
-                    tlc:       sessionStorage.getItem('jnt_user_tlc') || '',
+                    fullname: sessionStorage.getItem('jnt_active_username') || '',
+                    email: sessionStorage.getItem('jnt_user_email') || '',
+                    phone: sessionStorage.getItem('jnt_user_phone') || '',
+                    tlc: sessionStorage.getItem('jnt_user_tlc') || '',
                     updatedAt: new Date().toISOString()
                 });
             } catch (err) {
@@ -4202,23 +4611,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPass = e.detail && e.detail.newPass;
             if (!newPass) return;
             try {
-                // FIX BUG-3: Jangan simpan password plaintext ke Firestore — gunakan SHA-256 hash.
-                let passHash = null;
-                if (typeof crypto !== 'undefined' && crypto.subtle) {
-                    const hashBuffer = await crypto.subtle.digest(
-                        'SHA-256',
-                        new TextEncoder().encode(newPass)
-                    );
-                    passHash = Array.from(new Uint8Array(hashBuffer))
-                        .map(b => b.toString(16).padStart(2, '0'))
-                        .join('');
-                }
+                // SECURITY: Autentikasi dikelola penuh oleh Firebase Auth — hanya catat timestamp update, jangan simpan hash password ke Firestore.
                 await JNTFirebaseService.saveUserProfile(profileDocId, {
-                    passwordHash: passHash,
                     passwordUpdated: new Date().toISOString()
                 });
             } catch (err) {
-                console.warn('[PROFILE] Gagal mirror password ke Firestore:', err);
+                console.warn('[PROFILE] Gagal update timestamp password di Firestore:', err);
             }
         });
     }
@@ -4229,6 +4627,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply saved theme settings globally on all pages
     const savedThemeMode = localStorage.getItem('jnt_theme_mode') || 'light';
     const savedThemeColor = localStorage.getItem('jnt_theme_color');
+    const savedFontSize = localStorage.getItem('jnt_setting-font-size') || 'medium';
+    const savedDensity = localStorage.getItem('jnt_setting-density') || 'normal';
 
     const applyThemeMode = (mode) => {
         const isDark = mode === 'dark';
@@ -4246,7 +4646,42 @@ document.addEventListener('DOMContentLoaded', () => {
         window.dispatchEvent(new CustomEvent('jnt-theme-changed', { detail: { mode, isDark } }));
     };
 
+    const applyFontSize = (size) => {
+        const validSizes = ['small', 'medium', 'large'];
+        const chosen = validSizes.includes(size) ? size : 'medium';
+        document.documentElement.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
+        document.documentElement.classList.add('font-size-' + chosen);
+        if (document.body) {
+            document.body.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
+            document.body.classList.add('font-size-' + chosen);
+        }
+        localStorage.setItem('jnt_setting-font-size', chosen);
+        const sel = document.getElementById('setting-font-size');
+        if (sel && sel.value !== chosen) sel.value = chosen;
+        window.dispatchEvent(new CustomEvent('jnt-font-size-changed', { detail: { size: chosen } }));
+    };
+
+    const applyDensity = (density) => {
+        const validDensities = ['compact', 'normal', 'comfortable'];
+        const chosen = validDensities.includes(density) ? density : 'normal';
+        document.documentElement.classList.remove('density-compact', 'density-normal', 'density-comfortable');
+        document.documentElement.classList.add('density-' + chosen);
+        if (document.body) {
+            document.body.classList.remove('density-compact', 'density-normal', 'density-comfortable');
+            document.body.classList.add('density-' + chosen);
+        }
+        localStorage.setItem('jnt_setting-density', chosen);
+        const sel = document.getElementById('setting-density');
+        if (sel && sel.value !== chosen) sel.value = chosen;
+        window.dispatchEvent(new CustomEvent('jnt-density-changed', { detail: { density: chosen } }));
+    };
+
+    window.applyFontSize = applyFontSize;
+    window.applyDensity = applyDensity;
+
     applyThemeMode(savedThemeMode);
+    applyFontSize(savedFontSize);
+    applyDensity(savedDensity);
 
     document.querySelectorAll('[data-theme-mode]').forEach((button) => {
         button.addEventListener('click', () => {

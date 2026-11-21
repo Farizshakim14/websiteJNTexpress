@@ -2,79 +2,129 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function userDocPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function isOfficialUser() {
+      return isSignedIn()
+        && exists(userDocPath())
+        && !(get(userDocPath()).data.status in ['Nonaktif', 'nonaktif', 'NONAKTIF', 'non-aktif', 'Inactive', 'inactive']);
+    }
+
+    function isAdminOrSupervisor() {
+      return isOfficialUser()
+        && get(userDocPath()).data.role in [
+          'ADMIN', 'Admin', 'admin', 'Administrator', 'DEVELOPER', 'DEV',
+          'SUPERVISOR', 'Supervisor', 'supervisor', 'SPV'
+        ];
+    }
+
+    function isAdminOnly() {
+      return isOfficialUser()
+        && get(userDocPath()).data.role in [
+          'ADMIN', 'Admin', 'admin', 'Administrator', 'DEVELOPER', 'DEV'
+        ];
+    }
+
     // -------------------------------------------------------------------------
-    // 1. USER MANAGEMENT (/users/{userId})
+    // 1. USER MANAGEMENT (/users/{userId}) & PRE-LOGIN ALIAS (/user_lookup/{uname})
     // -------------------------------------------------------------------------
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isOfficialUser();
+      allow create: if isAdminOnly();
+      allow update: if isAdminOnly() || (
+        isOfficialUser()
+        && (request.auth.uid == userId || resource.data.uid == request.auth.uid)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.uid == resource.data.uid
+      );
+      allow delete: if isAdminOnly();
+    }
+
+    // Koleksi minimal { email } untuk resolusi username -> email saat login tanpa membuka data /users ke publik
+    match /user_lookup/{uname} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isOfficialUser() && (
+        isAdminOnly() || request.resource.data.email == request.auth.token.email
+      );
+      allow delete: if isAdminOnly();
     }
 
     // -------------------------------------------------------------------------
     // 2. OPERATIONAL: INCOMING & DISPATCH (/incoming/{kodeTugas})
     // -------------------------------------------------------------------------
     match /incoming/{kodeTugas} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     // -------------------------------------------------------------------------
     // 3. OPERATIONAL: SLA MANAGEMENT
     // -------------------------------------------------------------------------
     match /sla_outbound/{kodeTugas} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     match /sla_return/{kodeTugas} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     match /sla_roundtrip/{kodeTugas} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     // -------------------------------------------------------------------------
     // 4. MONITORING 4 JAM (/monitoring_4h/{kodeTugas})
     // -------------------------------------------------------------------------
     match /monitoring_4h/{kodeTugas} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     // -------------------------------------------------------------------------
     // 5. TROUBLE & LAKA (/troubles/{incidentId})
     // -------------------------------------------------------------------------
     match /troubles/{incidentId} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     // -------------------------------------------------------------------------
     // 6. SHIFT MANAGEMENT (/shifts/{shiftId})
     // -------------------------------------------------------------------------
     match /shifts/{shiftId} {
-      allow read, write: if true;
+      allow read, write: if isOfficialUser();
     }
 
     // -------------------------------------------------------------------------
     // 7. MASTER DATA (Routes, Fleets, Vendors, Drivers, Reasons, SLA)
     // -------------------------------------------------------------------------
-    match /master_trips/{docId}   { allow read, write: if true; }
-    match /master_fleets/{docId}  { allow read, write: if true; }
-    match /master_vendors/{docId} { allow read, write: if true; }
-    match /master_drivers/{docId} { allow read, write: if true; }
-    match /master_reasons/{docId} { allow read, write: if true; }
-    match /master_routes/{docId}  { allow read, write: if true; }
-    match /master_sla/{docId}     { allow read, write: if true; }
+    match /master_trips/{docId}   { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
+    match /master_fleets/{docId}  { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
+    match /master_vendors/{docId} { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
+    match /master_drivers/{docId} { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
+    match /master_reasons/{docId} { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
+    match /master_routes/{docId}  { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
+    match /master_sla/{docId}     { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
 
     // -------------------------------------------------------------------------
     // 8. AUDIT LOGS
     // -------------------------------------------------------------------------
     match /audit_logs/{logId} {
-      allow read, write: if true;
+      allow read, create: if isOfficialUser();
+      allow update, delete: if isAdminOnly();
     }
 
     // -------------------------------------------------------------------------
     // 9. ACTIVE SESSIONS
     // -------------------------------------------------------------------------
     match /active_sessions/{sessionKey} {
-      allow read, write, delete: if true;
+      allow read, write, delete: if isOfficialUser();
     }
 
     // -------------------------------------------------------------------------

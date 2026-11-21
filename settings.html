@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,17 +12,25 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Anti-Flash Dark Theme Pre-Initialization -->
-    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Anti-Flash Dark Theme, Font Size & Density Pre-Initialization -->
+    <script>
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="light-body-theme">
     <div id="app-container" class="app-container">
-        
+
         <div class="dashboard-layout">
-            
+
             <!-- SIDEBAR (DARK THEME) -->
             <aside class="sidebar-panel">
                 <div class="sidebar-red-header">
@@ -32,13 +41,17 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150" alt="User Avatar" class="user-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150"
+                            alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
                             <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
-                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
                         </div>
                         <span class="profile-role">ADMIN</span>
                         <span class="profile-status">
@@ -51,55 +64,98 @@
                     <ul>
                         <li class="nav-item">
                             <a href="dashboard.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="sla-vendor.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path>
+                                </svg>
                                 <span class="nav-text">SLA Vendor</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
                                 <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="shift-management.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
                                 <span class="nav-text">Shift Management</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
                                 <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="users.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
                                 <span class="nav-text">User Management</span>
                             </a>
                         </li>
                         <li class="nav-item active">
                             <a href="settings.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                    </path>
+                                </svg>
                                 <span class="nav-text">Pengaturan</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="profile.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
                                 <span class="nav-text">Profil Saya</span>
                             </a>
                         </li>
@@ -109,14 +165,16 @@
                 <div class="sidebar-footer-graphic">
                     <div class="route-line-svg">
                         <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4"/>
-                            <circle cx="30" cy="60" r="5" fill="#E30613"/>
-                            <circle cx="100" cy="50" r="5" fill="#E30613"/>
-                            <circle cx="180" cy="25" r="5" fill="#E30613"/>
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2"
+                                stroke-dasharray="4 4" />
+                            <circle cx="30" cy="60" r="5" fill="#E30613" />
+                            <circle cx="100" cy="50" r="5" fill="#E30613" />
+                            <circle cx="180" cy="25" r="5" fill="#E30613" />
                         </svg>
                     </div>
                     <div class="truck-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80" alt="J&T Express Truck" class="sidebar-truck-img">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80"
+                            alt="J&T Express Truck" class="sidebar-truck-img">
                     </div>
                     <div class="sidebar-system-title">
                         <span class="sys-light">Transportation</span>
@@ -132,11 +190,16 @@
                 <header class="inc-top-nav">
                     <div class="inc-title-group">
                         <button class="hamburger-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
                         </button>
                         <div>
                             <h2 class="inc-main-title" style="font-size: 22px;">Pengaturan</h2>
-                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Pengaturan</span>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> /
+                                Pengaturan</span>
                         </div>
                     </div>
 
@@ -146,11 +209,15 @@
                             <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
                         </div>
                         <div class="inc-notif-bell">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
                             <span class="inc-bell-badge">5</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn">
-                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100" alt="User Avatar" class="inc-avatar-img">
+                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100"
+                                alt="User Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
                                 <span class="inc-user-name">Farizs Hakim <span class="inc-user-chevron">▾</span></span>
                                 <span class="inc-user-role">Admin</span>
@@ -159,30 +226,22 @@
                     </div>
                 </header>
 
-                <!-- 9 Horizontal Settings Navigation Tabs Row -->
-                <div class="settings-nav-tabs">
-                    <button class="settings-tab-item active">⚙️ <span>Umum</span></button>
-                    <button class="settings-tab-item">👤 <span>Akun & Profil</span></button>
-                    <button class="settings-tab-item">🔔 <span>Notifikasi</span></button>
-                    <button class="settings-tab-item">⚙️ <span>SLA & Sistem</span></button>
-                    <button class="settings-tab-item">🎨 <span>Tampilan</span></button>
-                    <button class="settings-tab-item">🛡️ <span>Keamanan</span></button>
-                    <button class="settings-tab-item">🔌 <span>Integrasi</span></button>
-                    <button class="settings-tab-item">💾 <span>Backup & Data</span></button>
-                    <button class="settings-tab-item">↔️ <span>Log Aktivitas</span></button>
-                </div>
-
-                <!-- 6 Settings Cards Grid (3 Columns x 2 Rows Layout) -->
+                <!-- Settings Cards Grid (2 Columns Layout) -->
                 <div class="settings-grid-container">
-                    
-                    <!-- Row 1 - Card 1: Informasi Sistem -->
+
+                    <!-- Card 1: Informasi Sistem -->
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <div class="st-title-wrap">
                                 <span class="st-icon blue">ℹ️</span>
                                 <h3 class="st-title">Informasi Sistem</h3>
                             </div>
-                            <svg class="sys-monitor-ic" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            <svg class="sys-monitor-ic" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1"
+                                stroke-width="1.5">
+                                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
                         </div>
 
                         <div class="st-card-body">
@@ -201,91 +260,44 @@
                             <div class="st-double-row">
                                 <div class="form-group-st">
                                     <label for="setting-timezone">Zona Waktu</label>
-                                    <select id="setting-timezone" name="timezone"><option value="Asia/Jakarta">Asia/Jakarta (WIB)</option><option value="Asia/Makassar">Asia/Makassar (WITA)</option><option value="Asia/Jayapura">Asia/Jayapura (WIT)</option></select>
+                                    <select id="setting-timezone" name="timezone">
+                                        <option value="Asia/Jakarta">Asia/Jakarta (WIB)</option>
+                                        <option value="Asia/Makassar">Asia/Makassar (WITA)</option>
+                                        <option value="Asia/Jayapura">Asia/Jayapura (WIT)</option>
+                                    </select>
                                 </div>
                                 <div class="form-group-st">
                                     <label for="setting-time-format">Format Waktu</label>
-                                    <select id="setting-time-format" name="time-format"><option value="24h">24 Jam (HH:mm)</option><option value="12h">12 Jam (hh:mm AM/PM)</option></select>
+                                    <select id="setting-time-format" name="time-format">
+                                        <option value="24h">24 Jam (HH:mm)</option>
+                                        <option value="12h">12 Jam (hh:mm AM/PM)</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="st-double-row">
                                 <div class="form-group-st">
                                     <label for="setting-date-format">Format Tanggal</label>
-                                    <select id="setting-date-format" name="date-format"><option value="dd/mm/yyyy">dd/mm/yyyy</option><option value="mm/dd/yyyy">mm/dd/yyyy</option><option value="yyyy-mm-dd">yyyy-mm-dd</option></select>
+                                    <select id="setting-date-format" name="date-format">
+                                        <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                                        <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                                        <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                                    </select>
                                 </div>
                                 <div class="form-group-st">
                                     <label for="setting-language">Bahasa</label>
-                                    <select id="setting-language" name="language"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select>
+                                    <select id="setting-language" name="language">
+                                        <option value="id">Bahasa Indonesia</option>
+                                        <option value="en">English</option>
+                                    </select>
                                 </div>
                             </div>
                             <div style="margin-top: 6px;">
-                                <button class="btn-st-red">Simpan Perubahan</button>
+                                <button type="button" class="btn-st-red" id="btn-save-general-settings">Simpan Perubahan</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Row 1 - Card 2: Pengaturan Notifikasi -->
-                    <div class="settings-card">
-                        <div class="settings-card-header">
-                            <div class="st-title-wrap">
-                                <span class="st-icon orange">🔔</span>
-                                <h3 class="st-title">Pengaturan Notifikasi</h3>
-                            </div>
-                        </div>
-
-                        <div class="st-card-body">
-                            <div class="toggle-setting-row">
-                                <div class="toggle-icon-wrap">🔔</div>
-                                <div class="toggle-text-meta">
-                                    <strong>Notifikasi Trip Telat SLA</strong>
-                                    <span>Menerima notifikasi ketika trip melewati target SLA</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="toggle-setting-row">
-                                <div class="toggle-icon-wrap">⏰</div>
-                                <div class="toggle-text-meta">
-                                    <strong>Notifikasi Trouble Baru</strong>
-                                    <span>Menerima notifikasi ketika ada trouble baru</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="toggle-setting-row">
-                                <div class="toggle-icon-wrap">🚑</div>
-                                <div class="toggle-text-meta">
-                                    <strong>Notifikasi Laka</strong>
-                                    <span>Menerima notifikasi ketika ada laporan laka</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="toggle-setting-row">
-                                <div class="toggle-icon-wrap">🕒</div>
-                                <div class="toggle-text-meta">
-                                    <strong>Notifikasi Monitoring 4 Jam</strong>
-                                    <span>Pengingat update monitoring 4 jam</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="toggle-setting-row">
-                                <div class="toggle-icon-wrap">✉️</div>
-                                <div class="toggle-text-meta">
-                                    <strong>Kirim notifikasi ke Email</strong>
-                                    <span>Kirim notifikasi juga ke email pengguna</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div style="margin-top: 10px;">
-                                <button class="btn-st-outline">Simpan Perubahan</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 1 - Card 3: Pengaturan Tampilan -->
+                    <!-- Card 2: Pengaturan Tampilan -->
                     <div class="settings-card">
                         <div class="settings-card-header">
                             <div class="st-title-wrap">
@@ -298,222 +310,40 @@
                             <div class="form-group-st">
                                 <label>Tema Warna</label>
                                 <div class="color-theme-dots">
-                                    <button class="color-dot red active">✓</button>
-                                    <button class="color-dot blue"></button>
-                                    <button class="color-dot green"></button>
-                                    <button class="color-dot purple"></button>
-                                    <button class="color-dot orange"></button>
-                                    <button class="color-dot dark"></button>
+                                    <button type="button" class="color-dot red active" title="Merah J&T">✓</button>
                                 </div>
                             </div>
 
                             <div class="form-group-st">
                                 <label>Mode Tampilan</label>
                                 <div class="mode-select-btns">
-                                    <button type="button" class="btn-mode" data-theme-mode="light" aria-pressed="false">☀️ Terang</button>
-                                    <button type="button" class="btn-mode" data-theme-mode="dark" aria-pressed="false">🌙 Gelap</button>
+                                    <button type="button" class="btn-mode" data-theme-mode="light"
+                                        aria-pressed="false">☀️ Terang</button>
+                                    <button type="button" class="btn-mode" data-theme-mode="dark"
+                                        aria-pressed="false">🌙 Gelap</button>
                                 </div>
                             </div>
 
                             <div class="form-group-st">
                                 <label for="setting-font-size">Ukuran Font</label>
-                                <select id="setting-font-size" name="font-size"><option value="small">Kecil</option><option value="medium" selected>Sedang</option><option value="large">Besar</option></select>
+                                <select id="setting-font-size" name="font-size">
+                                    <option value="small">Kecil</option>
+                                    <option value="medium" selected>Sedang</option>
+                                    <option value="large">Besar</option>
+                                </select>
                             </div>
 
                             <div class="form-group-st">
                                 <label for="setting-density">Kepadatan Tampilan</label>
-                                <select id="setting-density" name="density"><option value="compact">Kompak</option><option value="normal" selected>Normal</option><option value="comfortable">Lega</option></select>
+                                <select id="setting-density" name="density">
+                                    <option value="compact">Kompak</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="comfortable">Lega</option>
+                                </select>
                             </div>
 
                             <div style="margin-top: 10px;">
-                                <button class="btn-st-red">Simpan Perubahan</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 2 - Card 4: Pengaturan SLA & Sistem -->
-                    <div class="settings-card">
-                        <div class="settings-card-header">
-                            <div class="st-title-wrap">
-                                <span class="st-icon red">🛡️</span>
-                                <h3 class="st-title">Pengaturan SLA & Sistem</h3>
-                            </div>
-                        </div>
-
-                        <div class="st-card-body">
-                            <div class="form-group-st inline-input-wrap">
-                                <label>Batas Peringatan SLA</label>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="text" value="1" style="width: 50px; text-align: center;">
-                                    <span style="font-size: 11px; color: #64748B;">Jam sebelum target SLA</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group-st inline-input-wrap">
-                                <label>Batas Keterlambatan</label>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="text" value="00:15" style="width: 70px; text-align: center;">
-                                    <span style="font-size: 11px; color: #64748B;">Jam:Menit dianggap telat</span>
-                                </div>
-                            </div>
-
-                            <div class="toggle-setting-row no-ic">
-                                <div class="toggle-text-meta">
-                                    <strong>Auto Generate SLA</strong>
-                                    <span>Otomatis generate SLA setelah data incoming disimpan</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="toggle-setting-row no-ic">
-                                <div class="toggle-text-meta">
-                                    <strong>Update Monitoring Otomatis</strong>
-                                    <span>Refresh data monitoring setiap <input type="text" value="5" style="width: 40px; text-align: center; padding: 2px 4px; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 11px;"> detik</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div style="margin-top: 10px;">
-                                <button class="btn-st-outline">Simpan Perubahan</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Row 2 - Card 5: Pengaturan Keamanan -->
-                    <div class="settings-card">
-                        <div class="settings-card-header">
-                            <div class="st-title-wrap">
-                                <span class="st-icon dark">🔒</span>
-                                <h3 class="st-title">Pengaturan Keamanan</h3>
-                            </div>
-                        </div>
-
-                        <div class="st-card-body">
-                            <div class="form-group-st inline-input-wrap">
-                                <label>Session Timeout</label>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="text" value="60" style="width: 60px; text-align: center;">
-                                    <span style="font-size: 11px; color: #64748B;">menit</span>
-                                </div>
-                            </div>
-
-                            <div class="toggle-setting-row no-ic">
-                                <div class="toggle-text-meta">
-                                    <strong>Verifikasi 2 Langkah (2FA)</strong>
-                                    <span>Aktifkan verifikasi 2 langkah untuk semua pengguna</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="toggle-setting-row no-ic">
-                                <div class="toggle-text-meta">
-                                    <strong>Akses Multi Device</strong>
-                                    <span>Izinkan akun login di beberapa perangkat</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox"><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="form-group-st inline-input-wrap">
-                                <label>Password Minimal</label>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="text" value="8" style="width: 50px; text-align: center;">
-                                    <span style="font-size: 11px; color: #64748B;">karakter</span>
-                                </div>
-                            </div>
-
-                            <div style="margin-top: 10px;">
-                                <button class="btn-st-outline">Simpan Perubahan</button>
-                            </div>
-                        </div>
-                    </div>
-
-                        <div class="st-card-body">
-                            <!-- Cloud Firestore Migration & Offline Sync Engine -->
-                            <div class="data-mgmt-row" style="background-color: #F8FAFC; border: 1px dashed #CBD5E1; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
-                                <div class="data-mgmt-ic">☁️</div>
-                                <div class="data-mgmt-meta">
-                                    <strong style="color: #2563EB;">Migrasi Data ke Cloud Firestore</strong>
-                                    <span>Pindahkan data lokal ke Cloud Firestore (Idempotent)</span>
-                                </div>
-                                <div style="display: flex; gap: 6px;">
-                                    <button id="btn-migrate-preview" class="btn-data-action" style="background-color: #0284C7; color: #FFF;">Preview</button>
-                                    <button id="btn-run-migration" class="btn-data-action" style="background-color: #2563EB; color: #FFF;">Migrasi</button>
-                                </div>
-                            </div>
-
-                            <div class="data-mgmt-row" style="margin-bottom: 12px;">
-                                <div class="data-mgmt-ic">⚡</div>
-                                <div class="data-mgmt-meta">
-                                    <strong>Antrean Sinkronisasi Offline</strong>
-                                    <span>Kirimkan transaksi tertunda saat jaringan pulih</span>
-                                </div>
-                                <button id="btn-flush-sync-queue" class="btn-data-action" style="background-color: #D97706; color: #FFF;">Sync Now</button>
-                            </div>
-
-                            <div class="data-mgmt-row">
-                                <div class="data-mgmt-ic">💾</div>
-                                <div class="data-mgmt-meta">
-                                    <strong>Backup Database (JSON Snapshot)</strong>
-                                    <span>Download snapshot seluruh database Firestore</span>
-                                </div>
-                                <button id="btn-backup-now" class="btn-data-action" style="background-color: #16A34A; color: #FFF;">Backup Now</button>
-                            </div>
-
-                            <div class="data-mgmt-row">
-                                <div class="data-mgmt-ic">🔄</div>
-                                <div class="data-mgmt-meta">
-                                    <strong>Restore Database (Admin Only)</strong>
-                                    <span>Restore data dari file backup JSON</span>
-                                </div>
-                                <button id="btn-restore-database" class="btn-data-action" style="background-color: #DC2626; color: #FFF;">Restore</button>
-                            </div>
-                            <input type="file" id="restore-json-input" accept=".json" class="hidden">
-
-                            <div class="toggle-setting-row no-ic" style="margin-top: 14px;">
-                                <div class="toggle-text-meta">
-                                    <strong>Backup Otomatis Harian</strong>
-                                    <span>Jadwalkan backup otomatis setiap pukul 02:00 WIB</span>
-                                </div>
-                                <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
-                            </div>
-
-                            <div class="data-mgmt-row">
-                                <div class="data-mgmt-ic">📊</div>
-                                <div class="data-mgmt-meta">
-                                    <strong>Export Data</strong>
-                                    <span>Export semua data ke file Excel</span>
-                                </div>
-                                <button class="btn-data-action">Export</button>
-                            </div>
-
-                            <div class="data-mgmt-row">
-                                <div class="data-mgmt-ic">📥</div>
-                                <div class="data-mgmt-meta">
-                                    <strong>Import Data</strong>
-                                    <span>Import data dari file Excel</span>
-                                </div>
-                                <button class="btn-data-action">Import</button>
-                            </div>
-
-                            <div class="data-mgmt-row">
-                                <div class="data-mgmt-ic">🧹</div>
-                                <div class="data-mgmt-meta">
-                                    <strong>Bersihkan Cache</strong>
-                                    <span>Membersihkan cache sistem</span>
-                                </div>
-                                <button class="btn-data-action">Bersihkan</button>
-                            </div>
-
-                            <!-- Danger Reset Box (Soft Red Background) -->
-                            <div class="danger-reset-box">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="danger-ic">⚙️</span>
-                                    <div>
-                                        <strong style="color: #DC2626; font-size: 12px;">Reset Semua Pengaturan</strong>
-                                        <span style="font-size: 10.5px; color: #64748B; display: block;">Kembalikan semua pengaturan ke default</span>
-                                    </div>
-                                </div>
-                                <span style="color: #DC2626; font-weight: 800; font-size: 14px;">&gt;</span>
+                                <button type="button" class="btn-st-red" id="btn-save-display-settings">Simpan Perubahan</button>
                             </div>
                         </div>
                     </div>
@@ -539,4 +369,5 @@
     <script src="firebase-service.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

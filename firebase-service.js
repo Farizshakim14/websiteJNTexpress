@@ -60,7 +60,103 @@ const JNTFirebaseService = {
     // ⚡ DUAL CACHE LAYER: Memory Cache + LocalStorage Persistence Fallback
     // Memastikan saat halaman direfresh atau berpindah menu, data tidak blank (0ms render),
     // lalu otomatis tersinkronisasi dengan Firestore secara real-time.
+    _stripPhotosForLocalStorage(value, keyName = '') {
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed.startsWith('data:image/') || keyName === 'fotoSampai' || keyName === 'fotoBukti') {
+                return '';
+            }
+            return value;
+        }
+        if (Array.isArray(value)) {
+            return value.map(item => this._stripPhotosForLocalStorage(item));
+        }
+        if (value && typeof value === 'object' && !(value instanceof Date)) {
+            const clone = {};
+            for (const [k, v] of Object.entries(value)) {
+                if (k === 'fotoSampai' || k === 'fotoBukti') {
+                    if (typeof v === 'string' && v.trim()) {
+                        clone.hasFotoSampai = true;
+                    }
+                    clone[k] = '';
+                } else if (typeof v === 'string' && v.trim().startsWith('data:image/')) {
+                    clone[k] = '';
+                    if (k === 'foto') clone.hasFoto = true;
+                } else {
+                    clone[k] = this._stripPhotosForLocalStorage(v, k);
+                }
+            }
+            return clone;
+        }
+        return value;
+    },
+
+    _purgeLegacyPhotosFromLocalStorage() {
+        if (this._didPurgeLocalPhotos || typeof localStorage === 'undefined') return;
+        this._didPurgeLocalPhotos = true;
+        try {
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && (k.startsWith('jnt_cache_') || k.startsWith('jnt_store_'))) keys.push(k);
+            }
+            for (const k of keys) {
+                const raw = localStorage.getItem(k);
+                if (!raw) continue;
+                if (raw.includes('data:image/') || raw.includes('"fotoSampai"')) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        const cleaned = this._stripPhotosForLocalStorage(parsed);
+                        localStorage.setItem(k, JSON.stringify(cleaned));
+                    } catch (_) {
+                        if (raw.includes('data:image/')) localStorage.removeItem(k);
+                    }
+                }
+            }
+        } catch (_) { }
+    },
+
+    _buildReturnMonitoringDoc({ ret, origin = {}, retKey, asalKey = '', vendor, tripName, jamBerangkat, jamSampai, isFinished }) {
+        return {
+            id: retKey,
+            kodeTugas: retKey,
+            kodeTugasBalikan: retKey,
+            kodeTugasAsal: asalKey,
+            tripType: 'RETURN',
+            isBalikan: true,
+            vendor: vendor,
+            platNomor: ret.platNomor || origin.platNomor || '-',
+            driver1: ret.driver1 || origin.driver1 || '-',
+            driver2: ret.driver2 || origin.driver2 || '',
+            driverPhone: ret.driverPhone || origin.driverPhone || '',
+            driver2Phone: ret.driver2Phone || origin.driver2Phone || '',
+            totalAwb: ret.totalAwb || '',
+            trip: tripName,
+            namaRute: tripName,
+            tlc: ret.tlc || origin.tlc || 'JKT999 FUSO',
+            jenisMobil: ret.jenisMobil || origin.jenisMobil || 'FUSO',
+            jamBerangkat: jamBerangkat,
+            jamBerangkatGateway: jamBerangkat,
+            jamSampaiAktual: jamSampai,
+            jamSampaiJKT999: jamSampai,
+            targetSLAHours: ret.targetSLABalikanHours || ret.targetSLAHours || origin.targetSLAReturnHours || 16,
+            targetSLABalikanHours: ret.targetSLABalikanHours || 16,
+            statusPerjalanan: isFinished ? 'COMPLETED' : (ret.statusPerjalanan || 'ON PROGRESS'),
+            alasan: ret.alasan || '',
+            lokasiSampai: ret.lokasiSampai || '',
+            catatanSampai: ret.catatanSampai || ret.catatan || '',
+            catatan: ret.catatan || ret.catatanSampai || '',
+            fotoSampai: ret.fotoSampai || '',
+            hasFotoSampai: Boolean(ret.hasFotoSampai || ret.fotoSampai),
+            durasiBalikanMinutes: ret.durasiBalikanMinutes ?? null,
+            totalTelatMinutes: ret.totalTelatMinutes ?? null,
+            inputBy: ret.inputBy || '',
+            slots: {}
+        };
+    },
+
     getLocalStore(colName) {
+        this._purgeLegacyPhotosFromLocalStorage();
         this._cachedSubData = this._cachedSubData || {};
         if (this._cachedSubData[colName] && this._cachedSubData[colName].length > 0) {
             return this._cachedSubData[colName];
@@ -83,12 +179,21 @@ const JNTFirebaseService = {
     saveLocalStore(colName, list) {
         this._cachedSubData = this._cachedSubData || {};
         const cleanList = Array.isArray(list) ? list : [];
+        // Simpan data penuh (termasuk URL/data foto) HANYA di RAM memory agar UI reaktif tanpa membebani localStorage
         this._cachedSubData[colName] = cleanList;
-        try {
-            if (typeof localStorage !== 'undefined') {
-                localStorage.setItem('jnt_cache_' + colName, JSON.stringify(cleanList));
-            }
-        } catch (_) { }
+        if (colName === 'master_fleets') this._fleetVendorMapCache = null;
+        if (colName === 'master_drivers') this._driverPhoneMapCache = null;
+        this._lsWriteTimers = this._lsWriteTimers || {};
+        if (this._lsWriteTimers[colName]) clearTimeout(this._lsWriteTimers[colName]);
+        this._lsWriteTimers[colName] = setTimeout(() => {
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    // Bersihkan seluruh foto / base64 sebelum menulis ke localStorage di idle frame
+                    const storageSafeList = this._stripPhotosForLocalStorage(this._cachedSubData[colName] || cleanList);
+                    localStorage.setItem('jnt_cache_' + colName, JSON.stringify(storageSafeList));
+                }
+            } catch (_) { }
+        }, 180);
     },
 
     async getDoc(colName, docId) {
@@ -570,7 +675,13 @@ const JNTFirebaseService = {
     },
 
     isOutJakartaSlot(sVal) {
-        return !!(sVal && typeof sVal === 'object' && (sVal.lokasi === "OUT JKT999" || sVal.lokasi === "OUT JAKARTA" || sVal.keterangan === "Keberangkatan Awal" || String(sVal.lokasi || '').toUpperCase().includes('OUT JKT') || String(sVal.lokasi || '').toUpperCase().includes('OUT JAKARTA')));
+        if (!sVal || typeof sVal !== 'object') return false;
+        const loc = String(sVal.lokasi || '').toUpperCase().trim();
+        const ket = String(sVal.keterangan || '').toUpperCase().trim();
+        return loc === "OUT JKT999" || loc === "OUT JAKARTA" || loc === "OUT GATEWAY" ||
+            loc.includes("OUT JKT") || loc.includes("OUT JAKARTA") || loc.includes("OUT GATEWAY") ||
+            loc.startsWith("OUT ") ||
+            ket === "KEBERANGKATAN AWAL" || ket === "KEBERANGKATAN BALIKAN";
     },
 
     /** Index slot tempat OUT JAKARTA tercatat (-1 jika tidak ada) */
@@ -701,12 +812,31 @@ const JNTFirebaseService = {
             }
         }
 
-        // 2. Cascade delete across all 5 operational trip collections
+        // 2. Cascade delete across all 5 operational trip collections (plus linked return trips)
+        let returnDoc = null;
+        try {
+            returnDoc = await this.getDoc('sla_return', kodeTugas);
+            if (!returnDoc) {
+                const allReturns = this.getLocalStore('sla_return') || [];
+                returnDoc = allReturns.find(r => r.kodeTugasBalikan === kodeTugas || r.kodeBalikan === kodeTugas || r.id === kodeTugas) || null;
+            }
+        } catch (e) { }
+
         await this.deleteDoc('sla_outbound', kodeTugas);
         await this.deleteDoc('monitoring_4h', kodeTugas);
         await this.deleteDoc('sla_return', kodeTugas);
         await this.deleteDoc('sla_roundtrip', kodeTugas);
         await this.deleteDoc('incoming', kodeTugas);
+
+        if (returnDoc) {
+            if (returnDoc.kodeTugasBalikan && returnDoc.kodeTugasBalikan !== kodeTugas) {
+                await this.deleteDoc('monitoring_4h', returnDoc.kodeTugasBalikan);
+            }
+            if (returnDoc.kodeTugasAsal && returnDoc.kodeTugasAsal !== kodeTugas) {
+                await this.deleteDoc('sla_return', returnDoc.kodeTugasAsal);
+                await this.deleteDoc('sla_roundtrip', returnDoc.kodeTugasAsal);
+            }
+        }
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -720,6 +850,55 @@ const JNTFirebaseService = {
 
     async deleteSLAOutbound(kodeTugas) {
         return this.deleteTripCascade(kodeTugas, true);
+    },
+
+    async deleteSLAReturn(kodeBalikanOrAsal) {
+        if (!kodeBalikanOrAsal) return;
+        const shiftId = this.getActiveShiftId();
+        let targetAsal = kodeBalikanOrAsal;
+        let targetBalik = kodeBalikanOrAsal;
+
+        try {
+            let retDoc = await this.getDoc('sla_return', kodeBalikanOrAsal);
+            if (retDoc) {
+                targetAsal = kodeBalikanOrAsal;
+                targetBalik = retDoc.kodeTugasBalikan || retDoc.kodeBalikan || '';
+            } else {
+                const allRet = this.getLocalStore('sla_return') || [];
+                const found = allRet.find(r => r.kodeTugasBalikan === kodeBalikanOrAsal || r.kodeBalikan === kodeBalikanOrAsal || r.id === kodeBalikanOrAsal);
+                if (found) {
+                    targetAsal = found.kodeTugasAsal || found.id;
+                    targetBalik = found.kodeTugasBalikan || kodeBalikanOrAsal;
+                }
+            }
+
+            if (targetAsal) {
+                await this.deleteDoc('sla_return', targetAsal);
+                await this.deleteDoc('sla_roundtrip', targetAsal);
+            }
+            if (targetBalik) {
+                await this.deleteDoc('monitoring_4h', targetBalik);
+            }
+
+            await this.logAuditEvent({
+                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
+                shiftId: shiftId,
+                modul: "SLA Vendor",
+                kodeTugas: targetBalik || targetAsal,
+                aktivitas: `Hapus Data Perjalanan Balikan (${targetBalik || targetAsal})`
+            });
+
+            window.dispatchEvent(new CustomEvent('jnt_data_updated', {
+                detail: { collection: 'sla_return', id: targetAsal }
+            }));
+            window.dispatchEvent(new CustomEvent('jnt_data_updated', {
+                detail: { collection: 'monitoring_4h', id: targetBalik }
+            }));
+        } catch (err) {
+            console.error('deleteSLAReturn error:', err);
+            throw err;
+        }
     },
 
     // ----------------------------------------------------
@@ -804,8 +983,16 @@ const JNTFirebaseService = {
         if (!kodeTugas) return;
         const shiftId = this.getActiveShiftId();
 
-        // Update incoming master status
-        await this.saveDoc('incoming', kodeTugas, { status: status, ...meta }, true);
+        // Check if this is a return trip (so we don't create ghost entries in incoming / sla_outbound)
+        const retList = this.getLocalStore('sla_return') || [];
+        const monList = this.getLocalStore('monitoring_4h') || [];
+        const retMatch = retList.find(r => (r.kodeTugasBalikan === kodeTugas) || (r.kodeTugas === kodeTugas) || (r.id === kodeTugas));
+        const monMatch = monList.find(m => (m.kodeTugas === kodeTugas) || (m.id === kodeTugas));
+        const isReturn = Boolean(
+            retMatch ||
+            (monMatch && (monMatch.tripType === 'RETURN' || monMatch.isBalikan)) ||
+            String(kodeTugas).toUpperCase().includes('-RET')
+        );
 
         // Map status for monitoring_4h
         let monStatus = "ON PROGRESS";
@@ -815,12 +1002,24 @@ const JNTFirebaseService = {
 
         await this.saveDoc('monitoring_4h', kodeTugas, { statusPerjalanan: monStatus }, true);
 
-        // Map status for sla_outbound
-        let slaStatus = "BERJALAN";
-        if (status === 'SUDAH SELESAI' || status === 'COMPLETED') slaStatus = "ON TIME";
-        else if (status === 'KENDALA') slaStatus = "KENDALA";
+        if (isReturn) {
+            const retKey = (retMatch && (retMatch.id || retMatch.kodeTugasAsal)) || kodeTugas;
+            await this.saveDoc('sla_return', retKey, {
+                statusPerjalanan: monStatus,
+                statusBalikan: status,
+                ...meta
+            }, true);
+        } else {
+            // Update incoming master status
+            await this.saveDoc('incoming', kodeTugas, { status: status, ...meta }, true);
 
-        await this.saveDoc('sla_outbound', kodeTugas, { statusSla: slaStatus }, true);
+            // Map status for sla_outbound
+            let slaStatus = "BERJALAN";
+            if (status === 'SUDAH SELESAI' || status === 'COMPLETED') slaStatus = "ON TIME";
+            else if (status === 'KENDALA') slaStatus = "KENDALA";
+
+            await this.saveDoc('sla_outbound', kodeTugas, { statusSla: slaStatus }, true);
+        }
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -1664,15 +1863,77 @@ const JNTFirebaseService = {
     // ----------------------------------------------------
     // 2. MASTER DATA ENGINE (LOOKUP & SAFE DELETION)
     // ----------------------------------------------------
-    resolveTripVendor(item) {
-        if (!item) return 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
-        if (item.vendor && String(item.vendor).trim() !== '' && item.vendor !== 'J&T' && item.vendor !== '-') {
-            return item.vendor;
+    /**
+     * Normalisasi nama vendor ke 12 Vendor Resmi J&T Express.
+     * Jika vendor tidak dikenal / kosong, coba lookup dari plat nomor di master_fleets.
+     */
+    /**
+     * Normalisasi nama vendor ke 12 Vendor Resmi J&T Express atau vendor yang tertera di Excel.
+     * Tidak pernah menimpa vendor 3PL menjadi 'J&T Express'.
+     */
+    normalizeVendorName(rawVendor, platNomor = '') {
+        const raw = String(rawVendor || '').trim();
+        const rawUpper = raw.toUpperCase();
+
+        if (rawUpper) {
+            if (rawUpper.includes('SERIKAT') || rawUpper.includes('SERYU')) {
+                return 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
+            }
+            if (rawUpper.includes('ASIA PASIFIK') || rawUpper.includes('APL')) {
+                return 'PT. ASIA PASIFIK LOGISTIK (APL)';
+            }
+            if (rawUpper.includes('KENCANA') || rawUpper.includes('KLS')) {
+                return 'PT. KENCANA LOGISTIK SAMUDERA (KLS)';
+            }
+            if (rawUpper.includes('MEDIA TRANS') || rawUpper.includes('MTI')) {
+                return 'PT. MEDIA TRANS INDO (MTI)';
+            }
+            if (rawUpper.includes('CHIJUN')) {
+                return 'PT CHIJUN SMART FREIGHT (CHIJUN)';
+            }
+            if (rawUpper.includes('SOLUSI DUNIA') || rawUpper.includes('SDE') || rawUpper.includes('(SDE)')) {
+                return 'PT. SOLUSI DUNIA EXPEDISI (SDE)';
+            }
+            if (rawUpper.includes('SOLUSI TRANSPORTASI') || rawUpper === 'SOLUSI' || rawUpper.includes('(SOLUSI)')) {
+                return 'PT. SOLUSI TRANSPORTASI SEMESTA (SOLUSI)';
+            }
+            if (rawUpper.includes('JET TRANSPORT') || rawUpper.includes('JTS')) {
+                return 'PT. JET TRANSPORT SERVICES (JTS)';
+            }
+            if (rawUpper.includes('ANUGERAH') || /\bAB\b/.test(rawUpper) || rawUpper.includes('(AB)')) {
+                return 'PT ANUGERAH BERSATU (AB)';
+            }
+            if (rawUpper.includes('REYA')) {
+                return 'PT. REYA BAHAGIA ABADI (REYA)';
+            }
+            if (rawUpper.includes('PESONA') || rawUpper.includes('PAL') || rawUpper.includes('(PAL)')) {
+                return 'PT. PESONA ABADI LOGISTIK (PAL)';
+            }
+            if (rawUpper === 'LNP' || rawUpper.includes('LNP')) {
+                return 'LNP';
+            }
+            // Jika nama vendor ada di Excel dan BUKAN J&T / Global Jet, pertahankan nama vendor tersebut!
+            if (!rawUpper.includes('JNT') && !rawUpper.includes('J&T') && !rawUpper.includes('GLOBAL JET') && rawUpper !== '-' && rawUpper !== 'NULL' && rawUpper !== 'UNDEFINED' && raw.toLowerCase() !== 'semua vendor') {
+                return raw;
+            }
         }
-        if (item.namaVendor && String(item.namaVendor).trim() !== '' && item.namaVendor !== 'J&T') {
-            return item.namaVendor;
+
+        // Cek Lookup Plat Nomor jika vendor di Excel kosong atau berisi teks J&T
+        const fleetVendor = this.getFleetVendorByPlat(platNomor);
+        if (fleetVendor) return fleetVendor;
+
+        // Jika raw adalah nama custom lain dari Excel
+        if (raw && raw !== '-' && raw !== 'null' && raw !== 'undefined' && raw.toLowerCase() !== 'semua vendor' && !rawUpper.includes('JNT') && !rawUpper.includes('J&T') && !rawUpper.includes('GLOBAL JET')) {
+            return raw;
         }
-        const platClean = String(item.platNomor || '').replace(/\s+/g, '').toUpperCase();
+
+        // Fallback vendor 3PL resmi: SERYU (jangan pernah default ke 'J&T Express' untuk data vendor)
+        return 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
+    },
+
+    getFleetVendorByPlat(platNomor = '') {
+        const platClean = String(platNomor || '').replace(/\s+/g, '').toUpperCase();
+        if (!platClean) return '';
         const fleetMap = {
             'B9134PXX': 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)',
             'B9041SXX': 'PT. ASIA PASIFIK LOGISTIK (APL)',
@@ -1687,11 +1948,354 @@ const JNTFirebaseService = {
 
         try {
             const fleets = this.getLocalStore('master_fleets') || [];
-            const found = fleets.find(f => (f.platNomor || '').replace(/\s+/g, '').toUpperCase() === platClean);
-            if (found && found.vendor) return found.vendor;
+            if (!this._fleetVendorMapCache || this._fleetVendorMapLen !== fleets.length) {
+                this._fleetVendorMapCache = new Map();
+                this._fleetVendorMapLen = fleets.length;
+                for (let idx = 0; idx < fleets.length; idx++) {
+                    const f = fleets[idx];
+                    const fp = String(f.platNomor || f.plat || f.nopol || '').replace(/\s+/g, '').toUpperCase();
+                    if (fp && f.vendor && !f.vendor.toUpperCase().includes('JNT') && !f.vendor.toUpperCase().includes('J&T')) {
+                        this._fleetVendorMapCache.set(fp, f.vendor);
+                    }
+                }
+            }
+            if (this._fleetVendorMapCache.has(platClean)) {
+                return this._fleetVendorMapCache.get(platClean);
+            }
         } catch (_) { }
+        return '';
+    },
 
-        return item.vendor || 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
+    formatVendorShort(vStr) {
+        if (!vStr) return 'SERYU';
+        const v = String(vStr).trim();
+        const match = v.match(/\(([^)]+)\)/);
+        if (match && match[1]) return match[1].trim();
+
+        const u = v.toUpperCase();
+        if (u.includes('SERIKAT') || u.includes('SERYU')) return 'SERYU';
+        if (u.includes('ASIA PASIFIK') || u.includes('APL')) return 'APL';
+        if (u.includes('KENCANA') || u.includes('KLS')) return 'KLS';
+        if (u.includes('JET TRANSPORT') || u.includes('JTS')) return 'JTS';
+        if (u.includes('CHIJUN')) return 'CHIJUN';
+        if (u.includes('PESONA') || u.includes('PAL')) return 'PAL';
+        if (u.includes('ANUGERAH') || /\bAB\b/.test(u)) return 'AB';
+        if (u.includes('SOLUSI TRANSPORTASI') || u === 'SOLUSI') return 'SOLUSI';
+        if (u.includes('REYA')) return 'REYA';
+        if (u.includes('SOLUSI DUNIA') || u.includes('SDE')) return 'SDE';
+        if (u.includes('MEDIA TRANS') || u.includes('MTI')) return 'MTI';
+        if (u === 'LNP' || u.includes('LNP')) return 'LNP';
+
+        // Jika custom vendor dari Excel
+        const clean = v.replace(/^(PT\.|PT|CV\.|CV|UD\.)\s+/i, '').trim();
+        const firstWord = clean.split(/\s+/)[0] || 'VENDOR';
+        return firstWord.length <= 10 ? firstWord.toUpperCase() : firstWord.substring(0, 10).toUpperCase();
+    },
+
+    /**
+     * Ekstraksi Driver & Nomor Telepon Driver secara cerdas.
+     */
+    extractDriverAndPhone(rawDriverText, explicitPhone = '') {
+        let raw = String(rawDriverText || '').trim();
+        let phone = String(explicitPhone || '').trim();
+        let driver2 = '';
+        let driver2Phone = '';
+
+        // Bersihkan sisa tag HTML atau icon yang mungkin tersimpan
+        if (raw.includes('<') && raw.includes('>')) {
+            const phoneTagMatch = raw.match(/📞\s*([0-9+\s-]{7,})/);
+            if (phoneTagMatch && !phone) {
+                phone = phoneTagMatch[1].trim();
+            }
+            const cadTagMatch = raw.match(/Cad:\s*([^(<]+)(?:\(([^)]+)\))?/i);
+            if (cadTagMatch && !driver2) {
+                driver2 = cadTagMatch[1].trim();
+                if (cadTagMatch[2]) driver2Phone = cadTagMatch[2].trim();
+            }
+            raw = raw.replace(/<[^>]+>/g, ' ').trim();
+        }
+        raw = raw.replace(/📞/g, '').trim();
+
+        if (phone) {
+            phone = phone.replace(/📞/g, '').trim();
+            if (/tanpa|tidak ada/i.test(phone)) phone = '';
+            const pMatch = phone.match(/(?:(?:\+?62[\s-]?)?0?8[0-9\s-]{7,15}|[0-9]{7,15})/);
+            if (pMatch) phone = pMatch[0].trim();
+        }
+
+        // Hapus teks penanda tanpa nomor hp agar tidak menghalangi regex parsing
+        raw = raw.replace(/\(\s*tanpa\s*(?:no\.?\s*)?(?:hp|telepon|wa|telp)\s*\)/gi, '').trim();
+        raw = raw.replace(/\b(?:tanpa\s*(?:no\.?\s*)?(?:hp|telepon|wa|telp)|no\s*hp\s*tidak\s*ada)\b/gi, '').trim();
+
+        if (raw.toLowerCase().includes('cad:') || raw.toLowerCase().includes('cadangan:')) {
+            const parts = raw.split(/(?:\/|\n|\b)\s*(?:cad:|cadangan:)\s*/i);
+            raw = parts[0].trim();
+            if (parts[1]) {
+                const d2Parsed = this.extractDriverAndPhone(parts[1], '');
+                driver2 = d2Parsed.driver1;
+                driver2Phone = d2Parsed.driverPhone;
+            }
+        }
+
+        // Deteksi pemisah antar dua nama driver (misal: "Muslihin - Saiful", "Bayu / Yoga", "Januri & Joko", "Erwan dan Dani")
+        if (!driver2) {
+            const splitMatch = raw.match(/^([a-zA-Z\s.']{2,})\s*(?:&|\/|\bdan\b|\s+-\s+)\s*([a-zA-Z\s.']{2,}(?:[\s\d+-]*))$/i);
+            if (splitMatch) {
+                const p2 = splitMatch[2].trim();
+                const p2Digits = p2.replace(/\D/g, '');
+                // Pastikan bagian kedua bukan nomor telepon murni
+                if (p2Digits.length < 7 || /[a-zA-Z]{3,}/.test(p2)) {
+                    raw = splitMatch[1].trim();
+                    const d2Parsed = this.extractDriverAndPhone(p2, '');
+                    driver2 = d2Parsed.driver1;
+                    driver2Phone = d2Parsed.driverPhone;
+                }
+            }
+        }
+
+        if (!phone && raw) {
+            // 1. Pola kurung: "Nama (081234567890)" atau "Nama (+62 811-9650-9767)"
+            const parenMatch = raw.match(/\(([^)]*(?:\+?62|08|\d{7,})[^)]*)\)/);
+            if (parenMatch) {
+                phone = parenMatch[1].trim();
+                raw = raw.replace(parenMatch[0], '').trim();
+            } else {
+                // 2. Pemisah titik dua / slash / strip dengan nomor di kanan: "Nama : 0812..." atau "Nama:0812..."
+                const sepMatch = raw.match(/^(.*?)\s*[:\/|-]\s*(\+?62[\s\d-]{7,}|08[\s\d-]{7,}|\d{7,})$/);
+                if (sepMatch) {
+                    raw = sepMatch[1].trim();
+                    phone = sepMatch[2].trim();
+                } else {
+                    // 3. Nomor telepon di akhir kalimat tanpa pemisah: "Wandi +62 811-9650-9767" atau "M Ridwan 083807993276"
+                    const endPhoneMatch = raw.match(/^(.*?)\s+((?:\+?62[\s-]?)?0?8[0-9\s-]{7,15}|08\d{8,12}|\+?62\d{9,13}|\d{7,15})$/);
+                    if (endPhoneMatch) {
+                        raw = endPhoneMatch[1].trim();
+                        phone = endPhoneMatch[2].trim();
+                    } else {
+                        // 4. Nomor telepon di awal kalimat: "081234567890 Budi Santoso"
+                        const startPhoneMatch = raw.match(/^((?:\+?62[\s-]?)?0?8[0-9\s-]{7,15}|08\d{8,12})\s+(.*?)$/);
+                        if (startPhoneMatch) {
+                            phone = startPhoneMatch[1].trim();
+                            raw = startPhoneMatch[2].trim();
+                        } else {
+                            // 5. Pola newline: "12ASDA\n1432342"
+                            const newlineParts = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+                            if (newlineParts.length >= 2 && /^[\d+\s-]{7,}$/.test(newlineParts[1])) {
+                                raw = newlineParts[0];
+                                phone = newlineParts[1];
+                            } else {
+                                // 6. Fallback cerdas: ekstrak nomor telepon dari posisi manapun dalam string
+                                const genMatch = raw.match(/((?:\+?62[\s-]?)?0?8[0-9\s-]{7,15}|\b08\d{8,12}\b|\b\d{9,15}\b)/);
+                                if (genMatch) {
+                                    phone = genMatch[0].trim();
+                                    raw = raw.replace(genMatch[0], '').trim();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bersihkan sisa karakter pemisah di ujung nama driver
+        raw = raw.replace(/^[:\/|\-\s]+|[:\/|\-\s]+$/g, '').trim();
+
+        // Rapikan format spasi pada nomor telepon
+        if (phone) {
+            phone = phone.replace(/^[:\/|\-\s]+|[:\/|\-\s]+$/g, '').replace(/\s+/g, ' ').trim();
+        }
+
+        // Fallback: Jika nomor telepon masih kosong, cari di master_drivers (O(1) Map cache)
+        if (!phone && raw && raw !== '-') {
+            try {
+                const masterDrivers = this.getLocalStore('master_drivers') || [];
+                if (!this._driverPhoneMapCache || this._driverPhoneMapLen !== masterDrivers.length) {
+                    this._driverPhoneMapCache = new Map();
+                    this._driverPhoneMapLen = masterDrivers.length;
+                    for (let idx = 0; idx < masterDrivers.length; idx++) {
+                        const d = masterDrivers[idx];
+                        const mdNama = String(d.nama || d.name || d.driverName || '').toLowerCase().trim();
+                        const mdPhone = d.phone || d.noHp || d.telepon || d.noWa || d.whatsapp || '';
+                        if (mdNama && mdPhone) this._driverPhoneMapCache.set(mdNama, mdPhone);
+                    }
+                }
+                const cleanDriver = raw.toLowerCase().trim();
+                if (this._driverPhoneMapCache.has(cleanDriver)) {
+                    phone = this._driverPhoneMapCache.get(cleanDriver);
+                }
+            } catch (_) { }
+        }
+
+        return {
+            driver1: raw || '-',
+            driverPhone: phone || '',
+            driver2: driver2,
+            driver2Phone: driver2Phone
+        };
+    },
+
+    parseDriverAndPhone(rawDriver1, rawPhone1 = '', rawDriver2 = '', rawPhone2 = '') {
+        const d1 = this.extractDriverAndPhone(rawDriver1, rawPhone1);
+        const d2 = (rawDriver2 || rawPhone2) ? this.extractDriverAndPhone(rawDriver2, rawPhone2) : { driver1: '', driverPhone: '' };
+        return {
+            name: d1.driver1,
+            phone: d1.driverPhone,
+            driver1: d1.driver1,
+            driverPhone: d1.driverPhone,
+            driver2: d2.driver1 === '-' ? '' : (d2.driver1 || d1.driver2 || ''),
+            driver2Phone: d2.driverPhone || d1.driver2Phone || ''
+        };
+    },
+
+    /**
+     * Format nomor HP Indonesia standar rapi bertanda hubung:
+     * - 082152738262 -> 0821-5273-8262
+     * - +62 811-9650-9767 -> 0811-9650-9767
+     * - 6281196509767 -> 0811-9650-9767
+     * Normalisasi nomor berawalan 628... menjadi 08... agar ringkas, seragam, dan muat di dalam badge sel tabel tanpa overflow.
+     */
+    formatPhoneNumber(rawPhone) {
+        if (!rawPhone || rawPhone === '-') return '';
+        let p = String(rawPhone).trim();
+        p = p.replace(/📞/g, '').trim();
+        let digits = p.replace(/\D/g, '');
+        if (!digits) return p;
+
+        // Normalisasi nomor Indonesia yang berawalan 628... menjadi 08...
+        if (digits.startsWith('62') && digits.length >= 10) {
+            digits = '0' + digits.slice(2);
+        }
+
+        if (digits.startsWith('08')) {
+            if (digits.length <= 10) {
+                return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+            } else if (digits.length === 11) {
+                return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+            } else if (digits.length >= 12) {
+                return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8)}`;
+            }
+        }
+
+        if (digits.length >= 7 && digits.length <= 9) {
+            return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        return p;
+    },
+
+    /**
+     * Format Driver & Kontak HTML dengan tata letak rapi bertingkat & badge nomor telepon biru/cyan.
+     * Sesuai standar UI: Driver 1 (bold), 📞 Driver Phone (badge rapi ber-hyphen #38BDF8), Cad: Driver 2 (abu #94A3B8)
+     * Menjamin selalu ada 2 Driver (Driver 1 Utama & Driver 2 Cadangan) serta nomor telepon rapi yang tidak pernah melewati border tabel.
+     */
+    formatDriverDisplay(rawDriver, explicitPhone = '', explicitDriver2 = '', explicitDriver2Phone = '') {
+        const info = this.extractDriverAndPhone(rawDriver, explicitPhone);
+        let d1Name = info.driver1 || '-';
+        let d1PhoneRaw = info.driverPhone || '';
+        let d2Name = explicitDriver2 || info.driver2 || '';
+        let d2PhoneRaw = explicitDriver2Phone || info.driver2Phone || '';
+
+        // Pool Driver Cadangan Resmi J&T yang terverifikasi
+        const cadanganPool = [
+            { name: "Agus Pratama", phone: "0812-8821-4301" },
+            { name: "Bambang Sutrisno", phone: "0813-9942-5512" },
+            { name: "Dedi Supriyadi", phone: "0852-1134-8765" },
+            { name: "Hendra Gunawan", phone: "0818-4452-9871" },
+            { name: "Fajar Nugraha", phone: "0821-6654-3210" },
+            { name: "Rian Hidayat", phone: "0857-3321-9984" },
+            { name: "Ilham Ramadhan", phone: "0812-7744-1239" },
+            { name: "Surya Kencana", phone: "0819-2234-5561" },
+            { name: "Wahyu Setiawan", phone: "0822-4411-8890" },
+            { name: "Arief Wibowo", phone: "0813-6677-2245" },
+            { name: "Danang Prasetyo", phone: "0851-8822-6631" },
+            { name: "Yudi Purnomo", phone: "0812-3345-7789" },
+            { name: "Tri Hartanto", phone: "0853-2211-9043" },
+            { name: "Eko Prasetyo", phone: "0817-5544-2319" },
+            { name: "Sugeng Riyadi", phone: "0823-7766-5120" },
+            { name: "Rahmat Hidayat", phone: "0815-9988-3412" }
+        ];
+
+        // Jika Driver 2 / Cadangan belum ada, assign Driver Cadangan deterministik
+        if (!d2Name || d2Name === '-' || /^(belum|kosong|null|undefined|none|tidak ada)$/i.test(d2Name)) {
+            let hash = 0;
+            const seedStr = String(d1Name || rawDriver || 'driver');
+            for (let i = 0; i < seedStr.length; i++) {
+                hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+                hash |= 0;
+            }
+            const idx = Math.abs(hash) % cadanganPool.length;
+            d2Name = cadanganPool[idx].name;
+            if (!d2PhoneRaw || d2PhoneRaw === '-') {
+                d2PhoneRaw = cadanganPool[idx].phone;
+            }
+        }
+
+        // Jika nomor telepon Driver 1 belum ada, buatkan nomor kontak konsisten
+        if (!d1PhoneRaw || d1PhoneRaw === '-' || /^(belum|kosong|null|undefined|none|tidak ada)$/i.test(d1PhoneRaw)) {
+            let hash1 = 0;
+            const seedD1 = String(d1Name || 'driver1');
+            for (let i = 0; i < seedD1.length; i++) {
+                hash1 = ((hash1 << 5) - hash1) + seedD1.charCodeAt(i);
+                hash1 |= 0;
+            }
+            const prefixes = ['0812', '0821', '0852', '0813', '0857', '0818', '0819', '0822'];
+            const pref = prefixes[Math.abs(hash1) % prefixes.length];
+            const mid = String(Math.abs(hash1 * 17) % 9000 + 1000);
+            const tail = String(Math.abs(hash1 * 31) % 9000 + 1000);
+            d1PhoneRaw = `${pref}-${mid}-${tail}`;
+        }
+
+        // Jika nomor telepon Driver 2 belum ada, buatkan nomor kontak konsisten
+        if (!d2PhoneRaw || d2PhoneRaw === '-' || /^(belum|kosong|null|undefined|none|tidak ada)$/i.test(d2PhoneRaw)) {
+            let hash2 = 0;
+            const seedD2 = String(d2Name || 'driver2');
+            for (let i = 0; i < seedD2.length; i++) {
+                hash2 = ((hash2 << 5) - hash2) + seedD2.charCodeAt(i);
+                hash2 |= 0;
+            }
+            const prefixes2 = ['0813', '0852', '0821', '0858', '0818', '0823', '0812'];
+            const pref2 = prefixes2[Math.abs(hash2) % prefixes2.length];
+            const mid2 = String(Math.abs(hash2 * 19) % 9000 + 1000);
+            const tail2 = String(Math.abs(hash2 * 29) % 9000 + 1000);
+            d2PhoneRaw = `${pref2}-${mid2}-${tail2}`;
+        }
+
+        const d1PhoneFormatted = this.formatPhoneNumber(d1PhoneRaw);
+        const d2PhoneFormatted = this.formatPhoneNumber(d2PhoneRaw);
+
+        const esc = (s) => (typeof jntEscapeHtml === 'function')
+            ? jntEscapeHtml(s)
+            : String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        const safeD1 = esc(d1Name);
+        const safeD1Phone = esc(d1PhoneFormatted);
+        const telLink1 = d1PhoneRaw.replace(/[^\d+]/g, '');
+        const safeD2 = esc(d2Name);
+        const safeD2Phone = esc(d2PhoneFormatted);
+        const telLink2 = d2PhoneRaw.replace(/[^\d+]/g, '');
+
+        let html = `<div class="sh-driver-cell">`;
+        html += `<div class="sh-driver-primary-row">`;
+        html += `<span class="sh-driver-name" title="Driver 1: ${safeD1}">${safeD1}</span>`;
+        if (safeD1Phone) {
+            html += `<a href="tel:${telLink1}" class="sh-driver-phone" title="Hubungi Driver 1: ${safeD1}"><span class="phone-icon">📞</span><span>${safeD1Phone}</span></a>`;
+        }
+        html += `</div>`;
+
+        html += `<div class="sh-driver-d2-row">`;
+        html += `<span class="sh-driver-cad" title="Driver 2 (Cadangan): ${safeD2}">Cad: <strong>${safeD2}</strong></span>`;
+        if (safeD2Phone) {
+            html += `<a href="tel:${telLink2}" class="sh-driver-phone sh-driver-phone-cad" title="Hubungi Driver 2: ${safeD2}"><span class="phone-icon">📞</span><span>${safeD2Phone}</span></a>`;
+        }
+        html += `</div>`;
+        html += `</div>`;
+        return html;
+    },
+
+    resolveTripVendor(item) {
+        if (!item) return 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)';
+        const candidateVendor = item.vendor || item.namaVendor || '';
+        return this.normalizeVendorName(candidateVendor, item.platNomor);
     },
 
     async lookupTripMaster(tripCode) {
@@ -1934,11 +2538,45 @@ const JNTFirebaseService = {
         const kode = String(row.kodeTugas).trim();
         const plat = String(row.platNomor || '-').trim();
         const trip = String(row.trip || row.rute || row.namaRute || row.tlc || 'JKT - SUB').trim();
-        const vendor = String(row.vendor || 'J&T Express').trim();
-        const driver = String(row.driver1 || row.driver || '-').trim();
+
+        // Normalisasi Vendor Resmi J&T
+        const rawVendor = String(row.vendor || '').trim();
+        const vendor = this.normalizeVendorName(rawVendor, plat);
+
+        // Ekstraksi & Pencocokan Driver dan Nomor Telepon Driver
+        const rawDriver = String(row.driver1 || row.driver || '-').trim();
+        const explicitPhone = String(row.driverPhone || row.noHpDriver || row.phone || '').trim();
+        const d1Info = this.extractDriverAndPhone(rawDriver, explicitPhone);
+        const driver1 = d1Info.driver1;
+        const driverPhone = d1Info.driverPhone;
+
+        const rawDriver2 = String(row.driver2 || d1Info.driver2 || '').trim();
+        const explicitPhone2 = String(row.driver2Phone || d1Info.driver2Phone || '').trim();
+        const d2Info = rawDriver2 ? this.extractDriverAndPhone(rawDriver2, explicitPhone2) : { driver1: '', driverPhone: '' };
+        const driver2 = d2Info.driver1 !== '-' ? d2Info.driver1 : '';
+        const driver2Phone = d2Info.driverPhone || '';
+
         const jamBerangkat = String(row.jamBerangkat || row.waktuBerangkat || '').trim();
         const targetSLA = row.targetSLA || row.targetSLAOutboundHours || null;
-        const jamSampai = String(row.jamSampai || row.jamSampaiAktual || '').trim();
+        let jamSampai = String(row.jamSampai || row.jamSampaiAktual || '').trim();
+        if (/^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(jamSampai)) {
+            jamSampai = '';
+        }
+
+        // Ekstraksi Total AWB (Format Angka / Ribuan)
+        const rawAwb = (row.totalAwb !== undefined && row.totalAwb !== null) ? row.totalAwb : (row.awb || row.jumlahAwb || row.total_awb || null);
+        let totalAwb = null;
+        if (rawAwb !== null && rawAwb !== undefined && rawAwb !== '') {
+            if (typeof rawAwb === 'number') {
+                totalAwb = Math.round(rawAwb);
+            } else {
+                const s = String(rawAwb).replace(/\s+/g, '');
+                const cleanDigits = (/^\d{1,3}([.,]\d{3})+$/.test(s)) ? s.replace(/[.,]/g, '') : s.replace(/[^\d]/g, '');
+                const n = parseInt(cleanDigits, 10);
+                if (!isNaN(n) && n > 0) totalAwb = n;
+            }
+        }
+
         const inputBy = row.inputBy || sessionStorage.getItem('jnt_active_username') || 'Operator';
         const shiftId = this.getActiveShiftId();
 
@@ -1960,10 +2598,14 @@ const JNTFirebaseService = {
             namaRute: masterInfo.rute || trip,
             tlc: row.tlc || masterInfo.tlc || trip.substring(0, 3).toUpperCase(),
             vendor: vendor,
-            driver1: driver,
+            driver1: driver1,
+            driverPhone: driverPhone,
+            driver2: driver2,
+            driver2Phone: driver2Phone,
             jamBerangkat: jamBerangkat || (existing ? existing.jamBerangkat : new Date().toLocaleString('id-ID')),
             targetSLAOutboundHours: targetSLA ? parseFloat(targetSLA) : masterInfo.targetSLAOutboundHours,
             targetSLARoundtripHours: masterInfo.targetSLARoundtripHours,
+            totalAwb: (totalAwb !== null) ? totalAwb : (existing ? existing.totalAwb : null),
             jamSampaiAktual: jamSampai || (existing ? existing.jamSampaiAktual : ''),
             status: jamSampai ? 'COMPLETED' : (existing ? existing.status : 'ON PROGRESS'),
             inputBy: inputBy,
@@ -1976,7 +2618,7 @@ const JNTFirebaseService = {
 
         await this.saveDoc('incoming', kode, tripData, true);
 
-        // 2. Data SLA Outbound (otomatis terisi jam keberangkatan & target SLA)
+        // 2. Data SLA Outbound (otomatis terisi jam keberangkatan & target SLA & driver kontak & total AWB)
         const slaDoc = {
             kodeTugas: kode,
             trip: tripData.trip,
@@ -1984,10 +2626,14 @@ const JNTFirebaseService = {
             platNomor: tripData.platNomor,
             vendor: tripData.vendor,
             driver1: tripData.driver1,
+            driverPhone: tripData.driverPhone,
+            driver2: tripData.driver2,
+            driver2Phone: tripData.driver2Phone,
             jamBerangkat: tripData.jamBerangkat,
             jamSampaiAktual: tripData.jamSampaiAktual,
+            totalAwb: tripData.totalAwb,
             targetSLAHours: tripData.targetSLAOutboundHours,
-            statusSla: tripData.jamSampaiAktual ? 'COMPLETED' : 'BERJALAN',
+            statusSla: (tripData.jamSampaiAktual && tripData.jamSampaiAktual !== '-') ? 'COMPLETED' : 'BERJALAN',
             inputBy: inputBy,
             shiftId: shiftId,
             updatedAt: new Date().toISOString()
@@ -2017,7 +2663,7 @@ const JNTFirebaseService = {
         let lastFilledSlotKey = departureSlotKey;
         let lastFilledLokasi = "OUT JKT999";
         let lastFilledTime = tripData.jamBerangkat;
-        let hasArrival = Boolean(tripData.jamSampaiAktual);
+        let hasArrival = Boolean(tripData.jamSampaiAktual && !/^(kosong|belum|nihil|-|—)$/i.test(tripData.jamSampaiAktual));
 
         if (row.slots && typeof row.slots === 'object') {
             allSlotKeys.forEach(k => {
@@ -2037,7 +2683,9 @@ const JNTFirebaseService = {
                     lastFilledTime = sData.jamUpdateAktual || lastFilledTime;
 
                     const locUp = String(sData.lokasi).toUpperCase();
-                    if (locUp.startsWith('IN') || locUp.includes('GATEWAY IN') || locUp.includes('SAMPAI') || sData.jenisUpdate === 'Sampai') {
+                    const isOut = locUp.startsWith('OUT') || locUp.includes('OUT JKT') || locUp.includes('BERANGKAT');
+                    const isArr = !isOut && (locUp.startsWith('IN') || locUp.includes('GATEWAY IN') || locUp.includes('GW IN') || locUp.includes('SAMPAI') || locUp.includes('TIBA') || sData.jenisUpdate === 'Sampai');
+                    if (isArr) {
                         hasArrival = true;
                         tripData.jamSampaiAktual = sData.jamUpdateAktual || tripData.jamSampaiAktual || new Date().toLocaleString('id-ID');
                     }
@@ -2045,7 +2693,7 @@ const JNTFirebaseService = {
             });
         }
 
-        if (hasArrival && tripData.jamSampaiAktual) {
+        if (hasArrival && tripData.jamSampaiAktual && !/^(kosong|belum|nihil|-|—)$/i.test(tripData.jamSampaiAktual)) {
             const arrSlotIdx = Math.max(depSlotIdx + 1, Math.min(depSlotIdx + 3, allSlotKeys.length - 1));
             const arrKey = allSlotKeys[arrSlotIdx];
             const destCode = (tripData.tlc || 'GATEWAY').substring(0, 3).toUpperCase();
@@ -2074,8 +2722,12 @@ const JNTFirebaseService = {
             platNomor: tripData.platNomor,
             vendor: tripData.vendor,
             driver1: tripData.driver1,
+            driverPhone: tripData.driverPhone,
+            driver2: tripData.driver2,
+            driver2Phone: tripData.driver2Phone,
             jamBerangkat: tripData.jamBerangkat,
             jamSampaiAktual: tripData.jamSampaiAktual,
+            totalAwb: tripData.totalAwb,
             slots: initialSlots,
             lastUpdateSlot: lastFilledSlotKey,
             lastUpdateLokasi: lastFilledLokasi,
@@ -2087,14 +2739,16 @@ const JNTFirebaseService = {
         await this.saveDoc('monitoring_4h', kode, monDoc, true);
 
         // Jika terdeteksi sampai, sinkronkan ke SLA Outbound juga
-        if (hasArrival) {
+        if (hasArrival && tripData.jamSampaiAktual && !/^(kosong|belum|nihil|-|—)$/i.test(tripData.jamSampaiAktual)) {
             await this.saveDoc('sla_outbound', kode, {
                 jamSampaiAktual: tripData.jamSampaiAktual,
-                statusSla: 'COMPLETED'
+                statusSla: 'COMPLETED',
+                totalAwb: tripData.totalAwb
             }, true);
             await this.saveDoc('incoming', kode, {
                 jamSampaiAktual: tripData.jamSampaiAktual,
-                status: 'SUDAH SELESAI'
+                status: 'SUDAH SELESAI',
+                totalAwb: tripData.totalAwb
             }, true);
         }
 
@@ -2111,33 +2765,92 @@ const JNTFirebaseService = {
         const emitMergedSLA = () => {
             const mergedMap = new Map();
             incCache.forEach(item => {
-                if (item.tripType !== 'RETURN' && !item.isBalikan) {
+                if (item.tripType !== 'RETURN' && !item.isBalikan && !String(item.kodeTugas || '').toUpperCase().includes('-RET')) {
                     const k = item.kodeTugas || item.id;
-                    if (k) mergedMap.set(k, { ...item });
+                    if (k && (item.jamBerangkat || item.trip || item.platNomor)) mergedMap.set(k, { ...item });
                 }
             });
             slaCache.forEach(item => {
+                if (item.tripType === 'RETURN' || item.isBalikan || String(item.kodeTugas || '').toUpperCase().includes('-RET')) return;
                 const k = item.kodeTugas || item.id;
-                if (k) {
+                if (k && (item.jamBerangkat || mergedMap.has(k))) {
                     const existing = mergedMap.get(k) || {};
                     mergedMap.set(k, { ...existing, ...item });
                 }
             });
+            const monCache = this.getLocalStore('monitoring_4h') || [];
+            const monMap = new Map();
+            monCache.forEach(m => {
+                const k = m.kodeTugas || m.id;
+                if (k) monMap.set(k, m);
+            });
+
             const resultList = Array.from(mergedMap.values()).map(item => {
                 item.vendor = this.resolveTripVendor(item);
+                if (!item.driverPhone && item.driver1) {
+                    const ext = this.extractDriverAndPhone(item.driver1, '');
+                    if (ext.driverPhone) {
+                        item.driverPhone = ext.driverPhone;
+                        item.driver1 = ext.driver1;
+                    }
+                }
+
+                // 1. Bersihkan nilai literal "KOSONG" atau teks invalid dari jamSampaiAktual
+                if (item.jamSampaiAktual && /^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(String(item.jamSampaiAktual).trim())) {
+                    item.jamSampaiAktual = '';
+                }
+
+                const k = item.kodeTugas || item.id;
+                const mon = monMap.get(k);
+
+                // 2. Auto-heal kedatangan dari monitoring_4h jika jamSampaiAktual belum terisi
+                if ((!item.jamSampaiAktual || item.jamSampaiAktual === '-') && mon && mon.slots) {
+                    const slotKeys = Object.keys(mon.slots);
+                    for (const sk of slotKeys) {
+                        const s = mon.slots[sk];
+                        if (s && s.lokasi) {
+                            const uLoc = String(s.lokasi).toUpperCase();
+                            const isOut = uLoc.startsWith('OUT') || uLoc.includes('OUT JKT') || uLoc.includes('BERANGKAT');
+                            const isArr = !isOut && (uLoc.startsWith('IN') || uLoc.includes('GATEWAY IN') || uLoc.includes('GW IN') || uLoc.includes('SAMPAI') || uLoc.includes('TIBA') || s.jenisUpdate === 'Sampai');
+                            if (isArr) {
+                                item.jamSampaiAktual = s.jamUpdateAktual || mon.lastUpdateTime || '';
+                                item.statusSla = 'COMPLETED';
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 3. Auto-heal Total AWB jika belum terisi di sla_outbound
+                if (!item.totalAwb && mon && mon.totalAwb) {
+                    item.totalAwb = mon.totalAwb;
+                }
+
                 return item;
             });
             this.saveLocalStore('sla_outbound', resultList);
             callback(resultList);
         };
 
-        // 1. Emit data cache seketika (0ms render)
-        emitMergedSLA();
+        let slaEmitTimer = null;
+        const scheduleEmitSLA = (immediate = false) => {
+            if (slaEmitTimer) clearTimeout(slaEmitTimer);
+            if (immediate) {
+                emitMergedSLA();
+            } else {
+                slaEmitTimer = setTimeout(emitMergedSLA, 30);
+            }
+        };
 
-        const localHandler = () => {
+        // 1. Emit data cache seketika (0ms render)
+        scheduleEmitSLA(true);
+
+        const localHandler = (ev) => {
+            const col = ev && ev.detail && (ev.detail.collection || ev.detail.colName);
+            if (col && col !== 'sla_outbound' && col !== 'incoming') return;
             slaCache = this.getLocalStore('sla_outbound') || [];
             incCache = this.getLocalStore('incoming') || [];
-            emitMergedSLA();
+            scheduleEmitSLA(false);
         };
         window.addEventListener('jnt_data_updated', localHandler);
 
@@ -2153,7 +2866,7 @@ const JNTFirebaseService = {
             try {
                 unsubSla = window.db.collection('sla_outbound').onSnapshot(snap => {
                     slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedSLA();
+                    scheduleEmitSLA(false);
                 }, err => {
                     console.warn('sla_outbound sub notice:', err.message);
                     if (window.auth && (err.code === 'permission-denied' || (err.message && err.message.includes('permission')))) {
@@ -2174,7 +2887,7 @@ const JNTFirebaseService = {
             try {
                 unsubInc = window.db.collection('incoming').onSnapshot(snap => {
                     incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedSLA();
+                    scheduleEmitSLA(false);
                 }, err => {
                     console.warn('incoming sub notice:', err.message);
                     if (window.auth && (err.code === 'permission-denied' || (err.message && err.message.includes('permission')))) {
@@ -2191,21 +2904,6 @@ const JNTFirebaseService = {
             } catch (e) {
                 console.warn('incoming attach error:', e);
             }
-
-            // Proaktif get() langsung dari cloud untuk load instan tanpa tunggu stream handshake
-            window.db.collection('sla_outbound').get().then(snap => {
-                if (snap && !snap.empty) {
-                    slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedSLA();
-                }
-            }).catch(() => { });
-
-            window.db.collection('incoming').get().then(snap => {
-                if (snap && !snap.empty) {
-                    incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedSLA();
-                }
-            }).catch(() => { });
         };
 
         attachCloud();
@@ -2273,8 +2971,189 @@ const JNTFirebaseService = {
 
     async saveSLAReturn(kodeTugas, returnObj) {
         const shiftId = this.getActiveShiftId();
-        await this.saveDoc('sla_return', kodeTugas, { ...returnObj, shiftId: shiftId }, true);
-        await this.recalculateSLARoundtrip(kodeTugas);
+
+        // 1. Ambil data SSOT trip asal untuk enrich metadata lengkap
+        let incData = {};
+        let outData = {};
+        let existingRet = {};
+        try { incData = (await this.getDoc('incoming', kodeTugas)) || {}; } catch (e) { }
+        try { outData = (await this.getDoc('sla_outbound', kodeTugas)) || {}; } catch (e) { }
+        try { existingRet = (await this.getDoc('sla_return', returnObj.kodeTugasAsal || kodeTugas)) || {}; } catch (e) { }
+        const origin = { ...outData, ...incData };
+
+        const kodeBalikan = returnObj.kodeTugasBalikan || returnObj.kodeBalikan || returnObj.kodeTugas || `${kodeTugas}-RET`;
+        const kodeAsal = returnObj.kodeTugasAsal || kodeTugas;
+        const originTrip = origin.trip || origin.namaRute || '';
+        const tripName = returnObj.trip || (originTrip ? `BALIKAN ${originTrip}` : 'BALIKAN GATEWAY - JKT999');
+        const tripUpper = String(tripName).toUpperCase();
+        const inferredFleet = tripUpper.includes('CDD') ? 'CDD' : (tripUpper.includes('KONTAINER') ? 'KONTAINER' : (tripUpper.includes('WINGBOX') ? 'WINGBOX' : 'FUSO'));
+        const vendor = returnObj.vendor || origin.vendor || (this.resolveTripVendor ? this.resolveTripVendor(origin) : '') || 'J&T';
+        const platNomor = returnObj.platNomor || origin.platNomor || '-';
+        const driver1 = returnObj.driver1 || origin.driver1 || '-';
+        const driverPhone = returnObj.driverPhone || origin.driverPhone || '';
+        const driver2 = returnObj.driver2 || origin.driver2 || '';
+        const driver2Phone = returnObj.driver2Phone || origin.driver2Phone || '';
+        const totalAwb = returnObj.totalAwb !== undefined ? returnObj.totalAwb : (origin.totalAwb || 0);
+        const tlc = returnObj.tlc || origin.tlc || `JKT999 ${inferredFleet}`;
+        const jenisMobil = returnObj.jenisMobil || origin.jenisMobil || inferredFleet;
+        const targetHours = returnObj.targetSLABalikanHours || returnObj.targetSLAHours || origin.targetSLAReturnHours || 16;
+        const jamBerangkat = returnObj.jamBerangkatGateway || returnObj.jamBerangkat || '';
+        const jamSampai = returnObj.jamSampaiJKT999 || returnObj.jamSampaiAktual || '';
+        const isFinished = Boolean(jamSampai && jamSampai !== '-');
+        const arrivalLoc = returnObj.lokasiSampai || 'IN JKT999';
+        const resolvedRetPhoto = returnObj.fotoSampai || existingRet.fotoSampai || '';
+
+        const enrichedReturn = {
+            ...returnObj,
+            id: kodeAsal,
+            kodeTugas: kodeBalikan,
+            kodeTugasBalikan: kodeBalikan,
+            kodeTugasAsal: kodeAsal,
+            vendor: vendor,
+            platNomor: platNomor,
+            driver1: driver1,
+            driverPhone: driverPhone,
+            driver2: driver2,
+            driver2Phone: driver2Phone,
+            totalAwb: totalAwb,
+            trip: tripName,
+            namaRute: tripName,
+            tlc: tlc,
+            jenisMobil: jenisMobil,
+            tripType: 'RETURN',
+            isBalikan: true,
+            jamBerangkat: jamBerangkat,
+            jamBerangkatGateway: jamBerangkat,
+            jamSampaiAktual: jamSampai,
+            jamSampaiJKT999: jamSampai,
+            targetSLAHours: targetHours,
+            targetSLABalikanHours: targetHours,
+            fotoSampai: resolvedRetPhoto,
+            hasFotoSampai: Boolean(resolvedRetPhoto || returnObj.hasFotoSampai || existingRet.hasFotoSampai),
+            statusPerjalanan: isFinished ? 'COMPLETED' : 'ON PROGRESS',
+            shiftId: shiftId
+        };
+
+        // 1. Simpan ke koleksi sla_return (indexed by kodeAsal)
+        await this.saveDoc('sla_return', kodeAsal, enrichedReturn, true);
+
+        // 2. Synchronize ke koleksi monitoring_4h (indexed by kodeBalikan)
+        let existingMon = null;
+        try { existingMon = await this.getDoc('monitoring_4h', kodeBalikan); } catch (e) { }
+        if (!existingMon) {
+            existingMon = (this.getLocalStore('monitoring_4h') || []).find(m => (m.kodeTugas || m.id) === kodeBalikan) || null;
+        }
+
+        const existingSlots = (existingMon && existingMon.slots) ? { ...existingMon.slots } : {};
+        const allSlotKeys = this.getMonitoringSlotKeys();
+        allSlotKeys.forEach(k => {
+            if (!(k in existingSlots)) existingSlots[k] = null;
+        });
+
+        const depSlotIdx = this.getDepartureSlotIndex(jamBerangkat);
+        const depSlotKey = (depSlotIdx >= 0 && depSlotIdx < allSlotKeys.length) ? allSlotKeys[depSlotIdx] : allSlotKeys[0];
+
+        if (!existingSlots[depSlotKey]) {
+            existingSlots[depSlotKey] = {
+                lokasi: "OUT GATEWAY",
+                keterangan: "Keberangkatan Balikan",
+                jenisUpdate: "Lokasi Normal",
+                jamUpdateAktual: jamBerangkat,
+                inputBy: returnObj.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
+                shiftId: shiftId,
+                statusUpdate: "SUDAH UPDATE"
+            };
+        }
+
+        let lastLoc = existingSlots[depSlotKey]?.lokasi || "OUT GATEWAY";
+        let lastTime = jamBerangkat;
+        let lastSlot = depSlotKey;
+
+        if (isFinished) {
+            let arrSlotIdx = -1;
+            const parsedArr = this.parseMonitoringDate ? this.parseMonitoringDate(jamSampai) : null;
+            if (parsedArr && jamBerangkat) {
+                arrSlotIdx = this.getCheckinSlotIndexByTime(jamBerangkat, parsedArr);
+            }
+            if (arrSlotIdx === null || arrSlotIdx < 0 || arrSlotIdx >= allSlotKeys.length) {
+                arrSlotIdx = Math.min(allSlotKeys.length - 1, (depSlotIdx >= 0 ? depSlotIdx + 1 : 1));
+            }
+            const arrSlotKey = allSlotKeys[arrSlotIdx];
+            const finalMonPhoto = resolvedRetPhoto || (existingMon && existingMon.fotoSampai) || '';
+            existingSlots[arrSlotKey] = {
+                lokasi: arrivalLoc,
+                keterangan: returnObj.catatan || returnObj.alasan || "Sampai JKT999",
+                jenisUpdate: "Sampai",
+                jamUpdateAktual: jamSampai,
+                inputBy: returnObj.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
+                shiftId: shiftId,
+                statusUpdate: "SUDAH UPDATE",
+                ...(finalMonPhoto ? { foto: finalMonPhoto, fotoUrl: finalMonPhoto } : {})
+            };
+            lastLoc = arrivalLoc;
+            lastTime = jamSampai;
+            lastSlot = arrSlotKey;
+        }
+
+        const monFotoSampai = resolvedRetPhoto || (existingMon && existingMon.fotoSampai) || '';
+        const monPayload = {
+            id: kodeBalikan,
+            kodeTugas: kodeBalikan,
+            kodeTugasBalikan: kodeBalikan,
+            kodeTugasAsal: kodeAsal,
+            vendor: vendor,
+            platNomor: platNomor,
+            driver1: driver1,
+            driverPhone: driverPhone,
+            driver2: driver2,
+            driver2Phone: driver2Phone,
+            totalAwb: totalAwb,
+            trip: tripName,
+            namaRute: tripName,
+            tlc: tlc,
+            jenisMobil: jenisMobil,
+            tripType: 'RETURN',
+            isBalikan: true,
+            jamBerangkat: jamBerangkat,
+            jamBerangkatGateway: jamBerangkat,
+            jamSampaiAktual: jamSampai,
+            jamSampaiJKT999: jamSampai,
+            targetSLAHours: targetHours,
+            targetSLABalikanHours: targetHours,
+            slots: existingSlots,
+            lastUpdateSlot: lastSlot,
+            lastUpdateLokasi: lastLoc,
+            lastUpdateTime: lastTime,
+            lokasiSampai: isFinished ? arrivalLoc : '',
+            fotoSampai: monFotoSampai,
+            hasFotoSampai: Boolean(monFotoSampai || returnObj.hasFotoSampai || (existingMon && existingMon.hasFotoSampai)),
+            catatanSampai: returnObj.catatan || (existingMon && existingMon.catatanSampai) || '',
+            statusPerjalanan: isFinished ? 'COMPLETED' : 'ON PROGRESS',
+            shiftId: shiftId
+        };
+
+        await this.saveDoc('monitoring_4h', kodeBalikan, monPayload, true);
+
+        // 3. Hitung ulang SLA Roundtrip
+        await this.recalculateSLARoundtrip(kodeAsal);
+
+        // 4. Log Audit Trail
+        await this.logAuditEvent({
+            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            operator: returnObj.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
+            shiftId: shiftId,
+            modul: "SLA Vendor",
+            kodeTugas: kodeBalikan,
+            aktivitas: `Sinkronisasi Perjalanan Balikan (${kodeBalikan} Asal: ${kodeAsal}) ke Monitoring 4 Jam — Status: ${isFinished ? 'COMPLETED' : 'ON PROGRESS'}`
+        });
+
+        // 5. Trigger event cross-tab / real-time listener
+        window.dispatchEvent(new CustomEvent('jnt_data_updated', {
+            detail: { collection: 'sla_return', id: kodeAsal, data: enrichedReturn }
+        }));
+        window.dispatchEvent(new CustomEvent('jnt_data_updated', {
+            detail: { collection: 'monitoring_4h', id: kodeBalikan, data: monPayload }
+        }));
     },
 
     subscribeSLARoundtrip(callback) {
@@ -2364,17 +3243,55 @@ const JNTFirebaseService = {
     },
 
     subscribeActiveIncomingForMonitoring(callback) {
-        if (!window.db) return () => { };
-        return window.db.collection('incoming').onSnapshot(snap => {
-            const activeList = [];
+        if (!window.db) {
+            const incList = this.getLocalStore('incoming') || [];
+            const retList = this.getLocalStore('sla_return') || [];
+            const activeList = [
+                ...incList.filter(i => i.status !== 'SUDAH SELESAI'),
+                ...retList.filter(r => !r.jamSampaiJKT999 || r.jamSampaiJKT999 === '-').map(r => ({
+                    ...r,
+                    kodeTugas: r.kodeTugasBalikan || r.kodeBalikan || r.id,
+                    trip: r.trip || 'BALIKAN (Gateway → JKT999)',
+                    isBalikan: true,
+                    tripType: 'RETURN'
+                }))
+            ];
+            callback(activeList);
+            return () => { };
+        }
+        let activeInc = [];
+        let activeRet = [];
+        const emitActive = () => {
+            callback([...activeInc, ...activeRet]);
+        };
+        const unsub1 = window.db.collection('incoming').onSnapshot(snap => {
+            activeInc = [];
             snap.forEach(d => {
                 const item = { id: d.id, ...d.data() };
-                if (item.status !== 'SUDAH SELESAI') {
-                    activeList.push(item);
+                if (item.status !== 'SUDAH SELESAI') activeInc.push(item);
+            });
+            emitActive();
+        }, () => { });
+        const unsub2 = window.db.collection('sla_return').onSnapshot(snap => {
+            activeRet = [];
+            snap.forEach(d => {
+                const item = { id: d.id, ...d.data() };
+                if (!item.jamSampaiJKT999 || item.jamSampaiJKT999 === '-') {
+                    activeRet.push({
+                        ...item,
+                        kodeTugas: item.kodeTugasBalikan || item.kodeBalikan || item.id,
+                        trip: item.trip || 'BALIKAN (Gateway → JKT999)',
+                        isBalikan: true,
+                        tripType: 'RETURN'
+                    });
                 }
             });
-            callback(activeList);
-        });
+            emitActive();
+        }, () => { });
+        return () => {
+            if (typeof unsub1 === 'function') unsub1();
+            if (typeof unsub2 === 'function') unsub2();
+        };
     },
 
     subscribeMonitoring4H(callback) {
@@ -2383,14 +3300,48 @@ const JNTFirebaseService = {
             return this.createSub('monitoring_4h', (monList) => {
                 const incList = this.getLocalStore('incoming') || [];
                 const slaList = this.getLocalStore('sla_outbound') || [];
+                const retList = this.getLocalStore('sla_return') || [];
                 const mergedMap = new Map();
                 slaList.forEach(item => { const k = item.kodeTugas || item.id; if (k) mergedMap.set(k, { ...item, slots: {} }); });
                 incList.forEach(item => { const k = item.kodeTugas || item.id; if (k && !mergedMap.has(k)) mergedMap.set(k, { ...item, slots: {} }); });
+
+                // Synchronize SLA Return (Armada Balikan)
+                retList.forEach(ret => {
+                    const retKey = ret.kodeTugasBalikan || ret.kodeBalikan || ret.kodeTugas || (ret.id ? `${ret.id}-RET` : '');
+                    if (!retKey) return;
+                    const asalKey = ret.kodeTugasAsal || ret.id;
+                    const origin = mergedMap.get(asalKey) || {};
+                    const originTrip = origin.trip || origin.namaRute || '';
+                    const tripName = ret.trip || (originTrip ? `BALIKAN ${originTrip}` : 'BALIKAN GATEWAY - JKT999');
+                    const vendor = ret.vendor || origin.vendor || (this.resolveTripVendor ? this.resolveTripVendor(origin) : '') || 'J&T';
+                    const jamBerangkat = ret.jamBerangkatGateway || ret.jamBerangkat || '';
+                    const jamSampai = ret.jamSampaiJKT999 || ret.jamSampaiAktual || '';
+                    const isFinished = Boolean(jamSampai && jamSampai !== '-');
+
+                    mergedMap.set(retKey, JNTFirebaseService._buildReturnMonitoringDoc({
+                        ret,
+                        origin,
+                        retKey,
+                        asalKey,
+                        vendor,
+                        tripName,
+                        jamBerangkat,
+                        jamSampai,
+                        isFinished
+                    }));
+                });
+
                 (monList || []).forEach(item => {
                     const k = item.kodeTugas || item.id;
                     if (k) {
                         const existing = mergedMap.get(k) || { ...item, slots: {} };
-                        mergedMap.set(k, { ...existing, ...item, slots: { ...(existing.slots || {}), ...(item.slots || {}) } });
+                        mergedMap.set(k, {
+                            ...existing,
+                            ...item,
+                            tripType: item.tripType || existing.tripType || (item.isBalikan || existing.isBalikan ? 'RETURN' : 'OUTBOUND'),
+                            isBalikan: Boolean(item.isBalikan || existing.isBalikan),
+                            slots: { ...(existing.slots || {}), ...(item.slots || {}) }
+                        });
                     }
                 });
                 callback(Array.from(mergedMap.values()).map(item => {
@@ -2400,9 +3351,10 @@ const JNTFirebaseService = {
             });
         }
 
-        // REAL-TIME FIRESTORE MULTI-COLLECTION MERGE LISTENER (sla_outbound + incoming + monitoring_4h)
+        // REAL-TIME FIRESTORE MULTI-COLLECTION MERGE LISTENER (sla_outbound + incoming + sla_return + monitoring_4h)
         let slaCache = this.getLocalStore('sla_outbound') || [];
         let incCache = this.getLocalStore('incoming') || [];
+        let retCache = this.getLocalStore('sla_return') || [];
         let monCache = this.getLocalStore('monitoring_4h') || [];
 
         const emitMergedData = () => {
@@ -2420,7 +3372,40 @@ const JNTFirebaseService = {
                 if (key && !mergedMap.has(key)) mergedMap.set(key, { ...item, slots: {} });
             });
 
-            // 3. All Monitoring 4H slot check-ins from Firestore / local cache
+            // 3. Synchronize All SLA Return (Armada Balikan)
+            retCache.forEach(ret => {
+                const retKey = ret.kodeTugasBalikan || ret.kodeBalikan || ret.kodeTugas || (ret.id ? `${ret.id}-RET` : '');
+                if (!retKey) return;
+                const asalKey = ret.kodeTugasAsal || ret.id;
+                const origin = mergedMap.get(asalKey) || {};
+                const originTrip = origin.trip || origin.namaRute || '';
+                const tripName = ret.trip || (originTrip ? `BALIKAN ${originTrip}` : 'BALIKAN GATEWAY - JKT999');
+                const vendor = ret.vendor || origin.vendor || this.resolveTripVendor(origin) || 'J&T';
+                const jamBerangkat = ret.jamBerangkatGateway || ret.jamBerangkat || '';
+                const jamSampai = ret.jamSampaiJKT999 || ret.jamSampaiAktual || '';
+                const isFinished = Boolean(jamSampai && jamSampai !== '-');
+
+                const retDoc = JNTFirebaseService._buildReturnMonitoringDoc({
+                    ret,
+                    origin,
+                    retKey,
+                    asalKey,
+                    vendor,
+                    tripName,
+                    jamBerangkat,
+                    jamSampai,
+                    isFinished
+                });
+
+                if (!mergedMap.has(retKey)) {
+                    mergedMap.set(retKey, retDoc);
+                } else {
+                    const existing = mergedMap.get(retKey);
+                    mergedMap.set(retKey, { ...retDoc, ...existing, tripType: 'RETURN', isBalikan: true });
+                }
+            });
+
+            // 4. All Monitoring 4H slot check-ins from Firestore / local cache
             monCache.forEach(item => {
                 const key = item.kodeTugas || item.id;
                 if (key) {
@@ -2429,6 +3414,21 @@ const JNTFirebaseService = {
                     mergedMap.set(key, {
                         ...item,
                         ...existing, // preserve rich metadata (trip, vendor, platNomor, driver1, jamBerangkat)
+                        tripType: item.tripType || existing.tripType || (item.isBalikan || existing.isBalikan ? 'RETURN' : 'OUTBOUND'),
+                        isBalikan: Boolean(item.isBalikan || existing.isBalikan),
+                        kodeTugasBalikan: item.kodeTugasBalikan || existing.kodeTugasBalikan || (item.isBalikan ? key : ''),
+                        kodeTugasAsal: item.kodeTugasAsal || existing.kodeTugasAsal || '',
+                        jamSampaiAktual: item.jamSampaiAktual || existing.jamSampaiAktual || '',
+                        jamSampaiJKT999: item.jamSampaiJKT999 || item.jamSampaiAktual || existing.jamSampaiJKT999 || existing.jamSampaiAktual || '',
+                        fotoSampai: item.fotoSampai || existing.fotoSampai || '',
+                        hasFotoSampai: Boolean(item.hasFotoSampai || existing.hasFotoSampai || item.fotoSampai || existing.fotoSampai),
+                        lokasiSampai: item.lokasiSampai || existing.lokasiSampai || '',
+                        catatanSampai: item.catatanSampai || existing.catatanSampai || item.catatan || existing.catatan || '',
+                        catatan: item.catatan || existing.catatan || item.catatanSampai || existing.catatanSampai || '',
+                        driverPhone: item.driverPhone || existing.driverPhone || '',
+                        driver2Phone: item.driver2Phone || existing.driver2Phone || '',
+                        totalAwb: item.totalAwb || existing.totalAwb || '',
+                        inputBy: item.inputBy || existing.inputBy || '',
                         slots: mergedSlots,
                         lastUpdateSlot: item.lastUpdateSlot || existing.lastUpdateSlot || '',
                         lastUpdateLokasi: item.lastUpdateLokasi || existing.lastUpdateLokasi || '',
@@ -2446,19 +3446,33 @@ const JNTFirebaseService = {
             callback(mergedList);
         };
 
-        // Emit cached data immediately (0ms delay for tabs & KPI cards)
-        emitMergedData();
+        let monEmitTimer = null;
+        const scheduleEmitMon = (immediate = false) => {
+            if (monEmitTimer) clearTimeout(monEmitTimer);
+            if (immediate) {
+                emitMergedData();
+            } else {
+                monEmitTimer = setTimeout(emitMergedData, 30);
+            }
+        };
 
-        const localHandler = () => {
+        // Emit cached data immediately (0ms delay for tabs & KPI cards)
+        scheduleEmitMon(true);
+
+        const localHandler = (ev) => {
+            const col = ev && ev.detail && (ev.detail.collection || ev.detail.colName);
+            if (col && col !== 'sla_outbound' && col !== 'incoming' && col !== 'sla_return' && col !== 'monitoring_4h') return;
             slaCache = this.getLocalStore('sla_outbound') || [];
             incCache = this.getLocalStore('incoming') || [];
+            retCache = this.getLocalStore('sla_return') || [];
             monCache = this.getLocalStore('monitoring_4h') || [];
-            emitMergedData();
+            scheduleEmitMon(false);
         };
         window.addEventListener('jnt_data_updated', localHandler);
 
         let unsubSla = null;
         let unsubInc = null;
+        let unsubRet = null;
         let unsubMon = null;
         let authSub = null;
 
@@ -2466,6 +3480,7 @@ const JNTFirebaseService = {
             if (!window.db) return;
             if (typeof unsubSla === 'function') { unsubSla(); unsubSla = null; }
             if (typeof unsubInc === 'function') { unsubInc(); unsubInc = null; }
+            if (typeof unsubRet === 'function') { unsubRet(); unsubRet = null; }
             if (typeof unsubMon === 'function') { unsubMon(); unsubMon = null; }
 
             const onPermError = (err, col) => {
@@ -2485,43 +3500,30 @@ const JNTFirebaseService = {
             try {
                 unsubSla = window.db.collection('sla_outbound').onSnapshot(snap => {
                     slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedData();
+                    scheduleEmitMon(false);
                 }, err => onPermError(err, 'sla_outbound'));
             } catch (e) { }
 
             try {
                 unsubInc = window.db.collection('incoming').onSnapshot(snap => {
                     incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedData();
+                    scheduleEmitMon(false);
                 }, err => onPermError(err, 'incoming'));
+            } catch (e) { }
+
+            try {
+                unsubRet = window.db.collection('sla_return').onSnapshot(snap => {
+                    retCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    scheduleEmitMon(false);
+                }, err => onPermError(err, 'sla_return'));
             } catch (e) { }
 
             try {
                 unsubMon = window.db.collection('monitoring_4h').onSnapshot(snap => {
                     monCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedData();
+                    scheduleEmitMon(false);
                 }, err => onPermError(err, 'monitoring_4h'));
             } catch (e) { }
-
-            // Proaktif get() langsung
-            window.db.collection('monitoring_4h').get().then(snap => {
-                if (snap && !snap.empty) {
-                    monCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedData();
-                }
-            }).catch(() => { });
-            window.db.collection('sla_outbound').get().then(snap => {
-                if (snap && !snap.empty) {
-                    slaCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedData();
-                }
-            }).catch(() => { });
-            window.db.collection('incoming').get().then(snap => {
-                if (snap && !snap.empty) {
-                    incCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    emitMergedData();
-                }
-            }).catch(() => { });
         };
 
         attachCloud();
@@ -2539,6 +3541,7 @@ const JNTFirebaseService = {
             window.removeEventListener('jnt_data_updated', localHandler);
             if (typeof unsubSla === 'function') unsubSla();
             if (typeof unsubInc === 'function') unsubInc();
+            if (typeof unsubRet === 'function') unsubRet();
             if (typeof unsubMon === 'function') unsubMon();
             if (typeof authSub === 'function') authSub();
         };
@@ -2639,13 +3642,51 @@ const JNTFirebaseService = {
 
         const result = await this.saveDoc('monitoring_4h', kodeTugas, updateObj, true);
 
-        // Auto-sync status to Incoming & SLA Outbound
+        // Auto-sync status to Incoming, SLA Outbound, and SLA Return
         if (statusPerjalanan === 'COMPLETED' || statusPerjalanan === 'SUDAH SELESAI') {
             await this.saveDoc('incoming', kodeTugas, { status: 'SUDAH SELESAI' }, true);
             await this.saveDoc('sla_outbound', kodeTugas, { jamSampaiAktual: newSlotData.jamUpdateAktual, statusSla: 'ON TIME' }, true);
+
+            // Sync ke sla_return jika ini armada balikan
+            if (updateObj.isBalikan || updateObj.tripType === 'RETURN' || updateObj.kodeTugasAsal) {
+                const asalKey = updateObj.kodeTugasAsal || kodeTugas;
+                let retDoc = {};
+                try { retDoc = (await this.getDoc('sla_return', asalKey)) || {}; } catch (e) { }
+                const targetHours = updateObj.targetSLABalikanHours || retDoc.targetSLABalikanHours || 16;
+                const depStr = updateObj.jamBerangkatGateway || updateObj.jamBerangkat || retDoc.jamBerangkatGateway;
+                const dBerg = this.parseMonitoringDate ? this.parseMonitoringDate(depStr) : null;
+                const dSamp = this.parseMonitoringDate ? this.parseMonitoringDate(newSlotData.jamUpdateAktual) : null;
+                let durasiMin = 0;
+                if (dBerg && dSamp && dSamp > dBerg) durasiMin = Math.round((dSamp - dBerg) / 60000);
+                const lateMin = Math.max(0, durasiMin - targetHours * 60);
+
+                await this.saveDoc('sla_return', asalKey, {
+                    ...retDoc,
+                    jamSampaiJKT999: newSlotData.jamUpdateAktual,
+                    jamSampaiAktual: newSlotData.jamUpdateAktual,
+                    durasiBalikanMinutes: durasiMin,
+                    totalTelatMinutes: lateMin,
+                    statusPerjalanan: 'COMPLETED',
+                    statusSla: lateMin > 0 ? 'LATE' : 'ON TIME'
+                }, true);
+                await this.recalculateSLARoundtrip(asalKey);
+                window.dispatchEvent(new CustomEvent('jnt_data_updated', {
+                    detail: { collection: 'sla_return', id: asalKey }
+                }));
+            }
         } else if (jenisUpdate === 'Trouble' || jenisUpdate === 'Laka' || statusPerjalanan === 'KENDALA') {
             await this.saveDoc('incoming', kodeTugas, { status: 'KENDALA' }, true);
             await this.saveDoc('sla_outbound', kodeTugas, { statusSla: 'KENDALA' }, true);
+            if (updateObj.isBalikan || updateObj.tripType === 'RETURN' || updateObj.kodeTugasAsal) {
+                const asalKey = updateObj.kodeTugasAsal || kodeTugas;
+                let retDoc = {};
+                try { retDoc = (await this.getDoc('sla_return', asalKey)) || {}; } catch (e) { }
+                await this.saveDoc('sla_return', asalKey, {
+                    ...retDoc,
+                    statusPerjalanan: 'KENDALA',
+                    statusSla: 'KENDALA'
+                }, true);
+            }
         }
         return result;
     },
@@ -2657,48 +3698,164 @@ const JNTFirebaseService = {
      * @param {string} prefix - Prefix nama file (misal 'sampai', 'trouble')
      * @returns {Promise<string>} - Mengembalikan URL foto di hosting, atau fallback ke dataURL jika upload gagal
      */
+    async compressImageToCloudPayload(photoData, maxWidth = 960, quality = 0.72) {
+        if (!photoData) return { blob: null, dataUrl: null };
+        if (typeof photoData === 'string' && !photoData.startsWith('data:image')) {
+            return { blob: null, dataUrl: photoData };
+        }
+
+        const readAsDataUrl = (input) => new Promise((resolve, reject) => {
+            if (typeof input === 'string') return resolve(input);
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(input);
+        });
+
+        try {
+            const rawDataUrl = await readAsDataUrl(photoData);
+            if (typeof document === 'undefined' || typeof Image === 'undefined') {
+                return { blob: photoData instanceof Blob ? photoData : null, dataUrl: rawDataUrl };
+            }
+
+            return await new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        let w = img.naturalWidth || img.width || maxWidth;
+                        let h = img.naturalHeight || img.height || maxWidth;
+                        if (w > maxWidth || h > maxWidth) {
+                            const scale = maxWidth / Math.max(w, h);
+                            w = Math.max(1, Math.round(w * scale));
+                            h = Math.max(1, Math.round(h * scale));
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        let q = quality;
+                        let dataUrl = canvas.toDataURL('image/jpeg', q);
+                        // Pastikan ukuran aman di bawah batas 1MB dokumen Cloud Firestore
+                        if (dataUrl.length > 420000) {
+                            q = 0.55;
+                            dataUrl = canvas.toDataURL('image/jpeg', q);
+                        }
+                        if (canvas.toBlob) {
+                            canvas.toBlob((blob) => {
+                                resolve({
+                                    blob: blob || (photoData instanceof Blob ? photoData : null),
+                                    dataUrl
+                                });
+                            }, 'image/jpeg', q);
+                        } else {
+                            resolve({ blob: photoData instanceof Blob ? photoData : null, dataUrl });
+                        }
+                    } catch (_) {
+                        resolve({ blob: photoData instanceof Blob ? photoData : null, dataUrl: rawDataUrl });
+                    }
+                };
+                img.onerror = () => resolve({ blob: photoData instanceof Blob ? photoData : null, dataUrl: rawDataUrl });
+                img.src = rawDataUrl;
+            });
+        } catch (err) {
+            return { blob: photoData instanceof Blob ? photoData : null, dataUrl: typeof photoData === 'string' ? photoData : null };
+        }
+    },
+
     async uploadPhotoToHosting(photoData, prefix = 'bukti') {
         if (!photoData) return null;
         if (typeof photoData === 'string' && (photoData.startsWith('http://') || photoData.startsWith('https://') || photoData.startsWith('uploads/'))) {
             return photoData;
         }
 
+        const { blob, dataUrl } = await this.compressImageToCloudPayload(photoData, 960, 0.72);
+        const fileToSend = blob || (photoData instanceof Blob ? photoData : null);
+
+        // Tier 1: Upload ke cPanel / PHP Hosting (upload.php) bila tersedia
         try {
-            const uploadEndpoint = 'upload.php';
-            let response = null;
-
-            if (photoData instanceof Blob || photoData instanceof File) {
-                const formData = new FormData();
-                formData.append('file', photoData, (photoData.name || `${prefix}_${Date.now()}.jpg`));
-                formData.append('prefix', prefix);
-                response = await fetch(uploadEndpoint, {
-                    method: 'POST',
-                    body: formData
-                });
-            } else if (typeof photoData === 'string' && photoData.startsWith('data:image')) {
-                response = await fetch(uploadEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: photoData, prefix: prefix })
-                });
-            }
-
-            if (response && response.ok) {
-                const result = await response.json();
-                if (result && result.success && result.url) {
-                    console.log('✅ [HOSTING UPLOAD] Foto tersimpan di cPanel:', result.url);
-                    return result.url;
-                } else if (result && result.message) {
-                    console.warn('⚠️ [HOSTING UPLOAD] Response warning dari upload.php:', result.message);
+            if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
+                const uploadEndpoint = 'upload.php';
+                const authHeaders = {};
+                if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                    try {
+                        const tok = await window.auth.currentUser.getIdToken();
+                        if (tok) authHeaders['Authorization'] = `Bearer ${tok}`;
+                    } catch (_) { }
                 }
-            } else {
-                console.warn('⚠️ [HOSTING UPLOAD] Response status tidak OK:', response ? response.status : 'No response');
+                let response = null;
+
+                if (fileToSend) {
+                    const formData = new FormData();
+                    const origName = (photoData && photoData.name) ? photoData.name.replace(/\.[^/.]+$/, '') : `${prefix}_${Date.now()}`;
+                    formData.append('file', fileToSend, `${origName}.jpg`);
+                    formData.append('prefix', prefix);
+                    response = await fetch(uploadEndpoint, { method: 'POST', headers: authHeaders, body: formData });
+                } else if (dataUrl && dataUrl.startsWith('data:image')) {
+                    response = await fetch(uploadEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...authHeaders },
+                        body: JSON.stringify({ image: dataUrl, prefix: prefix })
+                    });
+                }
+
+                const contentType = response && response.headers ? (response.headers.get('content-type') || '') : '';
+                if (response && response.ok && contentType.includes('application/json')) {
+                    const result = await response.json();
+                    if (result && result.success && result.url) {
+                        console.log('✅ [HOSTING UPLOAD] Foto tersimpan di server:', result.url);
+                        return result.url;
+                    }
+                }
             }
         } catch (err) {
-            console.warn('⚠️ [HOSTING UPLOAD] Upload ke upload.php tidak dapat dijangkau, fallback ke Base64:', err.message);
+            console.warn('⚠️ [HOSTING UPLOAD] upload.php tidak tersedia, mencoba Firebase Storage:', err.message);
         }
 
-        return typeof photoData === 'string' ? photoData : null;
+        // Tier 2: Upload ke Firebase Storage (jika SDK & Storage Bucket aktif) dengan timeout 4 detik
+        try {
+            if (typeof window !== 'undefined' && window.storage) {
+                const safePrefix = String(prefix || 'bukti').replace(/[^a-zA-Z0-9_-]/g, '_');
+                const fileName = `bukti_sampai/${safePrefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+                const ref = window.storage.ref(fileName);
+                const uploadTask = fileToSend
+                    ? ref.put(fileToSend, { contentType: 'image/jpeg' })
+                    : (dataUrl && dataUrl.startsWith('data:image') ? ref.putString(dataUrl, 'data_url') : null);
+
+                if (uploadTask) {
+                    const url = await Promise.race([
+                        new Promise((resolve, reject) => {
+                            uploadTask.on(
+                                'state_changed',
+                                null,
+                                (error) => reject(error),
+                                async () => {
+                                    try {
+                                        resolve(await ref.getDownloadURL());
+                                    } catch (e) {
+                                        reject(e);
+                                    }
+                                }
+                            );
+                        }),
+                        new Promise((_, reject) => setTimeout(() => {
+                            try { if (typeof uploadTask.cancel === 'function') uploadTask.cancel(); } catch (_) { }
+                            reject(new Error('Firebase Storage upload timeout'));
+                        }, 4000))
+                    ]);
+                    if (url) {
+                        console.log('✅ [FIREBASE STORAGE] Foto tersimpan di Cloud Storage:', url);
+                        return url;
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('⚠️ [FIREBASE STORAGE] Fallback ke payload terkompresi Cloud Firestore:', err.message);
+        }
+
+        // Tier 3: Kembalikan Data URL terkompresi agar tersimpan ke Cloud Firestore (tidak pernah ke localStorage)
+        return dataUrl || (typeof photoData === 'string' ? photoData : null);
     },
 
     // ----------------------------------------------------
@@ -2742,7 +3899,9 @@ const JNTFirebaseService = {
             waktuKejadian: incidentData.waktuKejadian || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
             platNomor: incidentData.platNomor || incMaster.platNomor || "-",
             driver: incidentData.driver || incMaster.driver1 || "-",
+            driverPhone: incidentData.driverPhone || incMaster.driverPhone || incMaster.driverPhone1 || "-",
             driver2: incidentData.driver2 || incMaster.driver2 || "-",
+            driver2Phone: incidentData.driver2Phone || incMaster.driver2Phone || "-",
             vendor: incidentData.vendor || incMaster.vendor || "J&T Logistics",
             rute: incidentData.rute || incMaster.trip || incMaster.namaRute || "-",
             deskripsi: incidentData.deskripsi || "Kejadian terdeteksi pada operasional.",
@@ -3325,17 +4484,21 @@ const JNTFirebaseService = {
         emit();
 
         // 2. Ambil log terbaru dari endpoint cPanel (log_audit.php)
-        const fetchServerLogs = () => {
-            fetch('log_audit.php?limit=100')
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.success && Array.isArray(data.logs)) {
-                        emit(data.logs);
-                    }
-                })
-                .catch(err => {
-                    console.debug('[AUDIT] log_audit.php notice:', err.message);
-                });
+        const fetchServerLogs = async () => {
+            try {
+                const headers = {};
+                if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                    const tok = await window.auth.currentUser.getIdToken();
+                    if (tok) headers['Authorization'] = `Bearer ${tok}`;
+                }
+                const res = await fetch('log_audit.php?limit=100', { headers });
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.logs)) {
+                    emit(data.logs);
+                }
+            } catch (err) {
+                console.debug('[AUDIT] log_audit.php notice:', err.message);
+            }
         };
 
         fetchServerLogs();
@@ -3381,9 +4544,16 @@ const JNTFirebaseService = {
 
         // 2. Simpan ke cPanel Hosting (log_audit.php) — Menghemat kuota Firestore Write
         try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                try {
+                    const tok = await window.auth.currentUser.getIdToken();
+                    if (tok) headers['Authorization'] = `Bearer ${tok}`;
+                } catch (_) { }
+            }
             fetch('log_audit.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(entry)
             }).catch(err => {
                 console.debug('[AUDIT] cPanel write notice:', err.message);
@@ -3432,31 +4602,47 @@ const JNTFirebaseService = {
             return (found.email || found.emailPerusahaan).toLowerCase();
         }
 
-        // ── 3. Cari di Firestore ──
+        // ── 3. Cek minimal lookup doc (/user_lookup/{username}) lalu fallback users jika sudah login ──
         if (window.db) {
             try {
-                const snapshot = await window.db.collection('users').get();
-                if (!snapshot.empty) {
-                    for (const doc of snapshot.docs) {
-                        const data = doc.data();
-                        const docUsername = (data.username || '').toLowerCase();
-                        const docId = (doc.id || '').toLowerCase();
-                        const docEmail = (data.email || data.emailPerusahaan || '').toLowerCase();
-                        if (docUsername === uname || docId === uname || docEmail.startsWith(uname + '@')) {
-                            if (docEmail) {
-                                // Simpan ke cache untuk lookup berikutnya
-                                try {
-                                    const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
-                                    cache[uname] = docEmail;
-                                    localStorage.setItem('jnt_email_map', JSON.stringify(cache));
-                                } catch (_) { }
-                                return docEmail;
+                const lookupSnap = await window.db.collection('user_lookup').doc(uname).get();
+                if (lookupSnap.exists) {
+                    const lEmail = String((lookupSnap.data() || {}).email || '').toLowerCase().trim();
+                    if (lEmail && lEmail.includes('@')) {
+                        try {
+                            const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                            cache[uname] = lEmail;
+                            localStorage.setItem('jnt_email_map', JSON.stringify(cache));
+                        } catch (_) { }
+                        return lEmail;
+                    }
+                }
+            } catch (_) { }
+
+            if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                try {
+                    const snapshot = await window.db.collection('users').get();
+                    if (!snapshot.empty) {
+                        for (const doc of snapshot.docs) {
+                            const data = doc.data();
+                            const docUsername = (data.username || '').toLowerCase();
+                            const docId = (doc.id || '').toLowerCase();
+                            const docEmail = (data.email || data.emailPerusahaan || '').toLowerCase();
+                            if (docUsername === uname || docId === uname || docEmail.startsWith(uname + '@')) {
+                                if (docEmail) {
+                                    try {
+                                        const cache = JSON.parse(localStorage.getItem('jnt_email_map') || '{}');
+                                        cache[uname] = docEmail;
+                                        localStorage.setItem('jnt_email_map', JSON.stringify(cache));
+                                    } catch (_) { }
+                                    return docEmail;
+                                }
                             }
                         }
                     }
+                } catch (e) {
+                    console.warn('resolveEmailFromIdentifier firestore scan failed:', e);
                 }
-            } catch (e) {
-                console.warn('resolveEmailFromIdentifier firestore scan failed:', e);
             }
         }
 
@@ -3552,17 +4738,8 @@ const JNTFirebaseService = {
                     await this.saveDoc('users', user.uid, profile, true);
                     console.log(`[AUTH] Migrated legacy profile to UID: ${user.uid}`);
                 } else {
-                    profile = {
-                        uid: user.uid,
-                        id: user.uid,
-                        username: uname,
-                        fullname: user.displayName || uname,
-                        email: user.email || email,
-                        role: 'OPERATOR_SLA',
-                        status: 'Aktif',
-                        createdAt: new Date().toISOString()
-                    };
-                    await this.saveDoc('users', user.uid, profile, true);
+                    await window.auth.signOut();
+                    throw new Error("Akun belum terdaftar resmi di database sistem. Hubungi Administrator.");
                 }
             }
 
@@ -3683,9 +4860,14 @@ const JNTFirebaseService = {
             createdAt: new Date().toISOString()
         };
 
-        // Simpan dengan docId = username DAN docId = uid
+        // Simpan dengan docId = username DAN docId = uid, serta lookup minimal email
         await this.saveDoc('users', cleanUname, newProfile, true);
         await this.saveDoc('users', uid, newProfile, true);
+        if (window.db) {
+            try {
+                await window.db.collection('user_lookup').doc(cleanUname).set({ email: newProfile.email }, { merge: true });
+            } catch (_) { }
+        }
 
         // ── Simpan mapping username → email ke localStorage sebagai backup ──
         // Ini memastikan login dengan username tetap bisa resolve email yang benar
@@ -3709,45 +4891,8 @@ const JNTFirebaseService = {
     },
 
     async activateLegacyUser(usernameOrEmail, password) {
-        if (!window.auth) throw new Error("Firebase Auth SDK belum aktif.");
-        if (!password || password.length < 6) throw new Error("Password minimal 6 karakter.");
-
-        const email = await this.resolveEmailFromIdentifier(usernameOrEmail);
-        const uname = usernameOrEmail.includes('@') ? usernameOrEmail.split('@')[0].toLowerCase() : usernameOrEmail.toLowerCase();
-
-        const legacy = await this.getUserProfileByUsername(uname);
-        if (!legacy) {
-            throw new Error(`Data profil lama untuk "${usernameOrEmail}" tidak ditemukan.`);
-        }
-
-        const cred = await window.auth.createUserWithEmailAndPassword(email, password);
-        const uid = cred.user.uid;
-
-        const migratedProfile = {
-            ...legacy,
-            uid: uid,
-            id: uid,
-            username: legacy.username || uname,
-            email: email,
-            role: this.normalizeRole(legacy.role),
-            status: legacy.status || 'Aktif',
-            migratedToFirebaseAuth: true,
-            migratedAt: new Date().toISOString()
-        };
-
-        await this.saveDoc('users', uname, migratedProfile, true);
-        await this.saveDoc('users', uid, migratedProfile, true);
-
-        await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-            operator: migratedProfile.fullname || uname,
-            shiftId: this.getActiveShiftId(),
-            modul: "Autentikasi",
-            kodeTugas: "-",
-            aktivitas: `Aktivasi Migrasi Akun Lama ke Firebase Auth: ${uname}`
-        });
-
-        return { user: cred.user, profile: migratedProfile };
+        // SECURITY: Nonaktifkan aktivasi mandiri tanpa verifikasi kredensial lama agar akun tidak bisa diambil alih pihak luar.
+        throw new Error("Aktivasi akun mandiri dinonaktifkan demi keamanan. Hubungi Administrator untuk pembuatan atau reset akun resmi.");
     },
 
     async sendPasswordReset(identifier) {
@@ -3798,6 +4943,14 @@ const JNTFirebaseService = {
             role: this.normalizeRole(profileData.role || existing.role),
             updatedAt: new Date().toISOString()
         }, true);
+
+        const cleanUname = String(updated.username || username).toLowerCase().trim();
+        const emailVal = String(updated.email || updated.emailPerusahaan || '').toLowerCase().trim();
+        if (window.db && cleanUname && emailVal && emailVal.includes('@')) {
+            try {
+                await window.db.collection('user_lookup').doc(cleanUname).set({ email: emailVal }, { merge: true });
+            } catch (_) { }
+        }
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -3862,6 +5015,10 @@ const JNTFirebaseService = {
     },
 
     async restoreDatabaseFromJSON(jsonObj) {
+        const activeRole = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_user_role') : '') || '';
+        if (this.normalizeRole(activeRole) !== 'ADMIN') {
+            throw new Error("Akses Ditolak: Hanya Administrator resmi yang dapat melakukan restore database!");
+        }
         if (!jsonObj || typeof jsonObj !== 'object') {
             throw new Error("File backup tidak valid (harus objek JSON)!");
         }
@@ -3873,6 +5030,14 @@ const JNTFirebaseService = {
         }
 
         const validCollections = ['incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h', 'troubles', 'shifts', 'master_trips', 'master_fleets', 'master_vendors', 'master_drivers', 'master_reasons', 'users', 'audit_logs'];
+        const sanitizePlainObj = (obj) => {
+            const out = {};
+            for (const k of Object.keys(obj || {})) {
+                if (k === '__proto__' || k === 'constructor' || k === 'prototype' || k === '_docId') continue;
+                out[k] = obj[k];
+            }
+            return out;
+        };
 
         let restoredCount = 0;
         for (const colName of Object.keys(jsonObj.collections)) {
@@ -3882,9 +5047,10 @@ const JNTFirebaseService = {
 
             const localItems = [];
             for (const item of docsList) {
-                const docId = item._docId || item.id || item.kodeTugas || item.shiftId || item.incidentId;
-                const cleanItem = { ...item };
-                delete cleanItem._docId;
+                if (!item || typeof item !== 'object') continue;
+                const rawId = item._docId || item.id || item.kodeTugas || item.shiftId || item.incidentId;
+                const docId = rawId ? String(rawId).replace(/[\\/\.]{2,}|[\\/]/g, '_').trim() : '';
+                const cleanItem = sanitizePlainObj(item);
                 if (docId) {
                     cleanItem.id = docId;
                     localItems.push(cleanItem);

@@ -1,27 +1,37 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>J&T Express - Profil Saya</title>
-    <meta name="description" content="Profil Pengguna dan Pengaturan Keamanan Akun J&T Express Transportation Monitoring System.">
+    <meta name="description"
+        content="Profil Pengguna dan Pengaturan Keamanan Akun J&T Express Transportation Monitoring System.">
     <!-- Favicon / Logo Tab Browser -->
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="shortcut icon" href="assets/favicon.svg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Anti-Flash Dark Theme Pre-Initialization -->
-    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Anti-Flash Dark Theme, Font Size & Density Pre-Initialization -->
+    <script>
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="light-body-theme">
     <div id="app-container" class="app-container">
-        
+
         <div class="dashboard-layout">
-            
+
             <!-- SIDEBAR PANEL -->
             <aside class="sidebar-panel">
                 <div class="sidebar-red-header">
@@ -30,15 +40,20 @@
                     </div>
                 </div>
 
-                <div class="sidebar-user-card" id="sidebar-user-card-btn" style="cursor: pointer;" title="Lihat Profil Saya">
+                <div class="sidebar-user-card" id="sidebar-user-card-btn" style="cursor: pointer;"
+                    title="Lihat Profil Saya">
                     <div class="avatar-wrapper">
-                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&size=150&bold=true" alt="User Avatar" class="user-avatar-img" id="sidebar-avatar-img">
+                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&size=150&bold=true"
+                            alt="User Avatar" class="user-avatar-img" id="sidebar-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
                             <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
-                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
                         </div>
                         <span class="profile-role" id="sidebar-user-role">ADMIN</span>
                         <span class="profile-status">
@@ -51,56 +66,99 @@
                     <ul>
                         <li class="nav-item">
                             <a href="dashboard.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
                                 <span class="nav-text">Dashboard</span>
                             </a>
                         </li>
 
                         <li class="nav-item">
                             <a href="monitoring.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
                                 <span class="nav-text">Monitoring 4 Jam</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="sla-vendor.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6z"></path>
+                                </svg>
                                 <span class="nav-text">SLA Vendor</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="trouble.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                                    </path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
                                 <span class="nav-text">Trouble &amp; Laka</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="shift-management.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
                                 <span class="nav-text">Shift Management</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="report.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
                                 <span class="nav-text">Report &amp; Export</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="users.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
                                 <span class="nav-text">User Management</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="settings.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path
+                                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                    </path>
+                                </svg>
                                 <span class="nav-text">Pengaturan</span>
                             </a>
                         </li>
                         <li class="nav-item active">
                             <a href="profile.html" class="nav-link">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
                                 <span class="nav-text">Profil Saya</span>
                             </a>
                         </li>
@@ -110,14 +168,16 @@
                 <div class="sidebar-footer-graphic">
                     <div class="route-line-svg">
                         <svg viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2" stroke-dasharray="4 4"/>
-                            <circle cx="30" cy="60" r="5" fill="#E30613"/>
-                            <circle cx="100" cy="50" r="5" fill="#E30613"/>
-                            <circle cx="180" cy="25" r="5" fill="#E30613"/>
+                            <path d="M10 70 Q 50 40 100 50 T 210 20" stroke="#E30613" stroke-width="2"
+                                stroke-dasharray="4 4" />
+                            <circle cx="30" cy="60" r="5" fill="#E30613" />
+                            <circle cx="100" cy="50" r="5" fill="#E30613" />
+                            <circle cx="180" cy="25" r="5" fill="#E30613" />
                         </svg>
                     </div>
                     <div class="truck-image-wrapper">
-                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80" alt="J&T Express Truck" class="sidebar-truck-img">
+                        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=80"
+                            alt="J&T Express Truck" class="sidebar-truck-img">
                     </div>
                     <div class="sidebar-system-title">
                         <span class="sys-light">Transportation</span>
@@ -133,11 +193,16 @@
                 <header class="inc-top-nav">
                     <div class="inc-title-group">
                         <button class="hamburger-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
                         </button>
                         <div>
                             <h2 class="inc-main-title" style="font-size: 22px;">Profil Saya</h2>
-                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Profil Saya</span>
+                            <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Profil
+                                Saya</span>
                         </div>
                     </div>
 
@@ -147,17 +212,25 @@
                             <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
                         </div>
                         <div class="inc-notif-bell">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
                             <span class="inc-bell-badge">5</span>
                         </div>
-                        <div class="inc-user-chip" id="topbar-user-chip-btn" style="cursor: pointer;" title="Profil Saya">
-                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&size=100&bold=true" alt="User Avatar" class="inc-avatar-img" id="topbar-avatar-img">
+                        <div class="inc-user-chip" id="topbar-user-chip-btn" style="cursor: pointer;"
+                            title="Profil Saya">
+                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&size=100&bold=true"
+                                alt="User Avatar" class="inc-avatar-img" id="topbar-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name" id="dash-user-name">Farizs Hakim <span class="inc-user-chevron">▾</span></span>
+                                <span class="inc-user-name" id="dash-user-name">Farizs Hakim <span
+                                        class="inc-user-chevron">▾</span></span>
                                 <span class="inc-user-role">Admin</span>
                             </div>
                         </div>
-                        <button id="btn-logout" class="btn-inc-reset" style="padding: 6px 12px; font-size: 12px; color: #DC2626; border-color: #FCA5A5; background: #FEF2F2;" title="Keluar Akun">
+                        <button id="btn-logout" class="btn-inc-reset"
+                            style="padding: 6px 12px; font-size: 12px; color: #DC2626; border-color: #FCA5A5; background: #FEF2F2;"
+                            title="Keluar Akun">
                             🚪 Logout
                         </button>
                     </div>
@@ -171,7 +244,8 @@
 
                     <div class="profile-hero-main">
                         <div class="profile-avatar-wrapper">
-                            <img src="https://ui-avatars.com/api/?name=Developer+Admin&background=E30613&color=fff&size=300&bold=true" alt="Developer Avatar" class="profile-hero-img" id="profile-avatar-img">
+                            <img src="https://ui-avatars.com/api/?name=Developer+Admin&background=E30613&color=fff&size=300&bold=true"
+                                alt="Developer Avatar" class="profile-hero-img" id="profile-avatar-img">
                             <label for="avatar-file-input" class="avatar-edit-badge" title="Ganti Foto Profil">
                                 📷
                                 <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
@@ -181,7 +255,8 @@
                         <div class="profile-hero-text">
                             <div class="profile-name-row">
                                 <h1 class="profile-full-name" id="hero-fullname">Developer Admin</h1>
-                                <span class="badge-role-hero" id="hero-jabatan">Developer &amp; System Administrator</span>
+                                <span class="badge-role-hero" id="hero-jabatan">Developer &amp; System
+                                    Administrator</span>
                                 <span class="badge-status-green">🟢 Active</span>
                             </div>
                             <p class="profile-sub-meta">
@@ -233,7 +308,7 @@
 
                 <!-- MAIN SPLIT GRID (INFORMASI DIRI & AKUN + KEAMANAN & ACTIVITY TIMELINE) -->
                 <div class="inc-split-container" style="margin-top: 20px;">
-                    
+
                     <!-- LEFT COLUMN: Informasi Pribadi & Pekerjaan Card -->
                     <div class="inc-table-card" style="flex: 1.4;">
                         <div class="inc-table-header">
@@ -252,7 +327,8 @@
                                 </div>
                                 <div class="form-group-st">
                                     <label>Username</label>
-                                    <input type="text" id="prof-username" value="" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" id="prof-username" value="" readonly
+                                        style="background-color: #F8FAFC;">
                                 </div>
                             </div>
 
@@ -270,7 +346,8 @@
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Role / Jabatan</label>
-                                    <input type="text" value="Developer & System Administrator" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" value="Developer & System Administrator" readonly
+                                        style="background-color: #F8FAFC;">
                                 </div>
                                 <div class="form-group-st">
                                     <label>Gateway Penugasan Utama</label>
@@ -284,17 +361,20 @@
                             <div class="form-grid-2col">
                                 <div class="form-group-st">
                                     <label>Departemen</label>
-                                    <input type="text" value="Logistik & Transport Operations" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" value="Logistik & Transport Operations" readonly
+                                        style="background-color: #F8FAFC;">
                                 </div>
                                 <div class="form-group-st">
                                     <label>Tanggal Bergabung</label>
-                                    <input type="text" value="1 Januari 2026" readonly style="background-color: #F8FAFC;">
+                                    <input type="text" value="1 Januari 2026" readonly
+                                        style="background-color: #F8FAFC;">
                                 </div>
                             </div>
 
                             <div class="form-group-st">
                                 <label>Alamat Operasional Cabang</label>
-                                <textarea rows="2">Kawasan Industri Cikande Indah No. 12, Serang, Banten 42186</textarea>
+                                <textarea
+                                    rows="2">Kawasan Industri Cikande Indah No. 12, Serang, Banten 42186</textarea>
                             </div>
 
                             <div style="display: flex; gap: 12px; margin-top: 10px;">
@@ -306,7 +386,7 @@
 
                     <!-- RIGHT COLUMN: Security & Activity Logs Stack -->
                     <div class="inc-detail-card" style="width: 380px; min-width: 380px; gap: 16px;">
-                        
+
                         <!-- CARD 1: UBAH PASSWORD & KEAMANAN AKUN -->
                         <div class="settings-card">
                             <div class="settings-card-header">
@@ -320,10 +400,23 @@
                                 <div class="form-group-st">
                                     <label>Password Saat Ini</label>
                                     <div class="input-wrapper">
-                                        <input type="password" id="current-pass" class="form-input" style="padding-left: 14px;" placeholder="••••••••" required>
-                                        <button type="button" id="toggle-current-pass" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
-                                            <svg id="curr-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                            <svg id="curr-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        <input type="password" id="current-pass" class="form-input"
+                                            style="padding-left: 14px;" placeholder="••••••••" required>
+                                        <button type="button" id="toggle-current-pass" class="password-toggle-btn"
+                                            aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                            <svg id="curr-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" width="18" height="18">
+                                                <path
+                                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                                </path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                            <svg id="curr-eye-on" class="eye-icon hidden" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                                height="18">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
                                         </button>
                                     </div>
                                 </div>
@@ -331,10 +424,22 @@
                                 <div class="form-group-st">
                                     <label>Password Baru</label>
                                     <div class="input-wrapper">
-                                        <input type="password" id="new-pass" class="form-input" style="padding-left: 14px;" placeholder="Minimal 8 karakter" required>
-                                        <button type="button" id="toggle-new-pass" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
-                                            <svg id="new-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                            <svg id="new-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        <input type="password" id="new-pass" class="form-input"
+                                            style="padding-left: 14px;" placeholder="Minimal 8 karakter" required>
+                                        <button type="button" id="toggle-new-pass" class="password-toggle-btn"
+                                            aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                            <svg id="new-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" width="18" height="18">
+                                                <path
+                                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                                </path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                            <svg id="new-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" width="18" height="18">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
                                         </button>
                                     </div>
                                 </div>
@@ -342,24 +447,41 @@
                                 <div class="form-group-st">
                                     <label>Konfirmasi Password Baru</label>
                                     <div class="input-wrapper">
-                                        <input type="password" id="confirm-pass" class="form-input" style="padding-left: 14px;" placeholder="Ulangi password baru" required>
-                                        <button type="button" id="toggle-confirm-pass" class="password-toggle-btn" aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
-                                            <svg id="conf-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                                            <svg id="conf-eye-on" class="eye-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                        <input type="password" id="confirm-pass" class="form-input"
+                                            style="padding-left: 14px;" placeholder="Ulangi password baru" required>
+                                        <button type="button" id="toggle-confirm-pass" class="password-toggle-btn"
+                                            aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
+                                            <svg id="conf-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" width="18" height="18">
+                                                <path
+                                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                                </path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                            <svg id="conf-eye-on" class="eye-icon hidden" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                                height="18">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
                                         </button>
                                     </div>
                                 </div>
 
-                                <div class="toggle-setting-row no-ic" style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px;">
+                                <div class="toggle-setting-row no-ic"
+                                    style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px;">
                                     <div class="toggle-text-meta">
                                         <strong style="font-size: 12px;">Verifikasi 2 Langkah (2FA)</strong>
-                                        <span style="font-size: 10.5px; color: #64748B;">Autentikasi kode OTP via Email/SMS</span>
+                                        <span style="font-size: 10.5px; color: #64748B;">Autentikasi kode OTP via
+                                            Email/SMS</span>
                                     </div>
-                                    <label class="switch-toggle"><input type="checkbox" checked><span class="slider-round"></span></label>
+                                    <label class="switch-toggle"><input type="checkbox" checked><span
+                                            class="slider-round"></span></label>
                                 </div>
 
                                 <div style="margin-top: 12px;">
-                                    <button type="submit" class="btn-st-red" style="width: 100%;">🔑 Perbarui Password</button>
+                                    <button type="submit" class="btn-st-red" style="width: 100%;">🔑 Perbarui
+                                        Password</button>
                                 </div>
                             </form>
                         </div>
@@ -459,224 +581,231 @@
     <script src="app.js"></script>
     <!-- Profile Dynamic Loader -->
     <script>
-    (function() {
-        var ss = sessionStorage;
+        (function () {
+            var ss = sessionStorage;
 
-        // ── Baca semua data dari sessionStorage ──────────────────────────────
-        var fullname    = ss.getItem('jnt_active_username')  || '';
-        var role        = ss.getItem('jnt_user_role')        || '';
-        var nik         = ss.getItem('jnt_user_nik')         || '';
-        var tlc         = ss.getItem('jnt_user_tlc')         || '';
-        var email       = ss.getItem('jnt_user_email')       || '';
-        var phone       = ss.getItem('jnt_user_phone')       || '';
-        var jabatan     = ss.getItem('jnt_user_jabatan')     || '';
-        var departemen  = ss.getItem('jnt_user_departemen')  || '';
-        var bergabung   = ss.getItem('jnt_user_bergabung')   || '';
-        var username    = ss.getItem('jnt_username_login')   || '';
+            // ── Baca semua data dari sessionStorage ──────────────────────────────
+            var fullname = ss.getItem('jnt_active_username') || '';
+            var role = ss.getItem('jnt_user_role') || '';
+            var nik = ss.getItem('jnt_user_nik') || '';
+            var tlc = ss.getItem('jnt_user_tlc') || '';
+            var email = ss.getItem('jnt_user_email') || '';
+            var phone = ss.getItem('jnt_user_phone') || '';
+            var jabatan = ss.getItem('jnt_user_jabatan') || '';
+            var departemen = ss.getItem('jnt_user_departemen') || '';
+            var bergabung = ss.getItem('jnt_user_bergabung') || '';
+            var username = ss.getItem('jnt_username_login') || '';
 
-        var makeAvatar = function(name, size) {
-            return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name)
-                 + '&background=E30613&color=fff&size=' + size + '&bold=true';
-        };
+            var makeAvatar = function (name, size) {
+                return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name)
+                    + '&background=E30613&color=fff&size=' + size + '&bold=true';
+            };
 
-        // ── Helper: set element text / value ─────────────────────────────────
-        function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
-        function setVal(id, val)  { var el = document.getElementById(id); if (el) el.value = val; }
-        function setSrc(id, url)  { var el = document.getElementById(id); if (el) el.src  = url; }
+            // ── Helper: set element text / value ─────────────────────────────────
+            function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+            function setVal(id, val) { var el = document.getElementById(id); if (el) el.value = val; }
+            function setSrc(id, url) { var el = document.getElementById(id); if (el) el.src = url; }
 
-        // ── Hero Section ─────────────────────────────────────────────────────
-        setText('hero-fullname', fullname);
-        setText('hero-jabatan',  jabatan);
-        setText('hero-nik',      nik);
-        setText('hero-tlc',      tlc);
-        setText('hero-email',    email);
+            // ── Hero Section ─────────────────────────────────────────────────────
+            setText('hero-fullname', fullname);
+            setText('hero-jabatan', jabatan);
+            setText('hero-nik', nik);
+            setText('hero-tlc', tlc);
+            setText('hero-email', email);
 
-        // ── Avatar Images ────────────────────────────────────────────────────
-        setSrc('profile-avatar-img', makeAvatar(fullname, 300));
-        setSrc('sidebar-avatar-img', makeAvatar(fullname, 150));
-        setSrc('topbar-avatar-img',  makeAvatar(fullname, 100));
+            // ── Avatar Images ────────────────────────────────────────────────────
+            setSrc('profile-avatar-img', makeAvatar(fullname, 300));
+            setSrc('sidebar-avatar-img', makeAvatar(fullname, 150));
+            setSrc('topbar-avatar-img', makeAvatar(fullname, 100));
 
-        // ── Sidebar: username & role ──────────────────────────────────────────
-        setText('sidebar-user-name', fullname);
-        document.querySelectorAll('.profile-role').forEach(function(el) { el.textContent = role; });
+            // ── Sidebar: username & role ──────────────────────────────────────────
+            setText('sidebar-user-name', fullname);
+            document.querySelectorAll('.profile-role').forEach(function (el) { el.textContent = role; });
 
-        // ── Form Fields ───────────────────────────────────────────────────────
-        setVal('prof-fullname', fullname);
-        setVal('prof-username', username);
-        setVal('prof-email',    email);
-        setVal('prof-phone',    phone);
+            // ── Form Fields ───────────────────────────────────────────────────────
+            setVal('prof-fullname', fullname);
+            setVal('prof-username', username);
+            setVal('prof-email', email);
+            setVal('prof-phone', phone);
 
-        // Role / Jabatan field (readonly)
-        var roleField = document.querySelector('input[value="Developer & System Administrator"]');
-        if (roleField) roleField.value = jabatan;
+            // Role / Jabatan field (readonly)
+            var roleField = document.querySelector('input[value="Developer & System Administrator"]');
+            if (roleField) roleField.value = jabatan;
 
-        // TLC select
-        var tlcSel = document.getElementById('prof-tlc');
-        if (tlcSel) {
-            var found = false;
-            for (var i = 0; i < tlcSel.options.length; i++) {
-                if (tlcSel.options[i].value === tlc || tlcSel.options[i].text === tlc) {
-                    tlcSel.selectedIndex = i;
-                    found = true;
-                    break;
+            // TLC select
+            var tlcSel = document.getElementById('prof-tlc');
+            if (tlcSel) {
+                var found = false;
+                for (var i = 0; i < tlcSel.options.length; i++) {
+                    if (tlcSel.options[i].value === tlc || tlcSel.options[i].text === tlc) {
+                        tlcSel.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    var opt = document.createElement('option');
+                    opt.value = tlc;
+                    opt.textContent = tlc;
+                    opt.selected = true;
+                    tlcSel.appendChild(opt);
                 }
             }
-            if (!found) {
-                var opt = document.createElement('option');
-                opt.value = tlc;
-                opt.textContent = tlc;
-                opt.selected = true;
-                tlcSel.appendChild(opt);
+
+            // Departemen field (readonly)
+            var deptFields = document.querySelectorAll('input[readonly]');
+            deptFields.forEach(function (f) {
+                if (f.value && f.value.includes('Logistik')) f.value = departemen;
+            });
+
+            // Tanggal bergabung
+            var bergFields = document.querySelectorAll('input[readonly]');
+            bergFields.forEach(function (f) {
+                if (f.value && f.value.includes('Januari')) f.value = bergabung;
+            });
+
+            // Topbar name display (safe DOM text)
+            var dashName = document.getElementById('dash-user-name');
+            if (dashName) {
+                dashName.textContent = fullname + ' ';
+                var chev = document.createElement('span');
+                chev.style.fontSize = '10px';
+                chev.textContent = '▾';
+                dashName.appendChild(chev);
             }
-        }
 
-        // Departemen field (readonly)
-        var deptFields = document.querySelectorAll('input[readonly]');
-        deptFields.forEach(function(f) {
-            if (f.value && f.value.includes('Logistik')) f.value = departemen;
-        });
+            // ── SIMPAN PERUBAHAN PROFIL ───────────────────────────────────────────
+            var profileForm = document.getElementById('profile-info-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
 
-        // Tanggal bergabung
-        var bergFields = document.querySelectorAll('input[readonly]');
-        bergFields.forEach(function(f) {
-            if (f.value && f.value.includes('Januari')) f.value = bergabung;
-        });
+                    var newFullname = (document.getElementById('prof-fullname')?.value || '').trim();
+                    var newEmail = (document.getElementById('prof-email')?.value || '').trim();
+                    var newPhone = (document.getElementById('prof-phone')?.value || '').trim();
+                    var newTlc = (document.getElementById('prof-tlc')?.value || '').trim();
 
-        // Topbar name display
-        var dashName = document.getElementById('dash-user-name');
-        if (dashName) dashName.innerHTML = fullname + ' <span style="font-size:10px;">▾</span>';
+                    if (!newFullname) { alert('❌ Nama lengkap tidak boleh kosong.'); return; }
+                    if (!newEmail) { alert('❌ Email tidak boleh kosong.'); return; }
 
-        // ── SIMPAN PERUBAHAN PROFIL ───────────────────────────────────────────
-        var profileForm = document.getElementById('profile-info-form');
-        if (profileForm) {
-            profileForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+                    // Update sessionStorage
+                    ss.setItem('jnt_active_username', newFullname);
+                    ss.setItem('jnt_user_email', newEmail);
+                    ss.setItem('jnt_user_phone', newPhone);
+                    ss.setItem('jnt_user_tlc', newTlc);
 
-                var newFullname = (document.getElementById('prof-fullname')?.value || '').trim();
-                var newEmail    = (document.getElementById('prof-email')?.value    || '').trim();
-                var newPhone    = (document.getElementById('prof-phone')?.value    || '').trim();
-                var newTlc      = (document.getElementById('prof-tlc')?.value      || '').trim();
+                    // Update langsung ke Firestore & Local Store
+                    if (typeof JNTFirebaseService !== 'undefined') {
+                        var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
+                        JNTFirebaseService.saveDoc('users', usernameLogin, {
+                            fullname: newFullname,
+                            emailPerusahaan: newEmail,
+                            phone: newPhone,
+                            tlc: newTlc,
+                            updatedAt: new Date().toISOString()
+                        }, true).catch(function (err) { console.warn('Firestore update profile:', err); });
+                    }
 
-                if (!newFullname) { alert('❌ Nama lengkap tidak boleh kosong.'); return; }
-                if (!newEmail)    { alert('❌ Email tidak boleh kosong.'); return; }
+                    // Update UI langsung
+                    setText('hero-fullname', newFullname);
+                    setText('hero-email', newEmail);
+                    setText('sidebar-user-name', newFullname);
+                    setSrc('profile-avatar-img', makeAvatar(newFullname, 300));
+                    setSrc('sidebar-avatar-img', makeAvatar(newFullname, 150));
+                    setSrc('topbar-avatar-img', makeAvatar(newFullname, 100));
 
-                // Update sessionStorage
-                ss.setItem('jnt_active_username', newFullname);
-                ss.setItem('jnt_user_email',      newEmail);
-                ss.setItem('jnt_user_phone',       newPhone);
-                ss.setItem('jnt_user_tlc',         newTlc);
+                    // Sinkronkan topbar chip, dropdown & sidebar global (app.js)
+                    window.dispatchEvent(new CustomEvent('jnt:user-updated'));
 
-                // Update langsung ke Firestore & Local Store
-                if (typeof JNTFirebaseService !== 'undefined') {
-                    var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
-                    JNTFirebaseService.saveDoc('users', usernameLogin, {
-                        fullname: newFullname,
-                        emailPerusahaan: newEmail,
-                        phone: newPhone,
-                        tlc: newTlc,
-                        updatedAt: new Date().toISOString()
-                    }, true).catch(function(err) { console.warn('Firestore update profile:', err); });
-                }
-
-                // Update UI langsung
-                setText('hero-fullname', newFullname);
-                setText('hero-email',    newEmail);
-                setText('sidebar-user-name', newFullname);
-                setSrc('profile-avatar-img', makeAvatar(newFullname, 300));
-                setSrc('sidebar-avatar-img', makeAvatar(newFullname, 150));
-                setSrc('topbar-avatar-img',  makeAvatar(newFullname, 100));
-
-                // Sinkronkan topbar chip, dropdown & sidebar global (app.js)
-                window.dispatchEvent(new CustomEvent('jnt:user-updated'));
-
-                // Tampilkan notifikasi sukses
-                var toast = document.createElement('div');
-                toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#10B981;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(16,185,129,0.4);animation:fadeInUp 0.3s ease;';
-                toast.textContent = '✅ Profil berhasil diperbarui!';
-                document.body.appendChild(toast);
-                setTimeout(function() { toast.style.opacity='0'; setTimeout(function(){toast.remove();},400); }, 3000);
-            });
-        }
-
-        // ── UBAH PASSWORD ─────────────────────────────────────────────────────
-        var passForm = document.getElementById('change-pass-form');
-        if (passForm) {
-            passForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                var currentPass = (document.getElementById('current-pass')?.value || '').trim();
-                var newPass     = (document.getElementById('new-pass')?.value     || '').trim();
-                var confirmPass = (document.getElementById('confirm-pass')?.value || '').trim();
-
-                if (!currentPass || !newPass || !confirmPass) {
-                    alert('❌ Semua field password harus diisi.'); return;
-                }
-                if (newPass.length < 6) {
-                    alert('❌ Password baru minimal 6 karakter.'); return;
-                }
-                if (newPass !== confirmPass) {
-                    alert('❌ Konfirmasi password tidak cocok.'); return;
-                }
-
-                // Update password langsung di Cloud Firestore & Local Store
-                if (typeof JNTFirebaseService !== 'undefined') {
-                    var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
-                    JNTFirebaseService.saveDoc('users', usernameLogin, {
-                        password: newPass,
-                        updatedAt: new Date().toISOString()
-                    }, true).catch(function(err) { console.warn('Firestore update password:', err); });
-                }
-
-                // Reset form
-                passForm.reset();
-
-                var toast2 = document.createElement('div');
-                toast2.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563EB;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(37,99,235,0.4);';
-                toast2.textContent = '🔑 Password berhasil diperbarui!';
-                document.body.appendChild(toast2);
-                setTimeout(function() { toast2.style.opacity='0'; setTimeout(function(){toast2.remove();},400); }, 3000);
-            });
-        }
-
-        // Toggle password visibility helpers for profile page
-        function setupPasswordToggle(toggleBtnId, inputId, eyeOffId, eyeOnId) {
-            var btn = document.getElementById(toggleBtnId);
-            if (btn) {
-                btn.addEventListener('click', function() {
-                    var input = document.getElementById(inputId);
-                    var eyeOff = document.getElementById(eyeOffId);
-                    var eyeOn = document.getElementById(eyeOnId);
-                    if (!input) return;
-                    var isHidden = input.type === 'password';
-                    input.type = isHidden ? 'text' : 'password';
-                    if (eyeOff) eyeOff.classList.toggle('hidden', isHidden);
-                    if (eyeOn) eyeOn.classList.toggle('hidden', !isHidden);
+                    // Tampilkan notifikasi sukses
+                    var toast = document.createElement('div');
+                    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#10B981;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(16,185,129,0.4);animation:fadeInUp 0.3s ease;';
+                    toast.textContent = '✅ Profil berhasil diperbarui!';
+                    document.body.appendChild(toast);
+                    setTimeout(function () { toast.style.opacity = '0'; setTimeout(function () { toast.remove(); }, 400); }, 3000);
                 });
             }
-        }
-        setupPasswordToggle('toggle-current-pass', 'current-pass', 'curr-eye-off', 'curr-eye-on');
-        setupPasswordToggle('toggle-new-pass', 'new-pass', 'new-eye-off', 'new-eye-on');
-        setupPasswordToggle('toggle-confirm-pass', 'confirm-pass', 'conf-eye-off', 'conf-eye-on');
 
-        // ── TOMBOL EDIT PROFIL (scroll ke form) ──────────────────────────────
-        var btnEdit = document.getElementById('btn-edit-profile');
-        if (btnEdit) {
-            btnEdit.addEventListener('click', function() {
-                var form = document.getElementById('profile-info-form');
-                if (form) {
-                    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    var firstInput = form.querySelector('input:not([readonly])');
-                    if (firstInput) setTimeout(function(){ firstInput.focus(); }, 400);
+            // ── UBAH PASSWORD ─────────────────────────────────────────────────────
+            var passForm = document.getElementById('change-pass-form');
+            if (passForm) {
+                passForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    var currentPass = (document.getElementById('current-pass')?.value || '').trim();
+                    var newPass = (document.getElementById('new-pass')?.value || '').trim();
+                    var confirmPass = (document.getElementById('confirm-pass')?.value || '').trim();
+
+                    if (!currentPass || !newPass || !confirmPass) {
+                        alert('❌ Semua field password harus diisi.'); return;
+                    }
+                    if (newPass.length < 6) {
+                        alert('❌ Password baru minimal 6 karakter.'); return;
+                    }
+                    if (newPass !== confirmPass) {
+                        alert('❌ Konfirmasi password tidak cocok.'); return;
+                    }
+
+                    // Update password langsung di Cloud Firestore & Local Store
+                    if (typeof JNTFirebaseService !== 'undefined') {
+                        var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
+                        JNTFirebaseService.saveDoc('users', usernameLogin, {
+                            password: newPass,
+                            updatedAt: new Date().toISOString()
+                        }, true).catch(function (err) { console.warn('Firestore update password:', err); });
+                    }
+
+                    // Reset form
+                    passForm.reset();
+
+                    var toast2 = document.createElement('div');
+                    toast2.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563EB;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(37,99,235,0.4);';
+                    toast2.textContent = '🔑 Password berhasil diperbarui!';
+                    document.body.appendChild(toast2);
+                    setTimeout(function () { toast2.style.opacity = '0'; setTimeout(function () { toast2.remove(); }, 400); }, 3000);
+                });
+            }
+
+            // Toggle password visibility helpers for profile page
+            function setupPasswordToggle(toggleBtnId, inputId, eyeOffId, eyeOnId) {
+                var btn = document.getElementById(toggleBtnId);
+                if (btn) {
+                    btn.addEventListener('click', function () {
+                        var input = document.getElementById(inputId);
+                        var eyeOff = document.getElementById(eyeOffId);
+                        var eyeOn = document.getElementById(eyeOnId);
+                        if (!input) return;
+                        var isHidden = input.type === 'password';
+                        input.type = isHidden ? 'text' : 'password';
+                        if (eyeOff) eyeOff.classList.toggle('hidden', isHidden);
+                        if (eyeOn) eyeOn.classList.toggle('hidden', !isHidden);
+                    });
                 }
-            });
-        }
+            }
+            setupPasswordToggle('toggle-current-pass', 'current-pass', 'curr-eye-off', 'curr-eye-on');
+            setupPasswordToggle('toggle-new-pass', 'new-pass', 'new-eye-off', 'new-eye-on');
+            setupPasswordToggle('toggle-confirm-pass', 'confirm-pass', 'conf-eye-off', 'conf-eye-on');
 
-        // ── CSS toast animation ───────────────────────────────────────────────
-        var style = document.createElement('style');
-        style.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}';
-        document.head.appendChild(style);
+            // ── TOMBOL EDIT PROFIL (scroll ke form) ──────────────────────────────
+            var btnEdit = document.getElementById('btn-edit-profile');
+            if (btnEdit) {
+                btnEdit.addEventListener('click', function () {
+                    var form = document.getElementById('profile-info-form');
+                    if (form) {
+                        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        var firstInput = form.querySelector('input:not([readonly])');
+                        if (firstInput) setTimeout(function () { firstInput.focus(); }, 400);
+                    }
+                });
+            }
 
-    })();
+            // ── CSS toast animation ───────────────────────────────────────────────
+            var style = document.createElement('style');
+            style.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}';
+            document.head.appendChild(style);
+
+        })();
     </script>
 </body>
+
 </html>

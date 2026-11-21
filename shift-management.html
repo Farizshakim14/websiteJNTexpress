@@ -16,8 +16,14 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap"
         rel="stylesheet">
-    <!-- Anti-Flash Dark Theme Pre-Initialization -->
-    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <!-- Anti-Flash Dark Theme, Font Size & Density Pre-Initialization -->
+    <script>
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -587,7 +593,7 @@
                                         <th>TLC / Rute</th>
                                         <th>Vendor</th>
                                         <th>Plat Nomor</th>
-                                        <th>Driver</th>
+                                        <th>Driver 1 & 2</th>
                                         <th>Berangkat</th>
                                         <th>Posisi Terakhir (4H)</th>
                                         <th>Check-in</th>
@@ -599,6 +605,30 @@
                                     <!-- Populated dynamically from monitoring_4h & sla_outbound -->
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Table Footer Pagination -->
+                        <div class="inc-table-footer"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid #EEF0F4;">
+                            <span style="font-size: 12px; color: #64748B; font-weight: 500;"
+                                id="sh-fleet-pagination-info">Menampilkan 0 data</span>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <div class="inc-pagination" id="sh-fleet-pagination-controls">
+                                    <!-- Dynamic pagination -->
+                                </div>
+                                <div class="per-page-row"
+                                    style="font-size: 12px; color: #64748B; display: flex; align-items: center; gap: 6px;">
+                                    <span>Tampilkan</span>
+                                    <select id="sh-fleet-per-page" class="inc-per-page"
+                                        style="padding: 4px 8px; border-radius: 6px; border: 1px solid #CBD5E1; font-weight: 600;">
+                                        <option value="10" selected>10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="0">Semua</option>
+                                    </select>
+                                    <span>data</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

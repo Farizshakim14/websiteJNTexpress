@@ -33,4 +33,20 @@
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Content-Security-Policy "object-src 'none'; base-uri 'self'; frame-ancestors 'self';"
 </IfModule>
+
+# Block direct HTTP access to sensitive credentials, internal helpers, archives, rules, and internal logs
+<FilesMatch "(^_auth_helper\.php$|firebase-adminsdk|service-account|package(-lock)?\.json|\.rules$|\.zip$|\.env)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+RedirectMatch 403 ^/logs/
+RedirectMatch 403 ^/\.git/

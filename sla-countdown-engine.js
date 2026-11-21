@@ -29,7 +29,7 @@ const SLACountdownEngine = {
         if (typeof str === 'number') return new Date(str);
 
         const s = String(str).trim();
-        if (!s) return null;
+        if (!s || /^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(s)) return null;
 
         // Try standard ISO / Date.parse first if format looks like YYYY-MM-DD
         if (s.match(/^\d{4}-\d{2}-\d{2}/)) {
@@ -199,13 +199,32 @@ const SLACountdownEngine = {
         return `${dd}/${mm} ${pad(date.getHours())}:${pad(date.getMinutes())} WIB`;
     },
 
+    _isScrolling: false,
+    _scrollResumeTimer: null,
+    _scrollListenerBound: false,
+
+    _bindScrollGuard() {
+        if (this._scrollListenerBound || typeof window === 'undefined') return;
+        this._scrollListenerBound = true;
+        const onScroll = () => {
+            this._isScrolling = true;
+            if (this._scrollResumeTimer) clearTimeout(this._scrollResumeTimer);
+            this._scrollResumeTimer = setTimeout(() => {
+                this._isScrolling = false;
+            }, 150);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    },
+
     /**
      * Single Centralized Global Timer Controller
      */
     startGlobalTimer() {
+        this._bindScrollGuard();
         if (this.timerId) return; // Already running
         console.log('[SLA COUNTDOWN ENGINE] Starting Centralized Global 1000ms Clock Timer...');
         this.timerId = setInterval(() => {
+            if (this._isScrolling || (typeof document !== 'undefined' && document.hidden)) return;
             this.tick();
         }, 1000);
     },
@@ -244,8 +263,17 @@ const SLACountdownEngine = {
             const slaHours = el.getAttribute('data-sla-hours');
             const actualArrival = el.getAttribute('data-sla-arrival');
 
+            if (actualArrival && actualArrival !== '-' && el.getAttribute('data-sla-done-rendered') === actualArrival) {
+                return;
+            }
+
             const state = this.calculateSLAState(departure, slaHours, actualArrival);
             this.updateDeclarativeElementUI(el, state);
+            if (state.isCompleted && actualArrival) {
+                el.setAttribute('data-sla-done-rendered', actualArrival);
+            } else {
+                el.removeAttribute('data-sla-done-rendered');
+            }
         });
     },
 

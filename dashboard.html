@@ -16,8 +16,14 @@
         rel="stylesheet">
     <!-- Chart.js for smooth SVG/Canvas line chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Anti-Flash Dark Theme Pre-Initialization -->
-    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <!-- Anti-Flash Dark Theme, Font Size & Density Pre-Initialization -->
+    <script>
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -599,6 +605,7 @@
                     return;
                 }
 
+                const escDash = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
                 let totRitase = 0, totOnTime = 0, totLate = 0;
                 const rowsHtml = vendors.map((v, idx) => {
                     totRitase += (v.ritase || 0);
@@ -608,12 +615,12 @@
                     return `
                         <tr>
                             <td>${idx + 1}</td>
-                            <td><strong>${v.name}</strong></td>
+                            <td><strong>${escDash(v.name)}</strong></td>
                             <td>${(v.ritase || 0).toLocaleString('id-ID')}</td>
                             <td>${Math.round(((v.onTime || 0) / Math.max(1, v.ritase || 1)) * 100)}%</td>
                             <td>${Math.round(((v.late || 0) / Math.max(1, v.ritase || 1)) * 100)}%</td>
                             <td><strong>${pctVal.toFixed(1).replace('.', ',')}%</strong></td>
-                            <td><span class="badge-sla-status ${v.status}">● ${v.statusText}</span></td>
+                            <td><span class="badge-sla-status ${escDash(v.status)}">● ${escDash(v.statusText)}</span></td>
                         </tr>
                     `;
                 }).join('');
@@ -637,6 +644,7 @@
                 const tbodyTop = document.getElementById('tbody-top-trips');
                 const tbodyBottom = document.getElementById('tbody-bottom-trips');
 
+                const escTrip = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'));
                 if (tbodyTop) {
                     if (!topTrips || topTrips.length === 0) {
                         tbodyTop.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#64748B;">Belum ada data rute perjalanan</td></tr>`;
@@ -644,10 +652,10 @@
                         tbodyTop.innerHTML = topTrips.map((t, i) => `
                             <tr>
                                 <td>${i + 1}</td>
-                                <td><strong>${t.rute}</strong></td>
-                                <td>${t.fleet}</td>
-                                <td>${t.ritase}</td>
-                                <td>${t.onTime}</td>
+                                <td><strong>${escTrip(t.rute)}</strong></td>
+                                <td>${escTrip(t.fleet)}</td>
+                                <td>${Number(t.ritase) || 0}</td>
+                                <td>${Number(t.onTime) || 0}</td>
                                 <td><strong style="color:#16A34A;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
                             </tr>
                         `).join('');
@@ -661,10 +669,10 @@
                         tbodyBottom.innerHTML = bottomTrips.map((t, i) => `
                             <tr>
                                 <td>${i + 1}</td>
-                                <td><strong>${t.rute}</strong></td>
-                                <td>${t.fleet}</td>
-                                <td>${t.ritase}</td>
-                                <td>${t.onTime}</td>
+                                <td><strong>${escTrip(t.rute)}</strong></td>
+                                <td>${escTrip(t.fleet)}</td>
+                                <td>${Number(t.ritase) || 0}</td>
+                                <td>${Number(t.onTime) || 0}</td>
                                 <td><strong style="color:#DC2626;">${t.sla.toFixed(1).replace('.', ',')}%</strong></td>
                             </tr>
                         `).join('');

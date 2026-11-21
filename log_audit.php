@@ -1,24 +1,20 @@
 <?php
 /**
  * J&T Express - Transportation Monitoring System
- * Endpoint Simpan & Ambil Audit Trail Log di Hosting cPanel
+ * Endpoint Simpan & Ambil Audit Trail Log di Hosting cPanel (Secured)
  */
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
-header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/_auth_helper.php';
+jnt_apply_cors_headers('GET, POST, OPTIONS');
 
-// Tangani Preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
+// Wajib autentikasi akun Firebase Auth resmi yang aktif
+jnt_require_firebase_auth();
 
 $logsDir = __DIR__ . '/logs/';
 if (!is_dir($logsDir)) {
     @mkdir($logsDir, 0755, true);
 }
+jnt_ensure_htaccess_block($logsDir, true);
 
 $logFile = $logsDir . 'audit_logs.json';
 $archiveFile = $logsDir . 'audit_archive.log';
@@ -38,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     }
 
-    // Filter opsional jika diminta
     if ($shiftId) {
         $logs = array_filter($logs, function($item) use ($shiftId) {
             return isset($item['shiftId']) && $item['shiftId'] === $shiftId;
@@ -74,17 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $entry = [
-        'id' => $payload['id'] ?? ('AUDIT-' . round(microtime(true) * 1000) . '-' . mt_rand(100, 999)),
+        'id' => substr((string)($payload['id'] ?? ('AUDIT-' . round(microtime(true) * 1000) . '-' . mt_rand(100, 999))), 0, 80),
         'createdAt' => (int)($payload['createdAt'] ?? round(microtime(true) * 1000)),
-        'waktu' => (string)($payload['waktu'] ?? date('d/m/Y, H.i')),
-        'operator' => (string)($payload['operator'] ?? 'System'),
-        'shiftId' => (string)($payload['shiftId'] ?? '-'),
-        'modul' => (string)($payload['modul'] ?? 'General'),
-        'kodeTugas' => (string)($payload['kodeTugas'] ?? '-'),
-        'aktivitas' => (string)($payload['aktivitas'] ?? '')
+        'waktu' => substr((string)($payload['waktu'] ?? date('d/m/Y, H.i')), 0, 64),
+        'operator' => substr((string)($payload['operator'] ?? 'System'), 0, 120),
+        'shiftId' => substr((string)($payload['shiftId'] ?? '-'), 0, 80),
+        'modul' => substr((string)($payload['modul'] ?? 'General'), 0, 80),
+        'kodeTugas' => substr((string)($payload['kodeTugas'] ?? '-'), 0, 80),
+        'aktivitas' => substr((string)($payload['aktivitas'] ?? ''), 0, 500)
     ];
 
-    // Buka file dengan LOCK_EX untuk keamanan konkurensi (mencegah bentrok antar operator)
     $fp = fopen($logFile, 'c+');
     if ($fp) {
         if (flock($fp, LOCK_EX)) {
@@ -98,15 +92,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // Sisipkan log baru di urutan pertama (paling baru)
             array_unshift($currentLogs, $entry);
 
-            // Batasi logs aktif di JSON utama agar tidak melebihi 2.000 entri (~300KB)
             if (count($currentLogs) > 2000) {
                 $overflow = array_slice($currentLogs, 2000);
                 $currentLogs = array_slice($currentLogs, 0, 2000);
 
-                // Simpan entri berlebih ke file arsip terpisah agar data tidak pernah hilang
                 $archiveFp = fopen($archiveFile, 'a');
                 if ($archiveFp) {
                     foreach ($overflow as $oldEntry) {

@@ -15,8 +15,14 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap"
         rel="stylesheet">
-    <!-- Anti-Flash Dark Theme Pre-Initialization -->
-    <script>if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');</script>
+    <!-- Anti-Flash Dark Theme, Font Size & Density Pre-Initialization -->
+    <script>
+        if (localStorage.getItem('jnt_theme_mode') === 'dark') document.documentElement.classList.add('dark-body-theme');
+        const _fs = localStorage.getItem('jnt_setting-font-size');
+        if (_fs) document.documentElement.classList.add('font-size-' + _fs);
+        const _den = localStorage.getItem('jnt_setting-density');
+        if (_den) document.documentElement.classList.add('density-' + _den);
+    </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -122,7 +128,7 @@
                         </li>
                         <li class="nav-item">
                             <a href="users.html" class="nav-link">
-                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
@@ -230,10 +236,12 @@
 
                 <!-- SEGMENTED TABS: ARMADA BERANGKAT VS BALIKAN -->
                 <div class="sla-segmented-tabs" style="margin-bottom: 12px;">
-                    <button type="button" class="sla-tab-btn active" id="tab-btn-mon-outbound" onclick="switchMonitoringTripType('outbound')">
+                    <button type="button" class="sla-tab-btn active" id="tab-btn-mon-outbound"
+                        onclick="switchMonitoringTripType('outbound')">
                         &#128666; Armada Berangkat <span class="tab-sub">JKT &rarr; Gateway</span>
                     </button>
-                    <button type="button" class="sla-tab-btn" id="tab-btn-mon-return" onclick="switchMonitoringTripType('return')">
+                    <button type="button" class="sla-tab-btn" id="tab-btn-mon-return"
+                        onclick="switchMonitoringTripType('return')">
                         &#128260; Armada Balikan <span class="tab-sub">Gateway &rarr; JKT999</span>
                     </button>
                 </div>
@@ -244,11 +252,14 @@
                         <div class="excel-sheet-title">
                             <span class="excel-icon">📑</span>
                             <strong>SHEET VENDOR:</strong>
-                            <span class="excel-sheet-subtitle">Pilih sheet vendor di bawah untuk menyaring monitoring perjalanan armada</span>
+                            <span class="excel-sheet-subtitle">Pilih sheet vendor di bawah untuk menyaring monitoring
+                                perjalanan armada</span>
                         </div>
                         <div class="excel-sheet-controls">
-                            <button type="button" class="excel-nav-arrow" onclick="scrollMonExcelTabs(-1)" title="Scroll ke kiri">&lt;</button>
-                            <button type="button" class="excel-nav-arrow" onclick="scrollMonExcelTabs(1)" title="Scroll ke kanan">&gt;</button>
+                            <button type="button" class="excel-nav-arrow" onclick="scrollMonExcelTabs(-1)"
+                                title="Scroll ke kiri">&lt;</button>
+                            <button type="button" class="excel-nav-arrow" onclick="scrollMonExcelTabs(1)"
+                                title="Scroll ke kanan">&gt;</button>
                         </div>
                     </div>
                     <div class="excel-tabs-scroll-track" id="mon-excel-tabs-track">
@@ -277,7 +288,8 @@
                         </div>
                         <div class="filter-group">
                             <label for="filter-mon-status"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status SLA</label>
+                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
+                                SLA</label>
                             <select id="filter-mon-status"
                                 style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
                                 <option value="">Semua Status</option>
@@ -288,7 +300,8 @@
                         </div>
                         <div class="filter-group" style="grid-column: span 2;">
                             <label for="filter-mon-search"
-                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari Kode Tugas / Plat / Driver / Trip</label>
+                                style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
+                                Kode Tugas / Plat / Driver / Trip</label>
                             <div style="position: relative;">
                                 <input type="text" id="filter-mon-search" placeholder="Ketik disini..."
                                     style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
@@ -301,7 +314,8 @@
                         </div>
                         <div class="filter-group">
                             <button type="button" id="btn-reset-monitoring" class="btn-inc-reset"
-                                style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄 Reset</button>
+                                style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
+                                Reset</button>
                         </div>
                     </div>
                 </div>
@@ -430,7 +444,8 @@
                 </div>
 
                 <!-- Main Split Layout -->
-                <div class="inc-split-container" style="display: flex; flex-direction: column; gap: 16px; align-items: stretch;">
+                <div class="inc-split-container"
+                    style="display: flex; flex-direction: column; gap: 16px; align-items: stretch;">
 
                     <!-- Table Section -->
                     <div class="inc-table-card"
@@ -466,11 +481,12 @@
                                         <th rowspan="2" class="mon-sticky-col mon-sticky-col-3">TLC / RUTE</th>
                                         <th rowspan="2" class="mon-sticky-col mon-sticky-col-4">Vendor</th>
                                         <th rowspan="2" class="mon-sticky-col mon-sticky-col-5">Plat Nomor</th>
-                                        <th rowspan="2" class="mon-sticky-col mon-sticky-col-6">Driver</th>
+                                        <th rowspan="2" class="mon-sticky-col mon-sticky-col-6">Driver 1 & 2</th>
                                         <th colspan="42"
                                             style="text-align: center; background-color: #F1F5F9; color: #1E293B; font-weight: 800; border-bottom: 1px solid #CBD5E1;">
                                             POSISI PERJALANAN (UPDATE PER 4 JAM - 7 HARI)</th>
-                                        <th rowspan="2" style="text-align: center; min-width: 140px;">Update Terakhir</th>
+                                        <th rowspan="2" style="text-align: center; min-width: 140px;">Update Terakhir
+                                        </th>
                                         <th rowspan="2" style="text-align: center; min-width: 140px;">Status</th>
                                         <th rowspan="2" style="text-align: center; width: 140px;">Aksi</th>
                                     </tr>
@@ -778,7 +794,7 @@
                     <div id="mon-armada-status" style="font-size: 11px; color: #64748B; margin-top: 3px;"></div>
                 </div>
 
-                <!-- Plat & Driver -->
+                <!-- Plat Nomor & Rute Tujuan -->
                 <div class="form-row-2"
                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                     <div class="form-field">
@@ -790,23 +806,55 @@
                     </div>
                     <div class="form-field">
                         <label
-                            style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Nama
-                            Driver</label>
-                        <input type="text" id="mon-driver" placeholder="Otomatis dari SSOT..." readonly tabindex="-1"
-                            style="background-color: #1E293B; color: #94A3B8; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
-                    </div>
-                </div>
-
-                <!-- Rute & Slot -->
-                <div class="form-row-2"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div class="form-field">
-                        <label
                             style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Rute
                             &amp; Tujuan</label>
                         <input type="text" id="mon-rute" placeholder="Otomatis dari SSOT..." readonly tabindex="-1"
                             style="background-color: #1E293B; color: #94A3B8; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
                     </div>
+                </div>
+
+                <!-- Driver 1 & Nomor HP Driver 1 (Bisa Diisi & Diedit) -->
+                <div class="form-row-2"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div class="form-field">
+                        <label for="mon-driver1"
+                            style="font-size: 11px; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
+                            👤 Nama Driver 1
+                        </label>
+                        <input type="text" id="mon-driver1" placeholder="Nama Driver 1..."
+                            style="background-color: #0F172A; color: #F1F5F9; font-weight: 600; border: 1.5px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
+                        <input type="hidden" id="mon-driver">
+                    </div>
+                    <div class="form-field">
+                        <label for="mon-driver1-phone"
+                            style="font-size: 11px; font-weight: 700; color: #38BDF8; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
+                            📞 No. HP Driver 1
+                        </label>
+                        <input type="tel" id="mon-driver1-phone" placeholder="Contoh: 0812-3456-7890"
+                            style="background-color: #0F172A; color: #38BDF8; font-family: monospace; font-weight: 700; border: 1.5px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
+                    </div>
+                </div>
+
+                <!-- Driver 2 (Cadangan) & Nomor HP Driver 2 (Bisa Diisi & Diedit) -->
+                <div class="form-row-2"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div class="form-field">
+                        <label for="mon-driver2"
+                            style="font-size: 11px; font-weight: 700; color: #94A3B8; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
+                            👤 Driver 2 (Cadangan)
+                        </label>
+                        <input type="text" id="mon-driver2" placeholder="Nama Driver Cadangan..."
+                            style="background-color: #0F172A; color: #F1F5F9; font-weight: 600; border: 1.5px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
+                    </div>
+                    <div class="form-field">
+                        <label for="mon-driver2-phone"
+                            style="font-size: 11px; font-weight: 700; color: #94A3B8; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
+                            📞 No. HP Driver 2
+                        </label>
+                        <input type="tel" id="mon-driver2-phone" placeholder="Contoh: 0812-3456-7890"
+                            style="background-color: #0F172A; color: #38BDF8; font-family: monospace; font-weight: 700; border: 1.5px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
+                    </div>
+                </div>
                     <div class="form-field">
                         <label for="mon-slot-select"
                             style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
@@ -954,40 +1002,57 @@
     <!-- ═══════════════════════════════════════════════════════════════════
          MODAL: SELESAIKAN PERJALANAN (ARMADA TIBA DI TUJUAN DENGAN UPLOAD FOTO)
          ═══════════════════════════════════════════════════════════════════ -->
-    <div id="modal-selesai-perjalanan" class="modal-overlay hidden" role="dialog" aria-modal="true" style="z-index: 9999;">
-        <div class="modal-card" style="max-width: 540px; border-radius: 16px; background: #0F172A; border: 1px solid #1E293B; box-shadow: 0 20px 50px rgba(0,0,0,0.4); max-height: 94vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="background: #0F172A; border-bottom: 1px solid #1E293B; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+    <div id="modal-selesai-perjalanan" class="modal-overlay hidden" role="dialog" aria-modal="true"
+        style="z-index: 9999;">
+        <div class="modal-card"
+            style="max-width: 540px; border-radius: 16px; background: #0F172A; border: 1px solid #1E293B; box-shadow: 0 20px 50px rgba(0,0,0,0.4); max-height: 94vh; display: flex; flex-direction: column;">
+            <div class="modal-header"
+                style="background: #0F172A; border-bottom: 1px solid #1E293B; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 20px;">🏁</span>
                     <div>
-                        <h3 style="font-size: 15px; font-weight: 800; color: #F1F5F9; margin: 0;">Selesaikan Perjalanan Armada</h3>
-                        <span style="font-size: 11px; color: #94A3B8;">Catat jam kedatangan aktual &amp; upload foto bukti sampai</span>
+                        <h3 style="font-size: 15px; font-weight: 800; color: #F1F5F9; margin: 0;">Selesaikan Perjalanan
+                            Armada</h3>
+                        <span style="font-size: 11px; color: #94A3B8;">Catat jam kedatangan aktual &amp; upload foto
+                            bukti sampai</span>
                     </div>
                 </div>
-                <button type="button" class="btn-close-x modal-close-btn" onclick="closeSelesaiModal()" style="color: #94A3B8; font-size: 22px; background: none; border: none; cursor: pointer;">&times;</button>
+                <button type="button" class="btn-close-x modal-close-btn" onclick="closeSelesaiModal()"
+                    style="color: #94A3B8; font-size: 22px; background: none; border: none; cursor: pointer;">&times;</button>
             </div>
 
             <!-- Card Ringkasan Armada -->
-            <div style="margin: 12px 18px 0; background: #1E293B; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px;">
+            <div
+                style="margin: 12px 18px 0; background: #1E293B; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <span id="selesai-kode-badge" style="font-family: monospace; font-size: 13px; font-weight: 800; color: #38BDF8; background: #0F172A; padding: 2px 8px; border-radius: 6px; border: 1px solid #38BDF8;">-</span>
-                    <span id="selesai-vendor-badge" style="font-size: 11px; font-weight: 700; color: #F1F5F9; background: #334155; padding: 2px 8px; border-radius: 6px;">-</span>
+                    <span id="selesai-kode-badge"
+                        style="font-family: monospace; font-size: 13px; font-weight: 800; color: #38BDF8; background: #0F172A; padding: 2px 8px; border-radius: 6px; border: 1px solid #38BDF8;">-</span>
+                    <span id="selesai-vendor-badge"
+                        style="font-size: 11px; font-weight: 700; color: #F1F5F9; background: #334155; padding: 2px 8px; border-radius: 6px;">-</span>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px;">
-                    <div><span style="color: #64748B;">Plat:</span> <strong id="selesai-plat-text" style="color: #F1F5F9;">-</strong></div>
-                    <div><span style="color: #64748B;">Driver:</span> <strong id="selesai-driver-text" style="color: #F1F5F9;">-</strong></div>
-                    <div style="grid-column: span 2;"><span style="color: #64748B;">Rute / Tujuan:</span> <strong id="selesai-rute-text" style="color: #FBBF24;">-</strong></div>
+                    <div><span style="color: #64748B;">Plat:</span> <strong id="selesai-plat-text"
+                            style="color: #F1F5F9;">-</strong></div>
+                    <div><span style="color: #64748B;">Driver:</span> <strong id="selesai-driver-text"
+                            style="color: #F1F5F9;">-</strong></div>
+                    <div style="grid-column: span 2;"><span style="color: #64748B;">Rute / Tujuan:</span> <strong
+                            id="selesai-rute-text" style="color: #FBBF24;">-</strong></div>
                 </div>
             </div>
 
-            <form id="form-selesai-perjalanan" style="padding: 14px 18px 18px; overflow-y: auto; flex: 1;" onsubmit="submitSelesaiPerjalanan(event)">
+            <form id="form-selesai-perjalanan" style="padding: 14px 18px 18px; overflow-y: auto; flex: 1;"
+                onsubmit="submitSelesaiPerjalanan(event)">
                 <input type="hidden" id="selesai-kode-tugas" value="">
 
                 <!-- Tanggal & Jam Sampai Aktual (24 Jam WIB) -->
                 <div class="form-field" style="margin-bottom: 12px;">
-                    <label for="selesai-tanggal" style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>Waktu Kedatangan Aktual (Mobil Masuk Gateway) <span style="color: #EF4444;">*</span></span>
-                        <span style="background: #1E3A8A; color: #93C5FD; border: 1px solid #3B82F6; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">24 JAM WIB</span>
+                    <label for="selesai-tanggal"
+                        style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Waktu Kedatangan Aktual (Mobil Masuk Gateway) <span
+                                style="color: #EF4444;">*</span></span>
+                        <span
+                            style="background: #1E3A8A; color: #93C5FD; border: 1px solid #3B82F6; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px;">24
+                            JAM WIB</span>
                     </label>
                     <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; align-items: center;">
                         <input type="date" id="selesai-tanggal" required
@@ -1002,14 +1067,16 @@
                                 style="background: #1E293B; color: #F1F5F9; border: 1.5px solid #334155; border-radius: 8px; padding: 9px 8px; font-size: 13px; width: 100%; font-weight: 700; outline: none; transition: border-color 0.2s;"
                                 onfocus="this.style.borderColor='#3B82F6'" onblur="this.style.borderColor='#334155'">
                             </select>
-                            <span style="font-size: 11px; font-weight: 800; color: #38BDF8; background: #0F172A; border: 1px solid #38BDF8; padding: 8px 6px; border-radius: 6px; line-height: 1; user-select: none;">WIB</span>
+                            <span
+                                style="font-size: 11px; font-weight: 800; color: #38BDF8; background: #0F172A; border: 1px solid #38BDF8; padding: 8px 6px; border-radius: 6px; line-height: 1; user-select: none;">WIB</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Lokasi Checkpoint Sampai -->
                 <div class="form-field" style="margin-bottom: 12px;">
-                    <label style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
                         Lokasi Sampai (Checkpoint IN) <span style="color: #EF4444;">*</span>
                     </label>
                     <input type="text" id="selesai-lokasi" placeholder="Contoh: IN SEG / IN TKG / IN SRG" required
@@ -1018,20 +1085,25 @@
 
                 <!-- Upload Foto Bukti Sampai -->
                 <div class="form-field" style="margin-bottom: 12px;">
-                    <label style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
                         Upload Foto Bukti Sampai / Surat Jalan / Gerbang Masuk
                     </label>
-                    <input type="file" id="selesai-foto-file" accept="image/*" style="display:none;" onchange="handleSelesaiFotoChange(event)">
+                    <input type="file" id="selesai-foto-file" accept="image/*" style="display:none;"
+                        onchange="handleSelesaiFotoChange(event)">
                     <div id="selesai-upload-box" onclick="document.getElementById('selesai-foto-file').click()"
                         style="border: 2px dashed #334155; border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; background: #1E293B; transition: all 0.2s;">
                         <span style="font-size: 26px; display: block; margin-bottom: 4px;">📷</span>
-                        <div style="font-size: 12.5px; font-weight: 700; color: #38BDF8;">Klik untuk Pilih Foto / Ambil Kamera</div>
+                        <div style="font-size: 12.5px; font-weight: 700; color: #38BDF8;">Klik untuk Pilih Foto / Ambil
+                            Kamera</div>
                         <span style="font-size: 11px; color: #94A3B8;">Format: JPG, PNG, WebP (Maks. 10MB)</span>
                     </div>
 
                     <!-- Container Pratinjau Foto -->
-                    <div id="selesai-preview-wrap" style="display: none; margin-top: 10px; position: relative; border-radius: 10px; overflow: hidden; border: 1.5px solid #38BDF8; max-height: 200px; text-align: center; background: #000000;">
-                        <img id="selesai-foto-preview" src="" alt="Pratinjau Foto Sampai" style="max-height: 200px; width: auto; max-width: 100%; object-fit: contain;">
+                    <div id="selesai-preview-wrap"
+                        style="display: none; margin-top: 10px; position: relative; border-radius: 10px; overflow: hidden; border: 1.5px solid #38BDF8; max-height: 200px; text-align: center; background: #000000;">
+                        <img id="selesai-foto-preview" src="" alt="Pratinjau Foto Sampai"
+                            style="max-height: 200px; width: auto; max-width: 100%; object-fit: contain;">
                         <button type="button" onclick="hapusFotoSelesai(event)"
                             style="position: absolute; top: 8px; right: 8px; background: rgba(239,68,68,0.9); color: #FFFFFF; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
                             🗑️ Hapus Foto
@@ -1041,16 +1113,21 @@
 
                 <!-- Catatan Tambahan -->
                 <div class="form-field" style="margin-bottom: 14px;">
-                    <label style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; margin-bottom: 4px; display: block;">
                         Catatan Kedatangan (Opsional)
                     </label>
-                    <input type="text" id="selesai-catatan" placeholder="Contoh: Paket utuh dan aman, segel pintu gateway lengkap..."
+                    <input type="text" id="selesai-catatan"
+                        placeholder="Contoh: Paket utuh dan aman, segel pintu gateway lengkap..."
                         style="background: #1E293B; color: #F1F5F9; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; width: 100%;">
                 </div>
 
-                <div id="selesai-error-msg" style="display: none; margin-bottom: 12px; padding: 8px 12px; background: #7F1D1D; border: 1px solid #EF4444; border-radius: 8px; color: #FCA5A5; font-size: 12px; font-weight: 600;"></div>
+                <div id="selesai-error-msg"
+                    style="display: none; margin-bottom: 12px; padding: 8px 12px; background: #7F1D1D; border: 1px solid #EF4444; border-radius: 8px; color: #FCA5A5; font-size: 12px; font-weight: 600;">
+                </div>
 
-                <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #1E293B;">
+                <div class="modal-footer"
+                    style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #1E293B;">
                     <button type="button" onclick="closeSelesaiModal()"
                         style="border-radius: 8px; padding: 8px 16px; font-weight: 700; background: #1E293B; color: #94A3B8; border: 1px solid #334155; cursor: pointer;">Batal</button>
                     <button type="submit" id="btn-confirm-selesai"
@@ -1062,13 +1139,133 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP: INFO TRIP SELESAI & BUKTI FOTO -->
+    <div id="modal-trip-info" class="modal-overlay hidden" style="z-index: 9950;"
+        onclick="if(event.target===this) closeTripInfoModal()">
+        <div class="modal-card"
+            style="max-width: 560px; width: 95%; background: #0F172A; border: 1px solid #1E293B; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-bottom: 1px solid #1E293B; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">ℹ️</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: #F1F5F9;">Informasi Kedatangan
+                            &amp; Bukti Sampai</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 11px; color: #94A3B8;">Detail data penyelesaian
+                            perjalanan armada (tersimpan di Cloud)</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeTripInfoModal()"
+                    style="background: none; border: none; color: #94A3B8; font-size: 22px; font-weight: 700; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+
+            <div style="padding: 18px 20px; max-height: 78vh; overflow-y: auto;">
+                <!-- Header Ringkasan -->
+                <div
+                    style="background: #1E293B; border: 1px solid #334155; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <span id="trip-info-kode"
+                                style="background: #0F172A; color: #38BDF8; font-family: monospace; font-size: 12.5px; font-weight: 800; padding: 4px 10px; border-radius: 6px; border: 1px solid #38BDF8;">-</span>
+                            <span id="trip-info-vendor"
+                                style="font-size: 11px; font-weight: 700; color: #F8FAFC; background: #334155; padding: 3px 8px; border-radius: 5px;">-</span>
+                        </div>
+                        <span id="trip-info-status-badge"
+                            style="font-size: 11px; font-weight: 800; color: #10B981; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); padding: 3px 9px; border-radius: 999px;">✓
+                            COMPLETED</span>
+                    </div>
+
+                    <div
+                        style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; font-size: 12px; color: #CBD5E1;">
+                        <div><span style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Plat
+                                Nomor</span><strong id="trip-info-plat" style="color:#F8FAFC;">-</strong></div>
+                        <div><span style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">TLC /
+                                Rute</span><strong id="trip-info-rute" style="color:#FBBF24;">-</strong></div>
+                        <div><span
+                                style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Driver</span><strong
+                                id="trip-info-driver" style="color:#F8FAFC;">-</strong></div>
+                        <div><span
+                                style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Target
+                                SLA</span><strong id="trip-info-sla" style="color:#38BDF8;">-</strong></div>
+                        <div><span style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Jam
+                                Berangkat</span><strong id="trip-info-berangkat" style="color:#E2E8F0;">-</strong></div>
+                        <div><span style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Jam
+                                Sampai Aktual</span><strong id="trip-info-sampai" style="color:#34D399;">-</strong>
+                        </div>
+                        <div><span
+                                style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Lokasi
+                                Checkpoint IN</span><strong id="trip-info-lokasi" style="color:#F8FAFC;">-</strong>
+                        </div>
+                        <div><span
+                                style="color:#94A3B8; display:block; font-size:10px; text-transform:uppercase;">Dicatat
+                                Oleh</span><strong id="trip-info-operator" style="color:#CBD5E1;">-</strong></div>
+                    </div>
+
+                    <div id="trip-info-kode-asal-wrap"
+                        style="display:none; margin-top:8px; padding-top:8px; border-top:1px dashed #334155; font-size:11.5px; color:#94A3B8;">
+                        Kode Tugas Asal (Outbound): <strong id="trip-info-kode-asal"
+                            style="color:#CBD5E1; font-family:monospace;">-</strong>
+                    </div>
+
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #334155; font-size: 12px;">
+                        <span style="color:#94A3B8; font-size:10px; text-transform:uppercase; display:block;">Catatan /
+                            Kondisi Kedatangan</span>
+                        <div id="trip-info-catatan" style="color:#E2E8F0; margin-top:2px;">-</div>
+                    </div>
+                </div>
+
+                <!-- Foto Bukti Sampai -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase;">
+                            📷 Foto Bukti Sudah Sampai
+                        </label>
+                        <button type="button" id="trip-info-zoom-btn" onclick="previewTripInfoPhoto()"
+                            style="display:none; background:#1E293B; color:#38BDF8; border:1px solid #38BDF8; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; cursor:pointer;">🔍
+                            Perbesar Foto</button>
+                    </div>
+
+                    <div id="trip-info-photo-loading"
+                        style="display:none; padding:24px; text-align:center; background:#1E293B; border:1px dashed #334155; border-radius:10px; color:#38BDF8; font-size:12px; font-weight:600;">
+                        ⏳ Mengambil foto bukti dari Cloud...
+                    </div>
+
+                    <div id="trip-info-photo-wrap"
+                        style="display:none; border-radius:10px; overflow:hidden; border:1.5px solid #38BDF8; background:#020617; text-align:center; cursor:pointer;"
+                        onclick="previewTripInfoPhoto()">
+                        <img id="trip-info-photo-img" src="" alt="Foto Bukti Sampai"
+                            style="max-height:260px; width:100%; object-fit:contain; display:block; margin:0 auto;">
+                    </div>
+
+                    <div id="trip-info-photo-empty"
+                        style="display:none; padding:20px; text-align:center; background:#1E293B; border:1px dashed #334155; border-radius:10px; color:#94A3B8; font-size:12px;">
+                        Tidak ada foto bukti kedatangan yang dilampirkan untuk perjalanan ini.
+                    </div>
+                </div>
+            </div>
+
+            <div
+                style="display: flex; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #1E293B; background: #0F172A;">
+                <button type="button" onclick="closeTripInfoModal()"
+                    style="border-radius: 8px; padding: 8px 18px; font-weight: 700; background: #1E293B; color: #F1F5F9; border: 1px solid #334155; cursor: pointer;">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL POPUP: FULL PHOTO PREVIEW -->
-    <div id="modal-photo-preview" class="modal-overlay hidden" style="z-index: 10000;" onclick="this.classList.add('hidden')">
-        <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center;" onclick="event.stopPropagation()">
+    <div id="modal-photo-preview" class="modal-overlay hidden" style="z-index: 10000;"
+        onclick="this.classList.add('hidden')">
+        <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center;"
+            onclick="event.stopPropagation()">
             <button type="button" onclick="document.getElementById('modal-photo-preview').classList.add('hidden')"
                 style="position: absolute; top: -14px; right: -14px; background: #EF4444; color: #FFFFFF; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">&times;</button>
-            <img id="preview-modal-img" src="" alt="Bukti Foto Sampai" style="max-width: 85vw; max-height: 80vh; border-radius: 12px; border: 2px solid #334155; box-shadow: 0 20px 60px rgba(0,0,0,0.6); object-fit: contain; background: #0F172A;">
-            <span id="preview-modal-caption" style="color: #F1F5F9; font-size: 13px; font-weight: 700; margin-top: 10px; background: rgba(15,23,42,0.8); padding: 4px 12px; border-radius: 6px;"></span>
+            <img id="preview-modal-img" src="" alt="Bukti Foto Sampai"
+                style="max-width: 85vw; max-height: 80vh; border-radius: 12px; border: 2px solid #334155; box-shadow: 0 20px 60px rgba(0,0,0,0.6); object-fit: contain; background: #0F172A;">
+            <span id="preview-modal-caption"
+                style="color: #F1F5F9; font-size: 13px; font-weight: 700; margin-top: 10px; background: rgba(15,23,42,0.8); padding: 4px 12px; border-radius: 6px;"></span>
         </div>
     </div>
 
@@ -1206,6 +1403,7 @@
     <!-- Firebase SDK Compat CDN -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <!-- Firebase Config & Service -->
     <script src="firebase-config.js"></script>
@@ -1294,7 +1492,7 @@
             // Highlight active slot column headers
             const slotThMap = { '00:00': 'th-slot-d1-00', '04:00': 'th-slot-d1-04', '08:00': 'th-slot-d1-08', '12:00': 'th-slot-d1-12', '16:00': 'th-slot-d1-16', '20:00': 'th-slot-d1-20' };
             const activeTh = document.getElementById(slotThMap[currentActiveSlot]);
-            if (activeTh) { activeTh.style.background = '#EFF6FF'; activeTh.style.color = '#1E40AF'; activeTh.style.fontWeight = '800'; }
+            if (activeTh) { activeTh.classList.add('active-slot-th'); }
 
             // Highlight timeline
             document.querySelectorAll('#vertical-slot-timeline-list .timeline-slot-node').forEach(node => {
@@ -1374,19 +1572,20 @@
             function isReturnTrip(item) {
                 if (!item) return false;
                 if (item.tripType === 'RETURN' || item.isBalikan === true) return true;
+                if (item.kodeTugasBalikan || item.kodeTugasAsal) return true;
                 const kode = String(item.kodeTugas || item.id || '').toUpperCase();
-                if (kode.startsWith('JBG') || kode.includes('RET')) return true;
+                if (kode.startsWith('JBG') || kode.includes('RET') || kode.includes('BALIK')) return true;
                 const trip = String(item.trip || item.namaRute || '').toUpperCase();
                 if (trip.includes('BALIKAN') || trip.includes('RETURN')) return true;
                 return false;
             }
 
-            window.scrollMonExcelTabs = function(dir) {
+            window.scrollMonExcelTabs = function (dir) {
                 const track = document.getElementById('mon-excel-tabs-track');
                 if (track) track.scrollBy({ left: dir * 240, behavior: 'smooth' });
             };
 
-            window.switchMonitoringTripType = function(type) {
+            window.switchMonitoringTripType = function (type) {
                 window._monTripType = type;
                 const btnOut = document.getElementById('tab-btn-mon-outbound');
                 const btnRet = document.getElementById('tab-btn-mon-return');
@@ -1404,13 +1603,13 @@
                 applyFilters();
             };
 
-            window.selectMonVendorTab = function(vendorKey) {
+            window.selectMonVendorTab = function (vendorKey) {
                 window._monCurrentVendor = vendorKey;
                 renderMonVendorTabs();
                 applyFilters();
             };
 
-            window.renderMonVendorTabs = function() {
+            window.renderMonVendorTabs = function () {
                 const track = document.getElementById('mon-excel-tabs-track');
                 if (!track) return;
 
@@ -1427,21 +1626,16 @@
                     const count = (v.key === 'ALL')
                         ? tripsForType.length
                         : tripsForType.filter(i => {
-                            const itemV = i.vendor || i.namaVendor || (activeIncomingMap[i.kodeTugas]?.vendor) || '';
+                            const itemV = i.vendor || i.namaVendor || (activeIncomingMap[i.kodeTugas]?.vendor) || (activeIncomingMap[i.kodeTugasAsal]?.vendor) || '';
                             return isVendorMatch(itemV, v.key);
                         }).length;
                     const badgeHtml = '<span class="excel-tab-badge">' + count + '</span>';
                     return '<button type="button" class="excel-tab-item' + isAll + isActive + '" onclick="selectMonVendorTab(\'' + v.key + '\')">' +
                         '<span>' + v.name + '</span>' + badgeHtml +
-                    '</button>';
+                        '</button>';
                 }).join('');
 
                 track.innerHTML = html;
-
-                const activeBtn = track.querySelector('.excel-tab-item.active');
-                if (activeBtn) {
-                    activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
-                }
             };
 
             // ═══════════════════════════════════════════════════════
@@ -1456,12 +1650,50 @@
             // ── IMMEDIATE INITIAL RENDER (0ms latency for sheet vendor tabs) ──
             try {
                 if (typeof JNTFirebaseService !== 'undefined') {
-                    rawMonitoringList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                    const mon4h = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                    const retList = JNTFirebaseService.getLocalStore('sla_return') || [];
                     const incList = JNTFirebaseService.getLocalStore('incoming') || [];
                     incList.forEach(item => {
                         const k = item.kodeTugas || item.id;
                         if (k) activeIncomingMap[k] = item;
                     });
+
+                    const mKeyMap = {};
+                    mon4h.forEach(m => {
+                        const k = m.kodeTugas || m.id;
+                        if (k) mKeyMap[k] = m;
+                    });
+
+                    retList.forEach(r => {
+                        const retKode = r.kodeTugasBalikan || r.kodeBalikan || r.kodeTugas;
+                        if (!retKode) return;
+                        const asalDoc = activeIncomingMap[r.kodeTugasAsal || r.kodeAsal] || {};
+                        const mergedRet = {
+                            ...(mKeyMap[retKode] || {}),
+                            id: retKode,
+                            kodeTugas: retKode,
+                            kodeTugasBalikan: retKode,
+                            kodeTugasAsal: r.kodeTugasAsal || r.kodeAsal,
+                            tripType: 'RETURN',
+                            isBalikan: true,
+                            vendor: r.vendor || asalDoc.vendor || (mKeyMap[retKode]?.vendor) || '',
+                            platNomor: r.platNomor || asalDoc.platNomor || (mKeyMap[retKode]?.platNomor) || '',
+                            driver1: r.driver1 || asalDoc.driver1 || (mKeyMap[retKode]?.driver1) || '',
+                            namaRute: r.namaRute || r.trip || 'Gateway → JKT999',
+                            trip: r.trip || r.namaRute || 'BALIKAN Gateway → JKT999',
+                            jamBerangkat: r.jamBerangkatGateway || r.jamBerangkat || (mKeyMap[retKode]?.jamBerangkat) || '',
+                            jamBerangkatGateway: r.jamBerangkatGateway || r.jamBerangkat || (mKeyMap[retKode]?.jamBerangkatGateway) || '',
+                            jamSampaiAktual: r.jamSampaiJKT999 || r.jamSampaiAktual || (mKeyMap[retKode]?.jamSampaiAktual) || '',
+                            jamSampaiJKT999: r.jamSampaiJKT999 || r.jamSampaiAktual || (mKeyMap[retKode]?.jamSampaiJKT999) || '',
+                            statusPerjalanan: r.statusPerjalanan || r.statusBalikan || (mKeyMap[retKode]?.statusPerjalanan) || (r.jamSampaiJKT999 ? 'COMPLETED' : 'ON PROGRESS'),
+                            slots: (mKeyMap[retKode] && mKeyMap[retKode].slots) ? mKeyMap[retKode].slots : {}
+                        };
+                        mKeyMap[retKode] = mergedRet;
+                        activeIncomingMap[retKode] = mergedRet;
+                    });
+
+                    rawMonitoringList = Object.values(mKeyMap);
+                    if (rawMonitoringList.length === 0) rawMonitoringList = mon4h;
                 }
             } catch (e) {
                 console.debug('Initial monitoring tabs load notice:', e);
@@ -1480,7 +1712,7 @@
                 const curVal = sel.value;
                 // Hanya update opsi jika ada trip baru atau berbeda
                 const activeTrips = Array.isArray(trips)
-                    ? trips.filter(t => t.status !== 'SUDAH SELESAI' && t.kodeTugas)
+                    ? trips.filter(t => t.status !== 'SUDAH SELESAI' && t.statusPerjalanan !== 'COMPLETED' && t.kodeTugas)
                     : [];
 
                 sel.innerHTML = '<option value="">-- Pilih Armada Aktif --</option>';
@@ -1492,7 +1724,8 @@
                         const opt = document.createElement('option');
                         opt.value = trip.kodeTugas;
                         const plat = trip.platNomor ? ` [${trip.platNomor}]` : '';
-                        opt.textContent = `${trip.kodeTugas}${plat} — ${trip.namaRute || trip.trip || '-'}`;
+                        const tripLabel = trip.isBalikan ? `🔄 [BALIKAN] ${trip.kodeTugas}${plat}` : `${trip.kodeTugas}${plat}`;
+                        opt.textContent = `${tripLabel} — ${trip.namaRute || trip.trip || '-'}`;
                         sel.appendChild(opt);
                     });
                     if (statusEl) statusEl.innerHTML = `✅ ${activeTrips.length} armada aktif tersedia`;
@@ -1508,7 +1741,32 @@
             function loadArmadaFromLocalStorage() {
                 const localIncoming = JNTFirebaseService.getLocalStore('incoming') || [];
                 localIncoming.forEach(t => { activeIncomingMap[t.kodeTugas] = t; });
-                populateArmadaDropdown(localIncoming);
+
+                const localRet = JNTFirebaseService.getLocalStore('sla_return') || [];
+                const retTrips = [];
+                localRet.forEach(r => {
+                    const retKode = r.kodeTugasBalikan || r.kodeBalikan || r.kodeTugas;
+                    if (retKode && r.status !== 'SUDAH SELESAI' && r.statusBalikan !== 'SUDAH SELESAI' && !r.jamSampaiJKT999) {
+                        const asalDoc = activeIncomingMap[r.kodeTugasAsal || r.kodeAsal] || {};
+                        const retObj = {
+                            kodeTugas: retKode,
+                            kodeTugasBalikan: retKode,
+                            kodeTugasAsal: r.kodeTugasAsal || r.kodeAsal,
+                            platNomor: r.platNomor || asalDoc.platNomor || '',
+                            namaRute: 'BALIKAN ' + (r.namaRute || asalDoc.namaRute || asalDoc.trip || 'Gateway → JKT999'),
+                            trip: 'BALIKAN ' + (r.trip || asalDoc.trip || 'Gateway → JKT999'),
+                            vendor: r.vendor || asalDoc.vendor || '',
+                            driver1: r.driver1 || asalDoc.driver1 || '',
+                            tripType: 'RETURN',
+                            isBalikan: true
+                        };
+                        activeIncomingMap[retKode] = retObj;
+                        retTrips.push(retObj);
+                    }
+                });
+
+                const combined = [...localIncoming, ...retTrips];
+                populateArmadaDropdown(combined);
             }
             loadArmadaFromLocalStorage();
 
@@ -1534,12 +1792,20 @@
                 const kode = e.target.value;
                 const platEl = document.getElementById('mon-plat');
                 const driverEl = document.getElementById('mon-driver');
+                const d1Input = document.getElementById('mon-driver1');
+                const d1PhoneInput = document.getElementById('mon-driver1-phone');
+                const d2Input = document.getElementById('mon-driver2');
+                const d2PhoneInput = document.getElementById('mon-driver2-phone');
                 const ruteEl = document.getElementById('mon-rute');
                 const alertEl = document.getElementById('mon-form-alert');
 
                 // Clear sebelumnya
                 if (platEl) platEl.value = '';
                 if (driverEl) driverEl.value = '';
+                if (d1Input) d1Input.value = '';
+                if (d1PhoneInput) d1PhoneInput.value = '';
+                if (d2Input) d2Input.value = '';
+                if (d2PhoneInput) d2PhoneInput.value = '';
                 if (ruteEl) ruteEl.value = '';
 
                 if (!kode) { populateSlotOptionsForTrip(null); return; }
@@ -1558,6 +1824,10 @@
                 if (data) {
                     if (platEl) platEl.value = data.platNomor || '';
                     if (driverEl) driverEl.value = data.driver1 || '';
+                    if (d1Input) d1Input.value = data.driver1 || '';
+                    if (d1PhoneInput) d1PhoneInput.value = data.driverPhone || '';
+                    if (d2Input) d2Input.value = data.driver2 || '';
+                    if (d2PhoneInput) d2PhoneInput.value = data.driver2Phone || '';
                     if (ruteEl) ruteEl.value = `${data.trip || ''}${data.namaRute && data.namaRute !== data.trip ? ' — ' + data.namaRute : ''}`;
                     if (alertEl) alertEl.style.display = 'none';
 
@@ -1737,6 +2007,10 @@
                     const sel = document.getElementById('mon-kode-tugas-select');
                     const platEl = document.getElementById('mon-plat');
                     const driverEl = document.getElementById('mon-driver');
+                    const d1Input = document.getElementById('mon-driver1');
+                    const d1PhoneInput = document.getElementById('mon-driver1-phone');
+                    const d2Input = document.getElementById('mon-driver2');
+                    const d2PhoneInput = document.getElementById('mon-driver2-phone');
                     const ruteEl = document.getElementById('mon-rute');
                     const slotEl = document.getElementById('mon-slot-select');
 
@@ -1748,9 +2022,14 @@
 
                         const plat = item ? (item.platNomor || '-') : '-';
                         const driver = item ? (item.driver1 || '-') : '-';
+                        const d1Val = item ? (item.driver1 || '') : '';
+                        const d1PhoneVal = item ? (item.driverPhone || '') : '';
+                        const d2Val = item ? (item.driver2 || '') : '';
+                        const d2PhoneVal = item ? (item.driver2Phone || '') : '';
                         const rute = item ? (item.trip || item.namaRute || '-') : '-';
 
-                        sel.innerHTML = `<option value="${kodeTugas}">${kodeTugas} [${plat}] — ${rute}</option>`;
+                        const escMon = (s) => (window.jntEscapeHtml ? window.jntEscapeHtml(s) : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'));
+                        sel.innerHTML = `<option value="${escMon(kodeTugas)}">${escMon(kodeTugas)} [${escMon(plat)}] — ${escMon(rute)}</option>`;
                         sel.value = kodeTugas;
                         sel.setAttribute('data-locked-value', kodeTugas);
                         sel.style.pointerEvents = 'none';
@@ -1759,6 +2038,10 @@
 
                         if (platEl) platEl.value = plat;
                         if (driverEl) driverEl.value = driver;
+                        if (d1Input) d1Input.value = (d1Val !== '-') ? d1Val : '';
+                        if (d1PhoneInput) d1PhoneInput.value = d1PhoneVal;
+                        if (d2Input) d2Input.value = (d2Val !== '-') ? d2Val : '';
+                        if (d2PhoneInput) d2PhoneInput.value = d2PhoneVal;
                         if (ruteEl) ruteEl.value = rute;
 
                         // Populate ONLY slots AFTER OUT JAKARTA
@@ -1779,6 +2062,10 @@
                         populateSlotOptionsForTrip(null);
                         if (platEl) platEl.value = '';
                         if (driverEl) driverEl.value = '';
+                        if (d1Input) d1Input.value = '';
+                        if (d1PhoneInput) d1PhoneInput.value = '';
+                        if (d2Input) d2Input.value = '';
+                        if (d2PhoneInput) d2PhoneInput.value = '';
                         if (ruteEl) ruteEl.value = '';
                         // Slot baru diisi setelah armada dipilih (lihat handler change mon-kode-tugas-select)
                     }
@@ -1881,12 +2168,16 @@
                 // Set waktu sampai default: 24 Jam WIB saat ini
                 setWIBDateTimeFields('selesai-tanggal', 'selesai-jam', 'selesai-menit', new Date());
 
-                // Lokasi default: format "IN <cityCode>" sesuai standar J&T (misal: "IN SEG", "IN TKG", "IN SRG")
+                // Lokasi default: format "IN <cityCode>" sesuai standar J&T (misal: "IN SEG", "IN TKG", "IN SRG" atau "IN JKT999")
                 const lokasiEl = document.getElementById('selesai-lokasi');
                 if (lokasiEl) {
-                    const fmt = formatRuteAndTLC(item);
-                    const destCode = fmt.cityCode || (fmt.ruteName ? (JNT_NAME_MAP[fmt.ruteName] || fmt.ruteName.substring(0, 3)) : 'SEG');
-                    lokasiEl.value = `IN ${destCode.toUpperCase()}`;
+                    if (isReturnTrip(item)) {
+                        lokasiEl.value = 'IN JKT999';
+                    } else {
+                        const fmt = formatRuteAndTLC(item);
+                        const destCode = fmt.cityCode || (fmt.ruteName ? (JNT_NAME_MAP[fmt.ruteName] || fmt.ruteName.substring(0, 3)) : 'SEG');
+                        lokasiEl.value = `IN ${destCode.toUpperCase()}`;
+                    }
                 }
 
                 // Reset foto & catatan
@@ -2010,31 +2301,98 @@
                         );
                     }
 
-                    // 4. Update data monitoring_4h tambahan (fotoSampai)
+                    // 4. Update data monitoring_4h tambahan (fotoSampai & detail kedatangan ke Cloud Firestore)
                     const extraMon = {
                         jamSampaiAktual: formattedArrival,
                         statusPerjalanan: 'COMPLETED',
-                        lastUpdateTime: formattedArrival
+                        lastUpdateTime: formattedArrival,
+                        lokasiSampai: lokasiSampai,
+                        inputBy: operatorName
                     };
-                    if (photoUrl) extraMon.fotoSampai = photoUrl;
+                    if (catatan) {
+                        extraMon.catatanSampai = catatan;
+                        extraMon.catatan = catatan;
+                    }
+                    if (photoUrl) {
+                        extraMon.fotoSampai = photoUrl;
+                        extraMon.hasFotoSampai = true;
+                    }
                     await JNTFirebaseService.saveDoc('monitoring_4h', kodeTugas, extraMon, true);
 
-                    // 5. Update status global trip SSOT (incoming, monitoring_4h, sla_outbound)
+                    // 5. Update status global trip SSOT (incoming, monitoring_4h, sla_outbound / sla_return)
+                    const isRet = isReturnTrip(item);
+                    const kodeAsal = item.kodeTugasAsal || item.kodeAsal || kodeTugas;
+
                     const tripMeta = {
                         jamSampaiAktual: formattedArrival,
                         statusPerjalanan: 'COMPLETED',
-                        inputBy: operatorName
+                        inputBy: operatorName,
+                        lokasiSampai: lokasiSampai
                     };
-                    if (photoUrl) tripMeta.fotoSampai = photoUrl;
-                    if (catatan) tripMeta.catatanSampai = catatan;
-                    await JNTFirebaseService.updateTripStatus(kodeTugas, 'SUDAH SELESAI', tripMeta);
+                    if (photoUrl) {
+                        tripMeta.fotoSampai = photoUrl;
+                        tripMeta.hasFotoSampai = true;
+                    }
+                    if (catatan) {
+                        tripMeta.catatanSampai = catatan;
+                        tripMeta.catatan = catatan;
+                    }
 
-                    // 6. Update local state instan tanpa lag
+                    if (isRet) {
+                        let retDoc = {};
+                        try { retDoc = (await JNTFirebaseService.getDoc('sla_return', kodeAsal)) || {}; } catch (e) { }
+                        if (!retDoc || !retDoc.kodeTugas) {
+                            retDoc = (JNTFirebaseService.getLocalStore('sla_return') || []).find(r => (r.kodeTugasAsal || r.kodeAsal) === kodeAsal || (r.kodeTugasBalikan || r.kodeBalikan || r.kodeTugas) === kodeTugas) || {};
+                        }
+                        const depRet = retDoc.jamBerangkatGateway || retDoc.jamBerangkat || item.jamBerangkat || '';
+                        let durasiMin = 0;
+                        if (depRet && formattedArrival) {
+                            const d1 = parseCustomDate ? parseCustomDate(depRet) : new Date(depRet);
+                            const d2 = parseCustomDate ? parseCustomDate(formattedArrival) : new Date(formattedArrival);
+                            if (d1 && d2 && d2 > d1) durasiMin = Math.round((d2 - d1) / 60000);
+                        }
+                        const targetHours = retDoc.targetSLABalikanHours || 16;
+                        const lateMin = Math.max(0, durasiMin - targetHours * 60);
+                        const finalRetPhoto = photoUrl || retDoc.fotoSampai || '';
+
+                        await JNTFirebaseService.saveSLAReturn(kodeAsal, {
+                            ...retDoc,
+                            kodeTugas: kodeTugas,
+                            kodeTugasBalikan: kodeTugas,
+                            kodeTugasAsal: kodeAsal,
+                            jamSampaiJKT999: formattedArrival,
+                            jamSampaiAktual: formattedArrival,
+                            durasiBalikanMinutes: durasiMin,
+                            totalTelatMinutes: lateMin,
+                            statusPerjalanan: 'COMPLETED',
+                            statusBalikan: 'SUDAH SELESAI',
+                            lokasiSampai: lokasiSampai,
+                            alasan: catatan || retDoc.alasan || 'Lancar',
+                            catatan: catatan || retDoc.catatan || '',
+                            catatanSampai: catatan || retDoc.catatanSampai || retDoc.catatan || '',
+                            inputBy: operatorName,
+                            fotoSampai: finalRetPhoto,
+                            hasFotoSampai: Boolean(finalRetPhoto)
+                        });
+                    } else {
+                        await JNTFirebaseService.updateTripStatus(kodeTugas, 'SUDAH SELESAI', tripMeta);
+                    }
+
+                    // 6. Update local state di RAM instan tanpa menaruh foto di localStorage
                     if (item) {
                         item.statusPerjalanan = 'COMPLETED';
                         item.jamSampaiAktual = formattedArrival;
                         item.lastUpdateTime = formattedArrival;
-                        if (photoUrl) item.fotoSampai = photoUrl;
+                        item.lokasiSampai = lokasiSampai;
+                        item.inputBy = operatorName;
+                        if (catatan) {
+                            item.catatanSampai = catatan;
+                            item.catatan = catatan;
+                        }
+                        if (photoUrl) {
+                            item.fotoSampai = photoUrl;
+                            item.hasFotoSampai = true;
+                        }
                         if (targetArrivalSlot) {
                             item.slots = item.slots || {};
                             item.slots[targetArrivalSlot] = {
@@ -2051,7 +2409,15 @@
                     if (activeIncomingMap[kodeTugas]) {
                         activeIncomingMap[kodeTugas].status = 'SUDAH SELESAI';
                         activeIncomingMap[kodeTugas].jamSampaiAktual = formattedArrival;
-                        if (photoUrl) activeIncomingMap[kodeTugas].fotoSampai = photoUrl;
+                        activeIncomingMap[kodeTugas].lokasiSampai = lokasiSampai;
+                        if (catatan) {
+                            activeIncomingMap[kodeTugas].catatanSampai = catatan;
+                            activeIncomingMap[kodeTugas].catatan = catatan;
+                        }
+                        if (photoUrl) {
+                            activeIncomingMap[kodeTugas].fotoSampai = photoUrl;
+                            activeIncomingMap[kodeTugas].hasFotoSampai = true;
+                        }
                     }
 
                     window.closeSelesaiModal();
@@ -2088,6 +2454,177 @@
                 if (modal) modal.classList.remove('hidden');
             };
 
+            let _tripInfoReqSeq = 0;
+            let _tripInfoCurrentPhoto = '';
+            let _tripInfoCurrentKode = '';
+
+            function extractArrivalInfoFromSlots(item) {
+                const slots = (item && item.slots) ? Object.values(item.slots) : [];
+                const arrivalSlot = slots.find(s => s && (s.jenisUpdate === 'Sampai' || s.foto || (s.lokasi && s.lokasi.startsWith('IN '))));
+                return arrivalSlot || null;
+            }
+
+            function renderTripInfoPhotoState(photoUrl, isLoading) {
+                const loadingEl = document.getElementById('trip-info-photo-loading');
+                const wrapEl = document.getElementById('trip-info-photo-wrap');
+                const emptyEl = document.getElementById('trip-info-photo-empty');
+                const imgEl = document.getElementById('trip-info-photo-img');
+                const zoomBtn = document.getElementById('trip-info-zoom-btn');
+
+                _tripInfoCurrentPhoto = photoUrl || '';
+                if (loadingEl) loadingEl.style.display = isLoading ? 'block' : 'none';
+                if (photoUrl) {
+                    if (imgEl) imgEl.src = photoUrl;
+                    if (wrapEl) wrapEl.style.display = 'block';
+                    if (emptyEl) emptyEl.style.display = 'none';
+                    if (zoomBtn) zoomBtn.style.display = 'inline-flex';
+                } else {
+                    if (imgEl) imgEl.src = '';
+                    if (wrapEl) wrapEl.style.display = 'none';
+                    if (zoomBtn) zoomBtn.style.display = 'none';
+                    if (emptyEl) emptyEl.style.display = isLoading ? 'none' : 'block';
+                }
+            }
+
+            window.previewTripInfoPhoto = () => {
+                if (_tripInfoCurrentPhoto) {
+                    window.previewFotoBukti(_tripInfoCurrentPhoto, _tripInfoCurrentKode);
+                }
+            };
+
+            window.closeTripInfoModal = () => {
+                const modal = document.getElementById('modal-trip-info');
+                if (modal) modal.classList.add('hidden');
+                _tripInfoReqSeq++;
+            };
+
+            window.openTripInfoModal = async (kodeTugas) => {
+                if (!kodeTugas) return;
+                const reqId = ++_tripInfoReqSeq;
+                const item = rawMonitoringList.find(i => i.kodeTugas === kodeTugas || i.id === kodeTugas || i.kodeTugasBalikan === kodeTugas) || {};
+                const incData = activeIncomingMap[kodeTugas] || {};
+                const arrSlot = extractArrivalInfoFromSlots(item);
+
+                const realKode = item.kodeTugas || kodeTugas;
+                _tripInfoCurrentKode = realKode;
+                const isRet = isReturnTrip(item);
+                const dep = item.jamBerangkat || incData.jamBerangkat || '-';
+                const arr = item.jamSampaiAktual || item.jamSampaiJKT999 || incData.jamSampaiAktual || (arrSlot && arrSlot.jamUpdateAktual) || '-';
+                const slaH = item.targetSLAHours || item.targetSLABalikanHours || incData.targetSLAHours || 16;
+
+                let isLate = false;
+                if (arr && arr !== '-' && window.SLACountdownEngine) {
+                    isLate = window.SLACountdownEngine.calculateSLAState(dep, slaH, arr).isOverdue;
+                }
+
+                const setText = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val || '-';
+                };
+
+                setText('trip-info-kode', realKode);
+                setText('trip-info-vendor', item.vendor || incData.vendor || '-');
+                setText('trip-info-plat', item.platNomor || incData.platNomor || '-');
+                setText('trip-info-rute', (item.tlc || incData.tlc || '-') + ' · ' + (item.trip || item.namaRute || incData.trip || '-'));
+                const d1 = item.driver1 || incData.driver1 || '-';
+                const d2 = item.driver2 || incData.driver2 || '';
+                setText('trip-info-driver', d2 ? `${d1} / Cad: ${d2}` : d1);
+                setText('trip-info-sla', `${slaH} Jam (${isRet ? 'Armada Balikan' : 'Armada Berangkat'})`);
+                setText('trip-info-berangkat', dep);
+                setText('trip-info-sampai', arr);
+                setText('trip-info-lokasi', item.lokasiSampai || incData.lokasiSampai || item.lastUpdateLokasi || (arrSlot && arrSlot.lokasi) || '-');
+                setText('trip-info-operator', item.inputBy || incData.inputBy || (arrSlot && arrSlot.inputBy) || '-');
+
+                const notes = item.catatanSampai || item.catatan || item.alasan || incData.catatanSampai || (arrSlot && arrSlot.keterangan) || 'Lancar / Tidak ada catatan khusus.';
+                setText('trip-info-catatan', notes);
+
+                const asalWrap = document.getElementById('trip-info-kode-asal-wrap');
+                const asalKode = item.kodeTugasAsal || item.kodeAsal || '';
+                if (asalWrap) {
+                    if (isRet && asalKode && asalKode !== realKode) {
+                        asalWrap.style.display = 'block';
+                        setText('trip-info-kode-asal', asalKode);
+                    } else {
+                        asalWrap.style.display = 'none';
+                    }
+                }
+
+                const badge = document.getElementById('trip-info-status-badge');
+                if (badge) {
+                    if (isLate) {
+                        badge.textContent = '✓ COMPLETED · LATE SLA';
+                        badge.style.color = '#FCA5A5';
+                        badge.style.background = 'rgba(239,68,68,0.16)';
+                        badge.style.borderColor = 'rgba(239,68,68,0.4)';
+                    } else {
+                        badge.textContent = '✓ COMPLETED · ON TIME';
+                        badge.style.color = '#10B981';
+                        badge.style.background = 'rgba(16,185,129,0.12)';
+                        badge.style.borderColor = 'rgba(16,185,129,0.35)';
+                    }
+                }
+
+                const modal = document.getElementById('modal-trip-info');
+                if (modal) modal.classList.remove('hidden');
+
+                let photoUrl = item.fotoSampai || incData.fotoSampai || (arrSlot && arrSlot.foto) || '';
+                if (photoUrl) {
+                    renderTripInfoPhotoState(photoUrl, false);
+                    return;
+                }
+
+                // Ambil foto & detail terbaru langsung dari Cloud Firestore jika belum ada di RAM (tidak mengandalkan localStorage)
+                renderTripInfoPhotoState('', true);
+                try {
+                    const colChecks = isRet
+                        ? [
+                            ['monitoring_4h', realKode],
+                            ['sla_return', asalKode || realKode],
+                            ['sla_return', realKode]
+                        ]
+                        : [
+                            ['monitoring_4h', realKode],
+                            ['sla_outbound', realKode],
+                            ['incoming', realKode]
+                        ];
+
+                    let cloudDoc = null;
+                    for (const [col, docId] of colChecks) {
+                        if (!docId || typeof JNTFirebaseService === 'undefined') continue;
+                        const doc = await JNTFirebaseService.getDoc(col, docId).catch(() => null);
+                        if (reqId !== _tripInfoReqSeq) return;
+                        if (doc) {
+                            if (!cloudDoc) cloudDoc = doc;
+                            if (doc.fotoSampai) {
+                                photoUrl = doc.fotoSampai;
+                                cloudDoc = doc;
+                                break;
+                            }
+                            if (!photoUrl && doc.slots) {
+                                const cSlot = extractArrivalInfoFromSlots(doc);
+                                if (cSlot && cSlot.foto) {
+                                    photoUrl = cSlot.foto;
+                                    cloudDoc = doc;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (reqId !== _tripInfoReqSeq) return;
+                    if (cloudDoc) {
+                        if (cloudDoc.lokasiSampai) setText('trip-info-lokasi', cloudDoc.lokasiSampai);
+                        if (cloudDoc.inputBy) setText('trip-info-operator', cloudDoc.inputBy);
+                        const cloudNote = cloudDoc.catatanSampai || cloudDoc.catatan || cloudDoc.alasan;
+                        if (cloudNote) setText('trip-info-catatan', cloudNote);
+                        if (photoUrl && item) item.fotoSampai = photoUrl;
+                    }
+                    renderTripInfoPhotoState(photoUrl, false);
+                } catch (_) {
+                    if (reqId === _tripInfoReqSeq) renderTripInfoPhotoState('', false);
+                }
+            };
+
             // Alias agar klik tombol membuka modal selesai
             window.selesaikanMonitoringTrip = (kodeTugas) => {
                 window.openSelesaiModal(kodeTugas);
@@ -2103,12 +2640,22 @@
                     return;
                 }
                 if (!kodeTugas) return;
-                if (confirm(`Apakah Anda yakin ingin menghapus data perjalanan ${kodeTugas}?\nData akan dihapus dari Monitoring 4H & SLA Outbound.`)) {
+                const item = rawMonitoringList.find(i => i.kodeTugas === kodeTugas || i.id === kodeTugas) || activeIncomingMap[kodeTugas] || {};
+                const isRet = isReturnTrip(item);
+                const confirmMsg = isRet
+                    ? `Apakah Anda yakin ingin menghapus data perjalanan BALIKAN ${kodeTugas}?\nData akan dihapus dari Monitoring 4H & SLA Vendor Balikan.`
+                    : `Apakah Anda yakin ingin menghapus data perjalanan ${kodeTugas}?\nData akan dihapus dari Monitoring 4H & SLA Outbound.`;
+
+                if (confirm(confirmMsg)) {
                     try {
-                        await JNTFirebaseService.deleteSLAOutbound(kodeTugas);
+                        if (isRet) {
+                            await JNTFirebaseService.deleteSLAReturn(kodeTugas);
+                        } else {
+                            await JNTFirebaseService.deleteSLAOutbound(kodeTugas);
+                        }
 
                         // Instant local state update & live re-render (no empty state, no manual refresh required)
-                        rawMonitoringList = rawMonitoringList.filter(i => i.kodeTugas !== kodeTugas && i.id !== kodeTugas);
+                        rawMonitoringList = rawMonitoringList.filter(i => i.kodeTugas !== kodeTugas && i.id !== kodeTugas && i.kodeTugasBalikan !== kodeTugas);
                         delete activeIncomingMap[kodeTugas];
 
                         populateDynamicFilters(rawMonitoringList);
@@ -2250,6 +2797,32 @@
                 let cityCode = '';
                 let ruteName = '';
 
+                // Special handling for Return Trips (Gateway -> JKT999)
+                if (isReturnTrip(item)) {
+                    let gwName = '';
+                    for (const [cityName, code] of Object.entries(JNT_NAME_MAP)) {
+                        if (cityName !== 'JAKARTA' && rawCombined.includes(cityName)) {
+                            gwName = cityName;
+                            cityCode = code;
+                            break;
+                        }
+                    }
+                    if (!gwName) {
+                        for (const [code, cityName] of Object.entries(JNT_CITY_MAP)) {
+                            if (code !== 'JKT' && rawCombined.includes(code)) {
+                                gwName = cityName;
+                                cityCode = code;
+                                break;
+                            }
+                        }
+                    }
+                    if (!gwName) gwName = 'GATEWAY';
+                    if (!cityCode) cityCode = 'GW';
+                    const ruteBalikan = `BALIKAN (${gwName} → JKT999)`;
+                    const tlcBalikan = `JKT999 ${fleetType}`;
+                    return { ruteName: ruteBalikan, formattedTLC: tlcBalikan, fleetType, cityCode: 'JKT', originCityCode: cityCode };
+                }
+
                 // 2. Cek apakah teks mengandung nama kota panjang
                 for (const [cityName, code] of Object.entries(JNT_NAME_MAP)) {
                     if (rawCombined.includes(cityName)) {
@@ -2377,7 +2950,7 @@
             // ═══════════════════════════════════════════════════════
             // APPLY FILTERS (IDENTIK DENGAN SLA VENDOR)
             // ═══════════════════════════════════════════════════════
-            function applyFilters() {
+            function applyFilters(keepPage = false) {
                 const dateVal = (document.getElementById('filter-mon-date')?.value || '').trim();
                 const ruteVal = (document.getElementById('filter-mon-rute')?.value || '').trim();
                 const statusVal = (document.getElementById('filter-mon-status')?.value || '').trim();
@@ -2404,7 +2977,7 @@
                     // 3. Filter Status SLA (OUT / IN / KENDALA)
                     if (statusVal) {
                         const hasArrived = (item.jamSampaiAktual && item.jamSampaiAktual !== '-' && item.jamSampaiAktual.trim() !== '') ||
-                                           (item.statusPerjalanan === 'COMPLETED' || item.statusPerjalanan === 'SUDAH SELESAI');
+                            (item.statusPerjalanan === 'COMPLETED' || item.statusPerjalanan === 'SUDAH SELESAI');
                         let st = hasArrived ? 'IN' : 'OUT';
                         if (item.statusPerjalanan === 'KENDALA' || (item.keterangan && item.keterangan.toLowerCase().includes('kendala'))) {
                             st = 'KENDALA';
@@ -2430,33 +3003,39 @@
                     if (searchVal) {
                         const fmt = formatRuteAndTLC(item);
                         const str = ((item.kodeTugas || '') + ' ' +
-                                     (item.platNomor || '') + ' ' +
-                                     (item.driver1 || '') + ' ' +
-                                     (item.driver2 || '') + ' ' +
-                                     (fmt.ruteName || '') + ' ' +
-                                     (fmt.formattedTLC || '') + ' ' +
-                                     (item.trip || '') + ' ' +
-                                     (item.namaRute || '') + ' ' +
-                                     (item.vendor || '')).toLowerCase();
+                            (item.platNomor || '') + ' ' +
+                            (item.driver1 || '') + ' ' +
+                            (item.driver2 || '') + ' ' +
+                            (fmt.ruteName || '') + ' ' +
+                            (fmt.formattedTLC || '') + ' ' +
+                            (item.trip || '') + ' ' +
+                            (item.namaRute || '') + ' ' +
+                            (item.vendor || '')).toLowerCase();
                         if (!str.includes(searchVal)) return false;
                     }
 
                     return true;
                 });
 
-                _currentPage = 1;
+                if (!keepPage) {
+                    _currentPage = 1;
+                }
                 renderMonitoringTable(filtered);
             }
 
             // Bind filter event listeners
             ['filter-mon-date', 'filter-mon-rute', 'filter-mon-status'].forEach(id => {
-                document.getElementById(id)?.addEventListener('change', applyFilters);
+                document.getElementById(id)?.addEventListener('change', () => applyFilters(false));
             });
-            document.getElementById('filter-mon-search')?.addEventListener('input', applyFilters);
+            let _monSearchDebounceTimer = null;
+            document.getElementById('filter-mon-search')?.addEventListener('input', () => {
+                if (_monSearchDebounceTimer) clearTimeout(_monSearchDebounceTimer);
+                _monSearchDebounceTimer = setTimeout(() => applyFilters(false), 150);
+            });
 
             document.getElementById('mon-per-page')?.addEventListener('change', e => {
                 _perPage = parseInt(e.target.value) || 10;
-                applyFilters();
+                applyFilters(false);
             });
 
             document.getElementById('btn-reset-monitoring')?.addEventListener('click', () => {
@@ -2470,7 +3049,7 @@
                 if (s) s.value = '';
                 window._monCurrentVendor = 'ALL';
                 renderMonVendorTabs();
-                applyFilters();
+                applyFilters(false);
             });
 
             function getNextPendingSlotKey(item) {
@@ -2549,7 +3128,7 @@
                 }
 
                 // Slot cell renderer — SEQUENTIAL CONTINUOUS CHECKPOINT SLOTS
-                function renderSlotCell(sData, slotKey, pendingTargetKey, isBeforeDeparture, kodeTugas, jamBerangkatStr, depIdx, slotIdx, isAfterArrival, tripCityCode) {
+                function renderSlotCell(sData, slotKey, pendingTargetKey, isBeforeDeparture, kodeTugas, jamBerangkatStr, depIdx, slotIdx, isAfterArrival, tripCityCode, isReturnItem) {
                     const isPendingTarget = slotKey === pendingTargetKey;
                     // Encode slotKey & kodeTugas aman untuk data-attribute
                     const safeSlot = encodeURIComponent(slotKey);
@@ -2571,13 +3150,14 @@
 
                     // Slot data tidak ada
                     if (!sData || typeof sData !== 'object' || !sData.lokasi) {
-                        // Jika ini slot keberangkatan & ada jamBerangkat → tampilkan otomatis OUT JKT999
+                        // Jika ini slot keberangkatan & ada jamBerangkat → tampilkan otomatis OUT JKT999 atau OUT GATEWAY
                         if (slotIdx === depIdx && jamBerangkatStr) {
                             const timeOnly = String(jamBerangkatStr).split(' ')[1] || String(jamBerangkatStr);
                             const cleanTime = timeOnly.substring(0, 5);
-                            return `<td class="slot-clickable slot-filled" data-kode="${safeKode}" data-slot="${safeSlot}" data-existing="OUT JKT999" title="Keberangkatan Awal: OUT JKT999 ${jamBerangkatStr}" onclick="openSlotQuickInput(event)" style="text-align:center; cursor:pointer;">
+                            const depText = isReturnItem ? 'OUT GATEWAY' : 'OUT JKT999';
+                            return `<td class="slot-clickable slot-filled" data-kode="${safeKode}" data-slot="${safeSlot}" data-existing="${depText}" title="Keberangkatan Awal: ${depText} ${jamBerangkatStr}" onclick="openSlotQuickInput(event)" style="text-align:center; cursor:pointer;">
                             <span class="chip-pos" style="background:#F0FDF4; color:#16A34A; border-radius:6px; padding:3px 5px; font-size:10.5px; font-weight:700; display:inline-block; max-width:85px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.25;">
-                                🟢 OUT JKT999<br><span style="font-size:9.5px;opacity:0.85;">${cleanTime}</span>
+                                🟢 ${depText}<br><span style="font-size:9.5px;opacity:0.85;">${cleanTime}</span>
                             </span>
                         </td>`;
                         }
@@ -2599,9 +3179,15 @@
                     const jenis = sData.jenisUpdate || 'Lokasi Normal';
                     let chipBg = '#F0FDF4'; let chipColor = '#16A34A';
 
-                    if (rawUpper.includes('OUT JAKARTA') || rawUpper === 'OUT JKT999' || rawUpper.includes('OUT JKT')) {
+                    if (rawUpper.includes('OUT GATEWAY') || (isReturnItem && rawUpper.startsWith('OUT '))) {
+                        displayLoc = '🟢 OUT GATEWAY';
+                        chipBg = '#F0FDF4'; chipColor = '#16A34A';
+                    } else if (rawUpper.includes('OUT JAKARTA') || rawUpper === 'OUT JKT999' || rawUpper.includes('OUT JKT')) {
                         displayLoc = '🟢 OUT JKT999';
                         chipBg = '#F0FDF4'; chipColor = '#16A34A';
+                    } else if (isReturnItem && (rawUpper.includes('IN JKT') || rawUpper.includes('JKT999') || jenis === 'Sampai' || jenis === 'Selesai')) {
+                        displayLoc = 'IN JKT999';
+                        chipBg = '#ECFDF5'; chipColor = '#059669';
                     } else if (rawUpper.includes('GATEWAY IN') || rawUpper.startsWith('IN ') || rawUpper.startsWith('IN(') || rawUpper === 'IN' || jenis === 'Sampai' || jenis === 'Selesai') {
                         // Format armada sampai: "IN (rute)", contoh: IN SEG, IN TKG, IN SRG
                         const matchedCode = (rawUpper.match(/\b([A-Z]{3})\b/) ? rawUpper.match(/\b([A-Z]{3})\b/)[1] : '');
@@ -2657,7 +3243,14 @@
                         const tlcDisplay = fmt.formattedTLC;
 
                         const platDisplay = item.platNomor || incData.platNomor || '-';
-                        const driverDisplay = item.driver1 || incData.driver1 || '-';
+                        const driverName = item.driver1 || incData.driver1 || '-';
+                        const dPhone = item.driverPhone || incData.driverPhone || '';
+                        const d2 = item.driver2 || incData.driver2 || '';
+                        const d2Phone = item.driver2Phone || incData.driver2Phone || '';
+                        const fullDriverDisplay = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatDriverDisplay)
+                            ? JNTFirebaseService.formatDriverDisplay(driverName, dPhone, d2, d2Phone)
+                            : driverName + (dPhone ? `<br><small style="color:#0284C7;font-weight:600;">📞 ${dPhone}</small>` : '') + (d2 ? `<br><small style="color:#64748B;">Cad: ${d2}${d2Phone ? ' (' + d2Phone + ')' : ''}</small>` : '');
+                        const driverDisplay = fullDriverDisplay;
                         const _rawVendor = item.vendor || incData.vendor || incData.namaVendor || '';
                         // Singkatan vendor: ambil singkatan dari kurung, atau kata pertama bukan PT/CV/UD
                         const vendorDisplay = _rawVendor
@@ -2680,8 +3273,9 @@
                         })();
 
                         const absIdx = startIdx + idx + 1;
-                        const slaH = item.targetSLAOutboundHours || item.targetSLAHours || incData.targetSLAOutboundHours || 16;
-                        const arr = item.jamSampaiAktual || incData.jamSampaiAktual || '';
+                        const isRet = isReturnTrip(item);
+                        const slaH = isRet ? (item.targetSLABalikanHours || item.targetSLAHours || 16) : (item.targetSLAOutboundHours || item.targetSLAHours || incData.targetSLAOutboundHours || 16);
+                        const arr = isRet ? (item.jamSampaiJKT999 || item.jamSampaiAktual || incData.jamSampaiAktual || '') : (item.jamSampaiAktual || incData.jamSampaiAktual || '');
                         const arrIdx = getArrivalSlotIndex(item);
                         const fotoSampai = item.fotoSampai || incData.fotoSampai || '';
 
@@ -2692,8 +3286,13 @@
                             isLateTrip = slaState.isOverdue;
                         }
 
+                        const hasPhotoFlag = (fotoSampai || item.hasFotoSampai || incData.hasFotoSampai) ? '1' : '0';
+                        const lokasiDisplay = item.lokasiSampai || incData.lokasiSampai || '';
+                        const catatanDisplay = item.catatanSampai || item.catatan || incData.catatanSampai || '';
+                        const safeKodeJs = String(realKode).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
                         // Hash statis — tidak termasuk countdown, hanya data lapangan
-                        const newHash = realKode + '|' + tlcDisplay + '|' + ruteDisplay + '|' + dep + '|' + slaH + '|' + arr + '|' + st + '|' + platDisplay + '|' + vendorDisplay + '|' + absIdx + '|' + lastUpdateDisplay + '|' + fotoSampai + '|' + JSON.stringify(Object.values(slots).map(s => s ? (s.lokasi || '') + '@' + (s.jamUpdateAktual || '') : ''));
+                        const newHash = realKode + '|' + tlcDisplay + '|' + ruteDisplay + '|' + dep + '|' + slaH + '|' + arr + '|' + st + '|' + platDisplay + '|' + vendorDisplay + '|' + absIdx + '|' + lastUpdateDisplay + '|' + hasPhotoFlag + '|' + lokasiDisplay + '|' + catatanDisplay + '|' + JSON.stringify(Object.values(slots).map(s => s ? (s.lokasi || '') + '@' + (s.jamUpdateAktual || '') : ''));
 
                         const statusColHtml = isCompletedTrip
                             ? `<td style="text-align:center;">
@@ -2715,22 +3314,18 @@
                                 </div>
                             </td>`;
 
-                        const photoBtn = fotoSampai
-                            ? `<button type="button" class="btn-view-photo" onclick="window.previewFotoBukti('${fotoSampai}', '${realKode}')" title="Lihat Foto Bukti Sampai" style="background:#EFF6FF;border:1px solid #BFDBFE;color:#2563EB;border-radius:6px;padding:3px 6px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">📷 Foto</button>`
-                            : '';
-
                         const aksiColHtml = !isCompletedTrip
                             ? `<td style="text-align:center;">
                                 <div style="display:flex;gap:5px;justify-content:center;align-items:center;">
-                                    <button class="btn-finish-action" onclick="selesaikanMonitoringTrip('${realKode}')" title="Selesaikan Perjalanan (Armada Sampai)">🏁 Selesaikan Perjalanan</button>
-                                    <button class="btn-icon-delete-sq" onclick="deleteMonitoringTrip('${realKode}')" title="Hapus Monitoring Trip">🗑️</button>
+                                    <button class="btn-finish-action" onclick="selesaikanMonitoringTrip('${safeKodeJs}')" title="Selesaikan Perjalanan (Armada Sampai)">🏁 Selesaikan Perjalanan</button>
+                                    <button class="btn-icon-delete-sq" onclick="deleteMonitoringTrip('${safeKodeJs}')" title="Hapus Monitoring Trip">🗑️</button>
                                 </div>
                             </td>`
                             : `<td style="text-align:center;">
                                 <div style="display:flex;gap:5px;justify-content:center;align-items:center;flex-wrap:wrap;">
-                                    <span style="font-size:11px;font-weight:700;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;padding:4px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;">✅ Selesai</span>
-                                    ${photoBtn}
-                                    <button class="btn-icon-delete-sq" onclick="deleteMonitoringTrip('${realKode}')" title="Hapus Monitoring Trip">🗑️</button>
+                                    <button type="button" class="btn-info-action" onclick="window.openTripInfoModal('${safeKodeJs}')" title="Lihat Detail Data &amp; Foto Bukti Sampai"
+                                        style="background:#EFF6FF;border:1px solid #93C5FD;color:#1D4ED8;border-radius:6px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">ℹ️ Info</button>
+                                    <button class="btn-icon-delete-sq" onclick="deleteMonitoringTrip('${safeKodeJs}')" title="Hapus Monitoring Trip">🗑️</button>
                                 </div>
                             </td>`;
 
@@ -2743,7 +3338,7 @@
                         <td class="mon-sticky-col mon-sticky-col-4" style="font-weight:600;color:#0F172A;">${vendorDisplay}</td>
                         <td class="mon-sticky-col mon-sticky-col-5"><strong style="color:#0F172A;">${platDisplay}</strong></td>
                         <td class="mon-sticky-col mon-sticky-col-6" style="font-weight:500;font-size:12px;">${driverDisplay}</td>
-                        ${SLOT_KEYS.map((k, slotIdx) => renderSlotCell(slots[k], k, pendingKey, slotIdx < depIdx, realKode, dep, depIdx, slotIdx, arrIdx >= 0 && slotIdx > arrIdx, fmt.cityCode)).join('')}
+                        ${SLOT_KEYS.map((k, slotIdx) => renderSlotCell(slots[k], k, pendingKey, slotIdx < depIdx, realKode, dep, depIdx, slotIdx, arrIdx >= 0 && slotIdx > arrIdx, fmt.cityCode, isRet)).join('')}
                         <td style="text-align:center;font-size:11px;color:#64748B;font-weight:500;white-space:nowrap;">${lastUpdateDisplay}</td>
                         ${statusColHtml}
                         ${aksiColHtml}`;
@@ -2836,44 +3431,38 @@
                     if (totalPages <= 1) {
                         paginEl.innerHTML = '';
                     } else {
-                        let html = `<button class="p-btn" onclick="window._monChangePage(${_currentPage - 1})" ${_currentPage <= 1 ? 'disabled' : ''}>&lt;</button>`;
+                        let html = `<button type="button" class="p-btn" onclick="window._monChangePage(${_currentPage - 1})" ${_currentPage <= 1 ? 'disabled' : ''}>&lt;</button>`;
                         for (let p = 1; p <= totalPages; p++) {
                             if (totalPages > 7 && Math.abs(p - _currentPage) > 2 && p !== 1 && p !== totalPages) {
-                                if (p === _currentPage - 3 || p === _currentPage + 3) html += '<span class="page-dots">...</span>';
+                                if (p === _currentPage - 3 || p === _currentPage + 3) html += '<span class="page-dots" style="padding: 0 4px; color: #94A3B8;">...</span>';
                                 continue;
                             }
-                            html += `<button class="p-btn ${p === _currentPage ? 'active' : ''}" onclick="window._monChangePage(${p})">${p}</button>`;
+                            html += `<button type="button" class="p-btn ${p === _currentPage ? 'active' : ''}" onclick="window._monChangePage(${p})">${p}</button>`;
                         }
-                        html += `<button class="p-btn" onclick="window._monChangePage(${_currentPage + 1})" ${_currentPage >= totalPages ? 'disabled' : ''}>&gt;</button>`;
+                        html += `<button type="button" class="p-btn" onclick="window._monChangePage(${_currentPage + 1})" ${_currentPage >= totalPages ? 'disabled' : ''}>&gt;</button>`;
                         paginEl.innerHTML = html;
                     }
                 }
             }
 
-            // Global page change helper
+            // Global page change helper (keepPage = true agar nomor halaman tidak ter-reset)
             window._monChangePage = (page) => {
-                const filtered = rawMonitoringList; // Will re-apply filters below
-                _currentPage = page;
-                applyFilters(); // Recalculate
+                const target = parseInt(page, 10);
+                if (isNaN(target) || target < 1) return;
+                _currentPage = target;
+                applyFilters(true); // Pertahankan _currentPage
+                const wrapper = document.querySelector('.inc-table-scroll') || document.querySelector('.monitoring-table-container');
+                if (wrapper) wrapper.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
             // ═══════════════════════════════════════════════════════
-            // SUBSCRIBE MONITORING 4H DATA
+            // SUBSCRIBE MONITORING 4H DATA (sudah otomatis menangani event jnt_data_updated)
             // ═══════════════════════════════════════════════════════
             JNTFirebaseService.subscribeMonitoring4H(list => {
                 rawMonitoringList = Array.isArray(list) ? list : [];
                 renderMonVendorTabs();
                 populateDynamicFilters(rawMonitoringList);
-                applyFilters();
-            });
-
-            // Also listen to jnt_data_updated for cross-tab sync
-            window.addEventListener('jnt_data_updated', () => {
-                const fresh = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
-                rawMonitoringList = fresh;
-                renderMonVendorTabs();
-                populateDynamicFilters(rawMonitoringList);
-                applyFilters();
+                applyFilters(true);
             });
 
             // ═══════════════════════════════════════════════════════
@@ -2979,6 +3568,28 @@
                     // Verifikasi hasil — tidak menampilkan sukses palsu
                     if (!result) throw new Error('Respons kosong dari database.');
 
+                    // Simpan juga update Driver 1 & Driver 2 jika diisi / diedit oleh user
+                    const d1Val = (document.getElementById('mon-driver1')?.value || '').trim();
+                    const d1PhoneVal = (document.getElementById('mon-driver1-phone')?.value || '').trim();
+                    const d2Val = (document.getElementById('mon-driver2')?.value || '').trim();
+                    const d2PhoneVal = (document.getElementById('mon-driver2-phone')?.value || '').trim();
+
+                    if (d1Val || d1PhoneVal || d2Val || d2PhoneVal) {
+                        const driverUpdate = {};
+                        if (d1Val) driverUpdate.driver1 = d1Val;
+                        if (d1PhoneVal) driverUpdate.driverPhone = d1PhoneVal;
+                        if (d2Val) driverUpdate.driver2 = d2Val;
+                        if (d2PhoneVal) driverUpdate.driver2Phone = d2PhoneVal;
+
+                        try {
+                            await JNTFirebaseService.saveDoc('monitoring_4h', kodeTugas, driverUpdate, true);
+                            await JNTFirebaseService.saveDoc('incoming', kodeTugas, driverUpdate, true);
+                            await JNTFirebaseService.saveDoc('sla_outbound', kodeTugas, driverUpdate, true);
+                        } catch (e) {
+                            console.warn('[DRIVER UPDATE NOTICE]', e);
+                        }
+                    }
+
                     // Cek syncStatus — jika PENDING, tampilkan warning bukan sukses
                     const isSynced = result.syncStatus === 'SYNCED' || result.syncedToCloud === true;
                     const isLocal = result.syncStatus === 'PENDING';
@@ -2992,6 +3603,10 @@
                     document.getElementById('mon-keterangan').value = '';
                     document.getElementById('mon-plat').value = '';
                     document.getElementById('mon-driver').value = '';
+                    if (document.getElementById('mon-driver1')) document.getElementById('mon-driver1').value = '';
+                    if (document.getElementById('mon-driver1-phone')) document.getElementById('mon-driver1-phone').value = '';
+                    if (document.getElementById('mon-driver2')) document.getElementById('mon-driver2').value = '';
+                    if (document.getElementById('mon-driver2-phone')) document.getElementById('mon-driver2-phone').value = '';
                     document.getElementById('mon-rute').value = '';
 
                     if (typeof window.showToastNotification === 'function') {
@@ -3025,6 +3640,10 @@
                         localItem.lastUpdateLokasi = lokasi;
                         localItem.lastUpdateTime = jamUpdateAktual;
                         localItem.statusPerjalanan = statusPerjalanan;
+                        if (d1Val) localItem.driver1 = d1Val;
+                        if (d1PhoneVal) localItem.driverPhone = d1PhoneVal;
+                        if (d2Val) localItem.driver2 = d2Val;
+                        if (d2PhoneVal) localItem.driver2Phone = d2PhoneVal;
                     }
 
                     // Refresh table live langsung (tanpa menunggu onSnapshot)
@@ -3073,6 +3692,14 @@
                     document.getElementById('modal-add-monitoring').classList.add('hidden');
                 }
             });
+
+            // Handle URL query ?tab=return
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('tab') === 'return') {
+                    window.switchMonitoringTripType('return');
+                }
+            } catch (e) { /* ignore */ }
 
         } // end initMonitoringPage
 
@@ -3252,4 +3879,5 @@
         }
     </script>
 </body>
+
 </html>
