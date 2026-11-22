@@ -908,6 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.setItem('jnt_user_departemen', profile.departemen || '');
                     sessionStorage.setItem('jnt_user_bergabung', profile.bergabung || '');
                     sessionStorage.setItem('jnt_user_photo', profile.photoURL || '');
+                    sessionStorage.setItem('jnt_user_vendor', profile.vendorName || profile.vendorShort || profile.vendor || '');
                     sessionStorage.setItem('jnt_username_login', targetUname);
 
                     window.__jntLoginInProgress = false;
@@ -1064,6 +1065,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 7. Topbar dropdown header (if already created)
         document.querySelectorAll('.topbar-user-dropdown').forEach(jntRenderDropdownHeader);
+
+        // 8. Indikator & Kunci Filter Otomatis Khusus Role VENDOR (Vendor Data Isolation)
+        if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.getActiveVendorScope === 'function') {
+            const vendorScope = JNTFirebaseService.getActiveVendorScope();
+            if (vendorScope) {
+                // Tampilkan badge info isolasi vendor di header kanan atas
+                const topRight = document.querySelector('.inc-top-right');
+                if (topRight && !document.getElementById('jnt-vendor-scope-chip')) {
+                    const vChip = document.createElement('div');
+                    vChip.id = 'jnt-vendor-scope-chip';
+                    vChip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(20,184,166,0.14);border:1px solid rgba(20,184,166,0.4);color:#0D9488;font-size:11.5px;font-weight:700;white-space:nowrap;';
+                    vChip.title = `Isolasi Data Vendor Aktif: Hanya menampilkan data ${vendorScope.fullName}`;
+                    vChip.innerHTML = `🏢 <span>Vendor: <strong>${jntEscapeHtml(vendorScope.shortCode)}</strong></span>`;
+                    topRight.insertBefore(vChip, topRight.firstChild);
+                }
+
+                // Kunci semua dropdown filter vendor di halaman agar hanya bisa memilih vendor miliknya sendiri
+                const lockVendorDropdowns = () => {
+                    const vendorSelectIds = ['filter-vendor', 'sla-filter-vendor', 'mon-filter-vendor', 'rep-filter-vendor', 'tr-filter-vendor'];
+                    vendorSelectIds.forEach(selId => {
+                        const sel = document.getElementById(selId);
+                        if (!sel) return;
+                        Array.from(sel.options).forEach(opt => {
+                            const valUp = String(opt.value || opt.textContent || '').toUpperCase();
+                            if (!opt.value || valUp.includes('SEMUA')) {
+                                opt.textContent = `🏢 ${vendorScope.shortCode} (${vendorScope.fullName})`;
+                            } else if (!valUp.includes(vendorScope.shortCode)) {
+                                opt.remove();
+                            }
+                        });
+                        sel.disabled = true;
+                        sel.title = `Dikunci otomatis untuk akun Vendor ${vendorScope.fullName}`;
+                    });
+                };
+                lockVendorDropdowns();
+                setTimeout(lockVendorDropdowns, 800);
+            }
+        }
     }
 
     syncUserIdentityAcrossAllPages();
@@ -4482,7 +4521,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const safeUname = jntEscapeHtml(u.username || '');
                     const safeFullname = jntEscapeHtml(u.fullname || u.username || '-');
                     const safeEmail = jntEscapeHtml(u.email || u.emailPerusahaan || '-');
-                    const safeTlc = jntEscapeHtml(u.tlc || 'Head Office');
+                    const safeTlc = jntEscapeHtml(
+                        (u.vendorShort || u.vendorName)
+                            ? `🏢 ${u.vendorShort || JNTFirebaseService.formatVendorShort(u.vendorName)} • ${u.tlc || 'JKT999'}`
+                            : (u.tlc || 'Head Office')
+                    );
                     const sessData = onlineSessionDetailsMap.get(unameLower);
                     const rawLastLogin = u.lastLogin
                         || (sessData && sessData.lastSeen ? new Date(sessData.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '')
@@ -4642,6 +4685,26 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
+        // Tampilkan / sembunyikan dropdown Perusahaan Vendor 3PL saat Role = Vendor dipilih
+        const usrRoleSelect = document.getElementById('usr-role');
+        const usrVendorWrap = document.getElementById('usr-vendor-field-wrap');
+        const editUsrRoleSelect = document.getElementById('edit-usr-role');
+        const editUsrVendorWrap = document.getElementById('edit-usr-vendor-field-wrap');
+
+        const toggleVendorFieldVisibility = (selectEl, wrapEl) => {
+            if (!selectEl || !wrapEl) return;
+            const isVendorSelected = String(selectEl.value || '').toUpperCase().includes('VENDOR');
+            wrapEl.classList.toggle('hidden', !isVendorSelected);
+        };
+
+        if (usrRoleSelect && usrVendorWrap) {
+            usrRoleSelect.addEventListener('change', () => toggleVendorFieldVisibility(usrRoleSelect, usrVendorWrap));
+            toggleVendorFieldVisibility(usrRoleSelect, usrVendorWrap);
+        }
+        if (editUsrRoleSelect && editUsrVendorWrap) {
+            editUsrRoleSelect.addEventListener('change', () => toggleVendorFieldVisibility(editUsrRoleSelect, editUsrVendorWrap));
+        }
+
         // Add User Form Submit
         const formAddUser = document.getElementById('form-add-user');
         if (formAddUser) {
@@ -4654,6 +4717,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const phone = document.getElementById('usr-phone')?.value.trim();
                     const role = document.getElementById('usr-role')?.value;
                     const tlc = document.getElementById('usr-tlc')?.value;
+                    const vendorName = document.getElementById('usr-vendor-name')?.value || '';
                     const password = document.getElementById('usr-password')?.value;
                     const confirmPassword = document.getElementById('usr-confirm-password')?.value;
 
@@ -4700,6 +4764,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         phone,
                         role,
                         tlc,
+                        ...(normNewRole === 'VENDOR' ? {
+                            vendorName: JNTFirebaseService.normalizeVendorName(vendorName),
+                            vendorShort: JNTFirebaseService.formatVendorShort(vendorName)
+                        } : {}),
                         status: 'Aktif'
                     }, password);
 
@@ -4742,6 +4810,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const labelVal = jntFormatRoleLabel(target.role).replace(' (SPV)', '');
                 selRole.value = labelVal;
                 if (!selRole.value) selRole.value = 'Staff Vehicle Dispatch';
+                toggleVendorFieldVisibility(selRole, editUsrVendorWrap);
+            }
+            const selEditVendor = document.getElementById('edit-usr-vendor-name');
+            if (selEditVendor && (target.vendorName || target.vendorShort)) {
+                const targetVendorNorm = JNTFirebaseService.normalizeVendorName(target.vendorName || target.vendorShort);
+                selEditVendor.value = targetVendorNorm;
             }
             if (selTlc) selTlc.value = target.tlc || 'JKT999';
             if (selStatus) selStatus.value = target.status || 'Aktif';
@@ -4761,6 +4835,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const phone = document.getElementById('edit-usr-phone')?.value;
                     const role = document.getElementById('edit-usr-role')?.value;
                     const tlc = document.getElementById('edit-usr-tlc')?.value;
+                    const editVendorVal = document.getElementById('edit-usr-vendor-name')?.value || '';
                     const status = document.getElementById('edit-usr-status')?.value;
 
                     // Role escalation protection: Non-super-admin cannot escalate role to Developer/Owner/Admin
@@ -4772,6 +4847,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
 
+                    const resolvedVendorName = normEditedRole === 'VENDOR'
+                        ? JNTFirebaseService.normalizeVendorName(editVendorVal)
+                        : '';
+                    const resolvedVendorShort = resolvedVendorName
+                        ? JNTFirebaseService.formatVendorShort(resolvedVendorName)
+                        : '';
+
                     const cleanUname = (username || '').toLowerCase().trim();
                     await JNTFirebaseService.saveDoc('users', cleanUname, {
                         fullname,
@@ -4780,13 +4862,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         phone,
                         role: normEditedRole,
                         tlc,
+                        vendorName: resolvedVendorName,
+                        vendorShort: resolvedVendorShort,
                         status,
                         updatedAt: new Date().toISOString()
                     }, true);
 
                     window.showToastNotification("💾 PERUBAHAN TERSIMPAN", `Data pengguna ${cleanUname} berhasil diperbarui!`, "success");
                     closeModal('modal-edit-user');
-                    const updated = { ...selectedUser, fullname, email, emailPerusahaan: email, phone, role, tlc, status };
+                    const updated = { ...selectedUser, fullname, email, emailPerusahaan: email, phone, role: normEditedRole, tlc, vendorName: resolvedVendorName, vendorShort: resolvedVendorShort, status };
                     populateUserDetail(updated);
                 } catch (err) {
                     alert(`Gagal memperbarui user: ${err.message}`);

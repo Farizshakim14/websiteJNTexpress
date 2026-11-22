@@ -176,9 +176,104 @@ const JNTFirebaseService = {
             } catch (_) { }
         }
         if (['incoming', 'sla_outbound', 'monitoring_4h', 'sla_return', 'sla_roundtrip', 'shifts', 'troubles', 'master_trips', 'master_vendors', 'master_fleets', 'master_drivers', 'master_reasons'].includes(colName)) {
-            return this._mergeWithHostingArchive(colName, baseList);
+            baseList = this._mergeWithHostingArchive(colName, baseList);
         }
-        return baseList;
+        return this.filterListByActiveVendorScope(colName, baseList);
+    },
+
+    // ----------------------------------------------------
+    // 🏢 VENDOR DATA ISOLATION ENGINE (Khusus Role VENDOR)
+    // Memastikan akun ber-role VENDOR hanya dapat melihat armada, ritase, SLA, kendala,
+    // dan laporan milik perusahaan vendornya sendiri (tidak dapat melihat vendor pesaing).
+    // ----------------------------------------------------
+    getActiveVendorScope() {
+        if (typeof sessionStorage === 'undefined') return null;
+        const rawRole = sessionStorage.getItem('jnt_user_role') || '';
+        const normRole = this.normalizeRole ? this.normalizeRole(rawRole) : String(rawRole).toUpperCase();
+        if (normRole !== 'VENDOR') return null;
+
+        let rawVendor = sessionStorage.getItem('jnt_user_vendor') || '';
+        if (!rawVendor) {
+            const loginUname = (sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
+            const fullName = (sessionStorage.getItem('jnt_active_username') || '').trim();
+            const tlc = (sessionStorage.getItem('jnt_user_tlc') || '').trim();
+
+            // 1. Cek dari cache koleksi users
+            const usersList = (this._cachedSubData && this._cachedSubData['users']) || [];
+            const foundUser = usersList.find(u => u && String(u.username || u.id || '').toLowerCase().trim() === loginUname);
+            if (foundUser && (foundUser.vendorName || foundUser.vendorShort || foundUser.vendor)) {
+                rawVendor = foundUser.vendorName || foundUser.vendorShort || foundUser.vendor;
+            }
+
+            // 2. Deteksi cerdas dari nama lengkap, username, atau gateway penugasan jika mengandung kode vendor resmi
+            if (!rawVendor) {
+                const combinedText = `${fullName} ${loginUname} ${tlc}`.toUpperCase();
+                const knownCodes = ['SERYU', 'APL', 'KLS', 'JTS', 'CHIJUN', 'PAL', 'SOLUSI', 'REYA', 'SDE', 'MTI', 'LNP', 'FASTRANS', 'ANUGERAH', 'AB'];
+                for (const code of knownCodes) {
+                    const regex = new RegExp(`(^|[^A-Z0-9])${code}([^A-Z0-9]|$)`, 'i');
+                    if (regex.test(combinedText) || (code.length >= 4 && combinedText.includes(code))) {
+                        rawVendor = code;
+                        break;
+                    }
+                }
+            }
+
+            if (rawVendor) {
+                try { sessionStorage.setItem('jnt_user_vendor', rawVendor); } catch (_) { }
+            }
+        }
+
+        if (!rawVendor) return null;
+        const fullNameNorm = this.normalizeVendorName ? this.normalizeVendorName(rawVendor) : rawVendor;
+        const shortCode = this.formatVendorShort ? this.formatVendorShort(fullNameNorm) : rawVendor.toUpperCase();
+        return {
+            raw: rawVendor,
+            fullName: fullNameNorm,
+            shortCode: shortCode.toUpperCase()
+        };
+    },
+
+    isItemMatchingVendorScope(item, scope = null) {
+        const activeScope = scope || this.getActiveVendorScope();
+        if (!activeScope || !item) return true;
+
+        const itemVendorFull = this.resolveTripVendor
+            ? this.resolveTripVendor(item)
+            : this.normalizeVendorName(item.vendor || item.namaVendor || '', item.platNomor || '');
+        const itemShort = (this.formatVendorShort ? this.formatVendorShort(itemVendorFull) : itemVendorFull).toUpperCase();
+
+        return itemShort === activeScope.shortCode ||
+            String(itemVendorFull).toUpperCase() === String(activeScope.fullName).toUpperCase() ||
+            String(item.vendor || '').toUpperCase().includes(activeScope.shortCode);
+    },
+
+    filterListByActiveVendorScope(colName, list) {
+        if (!Array.isArray(list) || list.length === 0) return list || [];
+        const scope = this.getActiveVendorScope();
+        if (!scope) return list;
+
+        const vendorScopedCols = new Set([
+            'incoming',
+            'sla_outbound',
+            'monitoring_4h',
+            'sla_return',
+            'sla_roundtrip',
+            'troubles',
+            'master_fleets'
+        ]);
+        if (!vendorScopedCols.has(colName)) return list;
+
+        if (colName === 'sla_roundtrip') {
+            // Untuk roundtrip yang mungkin tidak menyimpan field vendor langsung, cek juga dari cache incoming/sla_outbound
+            const incList = (this._cachedSubData && this._cachedSubData['incoming']) || [];
+            const slaList = (this._cachedSubData && this._cachedSubData['sla_outbound']) || [];
+            const allowedKode = new Set();
+            incList.forEach(i => { if (this.isItemMatchingVendorScope(i, scope)) allowedKode.add(i.kodeTugas || i.id); });
+            slaList.forEach(s => { if (this.isItemMatchingVendorScope(s, scope)) allowedKode.add(s.kodeTugas || s.id); });
+            return list.filter(rt => rt && (rt.vendor ? this.isItemMatchingVendorScope(rt, scope) : allowedKode.has(rt.kodeTugas || rt.id)));
+        }
+
+        return list.filter(item => this.isItemMatchingVendorScope(item, scope));
     },
 
     saveLocalStore(colName, list) {
@@ -786,6 +881,10 @@ const JNTFirebaseService = {
     // ----------------------------------------------------
     async deleteTripCascade(kodeTugas, isMasterDelete = true) {
         if (!kodeTugas) return;
+        const activeRole = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_user_role') : '') || '';
+        if (this.normalizeRole && this.normalizeRole(activeRole) === 'VENDOR') {
+            throw new Error('⚠️ Akses Dibatasi: Akun Role Vendor tidak diizinkan menghapus data perjalanan operasional.');
+        }
         console.log(`[GLOBAL CASCADE DELETE] KodeTugas: ${kodeTugas}`);
 
         // 1. Troubles collection: Per Firestore security rules, deletion is forbidden (`allow delete: if false;`).
@@ -1716,6 +1815,8 @@ const JNTFirebaseService = {
             if (colName === 'monitoring_4h') {
                 resultList = resultList.map(item => this.normalizeMonitoringSlots(item));
             }
+            // Terapkan isolasi data otomatis jika akun yang login ber-role VENDOR
+            resultList = this.filterListByActiveVendorScope(colName, resultList);
 
             // Anti-flicker: Only invoke callback if list content has changed
             const newJson = JSON.stringify(resultList);
@@ -3581,7 +3682,7 @@ const JNTFirebaseService = {
                 return item;
             });
             this.saveLocalStore('sla_outbound', resultList);
-            callback(resultList);
+            callback(this.filterListByActiveVendorScope('sla_outbound', resultList));
         };
 
         let slaEmitTimer = null;
@@ -4239,7 +4340,7 @@ const JNTFirebaseService = {
                 return normItem;
             });
             this.saveLocalStore('monitoring_4h', mergedList);
-            callback(mergedList);
+            callback(this.filterListByActiveVendorScope('monitoring_4h', mergedList));
         };
 
         let monEmitTimer = null;
@@ -5727,6 +5828,12 @@ const JNTFirebaseService = {
         const uid = cred.user.uid;
         const cleanUname = profileData.username.toLowerCase().trim();
 
+        const normNewRole = this.normalizeRole(profileData.role);
+        const resolvedVendorName = normNewRole === 'VENDOR'
+            ? this.normalizeVendorName(profileData.vendorName || profileData.vendor || '')
+            : '';
+        const resolvedVendorShort = resolvedVendorName ? this.formatVendorShort(resolvedVendorName) : '';
+
         const newProfile = {
             uid: uid,
             id: uid,
@@ -5735,8 +5842,9 @@ const JNTFirebaseService = {
             email: profileData.email.toLowerCase().trim(),
             emailPerusahaan: profileData.email.toLowerCase().trim(),
             phone: profileData.phone || '',
-            role: this.normalizeRole(profileData.role),
+            role: normNewRole,
             tlc: profileData.tlc || 'Head Office',
+            ...(resolvedVendorName ? { vendorName: resolvedVendorName, vendorShort: resolvedVendorShort } : {}),
             status: profileData.status || 'Aktif',
             createdAt: new Date().toISOString()
         };
