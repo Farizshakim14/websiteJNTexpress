@@ -236,172 +236,242 @@
                     </div>
                 </header>
 
-                <!-- PROFILE HERO BANNER CARD -->
-                <div class="profile-hero-card">
-                    <div class="profile-cover-bg">
+                <!-- PROFILE HERO BANNER CARD V2 (MODERN ENTERPRISE IDENTITY CARD) -->
+                <div class="profile-hero-card v2-hero">
+                    <div class="profile-cover-bg v2-cover">
                         <div class="cover-overlay-pattern"></div>
+                        <div class="v2-cover-chips">
+                            <span class="v2-cover-chip">🛡️ J&amp;T EXPRESS OFFICIAL IDENTITY</span>
+                            <span class="v2-cover-chip" id="hero-active-shift-chip">⏱️ Shift Aktif: Memuat...</span>
+                        </div>
+                        <div class="v2-cover-chips">
+                            <span class="v2-cover-chip" id="hero-last-sync-chip">☁️ Tersinkronisasi Real-Time</span>
+                        </div>
                     </div>
 
-                    <div class="profile-hero-main">
-                        <div class="profile-avatar-wrapper">
-                            <img src="https://ui-avatars.com/api/?name=Developer+Admin&background=E30613&color=fff&size=300&bold=true"
-                                alt="Developer Avatar" class="profile-hero-img" id="profile-avatar-img">
-                            <label for="avatar-file-input" class="avatar-edit-badge" title="Ganti Foto Profil">
-                                📷
-                                <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
-                            </label>
-                        </div>
-
-                        <div class="profile-hero-text">
-                            <div class="profile-name-row">
-                                <h1 class="profile-full-name" id="hero-fullname">Developer Admin</h1>
-                                <span class="badge-role-hero" id="hero-jabatan">Developer &amp; System
-                                    Administrator</span>
-                                <span class="badge-status-green">🟢 Active</span>
+                    <div class="profile-hero-main v2-hero-main">
+                        <div class="v2-identity-cluster">
+                            <div class="profile-avatar-wrapper v2-avatar-wrap">
+                                <img src="https://ui-avatars.com/api/?name=User&background=E30613&color=fff&size=300&bold=true"
+                                    alt="User Avatar" class="profile-hero-img" id="profile-avatar-img">
+                                <div class="v2-avatar-hover-overlay" id="avatar-overlay-trigger" title="Klik untuk mengganti foto profil">
+                                    <span style="font-size: 18px;">📷</span>
+                                    <span>Ubah Foto</span>
+                                </div>
+                                <label for="avatar-file-input" class="avatar-edit-badge" title="Upload Foto Profil Baru">
+                                    📷
+                                    <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                                </label>
                             </div>
-                            <p class="profile-sub-meta">
-                                <span>🆔 NIK: <strong id="hero-nik">JNT-DEV-0001</strong></span>
-                                <span class="meta-dot">•</span>
-                                <span>🏢 Penugasan: <strong id="hero-tlc">Head Office Jakarta</strong></span>
-                                <span class="meta-dot">•</span>
-                                <span>✉️ Email: <strong id="hero-email">developer@jtexpress.co.id</strong></span>
-                            </p>
+
+                            <div class="profile-hero-text">
+                                <div class="profile-name-row">
+                                    <h1 class="profile-full-name" id="hero-fullname">-</h1>
+                                    <span class="badge-role-hero" id="hero-jabatan">-</span>
+                                    <span class="badge-status-green" id="hero-status-badge">🟢 Aktif</span>
+                                </div>
+                                <div class="v2-meta-pills">
+                                    <span class="v2-meta-pill">
+                                        🆔 Username: <strong id="hero-nik">-</strong>
+                                        <button type="button" class="v2-copy-mini-btn" id="btn-copy-username" title="Salin Username">Salin</button>
+                                    </span>
+                                    <span class="v2-meta-pill">
+                                        🏢 Gateway: <strong id="hero-tlc">-</strong>
+                                    </span>
+                                    <span class="v2-meta-pill">
+                                        ✉️ <strong id="hero-email">-</strong>
+                                        <button type="button" class="v2-copy-mini-btn" id="btn-copy-email" title="Salin Email">Salin</button>
+                                    </span>
+                                    <span class="v2-meta-pill">
+                                        📞 <strong id="hero-phone">-</strong>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="profile-hero-actions">
-                            <button id="btn-edit-profile" class="btn-st-red">✏️ Edit Informasi Profil</button>
+                        <div class="v2-hero-actions">
+                            <button type="button" id="btn-change-photo" class="btn-prof-action" title="Pilih foto dari perangkat Anda">
+                                📷 Ganti Foto
+                            </button>
+                            <button type="button" id="btn-remove-photo" class="btn-prof-action danger-subtle" title="Kembalikan ke avatar inisial default">
+                                🗑️ Reset Foto
+                            </button>
+                            <button type="button" id="btn-edit-profile" class="btn-prof-action primary" title="Edit informasi pribadi & penugasan">
+                                ✏️ Edit Profil
+                            </button>
                         </div>
                     </div>
 
-                    <!-- 4 QUICK STATS ROW -->
-                    <div class="profile-stats-row">
-                        <div class="p-stat-box">
+                    <!-- 4 QUICK STATS ROW (100% Real Data Synced) -->
+                    <div class="profile-stats-row v2-stats-grid">
+                        <div class="v2-stat-card">
                             <span class="p-stat-ic red">🚚</span>
-                            <div>
-                                <strong class="p-stat-val">1.248</strong>
-                                <span class="p-stat-lbl">Total Trip Diinput</span>
+                            <div style="min-width: 0;">
+                                <strong class="p-stat-val" id="prof-stat-trips">0</strong>
+                                <span class="p-stat-lbl" id="prof-stat-trips-lbl">Total Ritase Terpantau</span>
                             </div>
                         </div>
-                        <div class="p-stat-box">
+                        <div class="v2-stat-card">
                             <span class="p-stat-ic green">⏱️</span>
-                            <div>
-                                <strong class="p-stat-val">99.4%</strong>
-                                <span class="p-stat-lbl">Tingkat Akurasi SLA</span>
+                            <div style="min-width: 0;">
+                                <strong class="p-stat-val" id="prof-stat-sla">100%</strong>
+                                <span class="p-stat-lbl" id="prof-stat-sla-lbl">Capaian On-Time SLA</span>
                             </div>
                         </div>
-                        <div class="p-stat-box">
+                        <div class="v2-stat-card">
                             <span class="p-stat-ic blue">📅</span>
-                            <div>
-                                <strong class="p-stat-val">2.410 Jam</strong>
-                                <span class="p-stat-lbl">Total Jam Kerja</span>
+                            <div style="min-width: 0;">
+                                <strong class="p-stat-val" id="prof-stat-hours">0 Shift</strong>
+                                <span class="p-stat-lbl" id="prof-stat-hours-lbl">Riwayat Shift &amp; Aktivitas</span>
                             </div>
                         </div>
-                        <div class="p-stat-box">
+                        <div class="v2-stat-card">
                             <span class="p-stat-ic purple">🛡️</span>
-                            <div>
-                                <strong class="p-stat-val" style="color: #16A34A;">Terverifikasi</strong>
-                                <span class="p-stat-lbl">Status Keamanan 2FA</span>
+                            <div style="min-width: 0;">
+                                <strong class="p-stat-val" id="prof-stat-security" style="color: #16A34A;">Terproteksi</strong>
+                                <span class="p-stat-lbl" id="prof-stat-security-lbl">Firebase Auth &amp; Session Lock</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- MAIN SPLIT GRID (INFORMASI DIRI & AKUN + KEAMANAN & ACTIVITY TIMELINE) -->
-                <div class="inc-split-container" style="margin-top: 20px;">
+                <!-- MAIN SPLIT GRID (INFORMASI DIRI & HAK AKSES + KEAMANAN & ACTIVITY TIMELINE) -->
+                <div class="inc-split-container" style="margin-top: 20px; align-items: flex-start;">
 
-                    <!-- LEFT COLUMN: Informasi Pribadi & Pekerjaan Card -->
-                    <div class="inc-table-card" style="flex: 1.4;">
-                        <div class="inc-table-header">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 18px;">👤</span>
-                                <h3 class="inc-table-title">Informasi Pribadi & Pekerjaan</h3>
+                    <!-- LEFT COLUMN: Informasi Pribadi + Matriks Hak Akses Role -->
+                    <div style="flex: 1.45; display: flex; flex-direction: column; gap: 18px; min-width: 0;">
+
+                        <!-- CARD KIRI 1: Form Informasi Pribadi & Pekerjaan -->
+                        <div class="inc-table-card">
+                            <div class="inc-table-header">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px;">👤</span>
+                                    <h3 class="inc-table-title">Informasi Pribadi &amp; Penugasan Operasional</h3>
+                                </div>
+                                <span class="badge-status blue-outline" id="prof-sync-badge">🟢 Tersinkronisasi Database</span>
                             </div>
-                            <span class="badge-status blue-outline">Data Terverifikasi</span>
+
+                            <form id="profile-info-form" class="st-card-body" style="padding: 20px;">
+                                <!-- BOX UPLOAD & EDIT FOTO PROFIL DI DALAM FORM -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 16px; margin-bottom: 16px; border-radius: 12px; border: 1px dashed #CBD5E1; background: rgba(248, 250, 252, 0.65);">
+                                    <div style="display: flex; align-items: center; gap: 14px;">
+                                        <img src="https://ui-avatars.com/api/?name=User&background=E30613&color=fff&size=150&bold=true"
+                                            alt="Preview Foto Profil" id="form-avatar-preview"
+                                            style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #E30613; flex-shrink: 0;">
+                                        <div>
+                                            <strong style="display: block; font-size: 13px; color: #0F172A;">📷 Foto Profil Akun</strong>
+                                            <span style="font-size: 11.5px; color: #64748B;">Format JPG, PNG, atau WebP (Maks. 8MB • Tersimpan di Hosting cPanel)</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <button type="button" id="btn-form-upload-photo" class="btn-st-red" style="padding: 8px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            📷 Edit / Upload Foto Profil
+                                        </button>
+                                        <button type="button" id="btn-form-reset-photo" class="btn-st-outline" style="padding: 8px 12px; font-size: 12px; cursor: pointer;">
+                                            🗑️ Reset Default
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-grid-2col">
+                                    <div class="form-group-st">
+                                        <label for="prof-fullname">Nama Lengkap <span style="color: #E30613;">*</span></label>
+                                        <input type="text" id="prof-fullname" value="" placeholder="Masukkan nama lengkap" required>
+                                    </div>
+                                    <div class="form-group-st">
+                                        <label for="prof-username">Username Login (ID Akun)</label>
+                                        <input type="text" id="prof-username" value="" readonly
+                                            style="background-color: #F8FAFC; cursor: not-allowed;">
+                                    </div>
+                                </div>
+
+                                <div class="form-grid-2col">
+                                    <div class="form-group-st">
+                                        <label for="prof-email">Email Perusahaan <span style="color: #E30613;">*</span></label>
+                                        <input type="email" id="prof-email" value="" placeholder="nama@jtexpress.co.id" required>
+                                    </div>
+                                    <div class="form-group-st">
+                                        <label for="prof-phone">No. Telepon / WhatsApp Aktif</label>
+                                        <input type="tel" id="prof-phone" value="" placeholder="0812-xxxx-xxxx">
+                                    </div>
+                                </div>
+
+                                <div class="form-grid-2col">
+                                    <div class="form-group-st">
+                                        <label for="prof-role-display">Role / Jabatan Sistem (RBAC)</label>
+                                        <input type="text" id="prof-role-display" value="" readonly
+                                            style="background-color: #F8FAFC; font-weight: 700; color: #E30613;">
+                                    </div>
+                                    <div class="form-group-st">
+                                        <label for="prof-tlc">Gateway Penugasan Utama</label>
+                                        <select id="prof-tlc">
+                                            <option value="JKT999">Gateway JKT999 (Jakarta)</option>
+                                            <option value="Head Office Jakarta">Head Office Jakarta</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-grid-2col">
+                                    <div class="form-group-st">
+                                        <label for="prof-departemen">Departemen / Unit Kerja</label>
+                                        <input type="text" id="prof-departemen" value="" placeholder="Logistik &amp; Transport Operations">
+                                    </div>
+                                    <div class="form-group-st">
+                                        <label for="prof-bergabung">Terdaftar Sejak</label>
+                                        <input type="text" id="prof-bergabung" value="-" readonly
+                                            style="background-color: #F8FAFC;">
+                                    </div>
+                                </div>
+
+                                <div class="form-group-st">
+                                    <label for="prof-alamat">Catatan / Alamat Operasional Gateway</label>
+                                    <textarea id="prof-alamat" rows="2" placeholder="Masukkan alamat atau catatan operasional gateway"></textarea>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+                                    <button type="submit" class="btn-st-red" id="btn-save-profile">💾 Simpan Perubahan Profil</button>
+                                    <button type="button" class="btn-st-outline" id="btn-reset-profile-form">🔄 Muat Ulang Data</button>
+                                </div>
+                            </form>
                         </div>
 
-                        <form id="profile-info-form" class="st-card-body" style="padding: 20px;">
-                            <div class="form-grid-2col">
-                                <div class="form-group-st">
-                                    <label>Nama Lengkap</label>
-                                    <input type="text" id="prof-fullname" value="">
+                        <!-- CARD KIRI 2: Hak Akses Modul & Pintasan Cepat Role Saya -->
+                        <div class="inc-table-card">
+                            <div class="inc-table-header">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 18px;">🔑</span>
+                                    <h3 class="inc-table-title">Hak Akses Modul &amp; Pintasan Cepat (<span id="prof-rbac-role-title">Role</span>)</h3>
                                 </div>
-                                <div class="form-group-st">
-                                    <label>Username</label>
-                                    <input type="text" id="prof-username" value="" readonly
-                                        style="background-color: #F8FAFC;">
-                                </div>
+                                <span class="badge-status blue-outline">Klik Modul untuk Membuka</span>
                             </div>
+                            <div class="st-card-body" style="padding: 16px 20px;">
+                                <p style="font-size: 12px; color: #64748B; margin: 0 0 10px 0;" id="prof-rbac-desc">
+                                    Daftar modul operasional yang diizinkan untuk akun Anda beserta pintasan navigasi langsung:
+                                </p>
+                                <div class="v2-rbac-grid" id="prof-rbac-modules-grid"></div>
+                            </div>
+                        </div>
 
-                            <div class="form-grid-2col">
-                                <div class="form-group-st">
-                                    <label>Email Perusahaan</label>
-                                    <input type="email" id="prof-email" value="">
-                                </div>
-                                <div class="form-group-st">
-                                    <label>No. Telepon / WhatsApp</label>
-                                    <input type="tel" id="prof-phone" value="">
-                                </div>
-                            </div>
-
-                            <div class="form-grid-2col">
-                                <div class="form-group-st">
-                                    <label>Role / Jabatan</label>
-                                    <input type="text" value="Developer & System Administrator" readonly
-                                        style="background-color: #F8FAFC;">
-                                </div>
-                                <div class="form-group-st">
-                                    <label>Gateway Penugasan Utama</label>
-                                    <select id="prof-tlc">
-                                        <option value="JKT999" selected>Gateway JKT999</option>
-                                        <option value="Head Office Jakarta">Head Office Jakarta</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-grid-2col">
-                                <div class="form-group-st">
-                                    <label>Departemen</label>
-                                    <input type="text" value="Logistik & Transport Operations" readonly
-                                        style="background-color: #F8FAFC;">
-                                </div>
-                                <div class="form-group-st">
-                                    <label>Tanggal Bergabung</label>
-                                    <input type="text" value="1 Januari 2026" readonly
-                                        style="background-color: #F8FAFC;">
-                                </div>
-                            </div>
-
-                            <div class="form-group-st">
-                                <label>Alamat Operasional Cabang</label>
-                                <textarea
-                                    rows="2">Kawasan Industri Cikande Indah No. 12, Serang, Banten 42186</textarea>
-                            </div>
-
-                            <div style="display: flex; gap: 12px; margin-top: 10px;">
-                                <button type="submit" class="btn-st-red">💾 Simpan Perubahan Profil</button>
-                                <button type="button" class="btn-st-outline">🔄 Batal</button>
-                            </div>
-                        </form>
                     </div>
 
-                    <!-- RIGHT COLUMN: Security & Activity Logs Stack -->
-                    <div class="inc-detail-card" style="width: 380px; min-width: 380px; gap: 16px;">
+                    <!-- RIGHT COLUMN: Security, Sessions & Activity Logs Stack -->
+                    <div class="inc-detail-card" style="width: 395px; min-width: 360px; gap: 18px;">
 
-                        <!-- CARD 1: UBAH PASSWORD & KEAMANAN AKUN -->
+                        <!-- CARD KANAN 1: UBAH PASSWORD & KEAMANAN AKUN -->
                         <div class="settings-card">
                             <div class="settings-card-header">
                                 <div class="st-title-wrap">
                                     <span class="st-icon dark">🔒</span>
-                                    <h3 class="st-title">Keamanan & Ubah Password</h3>
+                                    <h3 class="st-title">Keamanan &amp; Ubah Password</h3>
                                 </div>
                             </div>
 
                             <form id="change-pass-form" class="st-card-body">
                                 <div class="form-group-st">
-                                    <label>Password Saat Ini</label>
+                                    <label for="current-pass">Password Saat Ini <span style="color: #E30613;">*</span></label>
                                     <div class="input-wrapper">
                                         <input type="password" id="current-pass" class="form-input"
-                                            style="padding-left: 14px;" placeholder="••••••••" required>
+                                            style="padding-left: 14px;" placeholder="Masukkan password saat ini" required>
                                         <button type="button" id="toggle-current-pass" class="password-toggle-btn"
                                             aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
                                             <svg id="curr-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none"
@@ -422,10 +492,10 @@
                                 </div>
 
                                 <div class="form-group-st">
-                                    <label>Password Baru</label>
+                                    <label for="new-pass">Password Baru <span style="color: #E30613;">*</span></label>
                                     <div class="input-wrapper">
                                         <input type="password" id="new-pass" class="form-input"
-                                            style="padding-left: 14px;" placeholder="Minimal 8 karakter" required>
+                                            style="padding-left: 14px;" placeholder="Minimal 6 karakter" required minlength="6">
                                         <button type="button" id="toggle-new-pass" class="password-toggle-btn"
                                             aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
                                             <svg id="new-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none"
@@ -442,13 +512,19 @@
                                             </svg>
                                         </button>
                                     </div>
+                                    <div class="v2-pass-meter-wrap">
+                                        <div class="v2-pass-meter-bar">
+                                            <div class="v2-pass-meter-fill" id="prof-pass-meter-fill"></div>
+                                        </div>
+                                        <span id="prof-pass-meter-label" style="font-size: 10.5px; color: #64748B; font-weight: 600;">Ketik password baru untuk mengecek kekuatan</span>
+                                    </div>
                                 </div>
 
                                 <div class="form-group-st">
-                                    <label>Konfirmasi Password Baru</label>
+                                    <label for="confirm-pass">Konfirmasi Password Baru <span style="color: #E30613;">*</span></label>
                                     <div class="input-wrapper">
                                         <input type="password" id="confirm-pass" class="form-input"
-                                            style="padding-left: 14px;" placeholder="Ulangi password baru" required>
+                                            style="padding-left: 14px;" placeholder="Ulangi password baru" required minlength="6">
                                         <button type="button" id="toggle-confirm-pass" class="password-toggle-btn"
                                             aria-label="Tampilkan password" title="Tampilkan / sembunyikan password">
                                             <svg id="conf-eye-off" class="eye-icon" viewBox="0 0 24 24" fill="none"
@@ -468,91 +544,50 @@
                                     </div>
                                 </div>
 
-                                <div class="toggle-setting-row no-ic"
-                                    style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px;">
-                                    <div class="toggle-text-meta">
-                                        <strong style="font-size: 12px;">Verifikasi 2 Langkah (2FA)</strong>
-                                        <span style="font-size: 10.5px; color: #64748B;">Autentikasi kode OTP via
-                                            Email/SMS</span>
-                                    </div>
-                                    <label class="switch-toggle"><input type="checkbox" checked><span
-                                            class="slider-round"></span></label>
-                                </div>
-
-                                <div style="margin-top: 12px;">
-                                    <button type="submit" class="btn-st-red" style="width: 100%;">🔑 Perbarui
-                                        Password</button>
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                                    <button type="submit" class="btn-st-red" id="btn-submit-change-pass" style="width: 100%;">🔑 Perbarui Password Login</button>
+                                    <button type="button" class="btn-st-outline" id="btn-send-reset-email" style="width: 100%; font-size: 12px;">📧 Kirim Link Reset Password ke Email</button>
                                 </div>
                             </form>
                         </div>
 
-                        <!-- CARD 2: PERANGKAT TERHUBUNG (SESSIONS) -->
+                        <!-- CARD KANAN 2: PERANGKAT TERHUBUNG (SESSIONS - REAL DATA FROM session_lock.php) -->
                         <div class="settings-card">
-                            <div class="settings-card-header">
+                            <div class="settings-card-header" style="display: flex; justify-content: space-between; align-items: center;">
                                 <div class="st-title-wrap">
                                     <span class="st-icon blue">💻</span>
-                                    <h3 class="st-title">Perangkat Terhubung</h3>
+                                    <h3 class="st-title">Sesi Perangkat Aktif</h3>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button type="button" id="btn-refresh-sessions" class="btn-st-outline" style="padding: 4px 9px; font-size: 11px;" title="Cek status sesi terbaru">🔄 Segarkan</button>
+                                    <button type="button" id="btn-reacquire-session" class="btn-st-outline" style="padding: 4px 9px; font-size: 11px; color: #2563EB; border-color: #93C5FD;" title="Kunci ulang sesi ke perangkat ini">🔒 Kunci Sesi</button>
                                 </div>
                             </div>
 
-                            <div class="st-card-body">
-                                <div class="device-session-item active-session">
-                                    <div class="device-ic-wrap">💻</div>
-                                    <div class="device-meta">
-                                        <strong class="device-name">Chrome di Windows 11</strong>
-                                        <span class="device-sub">192.168.1.10 • Jakarta, ID</span>
-                                        <span class="device-status-tag green">🟢 Sesi Saat Ini</span>
-                                    </div>
-                                </div>
-
-                                <div class="device-session-item">
-                                    <div class="device-ic-wrap">📱</div>
-                                    <div class="device-meta">
-                                        <strong class="device-name">Android J&T TMS App</strong>
-                                        <span class="device-sub">180.252.12.44 • Terakhir aktif 2 jam lalu</span>
-                                    </div>
-                                    <button class="btn-revoke-session" title="Keluarkan Sesi">✕</button>
-                                </div>
+                            <div class="st-card-body" id="prof-sessions-container">
+                                <div style="font-size: 12px; color: #64748B; text-align: center; padding: 12px;">Memuat informasi sesi perangkat aktif...</div>
                             </div>
                         </div>
 
-                        <!-- CARD 3: RIWAYAT AKTIVITAS TERSIMPAN -->
+                        <!-- CARD KANAN 3: RIWAYAT AKTIVITAS TERSIMPAN (REAL DATA FROM log_audit.php & Audit Trail) -->
                         <div class="settings-card">
-                            <div class="settings-card-header">
+                            <div class="settings-card-header" style="display: flex; justify-content: space-between; align-items: center;">
                                 <div class="st-title-wrap">
                                     <span class="st-icon orange">📜</span>
-                                    <h3 class="st-title">Aktivitas Terakhir Saya</h3>
+                                    <h3 class="st-title">Aktivitas Operasional Saya</h3>
                                 </div>
+                                <a href="report.html" class="btn-st-outline" style="padding: 4px 9px; font-size: 11px; text-decoration: none;">📑 Lihat Semua</a>
                             </div>
 
                             <div class="st-card-body">
-                                <div class="profile-activity-timeline">
-                                    <div class="p-act-item">
-                                        <div class="p-act-dot green"></div>
-                                        <div class="p-act-meta">
-                                            <strong>Input Outbound SLA DBGX2607220004</strong>
-                                            <span>Rute JKT - PLG (Plat B 9356 PKK)</span>
-                                            <span class="p-act-time">Hari ini, 10:15 WIB</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-act-item">
-                                        <div class="p-act-dot blue"></div>
-                                        <div class="p-act-meta">
-                                            <strong>Update Monitoring 4 Jam Slot 08-12</strong>
-                                            <span>Posisi Cipali Tol untuk Armada B 9134 PXX</span>
-                                            <span class="p-act-time">Hari ini, 09:45 WIB</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="p-act-item">
-                                        <div class="p-act-dot red"></div>
-                                        <div class="p-act-meta">
-                                            <strong>Melaporkan Trouble Ban Pecah</strong>
-                                            <span>Lokasi KM 47 Tol Cikampek</span>
-                                            <span class="p-act-time">Kemarin, 14:20 WIB</span>
-                                        </div>
-                                    </div>
+                                <div class="v2-timeline-filters" id="prof-tl-filter-bar">
+                                    <button type="button" class="v2-tl-filter-btn active" data-tl-filter="ALL">Semua</button>
+                                    <button type="button" class="v2-tl-filter-btn" data-tl-filter="SLA">SLA &amp; Trip</button>
+                                    <button type="button" class="v2-tl-filter-btn" data-tl-filter="MON">Monitoring 4H</button>
+                                    <button type="button" class="v2-tl-filter-btn" data-tl-filter="OTHER">Trouble &amp; Shift</button>
+                                </div>
+                                <div class="profile-activity-timeline" id="prof-activity-timeline">
+                                    <div style="font-size: 12px; color: #64748B; text-align: center; padding: 12px;">Memuat riwayat aktivitas operasional...</div>
                                 </div>
                             </div>
                         </div>
@@ -565,7 +600,7 @@
         </div>
 
         <footer class="app-page-footer">
-            <span>© 2026 J&T Express. All rights reserved.</span>
+            <span>© 2026 J&amp;T Express. All rights reserved.</span>
             <span>Version 1.0.0</span>
         </footer>
 
@@ -579,194 +614,756 @@
     <script src="firebase-config.js"></script>
     <script src="firebase-service.js"></script>
     <script src="app.js"></script>
-    <!-- Profile Dynamic Loader -->
+    <!-- Profile Real-Time Dynamic Controller (100% Synced with Firestore + cPanel PHP Hosting) -->
     <script>
         (function () {
             var ss = sessionStorage;
 
-            // ── Baca semua data dari sessionStorage ──────────────────────────────
-            var fullname = ss.getItem('jnt_active_username') || '';
-            var role = ss.getItem('jnt_user_role') || '';
-            var nik = ss.getItem('jnt_user_nik') || '';
-            var tlc = ss.getItem('jnt_user_tlc') || '';
-            var email = ss.getItem('jnt_user_email') || '';
-            var phone = ss.getItem('jnt_user_phone') || '';
-            var jabatan = ss.getItem('jnt_user_jabatan') || '';
-            var departemen = ss.getItem('jnt_user_departemen') || '';
-            var bergabung = ss.getItem('jnt_user_bergabung') || '';
-            var username = ss.getItem('jnt_username_login') || '';
+            function makeAvatar(name, size) {
+                return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name || 'User')
+                    + '&background=E30613&color=fff&size=' + (size || 150) + '&bold=true';
+            }
 
-            var makeAvatar = function (name, size) {
-                return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name)
-                    + '&background=E30613&color=fff&size=' + size + '&bold=true';
-            };
+            function escHtml(str) {
+                return String(str || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;');
+            }
 
-            // ── Helper: set element text / value ─────────────────────────────────
             function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
             function setVal(id, val) { var el = document.getElementById(id); if (el) el.value = val; }
             function setSrc(id, url) { var el = document.getElementById(id); if (el) el.src = url; }
 
-            // ── Hero Section ─────────────────────────────────────────────────────
-            setText('hero-fullname', fullname);
-            setText('hero-jabatan', jabatan);
-            setText('hero-nik', nik);
-            setText('hero-tlc', tlc);
-            setText('hero-email', email);
+            function showProfileToast(msg, bg) {
+                var toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:' + (bg || '#10B981') + ';color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.25);animation:fadeInUp 0.3s ease;';
+                toast.textContent = msg;
+                document.body.appendChild(toast);
+                setTimeout(function () {
+                    toast.style.opacity = '0';
+                    setTimeout(function () { toast.remove(); }, 400);
+                }, 3200);
+            }
 
-            // ── Avatar Images ────────────────────────────────────────────────────
-            setSrc('profile-avatar-img', makeAvatar(fullname, 300));
-            setSrc('sidebar-avatar-img', makeAvatar(fullname, 150));
-            setSrc('topbar-avatar-img', makeAvatar(fullname, 100));
+            function parseUserAgentInfo(uaString) {
+                var ua = String(uaString || navigator.userAgent || '');
+                var browser = 'Web Browser';
+                if (ua.includes('Edg/')) browser = 'Microsoft Edge';
+                else if (ua.includes('Chrome/') && !ua.includes('Edg/')) browser = 'Google Chrome';
+                else if (ua.includes('Firefox/')) browser = 'Mozilla Firefox';
+                else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Apple Safari';
 
-            // ── Sidebar: username & role ──────────────────────────────────────────
-            setText('sidebar-user-name', fullname);
-            document.querySelectorAll('.profile-role').forEach(function (el) { el.textContent = role; });
+                var os = 'Desktop / Mobile';
+                if (ua.includes('Windows NT 10.0')) os = 'Windows 10/11';
+                else if (ua.includes('Windows')) os = 'Windows';
+                else if (ua.includes('Android')) os = 'Android';
+                else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+                else if (ua.includes('Mac OS X')) os = 'macOS';
+                else if (ua.includes('Linux')) os = 'Linux';
 
-            // ── Form Fields ───────────────────────────────────────────────────────
-            setVal('prof-fullname', fullname);
-            setVal('prof-username', username);
-            setVal('prof-email', email);
-            setVal('prof-phone', phone);
+                var isMobile = /Android|iPhone|iPad|Mobile/i.test(ua);
+                return {
+                    label: browser + ' di ' + os,
+                    icon: isMobile ? '📱' : '💻'
+                };
+            }
 
-            // Role / Jabatan field (readonly)
-            var roleField = document.querySelector('input[value="Developer & System Administrator"]');
-            if (roleField) roleField.value = jabatan;
+            // ── 1. LOAD & RENDER DATA PROFIL NYATA DARI DATABASE ──────────────────
+            var currentProfileData = null;
 
-            // TLC select
-            var tlcSel = document.getElementById('prof-tlc');
-            if (tlcSel) {
-                var found = false;
-                for (var i = 0; i < tlcSel.options.length; i++) {
-                    if (tlcSel.options[i].value === tlc || tlcSel.options[i].text === tlc) {
-                        tlcSel.selectedIndex = i;
-                        found = true;
-                        break;
+            async function loadRealUserProfile() {
+                var username = (ss.getItem('jnt_username_login') || '').toLowerCase().trim();
+                var fullname = ss.getItem('jnt_active_username') || username || 'Pengguna';
+                var rawRole = ss.getItem('jnt_user_role') || 'STAFF_VEHICLE_DISPATCH';
+                var tlc = ss.getItem('jnt_user_tlc') || 'Gateway JKT999';
+                var email = ss.getItem('jnt_user_email') || '';
+                var phone = ss.getItem('jnt_user_phone') || '';
+                var photoURL = ss.getItem('jnt_user_photo') || '';
+                var departemen = ss.getItem('jnt_user_departemen') || 'Logistik & Transport Operations';
+                var alamat = ss.getItem('jnt_user_alamat') || 'Gateway JKT999 - Jakarta';
+                var createdAt = '';
+                var status = 'Aktif';
+
+                if (typeof JNTFirebaseService !== 'undefined') {
+                    try {
+                        var dbProf = null;
+                        if (window.auth && window.auth.currentUser) {
+                            dbProf = await JNTFirebaseService.getUserProfileByUid(window.auth.currentUser.uid);
+                        }
+                        if (!dbProf && username) {
+                            dbProf = await JNTFirebaseService.getUserProfileByUsername(username);
+                        }
+                        if (dbProf) {
+                            currentProfileData = dbProf;
+                            fullname = dbProf.fullname || fullname;
+                            username = (dbProf.username || username).toLowerCase().trim();
+                            rawRole = dbProf.role || rawRole;
+                            tlc = dbProf.tlc || tlc;
+                            email = dbProf.email || dbProf.emailPerusahaan || email || (username + '@jtexpress.co.id');
+                            phone = dbProf.phone || phone || '';
+                            photoURL = dbProf.photoURL || photoURL || '';
+                            departemen = dbProf.departemen || departemen;
+                            alamat = dbProf.alamat || alamat;
+                            createdAt = dbProf.createdAt || '';
+                            status = dbProf.status || 'Aktif';
+
+                            ss.setItem('jnt_active_username', fullname);
+                            ss.setItem('jnt_user_email', email);
+                            ss.setItem('jnt_user_phone', phone);
+                            ss.setItem('jnt_user_tlc', tlc);
+                            if (photoURL) ss.setItem('jnt_user_photo', photoURL);
+                        }
+                    } catch (e) {
+                        console.warn('[PROFILE] Load profile notice:', e.message);
                     }
                 }
-                if (!found) {
-                    var opt = document.createElement('option');
-                    opt.value = tlc;
-                    opt.textContent = tlc;
-                    opt.selected = true;
-                    tlcSel.appendChild(opt);
+
+                var roleLabel = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRoleLabel)
+                    ? JNTFirebaseService.formatRoleLabel(rawRole)
+                    : rawRole;
+                var normRole = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
+                    ? JNTFirebaseService.normalizeRole(rawRole)
+                    : String(rawRole || '').toUpperCase();
+
+                var createdDisplay = 'Terdaftar di Sistem';
+                if (createdAt) {
+                    var parsedD = new Date(createdAt);
+                    createdDisplay = isNaN(parsedD.getTime())
+                        ? String(createdAt)
+                        : parsedD.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                }
+
+                setText('hero-fullname', fullname);
+                setText('hero-jabatan', roleLabel);
+                setText('hero-nik', username || '-');
+                setText('hero-tlc', tlc || 'Gateway JKT999');
+                setText('hero-email', email || '-');
+                setText('hero-phone', phone || '-');
+                setText('prof-rbac-role-title', roleLabel);
+
+                // Update Shift Aktif chip di cover banner
+                if (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.getActiveShift) {
+                    var actShift = JNTFirebaseService.getActiveShift();
+                    if (actShift) {
+                        setText('hero-active-shift-chip', '⏱️ ' + (actShift.namaShift || 'Shift Aktif') + ' • ' + (actShift.shiftId || ''));
+                    }
+                }
+
+                var statusBadge = document.getElementById('hero-status-badge');
+                if (statusBadge) {
+                    var isAct = String(status).toLowerCase() !== 'nonaktif';
+                    statusBadge.textContent = isAct ? '🟢 Aktif' : '🔴 Nonaktif';
+                }
+
+                var avatar300 = photoURL || makeAvatar(fullname, 300);
+                var avatar150 = photoURL || makeAvatar(fullname, 150);
+                var avatar100 = photoURL || makeAvatar(fullname, 100);
+                setSrc('profile-avatar-img', avatar300);
+                setSrc('form-avatar-preview', avatar150);
+                setSrc('sidebar-avatar-img', avatar150);
+                setSrc('topbar-avatar-img', avatar100);
+
+                setText('sidebar-user-name', fullname);
+                document.querySelectorAll('.profile-role, .inc-user-role').forEach(function (el) {
+                    el.textContent = roleLabel;
+                });
+
+                var dashName = document.getElementById('dash-user-name');
+                if (dashName) {
+                    dashName.textContent = fullname + ' ';
+                    var chev = document.createElement('span');
+                    chev.style.fontSize = '10px';
+                    chev.textContent = '▾';
+                    dashName.appendChild(chev);
+                }
+
+                setVal('prof-fullname', fullname);
+                setVal('prof-username', username);
+                setVal('prof-email', email);
+                setVal('prof-phone', phone);
+                setVal('prof-role-display', roleLabel);
+                setVal('prof-departemen', departemen);
+                setVal('prof-bergabung', createdDisplay);
+                setVal('prof-alamat', alamat);
+
+                var tlcSel = document.getElementById('prof-tlc');
+                if (tlcSel && tlc) {
+                    var found = false;
+                    for (var i = 0; i < tlcSel.options.length; i++) {
+                        if (tlcSel.options[i].value === tlc || tlcSel.options[i].text === tlc) {
+                            tlcSel.selectedIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        var opt = document.createElement('option');
+                        opt.value = tlc;
+                        opt.textContent = tlc;
+                        opt.selected = true;
+                        tlcSel.appendChild(opt);
+                    }
+                }
+
+                renderRolePermissionsGrid(normRole);
+            }
+
+            // ── 1B. RENDER MATRIKS HAK AKSES MODUL & PINTASAN CEPAT ──────────────
+            function renderRolePermissionsGrid(normRole) {
+                var grid = document.getElementById('prof-rbac-modules-grid');
+                if (!grid) return;
+
+                var isSuper = ['DEVELOPER', 'OWNER', 'ADMIN'].indexOf(normRole) >= 0;
+                var isMgr = ['MANAGER', 'ASISTEN_MANAGER', 'SUPERVISOR'].indexOf(normRole) >= 0;
+                var isFin = normRole === 'FINANCE';
+                var isVen = normRole === 'VENDOR';
+
+                var modules = [
+                    { name: '📊 Dashboard Utama', url: 'dashboard.html', allowed: true },
+                    { name: '⏱️ Monitoring 4 Jam', url: 'monitoring.html', allowed: !isFin },
+                    { name: '🏆 SLA Vendor', url: 'sla-vendor.html', allowed: true },
+                    { name: '🚨 Trouble & Laka', url: 'trouble.html', allowed: !isFin },
+                    { name: '🔄 Shift Management', url: 'shift-management.html', allowed: !isFin && !isVen },
+                    { name: '📑 Report & Export', url: 'report.html', allowed: true },
+                    { name: '👥 User Management', url: 'users.html', allowed: isSuper || isMgr },
+                    { name: '⚙️ Pengaturan Sistem', url: 'settings.html', allowed: isSuper || isMgr }
+                ];
+
+                grid.innerHTML = modules.map(function (m) {
+                    if (m.allowed) {
+                        return '<a href="' + m.url + '" class="v2-rbac-item allowed" title="Buka halaman ' + escHtml(m.name) + '">'
+                            + '<span>' + escHtml(m.name) + '</span>'
+                            + '<span style="font-size: 11px; color: #16A34A; font-weight: 800;">✅ Akses ➔</span>'
+                            + '</a>';
+                    }
+                    return '<div class="v2-rbac-item restricted" title="Dibatasi untuk role Anda">'
+                        + '<span>' + escHtml(m.name) + '</span>'
+                        + '<span style="font-size: 10.5px; color: #94A3B8;">🔒 Dibatasi</span>'
+                        + '</div>';
+                }).join('');
+            }
+
+            // ── 2. KALKULASI 4 KOTAK STATISTIK PROFIL & FILTER TIMELINE ──────────
+            var currentTimelineFilter = 'ALL';
+
+            function updateProfileStatsAndTimeline() {
+                if (typeof JNTFirebaseService === 'undefined') return;
+                var username = (ss.getItem('jnt_username_login') || '').toLowerCase().trim();
+                var fullname = (ss.getItem('jnt_active_username') || '').toLowerCase().trim();
+
+                var slaList = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                var monList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                var shiftList = JNTFirebaseService.getLocalStore('shifts') || [];
+                var allLogs = JNTFirebaseService.getSynthesizedAuditLogs
+                    ? JNTFirebaseService.getSynthesizedAuditLogs()
+                    : (JNTFirebaseService.getLocalStore('audit_logs') || []);
+
+                var userSlaTrips = slaList.filter(function (s) {
+                    var inp = String(s.inputBy || '').toLowerCase().trim();
+                    return inp && (inp === username || inp === fullname || (fullname && inp.includes(fullname)));
+                });
+
+                var targetSlaPool = userSlaTrips.length > 0 ? userSlaTrips : slaList;
+                var isPersonalPool = userSlaTrips.length > 0;
+
+                var totalTripsCount = Math.max(targetSlaPool.length, isPersonalPool ? 0 : monList.length);
+                var onTimeCount = 0;
+                var evaluatedCount = 0;
+
+                targetSlaPool.forEach(function (s) {
+                    var st = String(s.statusSla || s.status || '').toUpperCase();
+                    var targetH = JNTFirebaseService.resolveEffectiveTargetSLAHours
+                        ? JNTFirebaseService.resolveEffectiveTargetSLAHours(s)
+                        : (parseFloat(s.targetSLAHours || s.targetSLAOutboundHours) || 16);
+                    var cleanArr = (s.jamSampaiAktual && !/^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(String(s.jamSampaiAktual).trim()))
+                        ? String(s.jamSampaiAktual).trim()
+                        : '';
+                    if (cleanArr && JNTFirebaseService.normalizeArrivalAgainstDeparture) {
+                        cleanArr = JNTFirebaseService.normalizeArrivalAgainstDeparture(s.jamBerangkat, cleanArr, targetH, s.slots || null);
+                    }
+                    if (st === 'KENDALA') {
+                        evaluatedCount++;
+                    } else if (cleanArr && s.jamBerangkat && window.SLACountdownEngine) {
+                        evaluatedCount++;
+                        var state = window.SLACountdownEngine.calculateSLAState(s.jamBerangkat, targetH, cleanArr);
+                        if (!state || !state.isOverdue) onTimeCount++;
+                    } else if (Number(s.lateMinutes) > 0 || st.includes('LATE')) {
+                        evaluatedCount++;
+                    } else if (cleanArr || st === 'ON TIME' || st === 'COMPLETED' || st === 'SUDAH SELESAI') {
+                        evaluatedCount++;
+                        onTimeCount++;
+                    }
+                });
+
+                var slaAccuracyPct = evaluatedCount > 0
+                    ? ((onTimeCount / evaluatedCount) * 100).toFixed(1).replace('.0', '') + '%'
+                    : '100%';
+
+                var userShifts = shiftList.filter(function (sh) {
+                    var op1 = String((sh.operator1 && sh.operator1.nama) || '').toLowerCase().trim();
+                    var op2 = String((sh.operator2 && sh.operator2.nama) || '').toLowerCase().trim();
+                    return (op1 && (op1 === username || op1 === fullname || (fullname && op1.includes(fullname)))) ||
+                           (op2 && (op2 === username || op2 === fullname || (fullname && op2.includes(fullname))));
+                });
+                var shiftCount = userShifts.length || shiftList.length;
+                var totalHours = shiftCount * 12;
+
+                var myLogs = allLogs.filter(function (l) {
+                    var op = String(l.operator || '').toLowerCase().trim();
+                    return op && (op === username || op === fullname || (fullname && op.includes(fullname)));
+                });
+                var baseLogs = myLogs.length > 0 ? myLogs : allLogs;
+
+                var filteredLogs = baseLogs.filter(function (l) {
+                    if (currentTimelineFilter === 'ALL') return true;
+                    var mod = String(l.modul || '').toUpperCase();
+                    if (currentTimelineFilter === 'SLA') return mod.includes('SLA') || mod.includes('INCOMING') || mod.includes('MASTER');
+                    if (currentTimelineFilter === 'MON') return mod.includes('MONITORING') || mod.includes('4H');
+                    return mod.includes('TROUBLE') || mod.includes('SHIFT') || mod.includes('USER') || mod.includes('AUTENTIKASI');
+                }).slice(0, 6);
+
+                setText('prof-stat-trips', totalTripsCount.toLocaleString('id-ID'));
+                setText('prof-stat-trips-lbl', isPersonalPool ? 'Total Trip Diinput Saya' : 'Total Ritase Operasional');
+                setText('prof-stat-sla', slaAccuracyPct);
+                setText('prof-stat-sla-lbl', evaluatedCount.toLocaleString('id-ID') + ' Trip Selesai Dievaluasi');
+                setText('prof-stat-hours', shiftCount + ' Shift (' + totalHours + ' Jam)');
+                setText('prof-stat-hours-lbl', myLogs.length.toLocaleString('id-ID') + ' Aktivitas Tercatat');
+
+                var timelineEl = document.getElementById('prof-activity-timeline');
+                if (timelineEl) {
+                    if (filteredLogs.length === 0) {
+                        timelineEl.innerHTML = '<div style="font-size: 12px; color: #94A3B8; text-align: center; padding: 14px;">Tidak ada aktivitas pada kategori filter ini.</div>';
+                    } else {
+                        timelineEl.innerHTML = filteredLogs.map(function (log) {
+                            var mod = String(log.modul || 'Sistem');
+                            var dotClass = 'blue';
+                            if (mod.toLowerCase().includes('trouble') || mod.toLowerCase().includes('delete')) dotClass = 'red';
+                            else if (mod.toLowerCase().includes('sla') || mod.toLowerCase().includes('incoming')) dotClass = 'green';
+
+                            var titleText = mod + (log.kodeTugas && log.kodeTugas !== '-' ? ' • ' + log.kodeTugas : '');
+                            return '<div class="p-act-item">'
+                                + '<div class="p-act-dot ' + dotClass + '"></div>'
+                                + '<div class="p-act-meta">'
+                                + '<strong>' + escHtml(titleText) + '</strong>'
+                                + '<span>' + escHtml(log.aktivitas || '-') + '</span>'
+                                + '<span class="p-act-time">' + escHtml(log.waktu || '-') + ' • Oleh: ' + escHtml(log.operator || '-') + '</span>'
+                                + '</div>'
+                                + '</div>';
+                        }).join('');
+                    }
                 }
             }
 
-            // Departemen field (readonly)
-            var deptFields = document.querySelectorAll('input[readonly]');
-            deptFields.forEach(function (f) {
-                if (f.value && f.value.includes('Logistik')) f.value = departemen;
+            // Filter buttons di timeline aktivitas
+            document.querySelectorAll('#prof-tl-filter-bar [data-tl-filter]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('#prof-tl-filter-bar [data-tl-filter]').forEach(function (b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    currentTimelineFilter = btn.getAttribute('data-tl-filter') || 'ALL';
+                    updateProfileStatsAndTimeline();
+                });
             });
 
-            // Tanggal bergabung
-            var bergFields = document.querySelectorAll('input[readonly]');
-            bergFields.forEach(function (f) {
-                if (f.value && f.value.includes('Januari')) f.value = bergabung;
-            });
+            // ── 3. PERANGKAT TERHUBUNG (SINKRON DENGAN session_lock.php) ──────────
+            async function loadConnectedSessionInfo() {
+                var container = document.getElementById('prof-sessions-container');
+                if (!container) return;
 
-            // Topbar name display (safe DOM text)
-            var dashName = document.getElementById('dash-user-name');
-            if (dashName) {
-                dashName.textContent = fullname + ' ';
-                var chev = document.createElement('span');
-                chev.style.fontSize = '10px';
-                chev.textContent = '▾';
-                dashName.appendChild(chev);
+                var username = (ss.getItem('jnt_username_login') || '').toLowerCase().trim();
+                var currentSid = ss.getItem('jnt_session_id') || '';
+                var uaInfo = parseUserAgentInfo(navigator.userAgent);
+                var sessionData = null;
+
+                try {
+                    var headers = {};
+                    if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                        var tok = await window.auth.currentUser.getIdToken();
+                        if (tok) headers['Authorization'] = 'Bearer ' + tok;
+                    }
+                    if (headers['Authorization']) {
+                        var res = await fetch('session_lock.php', { headers: headers });
+                        if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                            var data = await res.json();
+                            if (data && data.success && Array.isArray(data.sessions)) {
+                                sessionData = data.sessions.find(function (s) {
+                                    return s && String(s.username || '').toLowerCase() === username;
+                                });
+                            }
+                        }
+                    }
+                } catch (_) { }
+
+                var activeUa = sessionData && sessionData.userAgent ? parseUserAgentInfo(sessionData.userAgent) : uaInfo;
+                var lastSeenStr = (sessionData && sessionData.lastSeen)
+                    ? new Date(Number(sessionData.lastSeen)).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB'
+                    : 'Baru saja (Aktif)';
+                var sidShort = (sessionData && sessionData.sessionId)
+                    ? String(sessionData.sessionId).slice(0, 10).toUpperCase()
+                    : (currentSid ? currentSid.slice(0, 10).toUpperCase() : 'ACTIVE');
+
+                container.innerHTML = ''
+                    + '<div class="device-session-item active-session">'
+                    + '  <div class="device-ic-wrap">' + activeUa.icon + '</div>'
+                    + '  <div class="device-meta">'
+                    + '    <strong class="device-name">' + escHtml(activeUa.label) + '</strong>'
+                    + '    <span class="device-sub">ID Sesi: ' + escHtml(sidShort) + ' • Heartbeat: ' + escHtml(lastSeenStr) + '</span>'
+                    + '    <span class="device-status-tag green">🟢 Sesi Perangkat Saat Ini (Single-Session Lock Aktif)</span>'
+                    + '  </div>'
+                    + '</div>';
             }
 
-            // ── SIMPAN PERUBAHAN PROFIL ───────────────────────────────────────────
+            // Tombol Kunci Ulang Sesi Perangkat Ini
+            var btnReacquireSession = document.getElementById('btn-reacquire-session');
+            if (btnReacquireSession) {
+                btnReacquireSession.addEventListener('click', async function () {
+                    var username = (ss.getItem('jnt_username_login') || '').toLowerCase().trim();
+                    if (!username) return;
+                    btnReacquireSession.disabled = true;
+                    try {
+                        var newSid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+                        ss.setItem('jnt_session_id', newSid);
+                        var headers = { 'Content-Type': 'application/json' };
+                        if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                            var tok = await window.auth.currentUser.getIdToken();
+                            if (tok) headers['Authorization'] = 'Bearer ' + tok;
+                        }
+                        if (headers['Authorization']) {
+                            await fetch('session_lock.php', {
+                                method: 'POST',
+                                headers: headers,
+                                body: JSON.stringify({
+                                    action: 'force_reset',
+                                    username: username
+                                })
+                            });
+                            await fetch('session_lock.php', {
+                                method: 'POST',
+                                headers: headers,
+                                body: JSON.stringify({
+                                    action: 'acquire',
+                                    username: username,
+                                    sessionId: newSid,
+                                    userAgent: navigator.userAgent
+                                })
+                            });
+                        }
+                        await loadConnectedSessionInfo();
+                        showProfileToast('🔒 Sesi berhasil dikunci ulang ke perangkat ini!', '#2563EB');
+                    } catch (e) {
+                        showProfileToast('⚠️ Gagal mengunci ulang sesi: ' + e.message, '#DC2626');
+                    } finally {
+                        btnReacquireSession.disabled = false;
+                    }
+                });
+            }
+
+            // ── 4. UPLOAD & RESET FOTO PROFIL KE HOSTING CPANEL (upload.php) ─────
+            var avatarInput = document.getElementById('avatar-file-input');
+            var btnChangePhoto = document.getElementById('btn-change-photo');
+            var btnRemovePhoto = document.getElementById('btn-remove-photo');
+            var btnFormUploadPhoto = document.getElementById('btn-form-upload-photo');
+            var btnFormResetPhoto = document.getElementById('btn-form-reset-photo');
+            var heroAvatarImg = document.getElementById('profile-avatar-img');
+            var formAvatarImg = document.getElementById('form-avatar-preview');
+            var avatarOverlayTrigger = document.getElementById('avatar-overlay-trigger');
+
+            if (btnChangePhoto && avatarInput) {
+                btnChangePhoto.addEventListener('click', function () { avatarInput.click(); });
+            }
+            if (btnFormUploadPhoto && avatarInput) {
+                btnFormUploadPhoto.addEventListener('click', function () { avatarInput.click(); });
+            }
+            if (avatarOverlayTrigger && avatarInput) {
+                avatarOverlayTrigger.addEventListener('click', function () { avatarInput.click(); });
+            }
+            if (heroAvatarImg && avatarInput) {
+                heroAvatarImg.style.cursor = 'pointer';
+                heroAvatarImg.addEventListener('click', function () { avatarInput.click(); });
+            }
+            if (formAvatarImg && avatarInput) {
+                formAvatarImg.style.cursor = 'pointer';
+                formAvatarImg.addEventListener('click', function () { avatarInput.click(); });
+            }
+
+            // Tombol Reset Foto ke Avatar Inisial Default
+            async function handleResetAvatarPhoto() {
+                var username = (ss.getItem('jnt_username_login') || 'user').toLowerCase().trim();
+                var fullname = ss.getItem('jnt_active_username') || username;
+                try {
+                    ss.removeItem('jnt_user_photo');
+                    setSrc('profile-avatar-img', makeAvatar(fullname, 300));
+                    setSrc('form-avatar-preview', makeAvatar(fullname, 150));
+                    setSrc('sidebar-avatar-img', makeAvatar(fullname, 150));
+                    setSrc('topbar-avatar-img', makeAvatar(fullname, 100));
+
+                    if (typeof JNTFirebaseService !== 'undefined') {
+                        await JNTFirebaseService.saveUserProfile(username, {
+                            ...(currentProfileData || {}),
+                            username: username,
+                            photoURL: ''
+                        });
+                    }
+                    if (currentProfileData) currentProfileData.photoURL = '';
+                    window.dispatchEvent(new CustomEvent('jnt:user-updated'));
+                    showProfileToast('🗑️ Foto profil dikembalikan ke avatar inisial default.', '#475569');
+                } catch (err) {
+                    alert('❌ Gagal mereset foto profil: ' + err.message);
+                }
+            }
+            if (btnRemovePhoto) btnRemovePhoto.addEventListener('click', handleResetAvatarPhoto);
+            if (btnFormResetPhoto) btnFormResetPhoto.addEventListener('click', handleResetAvatarPhoto);
+
+            if (avatarInput) {
+                avatarInput.addEventListener('change', async function (e) {
+                    var file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    if (!file.type.startsWith('image/')) {
+                        alert('❌ Harap pilih file gambar (JPG, PNG, atau WebP).');
+                        return;
+                    }
+                    try {
+                        showProfileToast('⏳ Mengunggah foto profil ke server hosting...', '#2563EB');
+                        var username = (ss.getItem('jnt_username_login') || 'user').toLowerCase().trim();
+                        var uploadedUrl = await JNTFirebaseService.uploadPhotoToHosting(file, 'avatar_' + username);
+                        if (!uploadedUrl) throw new Error('Gagal mengunggah foto profil.');
+
+                        ss.setItem('jnt_user_photo', uploadedUrl);
+                        setSrc('profile-avatar-img', uploadedUrl);
+                        setSrc('form-avatar-preview', uploadedUrl);
+                        setSrc('sidebar-avatar-img', uploadedUrl);
+                        setSrc('topbar-avatar-img', uploadedUrl);
+
+                        await JNTFirebaseService.saveUserProfile(username, {
+                            ...(currentProfileData || {}),
+                            username: username,
+                            photoURL: uploadedUrl
+                        });
+                        if (currentProfileData) currentProfileData.photoURL = uploadedUrl;
+
+                        window.dispatchEvent(new CustomEvent('jnt:user-updated'));
+                        showProfileToast('📷 Foto profil berhasil diperbarui & disimpan!', '#10B981');
+                    } catch (err) {
+                        alert('❌ Gagal mengganti foto profil: ' + err.message);
+                    } finally {
+                        avatarInput.value = '';
+                    }
+                });
+            }
+
+            // Tombol Salin Username & Salin Email di Hero Banner
+            var btnCopyUsername = document.getElementById('btn-copy-username');
+            if (btnCopyUsername) {
+                btnCopyUsername.addEventListener('click', function () {
+                    var val = document.getElementById('hero-nik')?.textContent || '';
+                    if (navigator.clipboard && val && val !== '-') {
+                        navigator.clipboard.writeText(val);
+                        showProfileToast('📋 Username "' + val + '" berhasil disalin!', '#0F172A');
+                    }
+                });
+            }
+            var btnCopyEmail = document.getElementById('btn-copy-email');
+            if (btnCopyEmail) {
+                btnCopyEmail.addEventListener('click', function () {
+                    var val = document.getElementById('hero-email')?.textContent || '';
+                    if (navigator.clipboard && val && val !== '-') {
+                        navigator.clipboard.writeText(val);
+                        showProfileToast('📋 Email "' + val + '" berhasil disalin!', '#0F172A');
+                    }
+                });
+            }
+
+            // ── 5. SIMPAN PERUBAHAN PROFIL KE DATABASE ───────────────────────────
             var profileForm = document.getElementById('profile-info-form');
             if (profileForm) {
-                profileForm.addEventListener('submit', function (e) {
+                profileForm.addEventListener('submit', async function (e) {
                     e.preventDefault();
-
                     var newFullname = (document.getElementById('prof-fullname')?.value || '').trim();
                     var newEmail = (document.getElementById('prof-email')?.value || '').trim();
                     var newPhone = (document.getElementById('prof-phone')?.value || '').trim();
                     var newTlc = (document.getElementById('prof-tlc')?.value || '').trim();
+                    var newDept = (document.getElementById('prof-departemen')?.value || '').trim();
+                    var newAlamat = (document.getElementById('prof-alamat')?.value || '').trim();
+                    var username = (ss.getItem('jnt_username_login') || '').toLowerCase().trim();
 
                     if (!newFullname) { alert('❌ Nama lengkap tidak boleh kosong.'); return; }
-                    if (!newEmail) { alert('❌ Email tidak boleh kosong.'); return; }
+                    if (!newEmail) { alert('❌ Email perusahaan tidak boleh kosong.'); return; }
 
-                    // Update sessionStorage
-                    ss.setItem('jnt_active_username', newFullname);
-                    ss.setItem('jnt_user_email', newEmail);
-                    ss.setItem('jnt_user_phone', newPhone);
-                    ss.setItem('jnt_user_tlc', newTlc);
+                    var btnSave = document.getElementById('btn-save-profile');
+                    if (btnSave) { btnSave.disabled = true; btnSave.textContent = '⏳ Menyimpan...'; }
 
-                    // Update langsung ke Firestore & Local Store
-                    if (typeof JNTFirebaseService !== 'undefined') {
-                        var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
-                        JNTFirebaseService.saveDoc('users', usernameLogin, {
-                            fullname: newFullname,
-                            emailPerusahaan: newEmail,
-                            phone: newPhone,
-                            tlc: newTlc,
-                            updatedAt: new Date().toISOString()
-                        }, true).catch(function (err) { console.warn('Firestore update profile:', err); });
+                    try {
+                        ss.setItem('jnt_active_username', newFullname);
+                        ss.setItem('jnt_user_email', newEmail);
+                        ss.setItem('jnt_user_phone', newPhone);
+                        ss.setItem('jnt_user_tlc', newTlc);
+                        ss.setItem('jnt_user_departemen', newDept);
+                        ss.setItem('jnt_user_alamat', newAlamat);
+
+                        if (typeof JNTFirebaseService !== 'undefined' && username) {
+                            await JNTFirebaseService.saveUserProfile(username, {
+                                ...(currentProfileData || {}),
+                                username: username,
+                                fullname: newFullname,
+                                email: newEmail,
+                                emailPerusahaan: newEmail,
+                                phone: newPhone,
+                                tlc: newTlc,
+                                departemen: newDept,
+                                alamat: newAlamat
+                            });
+                        }
+
+                        await loadRealUserProfile();
+                        window.dispatchEvent(new CustomEvent('jnt:user-updated'));
+                        showProfileToast('✅ Profil berhasil diperbarui ke database!', '#10B981');
+                    } catch (err) {
+                        alert('❌ Gagal menyimpan perubahan profil: ' + err.message);
+                    } finally {
+                        if (btnSave) { btnSave.disabled = false; btnSave.textContent = '💾 Simpan Perubahan Profil'; }
                     }
-
-                    // Update UI langsung
-                    setText('hero-fullname', newFullname);
-                    setText('hero-email', newEmail);
-                    setText('sidebar-user-name', newFullname);
-                    setSrc('profile-avatar-img', makeAvatar(newFullname, 300));
-                    setSrc('sidebar-avatar-img', makeAvatar(newFullname, 150));
-                    setSrc('topbar-avatar-img', makeAvatar(newFullname, 100));
-
-                    // Sinkronkan topbar chip, dropdown & sidebar global (app.js)
-                    window.dispatchEvent(new CustomEvent('jnt:user-updated'));
-
-                    // Tampilkan notifikasi sukses
-                    var toast = document.createElement('div');
-                    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#10B981;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(16,185,129,0.4);animation:fadeInUp 0.3s ease;';
-                    toast.textContent = '✅ Profil berhasil diperbarui!';
-                    document.body.appendChild(toast);
-                    setTimeout(function () { toast.style.opacity = '0'; setTimeout(function () { toast.remove(); }, 400); }, 3000);
                 });
             }
 
-            // ── UBAH PASSWORD ─────────────────────────────────────────────────────
+            var btnResetForm = document.getElementById('btn-reset-profile-form');
+            if (btnResetForm) {
+                btnResetForm.addEventListener('click', function () {
+                    loadRealUserProfile();
+                    showProfileToast('🔄 Data profil dimuat ulang dari database.', '#475569');
+                });
+            }
+
+            // ── 6. INDIKATOR KEKUATAN PASSWORD & UBAH PASSWORD FIREBASE AUTH ─────
+            var newPassInput = document.getElementById('new-pass');
+            var meterFill = document.getElementById('prof-pass-meter-fill');
+            var meterLabel = document.getElementById('prof-pass-meter-label');
+            if (newPassInput && meterFill && meterLabel) {
+                newPassInput.addEventListener('input', function () {
+                    var val = newPassInput.value || '';
+                    if (!val) {
+                        meterFill.style.width = '0%';
+                        meterLabel.textContent = 'Ketik password baru untuk mengecek kekuatan';
+                        meterLabel.style.color = '#64748B';
+                        return;
+                    }
+                    var score = 0;
+                    if (val.length >= 6) score += 25;
+                    if (val.length >= 10) score += 25;
+                    if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score += 25;
+                    if (/\d/.test(val) || /[^A-Za-z0-9]/.test(val)) score += 25;
+
+                    meterFill.style.width = Math.max(15, score) + '%';
+                    if (score <= 25) {
+                        meterFill.style.backgroundColor = '#EF4444';
+                        meterLabel.textContent = 'Kekuatan Password: Lemah (tambahkan angka/huruf besar)';
+                        meterLabel.style.color = '#EF4444';
+                    } else if (score <= 50) {
+                        meterFill.style.backgroundColor = '#F59E0B';
+                        meterLabel.textContent = 'Kekuatan Password: Cukup';
+                        meterLabel.style.color = '#D97706';
+                    } else if (score <= 75) {
+                        meterFill.style.backgroundColor = '#3B82F6';
+                        meterLabel.textContent = 'Kekuatan Password: Kuat';
+                        meterLabel.style.color = '#2563EB';
+                    } else {
+                        meterFill.style.backgroundColor = '#10B981';
+                        meterLabel.textContent = 'Kekuatan Password: Sangat Kuat';
+                        meterLabel.style.color = '#16A34A';
+                    }
+                });
+            }
+
+            var btnSendResetEmail = document.getElementById('btn-send-reset-email');
+            if (btnSendResetEmail) {
+                btnSendResetEmail.addEventListener('click', async function () {
+                    var email = (document.getElementById('prof-email')?.value || ss.getItem('jnt_user_email') || '').trim();
+                    if (!email) {
+                        alert('❌ Email akun tidak ditemukan.');
+                        return;
+                    }
+                    if (!confirm('📧 Kirim tautan resmi Reset Password Firebase Auth ke email:\n' + email + ' ?')) return;
+                    btnSendResetEmail.disabled = true;
+                    try {
+                        await JNTFirebaseService.sendPasswordReset(email);
+                        showProfileToast('📧 Link reset password berhasil dikirim ke ' + email, '#2563EB');
+                    } catch (err) {
+                        alert('❌ Gagal mengirim email reset password: ' + err.message);
+                    } finally {
+                        btnSendResetEmail.disabled = false;
+                    }
+                });
+            }
+
             var passForm = document.getElementById('change-pass-form');
             if (passForm) {
-                passForm.addEventListener('submit', function (e) {
+                passForm.addEventListener('submit', async function (e) {
                     e.preventDefault();
-
                     var currentPass = (document.getElementById('current-pass')?.value || '').trim();
                     var newPass = (document.getElementById('new-pass')?.value || '').trim();
                     var confirmPass = (document.getElementById('confirm-pass')?.value || '').trim();
 
                     if (!currentPass || !newPass || !confirmPass) {
-                        alert('❌ Semua field password harus diisi.'); return;
+                        alert('❌ Semua field password wajib diisi.');
+                        return;
                     }
                     if (newPass.length < 6) {
-                        alert('❌ Password baru minimal 6 karakter.'); return;
+                        alert('❌ Password baru minimal 6 karakter.');
+                        return;
                     }
                     if (newPass !== confirmPass) {
-                        alert('❌ Konfirmasi password tidak cocok.'); return;
+                        alert('❌ Konfirmasi password baru tidak cocok.');
+                        return;
                     }
 
-                    // Update password langsung di Cloud Firestore & Local Store
-                    if (typeof JNTFirebaseService !== 'undefined') {
-                        var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase();
-                        JNTFirebaseService.saveDoc('users', usernameLogin, {
-                            password: newPass,
-                            updatedAt: new Date().toISOString()
-                        }, true).catch(function (err) { console.warn('Firestore update password:', err); });
+                    var btnPass = document.getElementById('btn-submit-change-pass');
+                    if (btnPass) { btnPass.disabled = true; btnPass.textContent = '⏳ Memverifikasi & Mengubah Password...'; }
+
+                    try {
+                        var fbUser = window.auth && window.auth.currentUser;
+                        if (!fbUser || !fbUser.email) {
+                            throw new Error('Sesi Firebase Authentication tidak ditemukan. Silakan logout dan login kembali.');
+                        }
+
+                        var cred = firebase.auth.EmailAuthProvider.credential(fbUser.email, currentPass);
+                        await fbUser.reauthenticateWithCredential(cred);
+                        await fbUser.updatePassword(newPass);
+
+                        var usernameLogin = (ss.getItem('jnt_username_login') || '').toLowerCase().trim();
+                        if (typeof JNTFirebaseService !== 'undefined' && usernameLogin) {
+                            await JNTFirebaseService.logAuditEvent({
+                                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                                operator: ss.getItem('jnt_active_username') || usernameLogin,
+                                shiftId: JNTFirebaseService.getActiveShiftId(),
+                                modul: 'Profil & Keamanan',
+                                kodeTugas: '-',
+                                aktivitas: 'Pengguna berhasil memperbarui password akun via Firebase Auth'
+                            });
+                        }
+
+                        passForm.reset();
+                        if (meterFill) meterFill.style.width = '0%';
+                        if (meterLabel) {
+                            meterLabel.textContent = 'Ketik password baru untuk mengecek kekuatan';
+                            meterLabel.style.color = '#64748B';
+                        }
+                        showProfileToast('🔑 Password login Firebase Auth berhasil diperbarui!', '#2563EB');
+                    } catch (err) {
+                        var errMsg = err.message || 'Gagal mengubah password.';
+                        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                            errMsg = 'Password Saat Ini yang Anda masukkan salah!';
+                        } else if (err.code === 'auth/weak-password') {
+                            errMsg = 'Password baru terlalu lemah (minimal 6 karakter).';
+                        } else if (err.code === 'auth/requires-recent-login') {
+                            errMsg = 'Sesi login terlalu lama. Silakan logout lalu login kembali untuk mengubah password.';
+                        }
+                        alert('❌ ' + errMsg);
+                    } finally {
+                        if (btnPass) { btnPass.disabled = false; btnPass.textContent = '🔑 Perbarui Password Login'; }
                     }
-
-                    // Reset form
-                    passForm.reset();
-
-                    var toast2 = document.createElement('div');
-                    toast2.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563EB;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(37,99,235,0.4);';
-                    toast2.textContent = '🔑 Password berhasil diperbarui!';
-                    document.body.appendChild(toast2);
-                    setTimeout(function () { toast2.style.opacity = '0'; setTimeout(function () { toast2.remove(); }, 400); }, 3000);
                 });
             }
 
-            // Toggle password visibility helpers for profile page
             function setupPasswordToggle(toggleBtnId, inputId, eyeOffId, eyeOnId) {
                 var btn = document.getElementById(toggleBtnId);
                 if (btn) {
@@ -786,24 +1383,56 @@
             setupPasswordToggle('toggle-new-pass', 'new-pass', 'new-eye-off', 'new-eye-on');
             setupPasswordToggle('toggle-confirm-pass', 'confirm-pass', 'conf-eye-off', 'conf-eye-on');
 
-            // ── TOMBOL EDIT PROFIL (scroll ke form) ──────────────────────────────
             var btnEdit = document.getElementById('btn-edit-profile');
             if (btnEdit) {
                 btnEdit.addEventListener('click', function () {
                     var form = document.getElementById('profile-info-form');
                     if (form) {
                         form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        var firstInput = form.querySelector('input:not([readonly])');
+                        var firstInput = document.getElementById('prof-fullname');
                         if (firstInput) setTimeout(function () { firstInput.focus(); }, 400);
                     }
                 });
             }
 
-            // ── CSS toast animation ───────────────────────────────────────────────
+            var btnRefreshSessions = document.getElementById('btn-refresh-sessions');
+            if (btnRefreshSessions) {
+                btnRefreshSessions.addEventListener('click', function () {
+                    loadConnectedSessionInfo();
+                    showProfileToast('🔄 Status sesi perangkat diperbarui.', '#2563EB');
+                });
+            }
+
             var style = document.createElement('style');
             style.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}';
             document.head.appendChild(style);
 
+            // Jalankan inisialisasi dan pasang listener sinkronisasi data real-time
+            loadRealUserProfile();
+            updateProfileStatsAndTimeline();
+            loadConnectedSessionInfo();
+
+            if (typeof JNTFirebaseService !== 'undefined') {
+                JNTFirebaseService.loadHostingArchiveData().then(function () {
+                    updateProfileStatsAndTimeline();
+                }).catch(function () { });
+                JNTFirebaseService.subscribeSLAOutbound(function () { updateProfileStatsAndTimeline(); });
+                JNTFirebaseService.subscribeShifts(function () { updateProfileStatsAndTimeline(); });
+                JNTFirebaseService.subscribeAuditLogs(function () { updateProfileStatsAndTimeline(); });
+            }
+
+            if (window.auth) {
+                window.auth.onAuthStateChanged(function (u) {
+                    if (u && !u.isAnonymous) {
+                        loadRealUserProfile();
+                        loadConnectedSessionInfo();
+                    }
+                });
+            }
+
+            window.addEventListener('jnt_data_updated', function () {
+                updateProfileStatsAndTimeline();
+            });
         })();
     </script>
 </body>

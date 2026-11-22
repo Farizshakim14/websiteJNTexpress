@@ -907,6 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.setItem('jnt_user_tlc', profile.tlc || '');
                     sessionStorage.setItem('jnt_user_departemen', profile.departemen || '');
                     sessionStorage.setItem('jnt_user_bergabung', profile.bergabung || '');
+                    sessionStorage.setItem('jnt_user_photo', profile.photoURL || '');
                     sessionStorage.setItem('jnt_username_login', targetUname);
 
                     window.__jntLoginInProgress = false;
@@ -981,7 +982,8 @@ document.addEventListener('DOMContentLoaded', () => {
             role: rawRole,
             roleLabel: jntFormatRoleLabel(rawRole),
             email: sessionStorage.getItem('jnt_user_email') || '',
-            jabatan: sessionStorage.getItem('jnt_user_jabatan') || ''
+            jabatan: sessionStorage.getItem('jnt_user_jabatan') || '',
+            photoURL: sessionStorage.getItem('jnt_user_photo') || ''
         };
     }
 
@@ -989,8 +991,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const header = dropdown && dropdown.querySelector('.dropdown-user-header');
         if (!header) return;
         const u = jntGetLiveUser();
+        const avatarSrc = jntSafeUrl(u.photoURL, jntMakeAvatarUrl(u.fullname, 80));
         header.innerHTML = `
-            <img class="dropdown-user-avatar" src="${jntMakeAvatarUrl(u.fullname, 80)}" alt="${jntEscapeHtml(u.fullname)} Avatar">
+            <img class="dropdown-user-avatar" src="${jntEscapeHtml(avatarSrc)}" alt="${jntEscapeHtml(u.fullname)} Avatar">
             <div class="dropdown-user-info">
                 <strong title="${jntEscapeHtml(u.fullname)}">${jntEscapeHtml(u.fullname || '-')}</strong>
                 ${u.email ? `<span class="dropdown-user-email" title="${jntEscapeHtml(u.email)}">${jntEscapeHtml(u.email)}</span>` : ''}
@@ -1032,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Sidebar: avatar image
         document.querySelectorAll('.user-avatar-img').forEach(img => {
-            img.src = jntMakeAvatarUrl(u.fullname, 150);
+            img.src = jntSafeUrl(u.photoURL, jntMakeAvatarUrl(u.fullname, 150));
             img.alt = u.fullname + ' Avatar';
         });
 
@@ -1055,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 6. Topbar chip: avatar image
         document.querySelectorAll('.inc-avatar-img').forEach(img => {
-            img.src = jntMakeAvatarUrl(u.fullname, 100);
+            img.src = jntSafeUrl(u.photoURL, jntMakeAvatarUrl(u.fullname, 100));
             img.alt = u.fullname + ' Avatar';
         });
 
