@@ -284,28 +284,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ----------------------------------------------------
     // SINGLE-SESSION LOCK — 1 akun hanya boleh dipakai 1 pengguna/perangkat.
-    // Disimpan di Firestore: active_sessions/{username} = { sessionId, lastSeen }
-    // Sesi dianggap mati jika tidak ada heartbeat > SESSION_STALE_MS.
+    // Prioritas 1: Disimpan di Hosting cPanel via session_lock.php (0 Read & 0 Write Firestore!)
+    // Prioritas 2 (Fallback): Firestore active_sessions/{username} jika dijalankan di localhost tanpa PHP.
     // ----------------------------------------------------
-    const SESSION_HEARTBEAT_MS = 300000; // 5 menit (menghemat 90% kuota Read & Write Firestore dibanding 30 detik)
+    const SESSION_HEARTBEAT_MS = 180000; // 3 menit via session_lock.php di hosting
     const SESSION_STALE_MS = 600000;     // 10 menit
+    let _sessionPhpAvailable = null;
     function jntSessionKey(u) { return String(u || '').toLowerCase().replace(/[\/.#$\[\]]/g, '_'); }
     function jntSessionRef(u) {
         return (window.db && u) ? window.db.collection('active_sessions').doc(jntSessionKey(u)) : null;
+    }
+    async function jntCallSessionPhp(payload) {
+        if (_sessionPhpAvailable === false) return null;
+        if (!window.location || !window.location.protocol.startsWith('http')) return null;
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                const tok = await window.auth.currentUser.getIdToken();
+                if (tok) headers['Authorization'] = `Bearer ${tok}`;
+            }
+            if (!headers['Authorization']) return null;
+            const res = await fetch('session_lock.php', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+            });
+            if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                const data = await res.json();
+                if (data && data.success) {
+                    _sessionPhpAvailable = true;
+                    return data;
+                }
+            }
+            if (res && res.status === 404) _sessionPhpAvailable = false;
+        } catch (_) { }
+        return null;
     }
     async function jntAcquireSessionLock(username) {
         if (typeof window.ensureFirebaseAuth === 'function') {
             try { await window.ensureFirebaseAuth(); } catch (_) { }
         }
-        const ref = jntSessionRef(username);
-        if (!ref) return { ok: true }; // Firestore tidak tersedia, izinkan login
         const sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+        // Tier 1: Gunakan session_lock.php di Hosting cPanel (0 Read/Write Firestore)
+        const phpRes = await jntCallSessionPhp({
+            action: 'acquire',
+            username,
+            sessionId,
+            userAgent: navigator.userAgent
+        });
+        if (phpRes) {
+            if (!phpRes.ok) return { ok: false };
+            sessionStorage.setItem('jnt_session_id', phpRes.sessionId || sessionId);
+            return { ok: true };
+        }
+
+        // Tier 2 (Fallback): Firestore jika PHP tidak tersedia
+        const ref = jntSessionRef(username);
+        if (!ref) return { ok: true };
         try {
             const ok = await window.db.runTransaction(async (tx) => {
                 const snap = await tx.get(ref);
                 const d = snap.exists ? snap.data() : null;
                 const isSameBrowser = d && d.userAgent === navigator.userAgent;
-                // Tolak hanya jika ada sesi aktif milik perangkat/browser lain (heartbeat < 90 detik)
                 if (d && d.sessionId && !isSameBrowser && (Date.now() - (d.lastSeen || 0)) < SESSION_STALE_MS) return false;
                 tx.set(ref, { sessionId, lastSeen: Date.now(), username, userAgent: navigator.userAgent });
                 return true;
@@ -314,15 +355,26 @@ document.addEventListener('DOMContentLoaded', () => {
             sessionStorage.setItem('jnt_session_id', sessionId);
             return { ok: true };
         } catch (e) {
-            // Jika Firestore rules belum di-deploy atau offline: IZINKAN login (jangan blokir)
             console.warn('[SESSION LOCK] Firestore tidak dapat diakses, session lock dinonaktifkan:', e.code || e.message);
             return { ok: true };
         }
     }
     async function jntReleaseSessionLock() {
-        const ref = jntSessionRef(sessionStorage.getItem('jnt_username_login'));
+        const loginUser = sessionStorage.getItem('jnt_username_login');
         const sid = sessionStorage.getItem('jnt_session_id');
-        if (!ref || !sid) return;
+        if (!loginUser || !sid) return;
+
+        // Tier 1: Release di session_lock.php Hosting
+        const phpRes = await jntCallSessionPhp({
+            action: 'release',
+            username: loginUser,
+            sessionId: sid
+        });
+        if (phpRes) return;
+
+        // Tier 2 (Fallback): Release di Firestore
+        const ref = jntSessionRef(loginUser);
+        if (!ref) return;
         try {
             const snap = await ref.get();
             if (snap.exists && snap.data().sessionId === sid) await ref.delete();
@@ -335,20 +387,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const beat = async () => {
             const loginUser = sessionStorage.getItem('jnt_username_login');
             let sid = sessionStorage.getItem('jnt_session_id');
+            if (!loginUser) return;
 
-            // Sesi lama (sebelum fitur ini) tidak punya session_id → acquire sekarang
-            if (!sid && loginUser && window.db) {
+            if (!sid) {
                 const res = await jntAcquireSessionLock(loginUser);
                 if (!res.ok) {
-                    // Ada sesi lain yang lebih baru — paksa logout
                     jntShowEvictedModal();
                     return;
                 }
                 sid = sessionStorage.getItem('jnt_session_id');
             }
+            if (!sid) return;
 
+            // Tier 1: Heartbeat ke session_lock.php di Hosting cPanel (0 Read/Write Firestore)
+            const phpBeat = await jntCallSessionPhp({
+                action: 'heartbeat',
+                username: loginUser,
+                sessionId: sid,
+                userAgent: navigator.userAgent
+            });
+            if (phpBeat) {
+                if (phpBeat.evicted) {
+                    jntShowEvictedModal();
+                }
+                return;
+            }
+
+            // Tier 2 (Fallback): Firestore jika PHP tidak tersedia
             const ref = jntSessionRef(loginUser);
-            if (!ref || !sid) return;
+            if (!ref) return;
             try {
                 const snap = await ref.get();
                 if (snap.exists && snap.data().sessionId && snap.data().sessionId !== sid) {
@@ -4154,24 +4221,43 @@ document.addEventListener('DOMContentLoaded', () => {
         let onlineUsersMap = new Map();
         let onlineSessionDetailsMap = new Map();
 
-        if (window.db) {
-            window.db.collection('active_sessions').onSnapshot((snapshot) => {
-                onlineUsersMap.clear();
-                onlineSessionDetailsMap.clear();
-                const now = Date.now();
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const uname = (data.username || doc.id).toLowerCase();
-                    const lastSeen = data.lastSeen || 0;
-                    onlineSessionDetailsMap.set(uname, data);
-                    if ((now - lastSeen) < 90000) {
-                        onlineUsersMap.set(uname, true);
+        // Ambil status sesi online dari session_lock.php di Hosting cPanel (0 Read Firestore), fallback ke Firestore jika PHP tidak tersedia
+        const pollActiveSessions = async () => {
+            try {
+                const headers = {};
+                if (window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                    const tok = await window.auth.currentUser.getIdToken();
+                    if (tok) headers['Authorization'] = `Bearer ${tok}`;
+                }
+                if (headers['Authorization']) {
+                    const res = await fetch('session_lock.php', { headers });
+                    if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                        const data = await res.json();
+                        if (data && data.success && Array.isArray(data.sessions)) {
+                            onlineUsersMap.clear();
+                            onlineSessionDetailsMap.clear();
+                            const now = data.serverTimeMs || Date.now();
+                            data.sessions.forEach(s => {
+                                if (!s) return;
+                                const uname = String(s.username || '').toLowerCase();
+                                const lastSeen = Number(s.lastSeen || 0);
+                                if (uname) {
+                                    onlineSessionDetailsMap.set(uname, s);
+                                    if ((now - lastSeen) < 600000) {
+                                        onlineUsersMap.set(uname, true);
+                                    }
+                                }
+                            });
+                            renderUsersTable();
+                            if (selectedUser) populateUserDetail(selectedUser);
+                            return;
+                        }
                     }
-                });
-                renderUsersTable();
-                if (selectedUser) populateUserDetail(selectedUser);
-            });
-        }
+                }
+            } catch (_) { }
+        };
+        pollActiveSessions();
+        setInterval(pollActiveSessions, 30000);
 
         const getRoleBadgeClass = (roleVal) => {
             const r = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)

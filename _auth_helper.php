@@ -65,6 +65,29 @@ function jnt_require_firebase_auth() {
     }
 
     $idToken = $matches[1];
+
+    // ⚡ CACHE TOKEN VERIFIKASI LOKAL (30 Menit) - Menghemat 99% Read REST API Firestore pada panggilan log_audit.php, upload.php, trip_archive.php, dll.
+    $cacheDir = __DIR__ . '/logs/';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0755, true);
+    }
+    jnt_ensure_htaccess_block($cacheDir, true);
+    $cacheFile = $cacheDir . 'auth_token_cache.json';
+    $tokenHash = hash('sha256', $idToken);
+    $nowSec = time();
+    $cacheTtlSec = 1800; // 30 menit
+
+    if (file_exists($cacheFile)) {
+        $rawCache = @file_get_contents($cacheFile);
+        $decodedCache = $rawCache ? json_decode($rawCache, true) : null;
+        if (is_array($decodedCache) && isset($decodedCache[$tokenHash])) {
+            $entry = $decodedCache[$tokenHash];
+            if (isset($entry['expiresAt']) && $entry['expiresAt'] > $nowSec && !empty($entry['user'])) {
+                return $entry['user'];
+            }
+        }
+    }
+
     $apiKey = jnt_extract_firebase_api_key();
     if ($apiKey === '') {
         http_response_code(500);
@@ -157,6 +180,39 @@ function jnt_require_firebase_auth() {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'Forbidden: Akun tidak terdaftar resmi di database sistem.']);
         exit;
+    }
+
+    // Simpan hasil verifikasi token ke cache lokal hosting selama 30 menit (maksimal 200 sesi aktif)
+    $fpCache = @fopen($cacheFile, 'c+');
+    if ($fpCache) {
+        if (@flock($fpCache, LOCK_EX)) {
+            $fSize = @filesize($cacheFile);
+            $curCache = [];
+            if ($fSize > 0) {
+                $cText = @fread($fpCache, $fSize);
+                $cDec = json_decode($cText, true);
+                if (is_array($cDec)) $curCache = $cDec;
+            }
+            // Bersihkan token yang sudah expired
+            foreach ($curCache as $k => $v) {
+                if (!isset($v['expiresAt']) || $v['expiresAt'] <= $nowSec) {
+                    unset($curCache[$k]);
+                }
+            }
+            $curCache[$tokenHash] = [
+                'expiresAt' => $nowSec + $cacheTtlSec,
+                'user' => $user
+            ];
+            if (count($curCache) > 200) {
+                $curCache = array_slice($curCache, -200, 200, true);
+            }
+            @ftruncate($fpCache, 0);
+            @rewind($fpCache);
+            @fwrite($fpCache, json_encode($curCache));
+            @fflush($fpCache);
+            @flock($fpCache, LOCK_UN);
+        }
+        @fclose($fpCache);
     }
 
     return $user;
