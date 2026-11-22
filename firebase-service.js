@@ -6259,39 +6259,188 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // 10. REAL-TIME NOTIFICATION CENTER ENGINE
+    // 10. REAL-TIME NOTIFICATION CENTER ENGINE (Trouble, Check-in Slot 4 Jam & Overdue SLA)
     // ----------------------------------------------------
     subscribeNotifications(callback) {
-        return this.createSub('troubles', (troubleList) => {
+        const DEMO_TRIP_IDS = new Set([
+            'DBGX2610020001', 'DBGX2610020002', 'DBGX2610020003',
+            'DBGX2610020004', 'DBGX2610020005', 'DBGX2610020006',
+            '4234234', 'DBDBDBDB'
+        ]);
+
+        const buildAlerts = () => {
             const alerts = [];
-            (troubleList || []).forEach(item => {
-                if (item.status !== 'SUDAH SELESAI' && (item.severity === 'CRITICAL' || item.severity === 'HIGH' || item.jenis === 'Laka')) {
+            const now = new Date();
+            const currentClockSlot = this.getSlotForTime
+                ? this.getSlotForTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`)
+                : '08:00';
+            const allSlotKeys = this.getMonitoringSlotKeys ? this.getMonitoringSlotKeys() : ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'];
+
+            // 1. 🚨 INCIDENT TROUBLE & LAKA AKTIF (BELUM SELESAI)
+            const troubleList = this.getLocalStore('troubles') || [];
+            troubleList.forEach(item => {
+                if (!item || DEMO_TRIP_IDS.has(item.kodeTugas)) return;
+                const st = String(item.status || '').toUpperCase();
+                if (st !== 'SUDAH SELESAI' && st !== 'SELESAI' && st !== 'RESOLVED' && st !== 'CLOSED') {
+                    const isCritical = item.severity === 'CRITICAL' || item.severity === 'HIGH' || String(item.jenis || '').toLowerCase().includes('laka');
                     alerts.push({
-                        id: item.incidentId || item.id,
-                        type: "CRITICAL_INCIDENT",
-                        title: `🚨 INCIDENT ${(item.jenis || 'Trouble').toUpperCase()} (${item.severity || 'HIGH'})`,
-                        message: `${item.platNomor || '-'} - ${item.kategoriTrouble || item.deskripsi || '-'} di ${item.lokasiKejadian || '-'}`,
-                        link: `trouble.html?kodeTugas=${item.kodeTugas || ''}`
+                        id: item.incidentId || item.id || `TRB-${item.kodeTugas}`,
+                        category: 'TROUBLE',
+                        level: isCritical ? 'critical' : 'warning',
+                        type: 'CRITICAL_INCIDENT',
+                        title: `🚨 ${(item.jenis || 'Trouble').toUpperCase()} AKTIF (${item.severity || 'MEDIUM'})`,
+                        message: `${item.platNomor || '-'} (${item.kodeTugas || '-'}) • ${item.kategoriTrouble || item.deskripsi || '-'} di ${item.lokasiKejadian || '-'}`,
+                        timestamp: item.createdAt || now.toISOString(),
+                        link: `trouble.html?kodeTugas=${encodeURIComponent(item.kodeTugas || '')}`
                     });
                 }
             });
 
-            // SLA Outbound warnings
+            // 2. ⏱️ PERINGATAN ARMADA BELUM CHECK-IN SLOT 4 JAM SAAT INI
+            const monList = this.getLocalStore('monitoring_4h') || [];
+            const missingCheckinTrips = [];
+
+            monList.forEach(m => {
+                if (!m) return;
+                const kode = m.kodeTugas || m.id;
+                if (!kode || DEMO_TRIP_IDS.has(kode)) return;
+
+                // Cek apakah trip sudah selesai / sudah tiba (IN)
+                const stUpper = String(m.statusPerjalanan || m.status || '').toUpperCase();
+                const cleanArr = (m.jamSampaiAktual && !/^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(String(m.jamSampaiAktual).trim()))
+                    ? String(m.jamSampaiAktual).trim()
+                    : '';
+                if (stUpper === 'COMPLETED' || stUpper === 'SUDAH SELESAI' || cleanArr) return;
+
+                let hasArrivalSlot = false;
+                if (m.slots && typeof m.slots === 'object') {
+                    for (const sVal of Object.values(m.slots)) {
+                        if (sVal && sVal.lokasi) {
+                            const locUp = String(sVal.lokasi).toUpperCase().trim();
+                            if (!locUp.startsWith('OUT') && (locUp === 'IN' || locUp.startsWith('IN ') || locUp.includes('SAMPAI') || sVal.jenisUpdate === 'Sampai')) {
+                                hasArrivalSlot = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (hasArrivalSlot) return;
+
+                // Tentukan slot 4 jam yang seharusnya di-check-in saat ini
+                const minSlotIdx = this.getMinCheckinSlotIndex ? this.getMinCheckinSlotIndex(m) : 1;
+                let targetSlotIdx = this.getCheckinSlotIndexByTime ? this.getCheckinSlotIndexByTime(m.jamBerangkat, now) : null;
+                if (targetSlotIdx === null || targetSlotIdx < 0) {
+                    targetSlotIdx = allSlotKeys.indexOf(currentClockSlot);
+                }
+                if (targetSlotIdx >= allSlotKeys.length) {
+                    targetSlotIdx = allSlotKeys.length - 1;
+                }
+
+                // Hanya ingatkan jika waktu saat ini sudah memasuki/melewati slot setelah keberangkatan (OUT JKT999)
+                if (targetSlotIdx >= minSlotIdx && targetSlotIdx >= 0) {
+                    const targetSlotKey = allSlotKeys[targetSlotIdx] || currentClockSlot;
+                    const slotObj = m.slots && m.slots[targetSlotKey];
+                    const isSlotFilled = Boolean(slotObj && (slotObj.lokasi || slotObj.statusUpdate === 'SUDAH UPDATE'));
+                    if (!isSlotFilled) {
+                        missingCheckinTrips.push({
+                            kodeTugas: kode,
+                            platNomor: m.platNomor || '-',
+                            rute: m.trip || m.namaRute || m.tlc || '-',
+                            vendor: this.formatVendorShort ? this.formatVendorShort(m.vendor) : (m.vendor || '-'),
+                            slotKey: targetSlotKey.replace(/^D\d+_/, ''),
+                            rawSlotKey: targetSlotKey
+                        });
+                    }
+                }
+            });
+
+            if (missingCheckinTrips.length > 5) {
+                alerts.push({
+                    id: `MON-4H-SUMMARY-${currentClockSlot}`,
+                    category: 'CHECKIN_4H',
+                    level: 'warning',
+                    type: 'MISSING_CHECKIN_SUMMARY',
+                    title: `⏱️ ${missingCheckinTrips.length} ARMADA BELUM CHECK-IN SLOT ${currentClockSlot}`,
+                    message: `Terdapat ${missingCheckinTrips.length} armada sedang berjalan yang belum di-update posisinya pada slot ${currentClockSlot} WIB. Klik untuk update di Monitoring 4 Jam.`,
+                    timestamp: now.toISOString(),
+                    link: 'monitoring.html'
+                });
+            }
+
+            missingCheckinTrips.slice(0, 6).forEach(item => {
+                alerts.push({
+                    id: `MON-4H-${item.kodeTugas}-${item.rawSlotKey}`,
+                    category: 'CHECKIN_4H',
+                    level: 'warning',
+                    type: 'MISSING_CHECKIN_4H',
+                    title: `⏱️ BELUM CHECK-IN 4 JAM (SLOT ${item.slotKey})`,
+                    message: `${item.platNomor} (${item.kodeTugas}) • Rute ${item.rute} [${item.vendor}] belum update posisi slot ${item.slotKey} WIB`,
+                    timestamp: now.toISOString(),
+                    link: `monitoring.html?kodeTugas=${encodeURIComponent(item.kodeTugas)}`
+                });
+            });
+
+            // 3. ⏰ PERINGATAN SLA OVERDUE / HAMPIR HABIS PADA ARMADA BERJALAN
             const slaList = this.getLocalStore('sla_outbound') || [];
             slaList.forEach(s => {
-                if (s.statusSla === 'BERJALAN' && s.targetSLAHours) {
-                    alerts.push({
-                        id: `SLA-ALERT-${s.kodeTugas}`,
-                        type: "SLA_ALERT",
-                        title: "⏰ SLA PERJALANAN AKTIF",
-                        message: `${s.kodeTugas} (${s.trip || s.namaRute || '-'}) target ${s.targetSLAHours} Jam`,
-                        link: "sla-vendor.html"
-                    });
+                if (!s) return;
+                const kode = s.kodeTugas || s.id;
+                if (!kode || DEMO_TRIP_IDS.has(kode)) return;
+                const cleanArr = (s.jamSampaiAktual && !/^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(String(s.jamSampaiAktual).trim()))
+                    ? String(s.jamSampaiAktual).trim()
+                    : '';
+                if (cleanArr || s.statusSla === 'COMPLETED' || s.statusSla === 'ON TIME' || s.statusSla === 'LATE' || s.status === 'SUDAH SELESAI') return;
+
+                const targetH = this.resolveEffectiveTargetSLAHours ? this.resolveEffectiveTargetSLAHours(s) : (parseFloat(s.targetSLAHours) || 16);
+                if (s.jamBerangkat && window.SLACountdownEngine) {
+                    const state = window.SLACountdownEngine.calculateSLAState(s.jamBerangkat, targetH, '');
+                    if (state && state.isOverdue) {
+                        alerts.push({
+                            id: `SLA-OVERDUE-${kode}`,
+                            category: 'SLA',
+                            level: 'critical',
+                            type: 'SLA_OVERDUE',
+                            title: `🚨 SLA MELEWATI TARGET (${targetH} Jam)`,
+                            message: `${s.platNomor || '-'} (${kode}) • Rute ${s.trip || s.namaRute || '-'} belum konfirmasi tiba & sudah melewati batas SLA`,
+                            timestamp: now.toISOString(),
+                            link: `sla-vendor.html?kodeTugas=${encodeURIComponent(kode)}`
+                        });
+                    } else if (state && typeof state.remainingMs === 'number' && state.remainingMs > 0 && state.remainingMs <= 2 * 3600 * 1000) {
+                        const remMin = Math.max(1, Math.round(state.remainingMs / 60000));
+                        alerts.push({
+                            id: `SLA-WARN-${kode}`,
+                            category: 'SLA',
+                            level: 'info',
+                            type: 'SLA_NEAR_DEADLINE',
+                            title: `⏰ SLA SISA ${remMin} MENIT`,
+                            message: `${s.platNomor || '-'} (${kode}) • Rute ${s.trip || s.namaRute || '-'} mendekati batas target SLA (${targetH} Jam)`,
+                            timestamp: now.toISOString(),
+                            link: `sla-vendor.html?kodeTugas=${encodeURIComponent(kode)}`
+                        });
+                    }
                 }
             });
 
             callback(alerts);
+        };
+
+        const unsubTroubles = this.createSub('troubles', () => {
+            buildAlerts();
         });
+
+        const onDataUpdated = () => {
+            buildAlerts();
+        };
+        window.addEventListener('jnt_data_updated', onDataUpdated);
+
+        // Evaluasi ulang setiap 60 detik jika pergantian jam memasuki slot 4 jam baru
+        const slotTimer = setInterval(buildAlerts, 60000);
+
+        return () => {
+            if (typeof unsubTroubles === 'function') unsubTroubles();
+            window.removeEventListener('jnt_data_updated', onDataUpdated);
+            clearInterval(slotTimer);
+        };
     }
 };
 

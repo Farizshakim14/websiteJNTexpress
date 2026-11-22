@@ -1614,15 +1614,34 @@ document.addEventListener('DOMContentLoaded', () => {
             return panel;
         }
 
-        function jntOpenNotifPanel(alertsList) {
-            const panel = jntEnsureNotifPanel();
+        let _notifActiveCategory = 'ALL';
+
+        function jntRenderNotifItems(alertsList) {
             const body = document.getElementById('jnt-notif-body');
             const badge = document.getElementById('jnt-notif-count-badge');
+            if (!body) return;
+
+            const filtered = _notifActiveCategory === 'ALL'
+                ? alertsList
+                : alertsList.filter(a => (a.category || '') === _notifActiveCategory);
 
             if (badge) badge.textContent = alertsList.length;
 
-            if (alertsList.length === 0) {
-                body.innerHTML = `
+            const count4H = alertsList.filter(a => a.category === 'CHECKIN_4H').length;
+            const countTrb = alertsList.filter(a => a.category === 'TROUBLE').length;
+            const countSla = alertsList.filter(a => a.category === 'SLA').length;
+
+            const filterTabsHtml = `
+                <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid rgba(148,163,184,0.18);overflow-x:auto;background:rgba(15,23,42,0.02);">
+                    <button type="button" class="jnt-notif-tab-btn ${_notifActiveCategory === 'ALL' ? 'active' : ''}" data-ncat="ALL" style="border:1px solid ${_notifActiveCategory === 'ALL' ? '#E30613' : '#CBD5E1'};background:${_notifActiveCategory === 'ALL' ? '#E30613' : 'transparent'};color:${_notifActiveCategory === 'ALL' ? '#FFF' : '#64748B'};border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">Semua (${alertsList.length})</button>
+                    <button type="button" class="jnt-notif-tab-btn ${_notifActiveCategory === 'CHECKIN_4H' ? 'active' : ''}" data-ncat="CHECKIN_4H" style="border:1px solid ${_notifActiveCategory === 'CHECKIN_4H' ? '#E30613' : '#CBD5E1'};background:${_notifActiveCategory === 'CHECKIN_4H' ? '#E30613' : 'transparent'};color:${_notifActiveCategory === 'CHECKIN_4H' ? '#FFF' : '#64748B'};border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">⏱️ Check-in 4H (${count4H})</button>
+                    <button type="button" class="jnt-notif-tab-btn ${_notifActiveCategory === 'TROUBLE' ? 'active' : ''}" data-ncat="TROUBLE" style="border:1px solid ${_notifActiveCategory === 'TROUBLE' ? '#E30613' : '#CBD5E1'};background:${_notifActiveCategory === 'TROUBLE' ? '#E30613' : 'transparent'};color:${_notifActiveCategory === 'TROUBLE' ? '#FFF' : '#64748B'};border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🚨 Trouble (${countTrb})</button>
+                    <button type="button" class="jnt-notif-tab-btn ${_notifActiveCategory === 'SLA' ? 'active' : ''}" data-ncat="SLA" style="border:1px solid ${_notifActiveCategory === 'SLA' ? '#E30613' : '#CBD5E1'};background:${_notifActiveCategory === 'SLA' ? '#E30613' : 'transparent'};color:${_notifActiveCategory === 'SLA' ? '#FFF' : '#64748B'};border-radius:999px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">⏰ SLA (${countSla})</button>
+                </div>
+            `;
+
+            if (filtered.length === 0) {
+                body.innerHTML = filterTabsHtml + `
                     <div class="jnt-notif-empty">
                         <div class="jnt-notif-empty-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
@@ -1632,17 +1651,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             </svg>
                         </div>
                         <p class="jnt-notif-empty-title">Semua Aman!</p>
-                        <p class="jnt-notif-empty-sub">Tidak ada peringatan kritis saat ini.<br>Sistem berjalan normal.</p>
+                        <p class="jnt-notif-empty-sub">Tidak ada peringatan pada kategori ini.<br>Seluruh check-in slot 4 jam &amp; operasional terkendali.</p>
                     </div>`;
             } else {
                 const iconMap = {
                     'critical': { icon: '🚨', cls: 'critical' },
-                    'warning': { icon: '⚠️', cls: 'warning' },
-                    'info': { icon: '🔔', cls: 'info' },
+                    'warning': { icon: '⏱️', cls: 'warning' },
+                    'info': { icon: '⏰', cls: 'info' },
                     'success': { icon: '✅', cls: 'success' },
                 };
                 const now = new Date();
-                body.innerHTML = alertsList.map((a, i) => {
+                body.innerHTML = filterTabsHtml + filtered.map((a, i) => {
                     const level = (a.level || a.type || 'info').toLowerCase();
                     const meta = iconMap[level] || iconMap['info'];
                     const timeAgo = a.timestamp
@@ -1656,33 +1675,51 @@ document.addEventListener('DOMContentLoaded', () => {
                         })()
                         : 'Baru saja';
                     return `
-                        <div class="jnt-notif-item unread ${meta.cls}" data-idx="${i}">
+                        <div class="jnt-notif-item unread ${meta.cls}" data-idx="${i}" data-link="${jntEscapeHtml(a.link || '')}" style="cursor:pointer;">
                             <div class="jnt-notif-item-icon">${meta.icon}</div>
                             <div class="jnt-notif-item-content">
-                                <div class="jnt-notif-item-title">${a.title || 'Notifikasi Sistem'}</div>
-                                <div class="jnt-notif-item-msg">${a.message || ''}</div>
-                                <div class="jnt-notif-item-time">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
-                                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                                    </svg>
-                                    ${timeAgo}
+                                <div class="jnt-notif-item-title">${jntEscapeHtml(a.title || 'Notifikasi Sistem')}</div>
+                                <div class="jnt-notif-item-msg">${jntEscapeHtml(a.message || '')}</div>
+                                <div class="jnt-notif-item-time" style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="display:inline-flex;align-items:center;gap:4px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+                                            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                        </svg>
+                                        ${timeAgo}
+                                    </span>
+                                    ${a.link ? `<span style="color:#E30613;font-weight:700;font-size:11px;">Tindak Lanjuti &rarr;</span>` : ''}
                                 </div>
                             </div>
                             <span class="jnt-notif-unread-dot"></span>
                         </div>`;
                 }).join('');
-
-                // Mark as read on click
-                body.querySelectorAll('.jnt-notif-item').forEach(item => {
-                    item.addEventListener('click', () => {
-                        item.classList.remove('unread');
-                        const remaining = body.querySelectorAll('.jnt-notif-item.unread').length;
-                        if (badge) badge.textContent = remaining;
-                        document.querySelectorAll('.inc-bell-badge').forEach(b => { b.textContent = remaining; });
-                    });
-                });
             }
 
+            body.querySelectorAll('.jnt-notif-tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    _notifActiveCategory = btn.getAttribute('data-ncat') || 'ALL';
+                    jntRenderNotifItems(alertsList);
+                });
+            });
+
+            body.querySelectorAll('.jnt-notif-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    item.classList.remove('unread');
+                    const remaining = body.querySelectorAll('.jnt-notif-item.unread').length;
+                    if (badge) badge.textContent = remaining;
+                    document.querySelectorAll('.inc-bell-badge').forEach(b => { b.textContent = remaining; });
+                    const targetLink = item.getAttribute('data-link');
+                    if (targetLink) {
+                        window.location.href = targetLink;
+                    }
+                });
+            });
+        }
+
+        function jntOpenNotifPanel(alertsList) {
+            const panel = jntEnsureNotifPanel();
+            jntRenderNotifItems(alertsList);
             panel.classList.add('open');
             document.getElementById('jnt-notif-backdrop').classList.add('open');
         }
