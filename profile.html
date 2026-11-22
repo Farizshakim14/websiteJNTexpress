@@ -244,9 +244,6 @@
                             <span class="v2-cover-chip">🛡️ J&amp;T EXPRESS OFFICIAL IDENTITY</span>
                             <span class="v2-cover-chip" id="hero-active-shift-chip">⏱️ Shift Aktif: Memuat...</span>
                         </div>
-                        <div class="v2-cover-chips">
-                            <span class="v2-cover-chip" id="hero-last-sync-chip">☁️ Tersinkronisasi Real-Time</span>
-                        </div>
                     </div>
 
                     <div class="profile-hero-main v2-hero-main">
@@ -348,7 +345,6 @@
                                     <span style="font-size: 18px;">👤</span>
                                     <h3 class="inc-table-title">Informasi Pribadi &amp; Penugasan Operasional</h3>
                                 </div>
-                                <span class="badge-status blue-outline" id="prof-sync-badge">🟢 Tersinkronisasi Database</span>
                             </div>
 
                             <form id="profile-info-form" class="st-card-body" style="padding: 20px;">
@@ -442,10 +438,9 @@
                                     <span style="font-size: 18px;">🔑</span>
                                     <h3 class="inc-table-title">Hak Akses Modul &amp; Pintasan Cepat (<span id="prof-rbac-role-title">Role</span>)</h3>
                                 </div>
-                                <span class="badge-status blue-outline">Klik Modul untuk Membuka</span>
                             </div>
-                            <div class="st-card-body" style="padding: 16px 20px;">
-                                <p style="font-size: 12px; color: #64748B; margin: 0 0 10px 0;" id="prof-rbac-desc">
+                            <div class="st-card-body" style="padding: 16px 20px 20px 20px;">
+                                <p style="font-size: 12px; color: #64748B; margin: 0 0 14px 0;" id="prof-rbac-desc">
                                     Daftar modul operasional yang diizinkan untuk akun Anda beserta pintasan navigasi langsung:
                                 </p>
                                 <div class="v2-rbac-grid" id="prof-rbac-modules-grid"></div>
@@ -821,26 +816,38 @@
                 var isVen = normRole === 'VENDOR';
 
                 var modules = [
-                    { name: '📊 Dashboard Utama', url: 'dashboard.html', allowed: true },
-                    { name: '⏱️ Monitoring 4 Jam', url: 'monitoring.html', allowed: !isFin },
-                    { name: '🏆 SLA Vendor', url: 'sla-vendor.html', allowed: true },
-                    { name: '🚨 Trouble & Laka', url: 'trouble.html', allowed: !isFin },
-                    { name: '🔄 Shift Management', url: 'shift-management.html', allowed: !isFin && !isVen },
-                    { name: '📑 Report & Export', url: 'report.html', allowed: true },
-                    { name: '👥 User Management', url: 'users.html', allowed: isSuper || isMgr },
-                    { name: '⚙️ Pengaturan Sistem', url: 'settings.html', allowed: isSuper || isMgr }
+                    { icon: '📊', name: 'Dashboard Utama', sub: 'Ringkasan KPI & Grafik SLA', url: 'dashboard.html', allowed: true },
+                    { icon: '⏱️', name: 'Monitoring 4 Jam', sub: 'Tracking Posisi Armada Aktif', url: 'monitoring.html', allowed: !isFin },
+                    { icon: '🏆', name: 'SLA Vendor', sub: 'Evaluasi Performa Vendor & Rute', url: 'sla-vendor.html', allowed: true },
+                    { icon: '🚨', name: 'Trouble & Laka', sub: 'Pelaporan & Penanganan Kendala', url: 'trouble.html', allowed: !isFin },
+                    { icon: '🔄', name: 'Shift Management', sub: 'Kontrol Shift 1/2 & Handover', url: 'shift-management.html', allowed: !isFin && !isVen },
+                    { icon: '📑', name: 'Report & Export', sub: 'Laporan Excel, PDF & Audit Trail', url: 'report.html', allowed: true },
+                    { icon: '👥', name: 'User Management', sub: 'Kelola Akun & Hak Akses Role', url: 'users.html', allowed: isSuper || isMgr },
+                    { icon: '⚙️', name: 'Pengaturan Sistem', sub: 'Konfigurasi & Tema Tampilan', url: 'settings.html', allowed: isSuper || isMgr }
                 ];
 
                 grid.innerHTML = modules.map(function (m) {
                     if (m.allowed) {
                         return '<a href="' + m.url + '" class="v2-rbac-item allowed" title="Buka halaman ' + escHtml(m.name) + '">'
-                            + '<span>' + escHtml(m.name) + '</span>'
-                            + '<span style="font-size: 11px; color: #16A34A; font-weight: 800;">✅ Akses ➔</span>'
+                            + '<div class="v2-rbac-left">'
+                            + '  <span class="v2-rbac-icon">' + m.icon + '</span>'
+                            + '  <div class="v2-rbac-text">'
+                            + '    <strong class="v2-rbac-title">' + escHtml(m.name) + '</strong>'
+                            + '    <span class="v2-rbac-sub">' + escHtml(m.sub) + '</span>'
+                            + '  </div>'
+                            + '</div>'
+                            + '<span class="v2-rbac-badge ok">✅ Akses &rarr;</span>'
                             + '</a>';
                     }
                     return '<div class="v2-rbac-item restricted" title="Dibatasi untuk role Anda">'
-                        + '<span>' + escHtml(m.name) + '</span>'
-                        + '<span style="font-size: 10.5px; color: #94A3B8;">🔒 Dibatasi</span>'
+                        + '<div class="v2-rbac-left">'
+                        + '  <span class="v2-rbac-icon">' + m.icon + '</span>'
+                        + '  <div class="v2-rbac-text">'
+                        + '    <strong class="v2-rbac-title">' + escHtml(m.name) + '</strong>'
+                        + '    <span class="v2-rbac-sub">' + escHtml(m.sub) + '</span>'
+                        + '  </div>'
+                        + '</div>'
+                        + '<span class="v2-rbac-badge locked">🔒 Dibatasi</span>'
                         + '</div>';
                 }).join('');
             }
