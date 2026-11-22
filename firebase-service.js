@@ -1368,12 +1368,12 @@ const JNTFirebaseService = {
         } catch (_) { }
     },
 
-    async saveShiftToHostingHistory(shiftObj) {
+    async saveShiftToHostingHistory(shiftObj, deleteFromFirestoreAfterSave = true) {
         if (!shiftObj || !(shiftObj.shiftId || shiftObj.id)) return false;
         this._hydrateHostingArchiveFromLocalCache();
         const sid = shiftObj.shiftId || shiftObj.id;
         const sMap = this._hostingArchiveStore.shifts || new Map();
-        sMap.set(sid, { ...(sMap.get(sid) || {}), ...shiftObj, id: sid, shiftId: sid });
+        sMap.set(sid, { ...(sMap.get(sid) || {}), ...shiftObj, id: sid, shiftId: sid, _archivedInHosting: true });
         this._hostingArchiveStore.shifts = sMap;
         this._persistHostingArchiveToLocalCache('shifts');
 
@@ -1385,13 +1385,22 @@ const JNTFirebaseService = {
                     headers,
                     body: JSON.stringify({ shift: shiftObj })
                 });
-                if (res && res.ok) return true;
+                if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                    const data = await res.json();
+                    if (data && data.success) {
+                        if (deleteFromFirestoreAfterSave && window.db && String(shiftObj.status || '').toUpperCase() === 'COMPLETED') {
+                            window.db.collection('shifts').doc(sid).delete().catch(() => { });
+                        }
+                        this.forceRefreshSub('shifts');
+                        return true;
+                    }
+                }
             }
         } catch (_) { }
         return false;
     },
 
-    async saveTroubleToHostingArchive(incidentObj) {
+    async saveTroubleToHostingArchive(incidentObj, deleteFromFirestoreAfterSave = true) {
         if (!incidentObj || !(incidentObj.incidentId || incidentObj.id)) return false;
         this._hydrateHostingArchiveFromLocalCache();
         const iid = incidentObj.incidentId || incidentObj.id;
@@ -1408,7 +1417,17 @@ const JNTFirebaseService = {
                     headers,
                     body: JSON.stringify({ incident: incidentObj })
                 });
-                if (res && res.ok) return true;
+                if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                    const data = await res.json();
+                    if (data && data.success) {
+                        const st = String(incidentObj.status || '').toUpperCase();
+                        if (deleteFromFirestoreAfterSave && window.db && (st === 'SUDAH SELESAI' || st === 'RESOLVED' || st === 'SELESAI')) {
+                            window.db.collection('troubles').doc(iid).delete().catch(() => { });
+                        }
+                        this.forceRefreshSub('troubles');
+                        return true;
+                    }
+                }
             }
         } catch (_) { }
         return false;
@@ -1425,6 +1444,7 @@ const JNTFirebaseService = {
         }
         this._hostingArchiveStore[colName] = mMap;
         this._persistHostingArchiveToLocalCache(colName);
+        this.saveLocalStore(colName, Array.from(mMap.values()));
 
         try {
             if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
@@ -1437,7 +1457,13 @@ const JNTFirebaseService = {
                         : { action: 'upsert', collection: colName, docId, data: docData }
                     )
                 });
-                if (res && res.ok) return true;
+                if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                    const data = await res.json();
+                    if (data && data.success) {
+                        this.notifyDataMutated({ colName, docId, action: isDelete ? 'delete' : 'save' });
+                        return true;
+                    }
+                }
             }
         } catch (_) { }
         return false;
@@ -1499,6 +1525,25 @@ const JNTFirebaseService = {
                 console.log(`📦 [HOSTING ARCHIVE] Mengarsipkan ${completedBundles.length} trip selesai dari Firestore ke trip_archive.php...`);
                 await this.saveTripsBatchToHostingArchive(completedBundles, true);
             }
+
+            // Offload juga Shift yang sudah COMPLETED dari Firestore ke shift_history.php
+            const shiftEntry = this._sharedListeners && this._sharedListeners['shifts'];
+            const rawShifts = (shiftEntry && shiftEntry.rawFirestoreDocs) || [];
+            for (const sh of rawShifts) {
+                if (sh && String(sh.status || '').toUpperCase() === 'COMPLETED') {
+                    await this.saveShiftToHostingHistory(sh, true);
+                }
+            }
+
+            // Offload juga Trouble & Laka yang sudah SUDAH SELESAI dari Firestore ke trouble_archive.php
+            const troubleEntry = this._sharedListeners && this._sharedListeners['troubles'];
+            const rawTroubles = (troubleEntry && troubleEntry.rawFirestoreDocs) || [];
+            for (const tr of rawTroubles) {
+                const st = String((tr && tr.status) || '').toUpperCase();
+                if (tr && (st === 'SUDAH SELESAI' || st === 'RESOLVED' || st === 'SELESAI')) {
+                    await this.saveTroubleToHostingArchive(tr, true);
+                }
+            }
         } catch (err) {
             console.debug('[HOSTING ARCHIVE] auto-sync notice:', err.message);
         }
@@ -1508,13 +1553,15 @@ const JNTFirebaseService = {
      * ⚡ SINGLETON COLLECTION SNAPSHOT MULTIPLEXER (Penghemat Kuota Read Firestore 90%+)
      * Menjamin setiap koleksi Firestore hanya membuka MAKSIMAL 1 koneksi onSnapshot per halaman,
      * serta otomatis menggabungkan (Auto-Merge) data aktif Firestore dengan Arsip Hosting (trip_archive.php & shift_history.php).
+     * Untuk 5 koleksi Master Data statis (master_*), langsung menggunakan master_data.php di cPanel (0 Read Firestore!).
      */
     _attachSharedSnapshot(colName, onDocs, onError) {
         this._sharedListeners = this._sharedListeners || {};
         let entry = this._sharedListeners[colName];
+        const isMasterCol = ['master_trips', 'master_vendors', 'master_fleets', 'master_drivers', 'master_reasons'].includes(colName);
 
-        // Trigger pemuatan arsip hosting di latar belakang untuk koleksi trip & shift
-        if (['incoming', 'sla_outbound', 'monitoring_4h', 'sla_return', 'sla_roundtrip', 'shifts'].includes(colName)) {
+        // Trigger pemuatan arsip hosting di latar belakang untuk koleksi trip, shift, trouble, & master
+        if (['incoming', 'sla_outbound', 'monitoring_4h', 'sla_return', 'sla_roundtrip', 'shifts', 'troubles'].includes(colName) || isMasterCol) {
             this.loadHostingArchiveData().catch(() => { });
         }
 
@@ -1529,29 +1576,42 @@ const JNTFirebaseService = {
             };
             this._sharedListeners[colName] = entry;
 
-            const startFirestoreSub = () => {
-                if (!window.db) return;
-                if (typeof entry.unsubFirestore === 'function') {
-                    entry.unsubFirestore();
-                    entry.unsubFirestore = null;
-                }
-                try {
-                    entry.unsubFirestore = window.db.collection(colName).onSnapshot(snap => {
-                        const rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        entry.rawFirestoreDocs = rawDocs;
-                        const docs = this._mergeWithHostingArchive(colName, rawDocs);
-                        entry.lastDocs = docs;
-                        entry.subscribers.forEach(fn => {
-                            try { fn(docs); } catch (e) { console.warn(`[SHARED SUB ${colName}] subscriber error:`, e); }
-                        });
-                        // Jadwalkan auto-archive trip COMPLETED ke hosting cPanel setelah snapshot awal diterima
-                        if (['incoming', 'sla_outbound', 'monitoring_4h'].includes(colName) && rawDocs.length > 0) {
-                            if (this._autoArchiveTimer) clearTimeout(this._autoArchiveTimer);
-                            this._autoArchiveTimer = setTimeout(() => {
-                                this.syncExistingCompletedTripsToHosting();
-                            }, 2500);
-                        }
-                    }, err => {
+            // Koleksi Master Statis: ambil dari Memory/LocalCache + master_data.php cPanel tanpa membuka onSnapshot Firestore
+            if (isMasterCol) {
+                const initialMaster = this.getLocalStore(colName) || [];
+                entry.rawFirestoreDocs = initialMaster;
+                entry.lastDocs = this._mergeWithHostingArchive(colName, initialMaster);
+                this.loadHostingArchiveData().then(() => {
+                    const updatedMaster = this._mergeWithHostingArchive(colName, this.getLocalStore(colName) || []);
+                    entry.lastDocs = updatedMaster;
+                    entry.subscribers.forEach(fn => {
+                        try { fn(updatedMaster); } catch (_) { }
+                    });
+                }).catch(() => { });
+            } else {
+                const startFirestoreSub = () => {
+                    if (!window.db) return;
+                    if (typeof entry.unsubFirestore === 'function') {
+                        entry.unsubFirestore();
+                        entry.unsubFirestore = null;
+                    }
+                    try {
+                        entry.unsubFirestore = window.db.collection(colName).onSnapshot(snap => {
+                            const rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                            entry.rawFirestoreDocs = rawDocs;
+                            const docs = this._mergeWithHostingArchive(colName, rawDocs);
+                            entry.lastDocs = docs;
+                            entry.subscribers.forEach(fn => {
+                                try { fn(docs); } catch (e) { console.warn(`[SHARED SUB ${colName}] subscriber error:`, e); }
+                            });
+                            // Jadwalkan auto-archive trip COMPLETED, shift COMPLETED, & trouble SUDAH SELESAI ke hosting cPanel
+                            if (['incoming', 'sla_outbound', 'monitoring_4h', 'shifts', 'troubles'].includes(colName) && rawDocs.length > 0) {
+                                if (this._autoArchiveTimer) clearTimeout(this._autoArchiveTimer);
+                                this._autoArchiveTimer = setTimeout(() => {
+                                    this.syncExistingCompletedTripsToHosting();
+                                }, 2500);
+                            }
+                        }, err => {
                         console.warn(`[FIRESTORE] snapshot notice [${colName}]: ${err.message}`);
                         entry.errorHandlers.forEach(efn => {
                             try { efn(err); } catch (_) { }
@@ -1567,20 +1627,21 @@ const JNTFirebaseService = {
                             }
                         }
                     });
-                } catch (e) {
-                    console.warn(`[SHARED SUB ${colName}] attach error:`, e);
-                }
-            };
-
-            startFirestoreSub();
-
-            if (window.auth && !window.auth.currentUser) {
-                const onceAuth = window.auth.onAuthStateChanged(u => {
-                    if (u && !u.isAnonymous) {
-                        onceAuth();
-                        startFirestoreSub();
+                    } catch (e) {
+                        console.warn(`[SHARED SUB ${colName}] attach error:`, e);
                     }
-                });
+                };
+
+                startFirestoreSub();
+
+                if (window.auth && !window.auth.currentUser) {
+                    const onceAuth = window.auth.onAuthStateChanged(u => {
+                        if (u && !u.isAnonymous) {
+                            onceAuth();
+                            startFirestoreSub();
+                        }
+                    });
+                }
             }
         }
 
@@ -2972,17 +3033,20 @@ const JNTFirebaseService = {
 
     async saveMasterTrip(tripData) {
         const doc = { ...tripData, id: tripData.code, status: tripData.status || 'ACTIVE' };
-        this.saveMasterDataToHosting('master_trips', tripData.code, doc, false).catch(() => { });
+        const savedHost = await this.saveMasterDataToHosting('master_trips', tripData.code, doc, false);
+        if (savedHost) return doc;
         return this.saveDoc('master_trips', tripData.code, doc, true);
     },
 
     async deleteMasterTrip(tripCode) {
         const incomingCheck = (this.getLocalStore('incoming') || []).some(i => i.trip === tripCode);
         if (incomingCheck) {
-            this.saveMasterDataToHosting('master_trips', tripCode, { status: 'INACTIVE' }, false).catch(() => { });
+            const savedHost = await this.saveMasterDataToHosting('master_trips', tripCode, { status: 'INACTIVE' }, false);
+            if (savedHost) return { id: tripCode, status: 'INACTIVE' };
             return this.saveDoc('master_trips', tripCode, { status: 'INACTIVE' }, true);
         }
-        this.saveMasterDataToHosting('master_trips', tripCode, null, true).catch(() => { });
+        const delHost = await this.saveMasterDataToHosting('master_trips', tripCode, null, true);
+        if (delHost) return { success: true };
         return this.deleteDoc('master_trips', tripCode);
     },
 
@@ -2993,13 +3057,15 @@ const JNTFirebaseService = {
     async saveMasterFleet(fleetData) {
         const docId = fleetData.platNomor.replace(/\s+/g, '');
         const doc = { ...fleetData, id: docId };
-        this.saveMasterDataToHosting('master_fleets', docId, doc, false).catch(() => { });
+        const savedHost = await this.saveMasterDataToHosting('master_fleets', docId, doc, false);
+        if (savedHost) return doc;
         return this.saveDoc('master_fleets', docId, doc, true);
     },
 
     async deleteMasterFleet(platNomor) {
         const docId = platNomor.replace(/\s+/g, '');
-        this.saveMasterDataToHosting('master_fleets', docId, null, true).catch(() => { });
+        const delHost = await this.saveMasterDataToHosting('master_fleets', docId, null, true);
+        if (delHost) return { success: true };
         return this.deleteDoc('master_fleets', docId);
     },
 
@@ -3010,13 +3076,15 @@ const JNTFirebaseService = {
     async saveMasterDriver(driverData) {
         const docId = driverData.nama.toLowerCase().replace(/\s+/g, '_');
         const doc = { ...driverData, id: docId };
-        this.saveMasterDataToHosting('master_drivers', docId, doc, false).catch(() => { });
+        const savedHost = await this.saveMasterDataToHosting('master_drivers', docId, doc, false);
+        if (savedHost) return doc;
         return this.saveDoc('master_drivers', docId, doc, true);
     },
 
     async deleteMasterDriver(nama) {
         const docId = nama.toLowerCase().replace(/\s+/g, '_');
-        this.saveMasterDataToHosting('master_drivers', docId, null, true).catch(() => { });
+        const delHost = await this.saveMasterDataToHosting('master_drivers', docId, null, true);
+        if (delHost) return { success: true };
         return this.deleteDoc('master_drivers', docId);
     },
 
@@ -3025,7 +3093,8 @@ const JNTFirebaseService = {
     },
 
     async saveMasterReason(reasonData) {
-        this.saveMasterDataToHosting('master_reasons', reasonData.id, reasonData, false).catch(() => { });
+        const savedHost = await this.saveMasterDataToHosting('master_reasons', reasonData.id, reasonData, false);
+        if (savedHost) return reasonData;
         return this.saveDoc('master_reasons', reasonData.id, reasonData, true);
     },
 
@@ -3035,19 +3104,27 @@ const JNTFirebaseService = {
     async checkDuplicateKodeTugas(kodeTugas) {
         if (!kodeTugas) return false;
         const targetClean = kodeTugas.trim().toLowerCase();
-        let items = this.getLocalStore('incoming') || [];
-        if (window.db) {
-            try {
-                const snap = await window.db.collection('incoming').get();
-                snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-            } catch (err) {
-                console.warn("checkDuplicateKodeTugas Firestore query notice:", err.message);
-            }
-        }
-        return items.some(d =>
+        // Cek langsung dari gabungan Memory Cache + Hosting Archive (0 Read Firestore!)
+        const items = [
+            ...(this.getLocalStore('incoming') || []),
+            ...(this.getLocalStore('sla_outbound') || [])
+        ];
+        const foundInMemory = items.some(d =>
             (d.id && String(d.id).toLowerCase() === targetClean) ||
             (d.kodeTugas && String(d.kodeTugas).toLowerCase() === targetClean)
         );
+        if (foundInMemory) return true;
+
+        // Jika belum ada di memori, cek hanya 1 dokumen spesifik di Firestore (maks 1 Read, bukan .get() seluruh koleksi)
+        if (window.db) {
+            try {
+                const docSnap = await window.db.collection('incoming').doc(kodeTugas.trim()).get();
+                if (docSnap.exists) return true;
+            } catch (err) {
+                console.warn("checkDuplicateKodeTugas Firestore doc notice:", err.message);
+            }
+        }
+        return false;
     },
 
     subscribeIncoming(callback) {
