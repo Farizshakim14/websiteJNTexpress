@@ -2358,8 +2358,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tbody.innerHTML = pageItems.map((item, idx) => {
                 const kode = item.kodeTugas || item.id || '-';
-                const rute = item.trip || item.namaRute || '-';
-                const tlc = item.tlc || '';
+                const fmtRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                    ? JNTFirebaseService.formatRuteAndTLC(item)
+                    : { formattedTLC: item.tlc || item.trip || '-', ruteName: item.namaRute || item.trip || '-' };
                 const vendorShort = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatVendorShort)
                     ? JNTFirebaseService.formatVendorShort(item.vendor)
                     : (() => {
@@ -2403,9 +2404,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tr class="inc-row">
                         <td class="col-center">${startIdx + idx + 1}</td>
                         <td><strong style="color: #E30613; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">${kode}</strong></td>
-                        <td>
-                            <div class="sh-rute-title font-bold">${rute}</div>
-                            ${tlc ? `<span class="sh-tlc-badge">${tlc}</span>` : ''}
+                        <td style="text-align: center; min-width: 115px;">
+                            <div style="font-weight: 700; font-size: 12px; color: #2563EB;">${jntEscapeHtml(fmtRute.formattedTLC || '-')}</div>
+                            <div style="margin-top: 3px;"><span class="sla-trip-pill" style="font-size: 10.5px;">${jntEscapeHtml(fmtRute.ruteName || '-')}</span></div>
                         </td>
                         <td><span class="sh-vendor-badge" style="color: #38BDF8; font-weight: 800; font-size: 12px;">${vendorShort}</span></td>
                         <td><strong style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">${plat}</strong></td>
@@ -3426,11 +3427,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const ruteInput = document.getElementById('tr-rute-tlc');
 
             if (trip) {
-                const ruteLabel = trip.namaRute || trip.trip || '-';
-                const tlcLabel = trip.tlc || trip.trip || '-';
+                const fmtRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                    ? JNTFirebaseService.formatRuteAndTLC(trip)
+                    : { formattedTLC: trip.tlc || trip.trip || '-', ruteName: trip.namaRute || trip.trip || '-' };
+                const tlcLabel = fmtRute.formattedTLC || '-';
+                const ruteLabel = fmtRute.ruteName || '-';
                 if (trSelect) trSelect.value = trip.kodeTugas || '';
                 if (trSearchInput) {
-                    trSearchInput.value = `${trip.kodeTugas} - ${trip.platNomor || '-'} (${ruteLabel})`;
+                    trSearchInput.value = `${trip.kodeTugas} - ${trip.platNomor || '-'} (${tlcLabel} • ${ruteLabel})`;
                 }
                 if (trClearBtn) trClearBtn.classList.remove('hidden');
                 if (platInput) platInput.value = trip.platNomor || '-';
@@ -3438,9 +3442,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (driverInput) driverInput.value = trip.driver1 || trip.driver || '-';
                 if (driverPhoneInput) driverPhoneInput.value = (trip.driverPhone && trip.driverPhone !== '-') ? trip.driverPhone : '-';
                 if (ruteInput) {
-                    ruteInput.value = (ruteLabel !== tlcLabel && tlcLabel !== '-')
-                        ? `${ruteLabel} (${tlcLabel})`
-                        : ruteLabel;
+                    ruteInput.value = (tlcLabel !== '-' && ruteLabel !== '-' && tlcLabel !== ruteLabel)
+                        ? `${tlcLabel} (${ruteLabel})`
+                        : (tlcLabel !== '-' ? tlcLabel : ruteLabel);
                 }
             } else {
                 if (trSelect) trSelect.value = '';
@@ -3508,8 +3512,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemsHtml = _trCurrentMatches.map((t, idx) => {
                 const kode = jntEscapeHtml(t.kodeTugas || '-');
                 const plat = jntEscapeHtml(t.platNomor || '-');
-                const rute = jntEscapeHtml(t.namaRute || t.trip || '-');
-                const tlc = jntEscapeHtml(t.tlc || '');
+                const fmtOpt = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                    ? JNTFirebaseService.formatRuteAndTLC(t)
+                    : { formattedTLC: t.tlc || '', ruteName: t.namaRute || t.trip || '-' };
+                const rute = jntEscapeHtml(fmtOpt.ruteName || '-');
+                const tlc = jntEscapeHtml(fmtOpt.formattedTLC || '');
                 const vShort = jntEscapeHtml(formatVendorShort(t.vendor));
                 const driver = jntEscapeHtml(t.driver1 || t.driver || '-');
                 const statusBadge = t._isActiveOnRoad
@@ -3525,7 +3532,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${statusBadge}
                         </div>
                         <div class="tr-opt-sub">
-                            <span>🗺️ ${rute}${tlc && tlc !== rute ? ' (' + tlc + ')' : ''}</span>
+                            <span>🗺️ ${tlc ? tlc + ' (' + rute + ')' : rute}</span>
                             <span>👤 ${driver}</span>
                         </div>
                     </div>
@@ -3799,7 +3806,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 dtTypeTag.className = isLaka ? 'incident-badge-type laka-type' : 'incident-badge-type trouble-type';
             }
 
-            if (dtRoute) dtRoute.textContent = incident.rute || incident.trip || '-';
+            const matchedIncDetail = activeIncomingMap[incident.kodeTugas] || {};
+            const fmtDetailRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                ? JNTFirebaseService.formatRuteAndTLC({ ...matchedIncDetail, ...incident })
+                : { formattedTLC: incident.tlc || '-', ruteName: incident.rute || incident.trip || '-' };
+            if (dtRoute) dtRoute.textContent = `${fmtDetailRute.formattedTLC} • ${fmtDetailRute.ruteName}`;
             if (dtWaktu) dtWaktu.textContent = incident.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(incident.waktuKejadian) : incident.waktuKejadian) : '-';
             if (dtLokasi) dtLokasi.textContent = incident.lokasiKejadian || incident.lokasi || '-';
             if (dtVendor) dtVendor.textContent = incident.vendor || 'J&T Express';
@@ -3948,8 +3959,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const vendorShort = formatVendorShort(item.vendor);
                     const safeId = jntEscapeHtml(item.id || item.incidentId || '');
                     const matchedTrip = activeIncomingMap[item.kodeTugas] || {};
-                    const resolvedTlc = item.tlc || matchedTrip.tlc || matchedTrip.trip || item.rute || '-';
-                    const resolvedRute = item.rute || matchedTrip.namaRute || matchedTrip.trip || '-';
+                    const fmtRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                        ? JNTFirebaseService.formatRuteAndTLC({ ...matchedTrip, ...item })
+                        : { formattedTLC: item.tlc || matchedTrip.tlc || '-', ruteName: item.rute || matchedTrip.namaRute || '-' };
+                    const resolvedTlc = fmtRute.formattedTLC || '-';
+                    const resolvedRute = fmtRute.ruteName || '-';
 
                     const fmtWaktuKejadian = item.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktuKejadian) : item.waktuKejadian) : '-';
                     return `
@@ -3957,9 +3971,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td class="col-center" style="font-weight: 600; color: #94A3B8;">${rowNum}</td>
                             <td><span class="time-main" style="font-size: 11.5px; font-weight: 700;">${jntEscapeHtml(fmtWaktuKejadian)}</span></td>
                             <td><span class="kode-tugas-mono font-bold">${jntEscapeHtml(item.kodeTugas || '-')}</span></td>
-                            <td style="text-align: center; min-width: 120px;">
-                                <div style="font-weight: 700; font-size: 11.5px; color: #38BDF8;">${jntEscapeHtml(resolvedTlc)}</div>
-                                <div style="margin-top: 2px;"><span class="sla-trip-pill" style="font-size: 10px;">${jntEscapeHtml(resolvedRute)}</span></div>
+                            <td style="text-align: center; min-width: 115px;">
+                                <div style="font-weight: 700; font-size: 12px; color: #2563EB;">${jntEscapeHtml(resolvedTlc)}</div>
+                                <div style="margin-top: 3px;"><span class="sla-trip-pill" style="font-size: 10.5px;">${jntEscapeHtml(resolvedRute)}</span></div>
                             </td>
                             <td>
                                 <div style="font-weight: 800; font-size: 12.5px;">${jntEscapeHtml(item.platNomor || '-')}</div>
@@ -5293,12 +5307,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             const targetH = JNTFirebaseService.resolveEffectiveTargetSLAHours
                                 ? JNTFirebaseService.resolveEffectiveTargetSLAHours(item)
                                 : (item.targetSLAHours || item.targetSLA || 16);
+                            const fmt = JNTFirebaseService.formatRuteAndTLC
+                                ? JNTFirebaseService.formatRuteAndTLC(item)
+                                : { formattedTLC: item.tlc || '', ruteName: item.trip || item.namaRute || '' };
                             return {
                                 'No': idx + 1,
                                 'Kode Tugas': item.kodeTugas || '',
                                 'Plat Nomor': item.platNomor || '',
-                                'Trip / Rute': item.trip || item.namaRute || '',
-                                'TLC': item.tlc || '',
+                                'TLC': fmt.formattedTLC || '',
+                                'Rute': fmt.ruteName || '',
                                 'Vendor': item.vendor || '',
                                 'Driver Utama': item.driver1 || '',
                                 'No HP Driver': item.driverPhone || '',
@@ -5316,19 +5333,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (targetModul === 'MONITORING' || targetModul === 'ALL') {
                         const monRaw = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
                         const monData = filterByDateRange(monRaw, i => i.jamBerangkat || i.lastUpdateTime || i.updatedAt);
-                        const rows = monData.map((item, idx) => ({
-                            'No': idx + 1,
-                            'Kode Tugas': item.kodeTugas || '',
-                            'Plat Nomor': item.platNomor || '',
-                            'Trip / Rute': item.trip || item.namaRute || '',
-                            'Vendor': item.vendor || '',
-                            'Driver Utama': item.driver1 || '',
-                            'Jam Berangkat': item.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.jamBerangkat) : item.jamBerangkat) : '',
-                            'Status Perjalanan': item.statusPerjalanan || '',
-                            'Update Terakhir': (item.lastUpdateTime || item.jamSampaiAktual) ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.lastUpdateTime || item.jamSampaiAktual) : (item.lastUpdateTime || item.jamSampaiAktual)) : '',
-                            'Posisi Terakhir': item.lastUpdateLokasi || item.lokasiSampai || '',
-                            'Input By': item.lastUpdateBy || item.inputBy || ''
-                        }));
+                        const rows = monData.map((item, idx) => {
+                            const fmt = JNTFirebaseService.formatRuteAndTLC
+                                ? JNTFirebaseService.formatRuteAndTLC(item)
+                                : { formattedTLC: item.tlc || '', ruteName: item.trip || item.namaRute || '' };
+                            return {
+                                'No': idx + 1,
+                                'Kode Tugas': item.kodeTugas || '',
+                                'Plat Nomor': item.platNomor || '',
+                                'TLC': fmt.formattedTLC || '',
+                                'Rute': fmt.ruteName || '',
+                                'Vendor': item.vendor || '',
+                                'Driver Utama': item.driver1 || '',
+                                'Jam Berangkat': item.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.jamBerangkat) : item.jamBerangkat) : '',
+                                'Status Perjalanan': item.statusPerjalanan || '',
+                                'Update Terakhir': (item.lastUpdateTime || item.jamSampaiAktual) ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.lastUpdateTime || item.jamSampaiAktual) : (item.lastUpdateTime || item.jamSampaiAktual)) : '',
+                                'Posisi Terakhir': item.lastUpdateLokasi || item.lokasiSampai || '',
+                                'Input By': item.lastUpdateBy || item.inputBy || ''
+                            };
+                        });
                         const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Monitoring' }]);
                         XLSX.utils.book_append_sheet(wb, ws, 'Monitoring_4H');
                     }
@@ -5336,18 +5359,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (targetModul === 'TROUBLE' || targetModul === 'ALL') {
                         const trRaw = JNTFirebaseService.getLocalStore('troubles') || [];
                         const trData = filterByDateRange(trRaw, i => i.waktuKejadian || i.createdAt);
-                        const rows = trData.map((item, idx) => ({
-                            'No': idx + 1,
-                            'Incident ID': item.incidentId || item.id || '',
-                            'Kode Tugas': item.kodeTugas || '',
-                            'Plat Nomor': item.platNomor || '',
-                            'Vendor': item.vendor || '',
-                            'Jenis Kejadian': item.jenis || item.kategoriTrouble || '',
-                            'Lokasi Kejadian': item.lokasiKejadian || '',
-                            'Waktu Kejadian': item.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktuKejadian) : item.waktuKejadian) : '',
-                            'Keterangan': item.deskripsi || item.keterangan || '',
-                            'Status': item.status || ''
-                        }));
+                        const rows = trData.map((item, idx) => {
+                            const matchedInc = activeIncomingMap[item.kodeTugas] || {};
+                            const fmt = JNTFirebaseService.formatRuteAndTLC
+                                ? JNTFirebaseService.formatRuteAndTLC({ ...matchedInc, ...item })
+                                : { formattedTLC: item.tlc || '', ruteName: item.rute || '' };
+                            return {
+                                'No': idx + 1,
+                                'Incident ID': item.incidentId || item.id || '',
+                                'Kode Tugas': item.kodeTugas || '',
+                                'TLC': fmt.formattedTLC || '',
+                                'Rute': fmt.ruteName || '',
+                                'Plat Nomor': item.platNomor || '',
+                                'Vendor': item.vendor || '',
+                                'Jenis Kejadian': item.jenis || item.kategoriTrouble || '',
+                                'Lokasi Kejadian': item.lokasiKejadian || '',
+                                'Waktu Kejadian': item.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktuKejadian) : item.waktuKejadian) : '',
+                                'Keterangan': item.deskripsi || item.keterangan || '',
+                                'Status': item.status || ''
+                            };
+                        });
                         const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Trouble' }]);
                         XLSX.utils.book_append_sheet(wb, ws, 'Trouble_Laka');
                     }

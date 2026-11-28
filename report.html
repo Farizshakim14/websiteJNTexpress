@@ -332,8 +332,7 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 45px; text-align: center;">No</th>
-                                        <th>Nama Rute / Trip</th>
-                                        <th>TLC</th>
+                                        <th style="text-align: center;">TLC / Rute</th>
                                         <th>Wilayah</th>
                                         <th style="text-align: center;">Total Trip</th>
                                         <th style="text-align: center;">On Time</th>
@@ -344,7 +343,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="9" style="text-align: center; color: #94A3B8; padding: 30px;">
+                                        <td colspan="8" style="text-align: center; color: #94A3B8; padding: 30px;">
                                             Memuat data SLA...</td>
                                     </tr>
                                 </tbody>
@@ -472,6 +471,7 @@
                                     <tr>
                                         <th style="width: 45px; text-align: center;">No</th>
                                         <th>Kode Tugas</th>
+                                        <th style="text-align: center;">TLC / Rute</th>
                                         <th>Jenis Kejadian</th>
                                         <th>Lokasi Kejadian</th>
                                         <th>Waktu Kejadian</th>
@@ -481,7 +481,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="7" style="text-align: center; color: #94A3B8; padding: 30px;">
+                                        <td colspan="8" style="text-align: center; color: #94A3B8; padding: 30px;">
                                             Memuat data incident...</td>
                                     </tr>
                                 </tbody>
@@ -1695,10 +1695,17 @@
                     ? `<div class="excel-preview-driver2-text">Cad: <strong>${r.driver2}</strong> ${d2PhoneFormatted ? '<span class="excel-preview-cad-phone">(' + d2PhoneFormatted + ')</span>' : ''}</div>`
                     : '';
 
+                const fmtPreviewRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                    ? JNTFirebaseService.formatRuteAndTLC(r)
+                    : { formattedTLC: r.tlc || r.trip || '-', ruteName: r.trip || '-' };
+
                 return `<tr>
                     <td style="text-align: center; font-weight: 600;" class="excel-preview-num-cell">${i + 1}</td>
                     <td><strong style="color: #E30613; font-family: monospace;">${r.kodeTugas}</strong>${slotBadge}${sheetBadge}</td>
-                    <td><strong class="excel-preview-trip-title">${r.trip}</strong> ${r.tlc ? '<span class="sla-trip-pill">' + r.tlc + '</span>' : ''}</td>
+                    <td style="text-align: center; min-width: 115px;">
+                        <div style="font-weight: 700; font-size: 12px; color: #2563EB;">${fmtPreviewRute.formattedTLC}</div>
+                        <div style="margin-top: 3px;"><span class="sla-trip-pill" style="font-size: 10.5px;">${fmtPreviewRute.ruteName}</span></div>
+                    </td>
                     <td>
                         <span class="excel-preview-vendor-badge">
                             ${vendorShort}
@@ -1911,12 +1918,14 @@
                     else if (isOnTime) ontime++;
                     if (isCompleted || isLate) completedTotal++;
 
-                    const route = item.trip || item.namaRute || item.tlc || 'Rute Lainnya';
-                    if (!routeStats[route]) {
-                        const tlcCode = (item.tlc || route.split(/\s+/)[0] || '-').toUpperCase();
-                        routeStats[route] = {
-                            route,
-                            tlc: tlcCode,
+                    const fmt = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                        ? JNTFirebaseService.formatRuteAndTLC(item)
+                        : { formattedTLC: item.tlc || item.trip || '-', ruteName: item.namaRute || item.trip || '-' };
+                    const groupKey = `${fmt.formattedTLC}|${fmt.ruteName}`;
+                    if (!routeStats[groupKey]) {
+                        routeStats[groupKey] = {
+                            route: fmt.ruteName,
+                            tlc: fmt.formattedTLC,
                             wilayah: item.wilayah || 'JKT999',
                             total: 0,
                             ontime: 0,
@@ -1924,9 +1933,9 @@
                             targetSLA: targetH + ' Jam'
                         };
                     }
-                    routeStats[route].total++;
-                    if (isOnTime) routeStats[route].ontime++;
-                    if (isLate) routeStats[route].late++;
+                    routeStats[groupKey].total++;
+                    if (isOnTime) routeStats[groupKey].ontime++;
+                    if (isLate) routeStats[groupKey].late++;
                 });
 
                 const totalElem = document.getElementById('rep-kpi-total-trip');
@@ -1958,8 +1967,10 @@
                         const acc = r.total > 0 ? Math.round(((r.total - r.late) / r.total) * 100) : 100;
                         return `<tr>
                             <td style="text-align: center; font-weight: 600;" class="excel-preview-num-cell">${i + 1}</td>
-                            <td><strong class="excel-preview-trip-title">${r.route}</strong></td>
-                            <td><span class="sla-trip-pill">${r.tlc}</span></td>
+                            <td style="text-align: center; min-width: 115px;">
+                                <div style="font-weight: 700; font-size: 12px; color: #2563EB;">${r.tlc}</div>
+                                <div style="margin-top: 3px;"><span class="sla-trip-pill" style="font-size: 10.5px;">${r.route}</span></div>
+                            </td>
                             <td>${r.wilayah}</td>
                             <td style="text-align: center; font-weight: 700;">${r.total}</td>
                             <td style="text-align: center;"><span style="color:#16A34A; font-weight:700;">${r.ontime}</span></td>
@@ -1969,7 +1980,7 @@
                         </tr>`;
                     });
                     if (rows.length > 0) tbody.innerHTML = rows.join('');
-                    else tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada data perjalanan SLA yang sesuai filter.</td></tr>`;
+                    else tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada data perjalanan SLA yang sesuai filter.</td></tr>`;
                 }
             };
 
@@ -2111,11 +2122,18 @@
                         if (st === 'COMPLETED' || st === 'SUDAH SELESAI') { badgeBg = '#ECFDF5'; badgeColor = '#059669'; }
                         else if (st === 'KENDALA') { badgeBg = '#FEF2F2'; badgeColor = '#DC2626'; }
 
+                        const fmtMonRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                            ? JNTFirebaseService.formatRuteAndTLC(m)
+                            : { formattedTLC: m.tlc || m.trip || '-', ruteName: m.namaRute || m.trip || '-' };
+
                         return `<tr>
                             <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
                             <td><strong style="font-family: monospace; color: #E30613;">${m.kodeTugas}</strong></td>
                             <td><strong>${m.platNomor || '-'}</strong></td>
-                            <td>${m.trip || m.namaRute || '-'}</td>
+                            <td style="text-align: center; min-width: 115px;">
+                                <div style="font-weight: 700; font-size: 12px; color: #2563EB;">${fmtMonRute.formattedTLC}</div>
+                                <div style="margin-top: 3px;"><span class="sla-trip-pill" style="font-size: 10.5px;">${fmtMonRute.ruteName}</span></div>
+                            </td>
                             <td><strong style="color: #38BDF8; font-weight: 800; font-size: 11.5px;">${(typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatVendorShort) ? JNTFirebaseService.formatVendorShort(m.vendor) : (m.vendor || '-')}</strong></td>
                             <td><span style="color:#16A34A;font-weight:700;">🟢 ${m.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(m.jamBerangkat) : m.jamBerangkat) : '-'}</span></td>
                             <td style="font-size: 11.5px; color: #64748B;">${(m.lastUpdateTime || m.jamSampaiAktual) ? (window.jntFormatDateTime ? window.jntFormatDateTime(m.lastUpdateTime || m.jamSampaiAktual) : (m.lastUpdateTime || m.jamSampaiAktual)) : '-'} (${m.lastUpdateLokasi || m.lokasiSampai || '-'})</td>
@@ -2171,9 +2189,19 @@
                         const jenisLabel = (t.kategoriTrouble && t.kategoriTrouble !== t.jenis && (t.jenis === 'Trouble' || t.jenis === 'Laka'))
                             ? `${t.jenis} — ${t.kategoriTrouble}`
                             : (t.jenis || t.kategoriTrouble || 'Kendala');
+                        const matchedTrip = (_latestSlaList || []).find(s => (s.kodeTugas || s.id) === t.kodeTugas)
+                            || (_latestMonList || []).find(m => (m.kodeTugas || m.id) === t.kodeTugas)
+                            || {};
+                        const fmtTrbRute = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatRuteAndTLC)
+                            ? JNTFirebaseService.formatRuteAndTLC({ ...matchedTrip, ...t })
+                            : { formattedTLC: t.tlc || '-', ruteName: t.rute || '-' };
                         return `<tr>
                             <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
                             <td><strong style="font-family: monospace;">${t.kodeTugas || '-'}</strong></td>
+                            <td style="text-align: center; min-width: 115px;">
+                                <div style="font-weight: 700; font-size: 12px; color: #2563EB;">${fmtTrbRute.formattedTLC}</div>
+                                <div style="margin-top: 3px;"><span class="sla-trip-pill" style="font-size: 10.5px;">${fmtTrbRute.ruteName}</span></div>
+                            </td>
                             <td><strong>${jenisLabel}</strong></td>
                             <td>${t.lokasiKejadian || '-'}</td>
                             <td style="font-size: 11.5px; color: #64748B;">${t.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(t.waktuKejadian) : t.waktuKejadian) : '-'}</td>
@@ -2186,7 +2214,7 @@
                         </tr>`;
                     });
                     if (rows.length > 0) tbody.innerHTML = rows.join('');
-                    else tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada laporan trouble &amp; laka.</td></tr>`;
+                    else tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada laporan trouble &amp; laka.</td></tr>`;
                 }
 
                 renderOperatorPerformanceReport();

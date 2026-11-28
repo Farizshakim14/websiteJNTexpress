@@ -3553,6 +3553,131 @@ const JNTFirebaseService = {
     },
 
     /**
+     * Format Rute & TLC Singkat Standar J&T Express:
+     * - formattedTLC: "<KODE_3_HURUF> <JENIS_ARMADA>" (contoh: "TKG FUSO", "SRG FUSO", "SRG CDD")
+     * - ruteName: "<NAMA_KOTA_SINGKAT>" (contoh: "LAMPUNG", "SEMARANG", "SERANG")
+     */
+    formatRuteAndTLC(item) {
+        if (!item) return { ruteName: '-', formattedTLC: '-', fleetType: 'FUSO', cityCode: 'SEG' };
+
+        const JNT_CITY_MAP = {
+            'SEG': 'SERANG', 'TKG': 'LAMPUNG', 'SRG': 'SEMARANG', 'BDO': 'BANDUNG',
+            'BDG': 'BANDUNG', 'PLM': 'PALEMBANG', 'SOC': 'SOLO', 'JOG': 'YOGYAKARTA',
+            'PMH': 'PRABUMULIH', 'SUB': 'SURABAYA', 'BKS': 'BENGKULU', 'DJB': 'JAMBI',
+            'LLG': 'LUBUKLINGGAU', 'PKU': 'PEKANBARU', 'PDG': 'PADANG', 'RPT': 'RANTAUPRAPAT',
+            'MES': 'MEDAN', 'BTJ': 'ACEH', 'GSK': 'GRESIK', 'TGR': 'TANGERANG',
+            'DPK': 'DEPOK', 'BGR': 'BOGOR', 'BKI': 'BEKASI', 'CKR': 'CIKARANG',
+            'JAT': 'JAT', 'SMI': 'SUKABUMI', 'TSK': 'TASIKMALAYA', 'TSM': 'TASIKMALAYA',
+            'CRN': 'CIREBON', 'CBN': 'CIREBON', 'CKP': 'CIKAMPEK', 'PTI': 'PATI',
+            'PWO': 'PURWOKERTO', 'PWT': 'PURWOKERTO', 'MDN': 'MADIUN', 'KDR': 'KEDIRI',
+            'MLG': 'MALANG', 'TGL': 'TEGAL', 'BAL': 'BALARAJA', 'DPS': 'BALI',
+            'WRG': 'WARINGIN', 'SDP': 'SDP', 'JBR': 'JEMBER', 'MDR': 'MADURA',
+            'PRO': 'PROBOLINGGO', 'LMG': 'LAMONGAN', 'BTN': 'BANTEN', 'CIM': 'CIMAHI'
+        };
+
+        const JNT_NAME_MAP = {
+            'SERANG': 'SEG', 'LAMPUNG': 'TKG', 'SEMARANG': 'SRG', 'BANDUNG': 'BDO',
+            'PALEMBANG': 'PLM', 'SOLO': 'SOC', 'SURAKARTA': 'SOC', 'YOGYAKARTA': 'JOG',
+            'JOGJA': 'JOG', 'YOGYA': 'JOG', 'PRABUMULIH': 'PMH', 'SURABAYA': 'SUB',
+            'BENGKULU': 'BKS', 'JAMBI': 'DJB', 'LUBUKLINGGAU': 'LLG', 'PEKANBARU': 'PKU',
+            'PADANG': 'PDG', 'RANTAUPRAPAT': 'RPT', 'MEDAN': 'MES', 'ACEH': 'BTJ',
+            'GRESIK': 'GSK', 'TANGERANG': 'TGR', 'DEPOK': 'DPK', 'BOGOR': 'BGR',
+            'BEKASI': 'BKI', 'CIKARANG': 'CKR', 'JAT': 'JAT', 'SUKABUMI': 'SMI',
+            'TASIKMALAYA': 'TSK', 'TASIK': 'TSK', 'CIREBON': 'CRN', 'CIKAMPEK': 'CKP',
+            'PATI': 'PTI', 'PURWOKERTO': 'PWO', 'MADIUN': 'MDN', 'KEDIRI': 'KDR',
+            'MALANG': 'MLG', 'TEGAL': 'TGL', 'BALARAJA': 'BAL', 'BALI': 'DPS',
+            'DENPASAR': 'DPS', 'WARINGIN': 'WRG', 'SDP': 'SDP', 'JEMBER': 'JBR',
+            'MADURA': 'MDR', 'PROBOLINGGO': 'PRO', 'LAMONGAN': 'LMG', 'BANTEN': 'BTN',
+            'CIMAHI': 'CIM'
+        };
+
+        const rawCombined = [
+            item.trip || '', item.namaRute || '', item.rute || '', item.tlc || '', item.layanan || ''
+        ].join(' ').toUpperCase();
+        const rawJenis = [
+            item.jenisMobil || '', item.jenisArmada || '', item.tipeKendaraan || '', item.tripType || '', rawCombined
+        ].join(' ').toUpperCase();
+
+        let fleetType = 'FUSO';
+        if (rawJenis.includes('CDD') || rawJenis.includes('ENGKEL') || rawJenis.includes('BOX') || rawJenis.includes('SMALL')) {
+            fleetType = 'CDD';
+        } else if (rawJenis.includes('KONTAINER') || rawJenis.includes('CONTAINER')) {
+            fleetType = 'KONTAINER';
+        }
+
+        let cityCode = '';
+        let ruteName = '';
+
+        for (const [cityName, code] of Object.entries(JNT_NAME_MAP)) {
+            if (rawCombined.includes(cityName)) {
+                cityCode = code;
+                ruteName = JNT_CITY_MAP[code] || cityName;
+                break;
+            }
+        }
+
+        if (!ruteName) {
+            const words = rawCombined.split(/[\s\-_/\\,().]+/).filter(Boolean);
+            for (const w of words) {
+                if (JNT_CITY_MAP[w]) {
+                    cityCode = w === 'BDG' ? 'BDO' : w;
+                    ruteName = JNT_CITY_MAP[w];
+                    break;
+                }
+            }
+        }
+
+        if (!ruteName) {
+            const rawRute = String(item.trip || item.namaRute || item.rute || '').trim();
+            if (rawRute.includes('-')) {
+                const parts = rawRute.split('-').map(p => p.trim());
+                const dest = parts[parts.length - 1].toUpperCase();
+                const cleanDest = dest.replace(/\b(CDD|FUSO|KONTAINER)\b/g, '').trim();
+                if (cleanDest) {
+                    ruteName = JNT_CITY_MAP[cleanDest] || cleanDest;
+                    cityCode = JNT_NAME_MAP[ruteName] || cleanDest.substring(0, 3);
+                }
+            }
+        }
+
+        if (!ruteName) {
+            const rawRute = String(item.trip || item.namaRute || item.rute || item.tlc || '').toUpperCase().trim();
+            const clean = rawRute.replace(/\b(CDD|FUSO|KONTAINER|JAKARTA|JKT|JKT999)\b/g, '').replace(/[\-\s()]+/g, ' ').trim();
+            if (clean.length > 0) {
+                const firstTok = clean.split(' ')[0];
+                cityCode = JNT_NAME_MAP[firstTok] || firstTok.substring(0, 3);
+                ruteName = JNT_CITY_MAP[cityCode] || firstTok;
+            } else {
+                cityCode = 'SEG';
+                ruteName = 'SERANG';
+            }
+        }
+
+        ruteName = ruteName.replace(/\b(CDD|FUSO|KONTAINER)\b/g, '').trim();
+        if (JNT_CITY_MAP[ruteName]) {
+            cityCode = ruteName === 'BDG' ? 'BDO' : ruteName;
+            ruteName = JNT_CITY_MAP[ruteName];
+        }
+        if (!cityCode && JNT_NAME_MAP[ruteName]) {
+            cityCode = JNT_NAME_MAP[ruteName];
+        }
+        if (!cityCode) {
+            cityCode = ruteName.substring(0, 3).toUpperCase();
+        }
+
+        let formattedTLC = `${cityCode} ${fleetType}`;
+        const existingTLC = String(item.tlc || '').toUpperCase().trim();
+        if (existingTLC.includes('CDD') || existingTLC.includes('FUSO') || existingTLC.includes('KONTAINER')) {
+            const cleanTlcWord = existingTLC.split(/[\s\-_]+/)[0];
+            if (JNT_CITY_MAP[cleanTlcWord] || JNT_NAME_MAP[cleanTlcWord]) {
+                formattedTLC = existingTLC;
+            }
+        }
+
+        return { ruteName, formattedTLC, fleetType, cityCode };
+    },
+
+    /**
      * Resolusi Target SLA Resmi J&T Express berdasarkan Rute / TLC / Jenis Armada.
      * Memperbaiki data trip dari Excel yang nilai TARGET SLA-nya #N/A atau terisi fallback generik 16 jam
      * padahal rutenya jarak jauh (misal MEDAN 71j, PEKANBARU 54j, PALEMBANG 19.67j, YOGYAKARTA FUSO 20j).
@@ -7404,6 +7529,7 @@ const JNTFirebaseService = {
 window.JNTFirebaseService = JNTFirebaseService;
 window.jntFormatDateTime = (val) => JNTFirebaseService.formatStandardDateTime(val);
 window.jntParseDate = (val) => JNTFirebaseService.parseStandardDate(val);
+window.jntFormatRuteAndTLC = (item) => JNTFirebaseService.formatRuteAndTLC(item);
 
 // Network State & Auto-Retry Listeners
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
