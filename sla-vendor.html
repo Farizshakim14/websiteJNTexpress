@@ -446,6 +446,7 @@
                         <table class="sla-enterprise-table" id="table-sla-outbound">
                             <thead>
                                 <tr>
+                                    <th style="width: 45px; text-align: center;">No</th>
                                     <th>Kode Tugas</th>
                                     <th style="text-align: center;">TLC / RUTE</th>
                                     <th>Plat Nomor</th>
@@ -526,6 +527,7 @@
                         <table class="sla-enterprise-table" id="table-sla-return">
                             <thead>
                                 <tr>
+                                    <th style="width: 45px; text-align: center;">No</th>
                                     <th>Kode Balikan</th>
                                     <th>Kode Asal</th>
                                     <th>Berangkat Gateway</th>
@@ -1496,10 +1498,10 @@
             });
             var newKeys = new Set();
             list.forEach(function (item, idx) {
-                var key = getKey(item);
+                var key = getKey(item, idx);
                 newKeys.add(key);
-                var attrs = getRowAttrs ? getRowAttrs(item) : {};
-                var newHash = getContentHash ? String(getContentHash(item)) : key;
+                var attrs = getRowAttrs ? getRowAttrs(item, idx) : {};
+                var newHash = getContentHash ? String(getContentHash(item, idx)) : key;
                 if (existingRows.has(key)) {
                     var existingTr = existingRows.get(key);
                     // Update data-sla-* attrs untuk countdown engine
@@ -1509,12 +1511,12 @@
                     // Re-render HTML hanya jika data statik berubah (hash berbeda)
                     var curHash = existingTr.getAttribute('data-content-hash') || '';
                     if (curHash !== newHash) {
-                        existingTr.innerHTML = buildRowFn(item);
+                        existingTr.innerHTML = buildRowFn(item, idx);
                         existingTr.setAttribute('data-content-hash', newHash);
                     }
                     if (tbody.children[idx] !== existingTr) tbody.insertBefore(existingTr, tbody.children[idx] || null);
                 } else {
-                    var newHTML = buildRowFn(item);
+                    var newHTML = buildRowFn(item, idx);
                     var tr = document.createElement('tr');
                     tr.setAttribute('data-row-key', key);
                     tr.setAttribute('data-content-hash', newHash);
@@ -1752,7 +1754,7 @@
         }
 
         // ── ROW BUILDERS ──────────────────────────────────────────────────────
-        function buildOutboundRowHTML(i) {
+        function buildOutboundRowHTML(i, rowNum) {
             var targetHours = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.resolveEffectiveTargetSLAHours)
                 ? JNTFirebaseService.resolveEffectiveTargetSLAHours(i)
                 : (i.targetSLAHours || 16);
@@ -1800,7 +1802,8 @@
                 ? '<button type="button" class="btn-sla-action btn-sla-info" onclick="window.openSLAInfoModal(\'' + safeOutKodeJs + '\', false)" title="Lihat Detail Data &amp; Foto Bukti Sampai">&#8505;&#65039; Info</button>'
                 : '';
 
-            return '<td><span class="kode-tugas-mono">' + (i.kodeTugas || '-') + '</span></td>' +
+            return '<td style="text-align:center; font-weight:700; color:#64748B;">' + (rowNum || 1) + '</td>' +
+                '<td><span class="kode-tugas-mono">' + (i.kodeTugas || '-') + '</span></td>' +
                 '<td style="text-align:center; min-width:115px;">' +
                 '<div style="font-weight:700;font-size:12px;color:#2563EB;">' + (fmt.formattedTLC || '-') + '</div>' +
                 '<div style="margin-top:3px;"><span class="sla-trip-pill" style="font-size:10.5px;">' + (fmt.ruteName || '-') + '</span></div>' +
@@ -1825,7 +1828,7 @@
                 '</div></td>';
         }
 
-        function buildReturnRowHTML(i) {
+        function buildReturnRowHTML(i, rowNum) {
             var isLate = Number(i.totalTelatMinutes) > 0;
             var kodeBalikan = i.kodeTugasBalikan || i.kodeBalikan || i.kodeTugas || '-';
             var safeRetKodeJs = String(kodeBalikan).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -1861,7 +1864,8 @@
                 ? ((typeof window.jntFormatDateTime === 'function' ? window.jntFormatDateTime(rawDep) : rawDep) || rawDep)
                 : '-';
 
-            return '<td><strong style="color:#2563EB; font-family:monospace; font-size:12.5px;">' + kodeBalikan + '</strong></td>' +
+            return '<td style="text-align:center; font-weight:700; color:#64748B;">' + (rowNum || 1) + '</td>' +
+                '<td><strong style="color:#2563EB; font-family:monospace; font-size:12.5px;">' + kodeBalikan + '</strong></td>' +
                 '<td><span style="font-family:monospace; font-weight:600; color:#94A3B8;">' + kodeAsal + '</span></td>' +
                 '<td>' + depDisplay + '</td>' +
                 '<td>' + arrivalDisplay + '</td>' +
@@ -2224,7 +2228,7 @@
                 var tbodyOut = document.querySelector('#table-sla-outbound tbody');
                 if (tbodyOut) {
                     if (filteredOut.length === 0) {
-                        tbodyOut.innerHTML = '<tr><td colspan="16" style="text-align:center; padding:36px; color:#94A3B8;">' +
+                        tbodyOut.innerHTML = '<tr><td colspan="17" style="text-align:center; padding:36px; color:#94A3B8;">' +
                             '<div style="font-size:32px; margin-bottom:8px;">🚚💨</div>' +
                             '<strong style="font-size:14px; color:#F1F5F9;">Tidak ada perjalanan armada yang cocok dengan filter.</strong><br>' +
                             '<span style="font-size:12px; color:#94A3B8;">Klik tombol &ldquo;Reset&rdquo; atau &ldquo;Input Keberangkatan&rdquo; untuk mencatat armada baru.</span>' +
@@ -2232,15 +2236,15 @@
                     } else {
                         smartUpdateTbody(tbodyOut, pageDataOut,
                             function (i, idx) { return i.kodeTugas || i.id || ('ROW-' + idx); },
-                            buildOutboundRowHTML,
+                            function (i, idx) { return buildOutboundRowHTML(i, startOut + idx + 1); },
                             function (i) { 
                                 var cleanArr = (i.jamSampaiAktual && !/^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(String(i.jamSampaiAktual).trim())) ? i.jamSampaiAktual.trim() : '';
                                 return { 'data-sla-departure': i.jamBerangkat || '', 'data-sla-hours': i.targetSLAHours || 16, 'data-sla-arrival': cleanArr }; 
                             },
-                            function (i) {
+                            function (i, idx) {
                                 var fmt = formatRuteAndTLC(i);
                                 var hasPhotoFlag = (i.fotoSampai || i.hasFotoSampai) ? '1' : '0';
-                                return (i.kodeTugas || '') + '|' + (fmt.formattedTLC || '') + '|' + (fmt.ruteName || '') + '|' +
+                                return (startOut + idx + 1) + '|' + (i.kodeTugas || '') + '|' + (fmt.formattedTLC || '') + '|' + (fmt.ruteName || '') + '|' +
                                     (i.jamBerangkat || '') + '|' + (i.targetSLAHours || 16) + '|' + (i.jamSampaiAktual || '') + '|' +
                                     (i.totalAwb || '') + '|' + (i.statusSla || '') + '|' + (i.vendor || '') + '|' + (i.platNomor || '') + '|' +
                                     (i.driver1 || '') + '|' + (i.driverPhone || '') + '|' + (i.driver2 || '') + '|' + (i.driver2Phone || '') + '|' +
@@ -2254,7 +2258,7 @@
             var tbodyRet = document.querySelector('#table-sla-return tbody');
             if (tbodyRet) {
                 if (filteredRet.length === 0) {
-                    tbodyRet.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:36px; color:#94A3B8;">' +
+                    tbodyRet.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:36px; color:#94A3B8;">' +
                         '<div style="font-size:32px; margin-bottom:8px;">🔄</div>' +
                         '<strong style="font-size:14px; color:#F1F5F9;">Belum ada perjalanan balikan untuk sheet vendor ini.</strong><br>' +
                         '<span style="font-size:12px; color:#94A3B8;">Klik tombol &ldquo;Input Perjalanan Balikan&rdquo; untuk mencatat armada pulang ke JKT999.</span>' +
@@ -2262,11 +2266,11 @@
                 } else {
                     smartUpdateTbody(tbodyRet, pageDataRet,
                         function (i, idx) { return i.kodeTugasBalikan || i.kodeTugasAsal || i.id || ('ROW-' + idx); },
-                        buildReturnRowHTML,
+                        function (i, idx) { return buildReturnRowHTML(i, startRet + idx + 1); },
                         null,
-                        function (i) {
+                        function (i, idx) {
                             var hasPhotoFlag = (i.fotoSampai || i.hasFotoSampai) ? '1' : '0';
-                            return (i.kodeTugasBalikan || '') + '|' + (i.kodeTugasAsal || '') + '|' +
+                            return (startRet + idx + 1) + '|' + (i.kodeTugasBalikan || '') + '|' + (i.kodeTugasAsal || '') + '|' +
                                 (i.jamBerangkatGateway || '') + '|' + (i.jamSampaiJKT999 || '') + '|' +
                                 (i.totalAwb || '') + '|' + (i.statusBalikan || '') + '|' + (i.alasan || '') + '|' +
                                 (i.driver1 || '') + '|' + (i.driverPhone || '') + '|' +
