@@ -345,113 +345,116 @@
                     <div class="collapsible-section-body">
                         <div class="inc-kpi-grid" id="mon-section-kpi-cards"
                             style="margin-bottom: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                    <!-- Card 1: SLOT AKTIF -->
-                    <div class="inc-kpi-card"
-                        style="border-left: 4px solid #3B82F6; background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-                        <div class="inc-kpi-icon-circle blue-light"
-                            style="background: #EFF6FF; color: #2563EB; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                style="width: 22px; height: 22px;">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                        </div>
-                        <div class="inc-kpi-info" style="margin-top: 12px;">
-                            <span class="inc-kpi-label"
-                                style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">SLOT
-                                AKTIF SAAT INI</span>
-                            <div class="inc-kpi-val-row" style="margin-top: 4px;">
-                                <span class="inc-kpi-number" id="lbl-active-slot-time"
-                                    style="font-size: 20px; font-weight: 800; color: #1E40AF;">—</span>
+                            <!-- Card 1: SLOT AKTIF -->
+                            <div class="inc-kpi-card"
+                                style="border-left: 4px solid #3B82F6; background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                <div class="inc-kpi-icon-circle blue-light"
+                                    style="background: #EFF6FF; color: #2563EB; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                        style="width: 22px; height: 22px;">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="inc-kpi-info" style="margin-top: 12px;">
+                                    <span class="inc-kpi-label"
+                                        style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">SLOT
+                                        AKTIF SAAT INI</span>
+                                    <div class="inc-kpi-val-row" style="margin-top: 4px;">
+                                        <span class="inc-kpi-number" id="lbl-active-slot-time"
+                                            style="font-size: 20px; font-weight: 800; color: #1E40AF;">—</span>
+                                    </div>
+                                    <span class="inc-kpi-sub"
+                                        style="font-size: 11.5px; color: #2563EB; font-weight: 600;">Waktu
+                                        Lokal WIB</span>
+                                </div>
                             </div>
-                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #2563EB; font-weight: 600;">Waktu
-                                Lokal WIB</span>
-                        </div>
-                    </div>
 
-                    <!-- Card 2: TOTAL ARMADA -->
-                    <div class="inc-kpi-card"
-                        style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
-                        <div class="inc-kpi-icon-circle red-light"
-                            style="background: #FEF2F2; color: #E30613; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                style="width: 22px; height: 22px;">
-                                <path d="M1 3h15v13H1z"></path>
-                                <path d="M16 8h4l3 3v5h-7V8z"></path>
-                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                            </svg>
-                        </div>
-                        <div class="inc-kpi-info" style="margin-top: 12px;">
-                            <span class="inc-kpi-label"
-                                style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">TOTAL
-                                ARMADA (DITAMPILKAN)</span>
-                            <div class="inc-kpi-val-row"
-                                style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
-                                <span class="inc-kpi-number" id="kpi-total-armada"
-                                    style="font-size: 24px; font-weight: 800; color: #0F172A;">0</span>
-                                <span class="inc-kpi-unit"
-                                    style="font-size: 12px; color: #64748B; font-weight: 600;">Unit</span>
+                            <!-- Card 2: TOTAL ARMADA -->
+                            <div class="inc-kpi-card"
+                                style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
+                                <div class="inc-kpi-icon-circle red-light"
+                                    style="background: #FEF2F2; color: #E30613; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                        style="width: 22px; height: 22px;">
+                                        <path d="M1 3h15v13H1z"></path>
+                                        <path d="M16 8h4l3 3v5h-7V8z"></path>
+                                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                    </svg>
+                                </div>
+                                <div class="inc-kpi-info" style="margin-top: 12px;">
+                                    <span class="inc-kpi-label"
+                                        style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">TOTAL
+                                        ARMADA (DITAMPILKAN)</span>
+                                    <div class="inc-kpi-val-row"
+                                        style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                        <span class="inc-kpi-number" id="kpi-total-armada"
+                                            style="font-size: 24px; font-weight: 800; color: #0F172A;">0</span>
+                                        <span class="inc-kpi-unit"
+                                            style="font-size: 12px; color: #64748B; font-weight: 600;">Unit</span>
+                                    </div>
+                                    <span class="inc-kpi-sub" style="font-size: 11.5px; color: #64748B;">Dari <span
+                                            id="kpi-total-all">0</span> total data</span>
+                                </div>
                             </div>
-                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #64748B;">Dari <span
-                                    id="kpi-total-all">0</span> total data</span>
-                        </div>
-                    </div>
 
-                    <!-- Card 3: SUDAH UPDATE -->
-                    <div class="inc-kpi-card"
-                        style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
-                        <div class="inc-kpi-icon-circle green-light"
-                            style="background: #F0FDF4; color: #16A34A; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                style="width: 22px; height: 22px;">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                        </div>
-                        <div class="inc-kpi-info" style="margin-top: 12px;">
-                            <span class="inc-kpi-label"
-                                style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">🟢
-                                SUDAH UPDATE (SLOT AKTIF)</span>
-                            <div class="inc-kpi-val-row"
-                                style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
-                                <span class="inc-kpi-number" id="kpi-sudah-update"
-                                    style="font-size: 24px; font-weight: 800; color: #16A34A;">0</span>
-                                <span class="inc-kpi-unit"
-                                    style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
+                            <!-- Card 3: SUDAH UPDATE -->
+                            <div class="inc-kpi-card"
+                                style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
+                                <div class="inc-kpi-icon-circle green-light"
+                                    style="background: #F0FDF4; color: #16A34A; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                        style="width: 22px; height: 22px;">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="inc-kpi-info" style="margin-top: 12px;">
+                                    <span class="inc-kpi-label"
+                                        style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">🟢
+                                        SUDAH UPDATE (SLOT AKTIF)</span>
+                                    <div class="inc-kpi-val-row"
+                                        style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                        <span class="inc-kpi-number" id="kpi-sudah-update"
+                                            style="font-size: 24px; font-weight: 800; color: #16A34A;">0</span>
+                                        <span class="inc-kpi-unit"
+                                            style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
+                                    </div>
+                                    <span class="inc-kpi-sub"
+                                        style="font-size: 11.5px; color: #16A34A; font-weight: 600;">Tepat
+                                        Waktu</span>
+                                </div>
                             </div>
-                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #16A34A; font-weight: 600;">Tepat
-                                Waktu</span>
-                        </div>
-                    </div>
 
-                    <!-- Card 4: BELUM UPDATE -->
-                    <div class="inc-kpi-card"
-                        style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1.5px solid #FCD34D;">
-                        <div class="inc-kpi-icon-circle orange-light"
-                            style="background: #FFFBEB; color: #D97706; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                style="width: 22px; height: 22px;">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                        </div>
-                        <div class="inc-kpi-info" style="margin-top: 12px;">
-                            <span class="inc-kpi-label"
-                                style="font-size: 11px; font-weight: 700; color: #D97706; letter-spacing: 0.5px;">🟡
-                                BELUM UPDATE (SLOT AKTIF)</span>
-                            <div class="inc-kpi-val-row"
-                                style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
-                                <span class="inc-kpi-number" id="kpi-belum-update"
-                                    style="font-size: 24px; font-weight: 800; color: #D97706;">0</span>
-                                <span class="inc-kpi-unit"
-                                    style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
+                            <!-- Card 4: BELUM UPDATE -->
+                            <div class="inc-kpi-card"
+                                style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1.5px solid #FCD34D;">
+                                <div class="inc-kpi-icon-circle orange-light"
+                                    style="background: #FFFBEB; color: #D97706; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                        style="width: 22px; height: 22px;">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="inc-kpi-info" style="margin-top: 12px;">
+                                    <span class="inc-kpi-label"
+                                        style="font-size: 11px; font-weight: 700; color: #D97706; letter-spacing: 0.5px;">🟡
+                                        BELUM UPDATE (SLOT AKTIF)</span>
+                                    <div class="inc-kpi-val-row"
+                                        style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                        <span class="inc-kpi-number" id="kpi-belum-update"
+                                            style="font-size: 24px; font-weight: 800; color: #D97706;">0</span>
+                                        <span class="inc-kpi-unit"
+                                            style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
+                                    </div>
+                                    <span class="inc-kpi-sub"
+                                        style="font-size: 11.5px; color: #D97706; font-weight: 600;">Perlu
+                                        Check-In</span>
+                                </div>
                             </div>
-                            <span class="inc-kpi-sub" style="font-size: 11.5px; color: #D97706; font-weight: 600;">Perlu
-                                Check-In</span>
                         </div>
-                    </div>
-                </div>
 
                         <!-- Info Banner (ringkas) -->
                         <div class="inc-info-banner" id="mon-section-info-banner"
@@ -460,8 +463,10 @@
                                 style="background-color: #2563EB; color: #FFFFFF; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; font-size: 13px;">
                                 ℹ</div>
                             <div style="color: #1E3A8A; font-size: 12px; line-height: 1.4;">
-                                <strong style="color: #1E40AF;">Cara Check-in:</strong> Input posisi armada setiap 4 jam. Slot:
-                                00-04 | 04-08 | 08-12 | 12-16 | 16-20 | 20-24. Kendala darurat → pilih status 🚨 Trouble/Laka.
+                                <strong style="color: #1E40AF;">Cara Check-in:</strong> Input posisi armada setiap 4
+                                jam. Slot:
+                                00-04 | 04-08 | 08-12 | 12-16 | 16-20 | 20-24. Kendala darurat → pilih status 🚨
+                                Trouble/Laka.
                             </div>
                         </div>
                     </div>
@@ -642,7 +647,8 @@
                     <!-- Bottom Summary & Legend Panels (Below Table - Collapsible) -->
                     <div class="collapsible-section-wrapper" id="mon-section-bottom-wrapper" style="margin-bottom: 0;">
                         <div class="collapsible-section-header">
-                            <span class="collapsible-section-title">📊 Ringkasan, Legenda Posisi &amp; Timeline Slot 4 Jam</span>
+                            <span class="collapsible-section-title">📊 Ringkasan, Legenda Posisi &amp; Timeline Slot 4
+                                Jam</span>
                             <button type="button" class="btn-collapse-toggle" id="btn-toggle-mon-bottom"
                                 onclick="toggleMonPanel('bottom')">
                                 Tutup <span class="caret-icon">&#9650;</span>
@@ -652,127 +658,134 @@
                             <div class="inc-detail-card" id="mon-section-bottom-summary"
                                 style="width: 100%; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: stretch;">
 
-                        <!-- Ringkasan Hari Ini -->
-                        <div class="monitoring-summary-box">
-                            <h4 class="side-card-title"
-                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                                <span>📊 Ringkasan (Filter Aktif)</span>
-                                <span class="sla-target-badge" style="font-size: 10px;">Live</span>
-                            </h4>
-                            <div class="summary-items-list">
-                                <div class="summary-row">
-                                    <div class="summary-label-wrap">
-                                        <span class="icon-sq">🗺️</span>
-                                        <span style="font-weight: 600; color: #475569;">Total Trip</span>
+                                <!-- Ringkasan Hari Ini -->
+                                <div class="monitoring-summary-box">
+                                    <h4 class="side-card-title"
+                                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                                        <span>📊 Ringkasan (Filter Aktif)</span>
+                                        <span class="sla-target-badge" style="font-size: 10px;">Live</span>
+                                    </h4>
+                                    <div class="summary-items-list">
+                                        <div class="summary-row">
+                                            <div class="summary-label-wrap">
+                                                <span class="icon-sq">🗺️</span>
+                                                <span style="font-weight: 600; color: #475569;">Total Trip</span>
+                                            </div>
+                                            <strong style="font-size: 14px; color: #0F172A;"
+                                                id="summary-total-trip">0</strong>
+                                        </div>
+                                        <div class="summary-row">
+                                            <div class="summary-label-wrap">
+                                                <span class="icon-sq">🟢</span>
+                                                <span style="font-weight: 600; color: #475569;">Selesai</span>
+                                            </div>
+                                            <strong style="color: #16A34A; font-size: 14px;"
+                                                id="summary-selesai">0</strong>
+                                        </div>
+                                        <div class="summary-row">
+                                            <div class="summary-label-wrap">
+                                                <span class="icon-sq">🔵</span>
+                                                <span style="font-weight: 600; color: #475569;">On Progress</span>
+                                            </div>
+                                            <strong style="color: #2563EB; font-size: 14px;"
+                                                id="summary-onprogress">0</strong>
+                                        </div>
+                                        <div class="summary-row">
+                                            <div class="summary-label-wrap">
+                                                <span class="icon-sq">🕒</span>
+                                                <span style="font-weight: 600; color: #475569;">Belum Update Slot
+                                                    Aktif</span>
+                                            </div>
+                                            <strong style="color: #D97706; font-size: 14px;"
+                                                id="summary-waiting">0</strong>
+                                        </div>
+                                        <div class="summary-row">
+                                            <div class="summary-label-wrap">
+                                                <span class="icon-sq">🔴</span>
+                                                <span style="font-weight: 600; color: #475569;">Kendala</span>
+                                            </div>
+                                            <strong style="color: #DC2626; font-size: 14px;"
+                                                id="summary-kendala">0</strong>
+                                        </div>
                                     </div>
-                                    <strong style="font-size: 14px; color: #0F172A;" id="summary-total-trip">0</strong>
                                 </div>
-                                <div class="summary-row">
-                                    <div class="summary-label-wrap">
-                                        <span class="icon-sq">🟢</span>
-                                        <span style="font-weight: 600; color: #475569;">Selesai</span>
-                                    </div>
-                                    <strong style="color: #16A34A; font-size: 14px;" id="summary-selesai">0</strong>
-                                </div>
-                                <div class="summary-row">
-                                    <div class="summary-label-wrap">
-                                        <span class="icon-sq">🔵</span>
-                                        <span style="font-weight: 600; color: #475569;">On Progress</span>
-                                    </div>
-                                    <strong style="color: #2563EB; font-size: 14px;" id="summary-onprogress">0</strong>
-                                </div>
-                                <div class="summary-row">
-                                    <div class="summary-label-wrap">
-                                        <span class="icon-sq">🕒</span>
-                                        <span style="font-weight: 600; color: #475569;">Belum Update Slot Aktif</span>
-                                    </div>
-                                    <strong style="color: #D97706; font-size: 14px;" id="summary-waiting">0</strong>
-                                </div>
-                                <div class="summary-row">
-                                    <div class="summary-label-wrap">
-                                        <span class="icon-sq">🔴</span>
-                                        <span style="font-weight: 600; color: #475569;">Kendala</span>
-                                    </div>
-                                    <strong style="color: #DC2626; font-size: 14px;" id="summary-kendala">0</strong>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Legenda Posisi -->
-                        <div class="monitoring-legend-box">
-                            <h4 class="side-card-title" style="margin-bottom: 10px;">📌 Legenda Posisi</h4>
-                            <div class="legend-items-list">
-                                <div class="legend-item">
-                                    <span class="leg-icon">🟢</span>
-                                    <div>
-                                        <strong class="leg-title">Berangkat / Gate Out</strong>
-                                        <span class="leg-desc">Armada resmi keluar dari gateway asal</span>
+                                <!-- Legenda Posisi -->
+                                <div class="monitoring-legend-box">
+                                    <h4 class="side-card-title" style="margin-bottom: 10px;">📌 Legenda Posisi</h4>
+                                    <div class="legend-items-list">
+                                        <div class="legend-item">
+                                            <span class="leg-icon">🟢</span>
+                                            <div>
+                                                <strong class="leg-title">Berangkat / Gate Out</strong>
+                                                <span class="leg-desc">Armada resmi keluar dari gateway asal</span>
+                                            </div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="leg-icon">📍</span>
+                                            <div>
+                                                <strong class="leg-title">Transit / Rest Area</strong>
+                                                <span class="leg-desc">Armada di titik transit atau tempat
+                                                    istirahat</span>
+                                            </div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="leg-icon">🚚</span>
+                                            <div>
+                                                <strong class="leg-title">Dalam Perjalanan</strong>
+                                                <span class="leg-desc">Armada melaju lancar di rute</span>
+                                            </div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="leg-icon">🚩</span>
+                                            <div>
+                                                <strong class="leg-title">Sampai / Gate In</strong>
+                                                <span class="leg-desc">Armada telah tiba di gateway tujuan</span>
+                                            </div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="leg-icon">⚠️</span>
+                                            <div>
+                                                <strong class="leg-title">Trouble / Kendala</strong>
+                                                <span class="leg-desc">Armada mengalami gangguan operasional</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="legend-item">
-                                    <span class="leg-icon">📍</span>
-                                    <div>
-                                        <strong class="leg-title">Transit / Rest Area</strong>
-                                        <span class="leg-desc">Armada di titik transit atau tempat istirahat</span>
-                                    </div>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="leg-icon">🚚</span>
-                                    <div>
-                                        <strong class="leg-title">Dalam Perjalanan</strong>
-                                        <span class="leg-desc">Armada melaju lancar di rute</span>
-                                    </div>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="leg-icon">🚩</span>
-                                    <div>
-                                        <strong class="leg-title">Sampai / Gate In</strong>
-                                        <span class="leg-desc">Armada telah tiba di gateway tujuan</span>
-                                    </div>
-                                </div>
-                                <div class="legend-item">
-                                    <span class="leg-icon">⚠️</span>
-                                    <div>
-                                        <strong class="leg-title">Trouble / Kendala</strong>
-                                        <span class="leg-desc">Armada mengalami gangguan operasional</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Timeline Slot 4 Jam -->
-                        <div class="monitoring-timeline-box">
-                            <h4 class="side-card-title" style="margin-bottom: 10px;">⏱️ Timeline Slot 4 Jam</h4>
-                            <div class="vertical-slot-timeline" id="vertical-slot-timeline-list">
-                                <div class="timeline-slot-node" data-slot="00:00">
-                                    <span>00:00 - 04:00</span>
-                                    <span style="font-size: 10px; color: #94A3B8;">Slot 1</span>
+                                <!-- Timeline Slot 4 Jam -->
+                                <div class="monitoring-timeline-box">
+                                    <h4 class="side-card-title" style="margin-bottom: 10px;">⏱️ Timeline Slot 4 Jam</h4>
+                                    <div class="vertical-slot-timeline" id="vertical-slot-timeline-list">
+                                        <div class="timeline-slot-node" data-slot="00:00">
+                                            <span>00:00 - 04:00</span>
+                                            <span style="font-size: 10px; color: #94A3B8;">Slot 1</span>
+                                        </div>
+                                        <div class="timeline-slot-node" data-slot="04:00">
+                                            <span>04:00 - 08:00</span>
+                                            <span style="font-size: 10px; color: #94A3B8;">Slot 2</span>
+                                        </div>
+                                        <div class="timeline-slot-node" data-slot="08:00">
+                                            <span>08:00 - 12:00</span>
+                                            <span style="font-size: 10px; color: #94A3B8;">Slot 3</span>
+                                        </div>
+                                        <div class="timeline-slot-node" data-slot="12:00">
+                                            <span>12:00 - 16:00</span>
+                                            <span style="font-size: 10px; color: #94A3B8;">Slot 4</span>
+                                        </div>
+                                        <div class="timeline-slot-node" data-slot="16:00">
+                                            <span>16:00 - 20:00</span>
+                                            <span style="font-size: 10px; color: #94A3B8;">Slot 5</span>
+                                        </div>
+                                        <div class="timeline-slot-node" data-slot="20:00">
+                                            <span>20:00 - 24:00</span>
+                                            <span style="font-size: 10px; color: #94A3B8;">Slot 6</span>
+                                        </div>
+                                    </div>
+                                    <span
+                                        style="font-size: 11px; color: #94A3B8; display: block; margin-top: 12px; text-align: center;">*
+                                        Pembaruan posisi wajib setiap 4 jam</span>
                                 </div>
-                                <div class="timeline-slot-node" data-slot="04:00">
-                                    <span>04:00 - 08:00</span>
-                                    <span style="font-size: 10px; color: #94A3B8;">Slot 2</span>
-                                </div>
-                                <div class="timeline-slot-node" data-slot="08:00">
-                                    <span>08:00 - 12:00</span>
-                                    <span style="font-size: 10px; color: #94A3B8;">Slot 3</span>
-                                </div>
-                                <div class="timeline-slot-node" data-slot="12:00">
-                                    <span>12:00 - 16:00</span>
-                                    <span style="font-size: 10px; color: #94A3B8;">Slot 4</span>
-                                </div>
-                                <div class="timeline-slot-node" data-slot="16:00">
-                                    <span>16:00 - 20:00</span>
-                                    <span style="font-size: 10px; color: #94A3B8;">Slot 5</span>
-                                </div>
-                                <div class="timeline-slot-node" data-slot="20:00">
-                                    <span>20:00 - 24:00</span>
-                                    <span style="font-size: 10px; color: #94A3B8;">Slot 6</span>
-                                </div>
-                            </div>
-                            <span
-                                style="font-size: 11px; color: #94A3B8; display: block; margin-top: 12px; text-align: center;">*
-                                Pembaruan posisi wajib setiap 4 jam</span>
-                        </div>
 
                             </div>
                         </div>
@@ -890,148 +903,146 @@
                             style="background-color: #0F172A; color: #38BDF8; font-family: monospace; font-weight: 700; border: 1.5px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
                     </div>
                 </div>
-                    <div class="form-field">
-                        <label for="mon-slot-select"
-                            style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
-                            Periode Slot 4H <span style="color: #F87171;">*</span>
-                        </label>
-                        <select id="mon-slot-select"
-                            style="background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #F1F5F9; font-weight: 600; width: 100%; font-size: 13px;">
-                            <optgroup label="📅 Hari 1 (H+0)">
-                                <option value="00:00">🕒 H1 — 00:00 (Slot 00-04)</option>
-                                <option value="04:00">🕒 H1 — 04:00 (Slot 04-08)</option>
-                                <option value="08:00">🕒 H1 — 08:00 (Slot 08-12)</option>
-                                <option value="12:00">🕒 H1 — 12:00 (Slot 12-16)</option>
-                                <option value="16:00">🕒 H1 — 16:00 (Slot 16-20)</option>
-                                <option value="20:00">🕒 H1 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                            <optgroup label="📅 Hari 2 (H+1)">
-                                <option value="D2_00:00">🕒 H2 — 00:00 (Slot 00-04)</option>
-                                <option value="D2_04:00">🕒 H2 — 04:00 (Slot 04-08)</option>
-                                <option value="D2_08:00">🕒 H2 — 08:00 (Slot 08-12)</option>
-                                <option value="D2_12:00">🕒 H2 — 12:00 (Slot 12-16)</option>
-                                <option value="D2_16:00">🕒 H2 — 16:00 (Slot 16-20)</option>
-                                <option value="D2_20:00">🕒 H2 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                            <optgroup label="📅 Hari 3 (H+2)">
-                                <option value="D3_00:00">🕒 H3 — 00:00 (Slot 00-04)</option>
-                                <option value="D3_04:00">🕒 H3 — 04:00 (Slot 04-08)</option>
-                                <option value="D3_08:00">🕒 H3 — 08:00 (Slot 08-12)</option>
-                                <option value="D3_12:00">🕒 H3 — 12:00 (Slot 12-16)</option>
-                                <option value="D3_16:00">🕒 H3 — 16:00 (Slot 16-20)</option>
-                                <option value="D3_20:00">🕒 H3 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                            <optgroup label="📅 Hari 4 (H+3)">
-                                <option value="D4_00:00">🕒 H4 — 00:00 (Slot 00-04)</option>
-                                <option value="D4_04:00">🕒 H4 — 04:00 (Slot 04-08)</option>
-                                <option value="D4_08:00">🕒 H4 — 08:00 (Slot 08-12)</option>
-                                <option value="D4_12:00">🕒 H4 — 12:00 (Slot 12-16)</option>
-                                <option value="D4_16:00">🕒 H4 — 16:00 (Slot 16-20)</option>
-                                <option value="D4_20:00">🕒 H4 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                            <optgroup label="📅 Hari 5 (H+4)">
-                                <option value="D5_00:00">🕒 H5 — 00:00 (Slot 00-04)</option>
-                                <option value="D5_04:00">🕒 H5 — 04:00 (Slot 04-08)</option>
-                                <option value="D5_08:00">🕒 H5 — 08:00 (Slot 08-12)</option>
-                                <option value="D5_12:00">🕒 H5 — 12:00 (Slot 12-16)</option>
-                                <option value="D5_16:00">🕒 H5 — 16:00 (Slot 16-20)</option>
-                                <option value="D5_20:00">🕒 H5 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                            <optgroup label="📅 Hari 6 (H+5)">
-                                <option value="D6_00:00">🕒 H6 — 00:00 (Slot 00-04)</option>
-                                <option value="D6_04:00">🕒 H6 — 04:00 (Slot 04-08)</option>
-                                <option value="D6_08:00">🕒 H6 — 08:00 (Slot 08-12)</option>
-                                <option value="D6_12:00">🕒 H6 — 12:00 (Slot 12-16)</option>
-                                <option value="D6_16:00">🕒 H6 — 16:00 (Slot 16-20)</option>
-                                <option value="D6_20:00">🕒 H6 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                            <optgroup label="📅 Hari 7 (H+6)">
-                                <option value="D7_00:00">🕒 H7 — 00:00 (Slot 00-04)</option>
-                                <option value="D7_04:00">🕒 H7 — 04:00 (Slot 04-08)</option>
-                                <option value="D7_08:00">🕒 H7 — 08:00 (Slot 08-12)</option>
-                                <option value="D7_12:00">🕒 H7 — 12:00 (Slot 12-16)</option>
-                                <option value="D7_16:00">🕒 H7 — 16:00 (Slot 16-20)</option>
-                                <option value="D7_20:00">🕒 H7 — 20:00 (Slot 20-24)</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Lokasi Terakhir -->
-                <div class="form-field" style="margin-bottom: 10px;">
-                    <label for="mon-posisi-lokasi"
-                        style="font-size: 11.5px; font-weight: 700; color: #94A3B8; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px;">
-                        Lokasi Terakhir / Posisi Armada Saat Ini <span style="color: #F87171;">*</span>
+                <div class="form-field">
+                    <label for="mon-slot-select"
+                        style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">
+                        Periode Slot 4H <span style="color: #F87171;">*</span>
                     </label>
-                    <input type="text" id="mon-posisi-lokasi"
-                        placeholder="Contoh: Tol Cipali KM 102 / Rest Area 207 / Gateway Semarang"
-                        style="background-color: #1E293B; color: #F1F5F9; border: 1.5px solid #3B82F6; border-radius: 8px; padding: 9px 12px; font-size: 13px; width: 100%;">
-                    <span id="mon-lokasi-error"
-                        style="font-size: 11px; color: #F87171; display: none; margin-top: 2px;">Lokasi wajib
-                        diisi.</span>
+                    <select id="mon-slot-select"
+                        style="background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #F1F5F9; font-weight: 600; width: 100%; font-size: 13px;">
+                        <optgroup label="📅 Hari 1 (H+0)">
+                            <option value="00:00">🕒 H1 — 00:00 (Slot 00-04)</option>
+                            <option value="04:00">🕒 H1 — 04:00 (Slot 04-08)</option>
+                            <option value="08:00">🕒 H1 — 08:00 (Slot 08-12)</option>
+                            <option value="12:00">🕒 H1 — 12:00 (Slot 12-16)</option>
+                            <option value="16:00">🕒 H1 — 16:00 (Slot 16-20)</option>
+                            <option value="20:00">🕒 H1 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                        <optgroup label="📅 Hari 2 (H+1)">
+                            <option value="D2_00:00">🕒 H2 — 00:00 (Slot 00-04)</option>
+                            <option value="D2_04:00">🕒 H2 — 04:00 (Slot 04-08)</option>
+                            <option value="D2_08:00">🕒 H2 — 08:00 (Slot 08-12)</option>
+                            <option value="D2_12:00">🕒 H2 — 12:00 (Slot 12-16)</option>
+                            <option value="D2_16:00">🕒 H2 — 16:00 (Slot 16-20)</option>
+                            <option value="D2_20:00">🕒 H2 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                        <optgroup label="📅 Hari 3 (H+2)">
+                            <option value="D3_00:00">🕒 H3 — 00:00 (Slot 00-04)</option>
+                            <option value="D3_04:00">🕒 H3 — 04:00 (Slot 04-08)</option>
+                            <option value="D3_08:00">🕒 H3 — 08:00 (Slot 08-12)</option>
+                            <option value="D3_12:00">🕒 H3 — 12:00 (Slot 12-16)</option>
+                            <option value="D3_16:00">🕒 H3 — 16:00 (Slot 16-20)</option>
+                            <option value="D3_20:00">🕒 H3 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                        <optgroup label="📅 Hari 4 (H+3)">
+                            <option value="D4_00:00">🕒 H4 — 00:00 (Slot 00-04)</option>
+                            <option value="D4_04:00">🕒 H4 — 04:00 (Slot 04-08)</option>
+                            <option value="D4_08:00">🕒 H4 — 08:00 (Slot 08-12)</option>
+                            <option value="D4_12:00">🕒 H4 — 12:00 (Slot 12-16)</option>
+                            <option value="D4_16:00">🕒 H4 — 16:00 (Slot 16-20)</option>
+                            <option value="D4_20:00">🕒 H4 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                        <optgroup label="📅 Hari 5 (H+4)">
+                            <option value="D5_00:00">🕒 H5 — 00:00 (Slot 00-04)</option>
+                            <option value="D5_04:00">🕒 H5 — 04:00 (Slot 04-08)</option>
+                            <option value="D5_08:00">🕒 H5 — 08:00 (Slot 08-12)</option>
+                            <option value="D5_12:00">🕒 H5 — 12:00 (Slot 12-16)</option>
+                            <option value="D5_16:00">🕒 H5 — 16:00 (Slot 16-20)</option>
+                            <option value="D5_20:00">🕒 H5 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                        <optgroup label="📅 Hari 6 (H+5)">
+                            <option value="D6_00:00">🕒 H6 — 00:00 (Slot 00-04)</option>
+                            <option value="D6_04:00">🕒 H6 — 04:00 (Slot 04-08)</option>
+                            <option value="D6_08:00">🕒 H6 — 08:00 (Slot 08-12)</option>
+                            <option value="D6_12:00">🕒 H6 — 12:00 (Slot 12-16)</option>
+                            <option value="D6_16:00">🕒 H6 — 16:00 (Slot 16-20)</option>
+                            <option value="D6_20:00">🕒 H6 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                        <optgroup label="📅 Hari 7 (H+6)">
+                            <option value="D7_00:00">🕒 H7 — 00:00 (Slot 00-04)</option>
+                            <option value="D7_04:00">🕒 H7 — 04:00 (Slot 04-08)</option>
+                            <option value="D7_08:00">🕒 H7 — 08:00 (Slot 08-12)</option>
+                            <option value="D7_12:00">🕒 H7 — 12:00 (Slot 12-16)</option>
+                            <option value="D7_16:00">🕒 H7 — 16:00 (Slot 16-20)</option>
+                            <option value="D7_20:00">🕒 H7 — 20:00 (Slot 20-24)</option>
+                        </optgroup>
+                    </select>
                 </div>
-
-                <!-- Jenis Update & Status -->
-                <div class="form-row-2"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div class="form-field">
-                        <label for="mon-jenis-update"
-                            style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Jenis
-                            Update</label>
-                        <select id="mon-jenis-update"
-                            style="background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #F1F5F9; width: 100%; font-size: 13px;">
-                            <option value="Lokasi Normal">🟢 Lokasi Normal (Lancar)</option>
-                            <option value="Istirahat">☕ Istirahat / Rest Area</option>
-                            <option value="Berhenti">🛑 Berhenti / Macet</option>
-                            <option value="Menunggu">⏳ Menunggu Antrean</option>
-                            <option value="Trouble">⚠️ Kendala / Trouble</option>
-                            <option value="Laka">💥 Kecelakaan / Laka</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="mon-status-perjalanan"
-                            style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Status
-                            Perjalanan</label>
-                        <select id="mon-status-perjalanan"
-                            style="background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #F1F5F9; width: 100%; font-size: 13px;">
-                            <option value="ON PROGRESS">🔵 ON PROGRESS</option>
-                            <option value="TRANSIT">📍 TRANSIT</option>
-                            <option value="COMPLETED">🟢 COMPLETED</option>
-                            <option value="KENDALA">🔴 KENDALA / TROUBLE</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Keterangan & Waktu (1 row) -->
-                <div class="form-row-2"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                    <div class="form-field">
-                        <label for="mon-keterangan"
-                            style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Keterangan
-                            Tambahan</label>
-                        <input type="text" id="mon-keterangan" placeholder="Rest Area KM 208, ban kempes..."
-                            style="background-color: #1E293B; color: #F1F5F9; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; font-size: 13px; width: 100%;">
-                    </div>
-                    <div class="form-field">
-                        <label
-                            style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Waktu
-                            Input (Otomatis)</label>
-                        <input type="text" id="mon-jam-update-aktual" readonly tabindex="-1"
-                            style="background-color: #1E293B; color: #38BDF8; font-weight: 700; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
-                    </div>
-                </div>
-
-                <div class="modal-footer"
-                    style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #1E293B;">
-                    <button type="button" class="btn-dark-outline modal-close-btn"
-                        style="border-radius: 8px; padding: 8px 16px; font-weight: 700; background: #1E293B; color: #94A3B8; border: 1px solid #334155; cursor: pointer;">Batal</button>
-                    <button type="submit" id="btn-submit-monitoring" class="btn-jnt-red"
-                        style="background: linear-gradient(135deg, #E30613 0%, #C8000A 100%); color: #FFFFFF; font-weight: 700; border: none; padding: 9px 20px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);">
-                        ⏱️ Simpan Update Posisi
-                    </button>
-                </div>
-            </form>
         </div>
+
+        <!-- Lokasi Terakhir -->
+        <div class="form-field" style="margin-bottom: 10px;">
+            <label for="mon-posisi-lokasi"
+                style="font-size: 11.5px; font-weight: 700; color: #94A3B8; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px;">
+                Lokasi Terakhir / Posisi Armada Saat Ini <span style="color: #F87171;">*</span>
+            </label>
+            <input type="text" id="mon-posisi-lokasi"
+                placeholder="Contoh: Tol Cipali KM 102 / Rest Area 207 / Gateway Semarang"
+                style="background-color: #1E293B; color: #F1F5F9; border: 1.5px solid #3B82F6; border-radius: 8px; padding: 9px 12px; font-size: 13px; width: 100%;">
+            <span id="mon-lokasi-error" style="font-size: 11px; color: #F87171; display: none; margin-top: 2px;">Lokasi
+                wajib
+                diisi.</span>
+        </div>
+
+        <!-- Jenis Update & Status -->
+        <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div class="form-field">
+                <label for="mon-jenis-update"
+                    style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Jenis
+                    Update</label>
+                <select id="mon-jenis-update"
+                    style="background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #F1F5F9; width: 100%; font-size: 13px;">
+                    <option value="Lokasi Normal">🟢 Lokasi Normal (Lancar)</option>
+                    <option value="Istirahat">☕ Istirahat / Rest Area</option>
+                    <option value="Berhenti">🛑 Berhenti / Macet</option>
+                    <option value="Menunggu">⏳ Menunggu Antrean</option>
+                    <option value="Trouble">⚠️ Kendala / Trouble</option>
+                    <option value="Laka">💥 Kecelakaan / Laka</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="mon-status-perjalanan"
+                    style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Status
+                    Perjalanan</label>
+                <select id="mon-status-perjalanan"
+                    style="background-color: #1E293B; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; color: #F1F5F9; width: 100%; font-size: 13px;">
+                    <option value="ON PROGRESS">🔵 ON PROGRESS</option>
+                    <option value="TRANSIT">📍 TRANSIT</option>
+                    <option value="COMPLETED">🟢 COMPLETED</option>
+                    <option value="KENDALA">🔴 KENDALA / TROUBLE</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Keterangan & Waktu (1 row) -->
+        <div class="form-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div class="form-field">
+                <label for="mon-keterangan"
+                    style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Keterangan
+                    Tambahan</label>
+                <input type="text" id="mon-keterangan" placeholder="Rest Area KM 208, ban kempes..."
+                    style="background-color: #1E293B; color: #F1F5F9; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; font-size: 13px; width: 100%;">
+            </div>
+            <div class="form-field">
+                <label
+                    style="font-size: 11px; font-weight: 700; color: #64748B; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px;">Waktu
+                    Input (Otomatis)</label>
+                <input type="text" id="mon-jam-update-aktual" readonly tabindex="-1"
+                    style="background-color: #1E293B; color: #38BDF8; font-weight: 700; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; width: 100%; font-size: 13px;">
+            </div>
+        </div>
+
+        <div class="modal-footer"
+            style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 12px; border-top: 1px solid #1E293B;">
+            <button type="button" class="btn-dark-outline modal-close-btn"
+                style="border-radius: 8px; padding: 8px 16px; font-weight: 700; background: #1E293B; color: #94A3B8; border: 1px solid #334155; cursor: pointer;">Batal</button>
+            <button type="submit" id="btn-submit-monitoring" class="btn-jnt-red"
+                style="background: linear-gradient(135deg, #E30613 0%, #C8000A 100%); color: #FFFFFF; font-weight: 700; border: none; padding: 9px 20px; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);">
+                ⏱️ Simpan Update Posisi
+            </button>
+        </div>
+        </form>
+    </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
