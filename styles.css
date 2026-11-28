@@ -1381,12 +1381,24 @@ body,
     background-color: var(--primary-red);
     color: #FFFFFF;
     border: none;
-    padding: 8px 20px;
+    padding: 9px 18px;
     border-radius: 8px;
     font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(227, 6, 19, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+}
+
+.btn-inc-add svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
 }
 
 /* 5 KPI Cards Row */
