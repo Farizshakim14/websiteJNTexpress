@@ -874,11 +874,153 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // GLOBAL CASCADE DELETION ENGINE (v5)
+    // GLOBAL CASCADE DELETION ENGINE (v5) + TOMBSTONE ANTI-RESURRECTION
     // ----------------------------------------------------
-    // ----------------------------------------------------
-    // GLOBAL CASCADE DELETION ENGINE (v5)
-    // ----------------------------------------------------
+    _deletedTripIds: null,
+
+    _getDeletedTripIdsSet() {
+        if (!this._deletedTripIds) {
+            this._deletedTripIds = new Set();
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    const raw = localStorage.getItem('jnt_deleted_trip_ids');
+                    if (raw) {
+                        const arr = JSON.parse(raw);
+                        if (Array.isArray(arr)) {
+                            arr.forEach(id => { if (id) this._deletedTripIds.add(String(id).trim()); });
+                        }
+                    }
+                }
+            } catch (_) { }
+        }
+        return this._deletedTripIds;
+    },
+
+    _markTripAsDeleted(kodeTugas, kodeBalikan = '') {
+        if (!kodeTugas) return;
+        const set = this._getDeletedTripIdsSet();
+        const k = String(kodeTugas).trim();
+        set.add(k);
+        set.add(`${k}-RET`);
+        if (kodeBalikan) set.add(String(kodeBalikan).trim());
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const arr = Array.from(set).slice(-3000);
+                localStorage.setItem('jnt_deleted_trip_ids', JSON.stringify(arr));
+            }
+        } catch (_) { }
+    },
+
+    _unmarkTripAsDeleted(kodeTugas) {
+        if (!kodeTugas) return;
+        const set = this._getDeletedTripIdsSet();
+        const k = String(kodeTugas).trim();
+        if (set.has(k) || set.has(`${k}-RET`)) {
+            set.delete(k);
+            set.delete(`${k}-RET`);
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem('jnt_deleted_trip_ids', JSON.stringify(Array.from(set)));
+                }
+            } catch (_) { }
+        }
+    },
+
+    isTripDeleted(kodeTugas) {
+        if (!kodeTugas) return false;
+        return this._getDeletedTripIdsSet().has(String(kodeTugas).trim());
+    },
+
+    _purgeTripFromAllLocalCachesImmediate(kodeTugas, kodeBalikan = '') {
+        if (!kodeTugas) return;
+        const targets = new Set([String(kodeTugas).trim(), `${String(kodeTugas).trim()}-RET`]);
+        if (kodeBalikan) targets.add(String(kodeBalikan).trim());
+
+        const tripCols = ['incoming', 'sla_outbound', 'monitoring_4h', 'sla_return', 'sla_roundtrip'];
+        this._cachedSubData = this._cachedSubData || {};
+        this._lsWriteTimers = this._lsWriteTimers || {};
+        this._hostArchTimers = this._hostArchTimers || {};
+
+        tripCols.forEach(col => {
+            if (this._lsWriteTimers[col]) {
+                clearTimeout(this._lsWriteTimers[col]);
+                delete this._lsWriteTimers[col];
+            }
+            if (this._hostArchTimers[col]) {
+                clearTimeout(this._hostArchTimers[col]);
+                delete this._hostArchTimers[col];
+            }
+
+            // 1. Bersihkan dari _cachedSubData
+            if (Array.isArray(this._cachedSubData[col])) {
+                this._cachedSubData[col] = this._cachedSubData[col].filter(i => {
+                    if (!i) return false;
+                    const id = String(i.kodeTugas || i.kodeTugasBalikan || i.id || i._docId || '').trim();
+                    const asal = String(i.kodeTugasAsal || '').trim();
+                    return !targets.has(id) && !targets.has(asal);
+                });
+            }
+
+            // 2. Bersihkan dari _sharedListeners (rawFirestoreDocs & lastDocs)
+            if (this._sharedListeners && this._sharedListeners[col]) {
+                const entry = this._sharedListeners[col];
+                if (Array.isArray(entry.rawFirestoreDocs)) {
+                    entry.rawFirestoreDocs = entry.rawFirestoreDocs.filter(i => {
+                        if (!i) return false;
+                        const id = String(i.kodeTugas || i.kodeTugasBalikan || i.id || '').trim();
+                        const asal = String(i.kodeTugasAsal || '').trim();
+                        return !targets.has(id) && !targets.has(asal);
+                    });
+                }
+                if (Array.isArray(entry.lastDocs)) {
+                    entry.lastDocs = entry.lastDocs.filter(i => {
+                        if (!i) return false;
+                        const id = String(i.kodeTugas || i.kodeTugasBalikan || i.id || '').trim();
+                        const asal = String(i.kodeTugasAsal || '').trim();
+                        return !targets.has(id) && !targets.has(asal);
+                    });
+                }
+            }
+
+            // 3. Bersihkan dari _hostingArchiveStore
+            if (this._hostingArchiveStore && this._hostingArchiveStore[col]) {
+                targets.forEach(t => this._hostingArchiveStore[col].delete(t));
+            }
+
+            // 4. Tulis langsung ke localStorage secara sinkron agar tidak pernah hidup kembali
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    const rawCache = localStorage.getItem('jnt_cache_' + col);
+                    if (rawCache) {
+                        const parsed = JSON.parse(rawCache);
+                        if (Array.isArray(parsed)) {
+                            const filtered = parsed.filter(i => {
+                                if (!i) return false;
+                                const id = String(i.kodeTugas || i.kodeTugasBalikan || i.id || i._docId || '').trim();
+                                const asal = String(i.kodeTugasAsal || '').trim();
+                                return !targets.has(id) && !targets.has(asal);
+                            });
+                            localStorage.setItem('jnt_cache_' + col, JSON.stringify(filtered));
+                        }
+                    }
+                    const rawArch = localStorage.getItem('jnt_host_arch_' + col);
+                    if (rawArch) {
+                        const parsedArch = JSON.parse(rawArch);
+                        if (Array.isArray(parsedArch)) {
+                            const filteredArch = parsedArch.filter(i => {
+                                if (!i) return false;
+                                const id = String(i.kodeTugas || i.kodeTugasBalikan || i.id || i._docId || '').trim();
+                                const asal = String(i.kodeTugasAsal || '').trim();
+                                return !targets.has(id) && !targets.has(asal);
+                            });
+                            localStorage.setItem('jnt_host_arch_' + col, JSON.stringify(filteredArch));
+                        }
+                    }
+                }
+            } catch (_) { }
+        });
+    },
+
     async deleteTripCascade(kodeTugas, isMasterDelete = true) {
         if (!kodeTugas) return;
         const activeRole = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_user_role') : '') || '';
@@ -887,63 +1029,73 @@ const JNTFirebaseService = {
         }
         console.log(`[GLOBAL CASCADE DELETE] KodeTugas: ${kodeTugas}`);
 
-        // 1. Troubles collection: Per Firestore security rules, deletion is forbidden (`allow delete: if false;`).
-        // Close / resolve any open incidents for this trip without deleting the immutable history and without resurrecting the deleted trip.
+        // Cari dokumen return terlebih dahulu sebelum cache dibersihkan
+        let returnDoc = null;
+        try {
+            const allReturns = this.getLocalStore('sla_return') || [];
+            returnDoc = allReturns.find(r =>
+                r.kodeTugasAsal === kodeTugas ||
+                r.kodeTugasBalikan === kodeTugas ||
+                r.kodeBalikan === kodeTugas ||
+                r.id === kodeTugas
+            ) || null;
+        } catch (e) { }
+
+        const linkedBalikan = (returnDoc && (returnDoc.kodeTugasBalikan || returnDoc.kodeBalikan)) || `${kodeTugas}-RET`;
+        const linkedAsal = (returnDoc && returnDoc.kodeTugasAsal) || kodeTugas;
+
+        // 0. LANGKAH PERTAMA (0ms): Catat ke Tombstone _deletedTripIds & bersihkan seluruh cache memori/localStorage/hosting SEBELUM delete Firestore
+        // Ini mencegah race-condition di mana onSnapshot salah satu koleksi me-restore kembali trip dari koleksi lain yang belum selesai dihapus!
+        this._markTripAsDeleted(kodeTugas, linkedBalikan);
+        if (linkedAsal && linkedAsal !== kodeTugas) {
+            this._markTripAsDeleted(linkedAsal, linkedBalikan);
+        }
+        this._purgeTripFromAllLocalCachesImmediate(kodeTugas, linkedBalikan);
+        if (linkedAsal && linkedAsal !== kodeTugas) {
+            this._purgeTripFromAllLocalCachesImmediate(linkedAsal, linkedBalikan);
+        }
+
+        // Batalkan timer auto-archive yang mungkin sedang berjalan agar tidak menulis ulang trip yang sedang dihapus
+        if (this._autoArchiveTimer) {
+            clearTimeout(this._autoArchiveTimer);
+            this._autoArchiveTimer = null;
+        }
+
+        // Beritahu seluruh subscriber di halaman saat ini seketika
+        ['sla_outbound', 'monitoring_4h', 'incoming', 'sla_return', 'sla_roundtrip'].forEach(col => {
+            this.notifyDataMutated({ colName: col, docId: kodeTugas, action: 'delete', confirmed: true });
+        });
+
+        // 1. Troubles collection: tutup kendala terkait tanpa membangkitkan trip kembali
         const localTroubles = this.getLocalStore('troubles') || [];
         for (const tr of localTroubles) {
             if (tr.kodeTugas === kodeTugas && tr.status !== 'SUDAH SELESAI') {
-                await this.updateIncidentStatus(tr.incidentId || tr.id, 'SUDAH SELESAI', `[CASCADE DELETE] Trip ${kodeTugas} dibatalkan/dihapus`, "Supervisor", false);
+                await this.updateIncidentStatus(tr.incidentId || tr.id, 'SUDAH SELESAI', `[CASCADE DELETE] Trip ${kodeTugas} dibatalkan/dihapus`, "Supervisor", false).catch(() => { });
             }
         }
 
-        if (window.db) {
-            try {
-                const snap = await window.db.collection('troubles').where('kodeTugas', '==', kodeTugas).get();
-                if (snap && snap.docs) {
-                    for (const d of snap.docs) {
-                        const data = d.data();
-                        if (data.status !== 'SUDAH SELESAI') {
-                            await window.db.collection('troubles').doc(d.id).update({
-                                status: 'SUDAH SELESAI',
-                                updatedAt: new Date().toISOString(),
-                                catatanPenyelesaian: `[CASCADE DELETE] Trip ${kodeTugas} dibatalkan/dihapus. Kendala ditutup otomatis.`
-                            });
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn('[CASCADE TROUBLE CLOSE NOTICE]', e.message);
-            }
+        // 2. Hapus dari semua 5 koleksi Firestore & Arsip Hosting cPanel secara PARALEL (Promise.all)
+        const deletePromises = [
+            this.deleteDoc('sla_outbound', kodeTugas).catch(() => { }),
+            this.deleteDoc('monitoring_4h', kodeTugas).catch(() => { }),
+            this.deleteDoc('sla_return', kodeTugas).catch(() => { }),
+            this.deleteDoc('sla_roundtrip', kodeTugas).catch(() => { }),
+            this.deleteDoc('incoming', kodeTugas).catch(() => { }),
+            this.deleteTripFromHostingArchive(kodeTugas, linkedBalikan).catch(() => { })
+        ];
+
+        if (linkedBalikan && linkedBalikan !== kodeTugas) {
+            deletePromises.push(this.deleteDoc('monitoring_4h', linkedBalikan).catch(() => { }));
+        }
+        if (linkedAsal && linkedAsal !== kodeTugas) {
+            deletePromises.push(this.deleteDoc('sla_return', linkedAsal).catch(() => { }));
+            deletePromises.push(this.deleteDoc('sla_roundtrip', linkedAsal).catch(() => { }));
         }
 
-        // 2. Cascade delete across all 5 operational trip collections (plus linked return trips)
-        let returnDoc = null;
-        try {
-            returnDoc = await this.getDoc('sla_return', kodeTugas);
-            if (!returnDoc) {
-                const allReturns = this.getLocalStore('sla_return') || [];
-                returnDoc = allReturns.find(r => r.kodeTugasBalikan === kodeTugas || r.kodeBalikan === kodeTugas || r.id === kodeTugas) || null;
-            }
-        } catch (e) { }
+        await Promise.all(deletePromises);
 
-        await this.deleteDoc('sla_outbound', kodeTugas);
-        await this.deleteDoc('monitoring_4h', kodeTugas);
-        await this.deleteDoc('sla_return', kodeTugas);
-        await this.deleteDoc('sla_roundtrip', kodeTugas);
-        await this.deleteDoc('incoming', kodeTugas);
-
-        // Hapus juga dari arsip hosting cPanel (trip_archive.php) agar tidak muncul kembali
-        await this.deleteTripFromHostingArchive(kodeTugas, returnDoc ? returnDoc.kodeTugasBalikan : '');
-
-        if (returnDoc) {
-            if (returnDoc.kodeTugasBalikan && returnDoc.kodeTugasBalikan !== kodeTugas) {
-                await this.deleteDoc('monitoring_4h', returnDoc.kodeTugasBalikan);
-            }
-            if (returnDoc.kodeTugasAsal && returnDoc.kodeTugasAsal !== kodeTugas) {
-                await this.deleteDoc('sla_return', returnDoc.kodeTugasAsal);
-                await this.deleteDoc('sla_roundtrip', returnDoc.kodeTugasAsal);
-            }
-        }
+        // Pastikan sekali lagi cache bersih setelah semua promise network selesai
+        this._purgeTripFromAllLocalCachesImmediate(kodeTugas, linkedBalikan);
 
         await this.logAuditEvent({
             waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
@@ -979,12 +1131,14 @@ const JNTFirebaseService = {
                 }
             }
 
-            if (targetAsal) {
-                await this.deleteDoc('sla_return', targetAsal);
-                await this.deleteDoc('sla_roundtrip', targetAsal);
-            }
             if (targetBalik) {
-                await this.deleteDoc('monitoring_4h', targetBalik);
+                this._markTripAsDeleted(targetBalik);
+                this._purgeTripFromAllLocalCachesImmediate(targetBalik);
+                await this.deleteDoc('monitoring_4h', targetBalik).catch(() => { });
+            }
+            if (targetAsal) {
+                await this.deleteDoc('sla_return', targetAsal).catch(() => { });
+                await this.deleteDoc('sla_roundtrip', targetAsal).catch(() => { });
             }
 
             await this.logAuditEvent({
@@ -1237,20 +1391,32 @@ const JNTFirebaseService = {
 
     _mergeWithHostingArchive(colName, liveList) {
         this._hydrateHostingArchiveFromLocalCache();
+        const isTripCol = ['incoming', 'sla_outbound', 'monitoring_4h', 'sla_return', 'sla_roundtrip'].includes(colName);
+        const deletedSet = isTripCol ? this._getDeletedTripIdsSet() : null;
         const archMap = this._hostingArchiveStore && this._hostingArchiveStore[colName];
         if (!archMap || archMap.size === 0) {
-            return Array.isArray(liveList) ? liveList : [];
+            const rawArr = Array.isArray(liveList) ? liveList : [];
+            if (!deletedSet || deletedSet.size === 0) return rawArr;
+            return rawArr.filter(doc => {
+                if (!doc) return false;
+                const k = String(doc.kodeTugas || doc.kodeTugasBalikan || doc.id || doc._docId || '').trim();
+                return !deletedSet.has(k);
+            });
         }
         const merged = new Map();
-        // 1. Masukkan seluruh riwayat dari Hosting cPanel terlebih dahulu
+        // 1. Masukkan seluruh riwayat dari Hosting cPanel terlebih dahulu (kecuali yang sudah dihapus)
         archMap.forEach((doc, key) => {
-            if (doc && key) merged.set(key, { ...doc });
+            if (doc && key) {
+                if (deletedSet && deletedSet.has(String(key).trim())) return;
+                merged.set(key, { ...doc });
+            }
         });
-        // 2. Timpa / gabungkan dengan data aktif terbaru dari Firestore
+        // 2. Timpa / gabungkan dengan data aktif terbaru dari Firestore (kecuali yang sudah dihapus)
         (Array.isArray(liveList) ? liveList : []).forEach(doc => {
             if (!doc) return;
             const key = doc.kodeTugas || doc.shiftId || doc.incidentId || doc.code || doc.id || doc._docId;
             if (key) {
+                if (deletedSet && deletedSet.has(String(key).trim())) return;
                 const prev = merged.get(key) || {};
                 merged.set(key, { ...prev, ...doc });
             }
@@ -1422,34 +1588,33 @@ const JNTFirebaseService = {
             this.saveLocalStore(col, this._mergeWithHostingArchive(col, cur));
         });
 
-        // 2. Kirim ke trip_archive.php di hosting cPanel
+        // 2. Kirim ke trip_archive.php di hosting cPanel dalam chunk @250 trip agar tidak pernah melebihi batas post_max_size PHP (8MB)
         try {
             if (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) {
                 const headers = await this._getHostingAuthHeaders(true);
-                const res = await fetch('trip_archive.php', {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify({ action: 'upsert_batch', trips: bundles })
-                });
-                if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
-                    const data = await res.json();
-                    if (data && data.success) {
-                        this._hostingEndpointAvailable = true;
-                        // Jika berhasil tersimpan di hosting dan diminta hapus dari Firestore (offload trip COMPLETED)
-                        if (deleteFromFirestoreAfterSave && window.db) {
-                            for (const b of bundles) {
-                                const k = b && b.kodeTugas;
-                                if (!k) continue;
-                                ['incoming', 'sla_outbound', 'monitoring_4h'].forEach(col => {
-                                    if (b[col]) {
-                                        window.db.collection(col).doc(k).delete().catch(() => { });
-                                    }
-                                });
-                            }
+                const CHUNK_SIZE = 250;
+                let allChunksOk = true;
+                for (let i = 0; i < bundles.length; i += CHUNK_SIZE) {
+                    const chunk = bundles.slice(i, i + CHUNK_SIZE);
+                    const res = await fetch('trip_archive.php', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({ action: 'upsert_batch', trips: chunk })
+                    });
+                    if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
+                        const data = await res.json();
+                        if (data && data.success) {
+                            this._hostingEndpointAvailable = true;
+                        } else {
+                            allChunksOk = false;
                         }
-                        window.dispatchEvent(new CustomEvent('jnt_data_updated', { detail: { source: 'hosting_archive_save' } }));
-                        return true;
+                    } else {
+                        allChunksOk = false;
                     }
+                }
+                if (allChunksOk && this._hostingEndpointAvailable) {
+                    window.dispatchEvent(new CustomEvent('jnt_data_updated', { detail: { source: 'hosting_archive_save' } }));
+                    return true;
                 }
             }
         } catch (err) {
@@ -1597,6 +1762,7 @@ const JNTFirebaseService = {
         try {
             await this.loadHostingArchiveData();
 
+            const deletedSet = this._getDeletedTripIdsSet();
             const incEntry = this._sharedListeners && this._sharedListeners['incoming'];
             const slaEntry = this._sharedListeners && this._sharedListeners['sla_outbound'];
             const monEntry = this._sharedListeners && this._sharedListeners['monitoring_4h'];
@@ -1609,10 +1775,11 @@ const JNTFirebaseService = {
             const slaFsMap = new Map(rawSla.map(d => [d.kodeTugas || d.id, d]));
             const monFsMap = new Map(rawMon.map(d => [d.kodeTugas || d.id, d]));
 
-            // Gabungkan semua sumber yang diketahui (Firestore + Hosting Archive + LocalStorage Cache)
-            const fullIncList = this.getLocalStore('incoming') || [];
-            const fullSlaList = this.getLocalStore('sla_outbound') || [];
-            const fullMonList = this.getLocalStore('monitoring_4h') || [];
+            // HANYA gunakan dokumen yang benar-benar ada di Firestore ATAU di _hostingArchiveStore (trip_archive.php),
+            // JANGAN gunakan localStorage cache lama agar trip yang sudah dihapus tidak pernah hidup kembali!
+            const hostInc = this._hostingArchiveStore.incoming ? Array.from(this._hostingArchiveStore.incoming.values()) : [];
+            const hostSla = this._hostingArchiveStore.sla_outbound ? Array.from(this._hostingArchiveStore.sla_outbound.values()) : [];
+            const hostMon = this._hostingArchiveStore.monitoring_4h ? Array.from(this._hostingArchiveStore.monitoring_4h.values()) : [];
 
             const mergedAllMap = new Map();
             const DEMO_IDS = new Set([
@@ -1621,11 +1788,11 @@ const JNTFirebaseService = {
                 '4234234', 'DBDBDBDB'
             ]);
 
-            [...fullIncList, ...fullSlaList, ...fullMonList].forEach(item => {
+            [...hostInc, ...hostSla, ...hostMon, ...rawInc, ...rawSla, ...rawMon].forEach(item => {
                 if (!item) return;
-                const k = item.kodeTugas || item.id;
-                if (!k || DEMO_IDS.has(k)) return;
-                if (item.tripType === 'RETURN' || item.isBalikan || String(k).toUpperCase().includes('-RET')) return;
+                const k = String(item.kodeTugas || item.id || '').trim();
+                if (!k || DEMO_IDS.has(k) || deletedSet.has(k)) return;
+                if (item.tripType === 'RETURN' || item.isBalikan || k.toUpperCase().includes('-RET')) return;
                 const prev = mergedAllMap.get(k) || {};
                 mergedAllMap.set(k, {
                     ...prev,
@@ -1634,12 +1801,11 @@ const JNTFirebaseService = {
                 });
             });
 
-            // Self-Heal: Jika suatu trip ada di monitoring_4h atau di arsip hosting, tapi hilang dari sla_outbound / incoming di Firestore,
-            // pulihkan kembali ke Firestore dan simpan ke arsip hosting TANPA pernah menghapus dari Firestore (deleteFromFirestoreAfterSave = false)
             const completedBundles = [];
             let healedCount = 0;
 
             for (const [k, unified] of mergedAllMap.entries()) {
+                if (deletedSet.has(k)) continue;
                 const arrStr = String(unified.jamSampaiAktual || '').trim();
                 const hasValidArr = Boolean(arrStr && !/^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(arrStr));
                 const stUpper = String(unified.statusPerjalanan || unified.statusSla || unified.status || '').toUpperCase();
@@ -1665,7 +1831,13 @@ const JNTFirebaseService = {
                     slots: unified.slots || {}
                 };
 
-                if (window.db) {
+                // Hanya pulihkan ke Firestore jika trip tersebut MEMANG ADA di trip_archive.php (hosting archive)
+                // tetapi hilang dari Firestore karena offload sebelumnya (dan BUKAN trip yang dihapus oleh user!)
+                const isFromHostingArchive = (this._hostingArchiveStore.incoming && this._hostingArchiveStore.incoming.has(k)) ||
+                    (this._hostingArchiveStore.sla_outbound && this._hostingArchiveStore.sla_outbound.has(k)) ||
+                    (this._hostingArchiveStore.monitoring_4h && this._hostingArchiveStore.monitoring_4h.has(k));
+
+                if (window.db && isFromHostingArchive && !deletedSet.has(k)) {
                     if (incEntry && incEntry.rawFirestoreDocs !== null && !incFsMap.has(k)) {
                         window.db.collection('incoming').doc(k).set(incDoc, { merge: true }).catch(() => { });
                         healedCount++;
@@ -1680,7 +1852,7 @@ const JNTFirebaseService = {
                     }
                 }
 
-                if (isDone) {
+                if (isDone && (incFsMap.has(k) || slaFsMap.has(k) || monFsMap.has(k))) {
                     completedBundles.push({
                         kodeTugas: k,
                         incoming: incDoc,
@@ -1691,12 +1863,10 @@ const JNTFirebaseService = {
             }
 
             if (healedCount > 0) {
-                console.log(`🔄 [SELF-HEAL] Memulihkan ${healedCount} dokumen trip yang tidak sinkron antar koleksi Firestore.`);
+                console.log(`🔄 [SELF-HEAL] Memulihkan ${healedCount} dokumen arsip dari trip_archive.php kembali ke koleksi Firestore.`);
             }
 
             if (completedBundles.length > 0 && this._hostingEndpointAvailable) {
-                // Backup ke trip_archive.php TANPA menghapus dari Firestore (deleteFromFirestoreAfterSave = false)
-                // agar ke-3 halaman selalu 100% sinkron di semua perangkat.
                 await this.saveTripsBatchToHostingArchive(completedBundles, false);
             }
         } catch (err) {
@@ -3289,6 +3459,7 @@ const JNTFirebaseService = {
     },
 
     async addIncomingTrip(tripData) {
+        this._unmarkTripAsDeleted(tripData && tripData.kodeTugas);
         const isDuplicate = await this.checkDuplicateKodeTugas(tripData.kodeTugas);
         if (isDuplicate) {
             throw new Error(`⚠️ Kode Tugas "${tripData.kodeTugas}" sudah terdaftar di sistem! Silakan gunakan Kode Tugas unik.`);
@@ -3407,6 +3578,7 @@ const JNTFirebaseService = {
             throw new Error('Kode Tugas wajib ada pada setiap baris data Excel.');
         }
         const kode = String(row.kodeTugas).trim();
+        this._unmarkTripAsDeleted(kode);
         const plat = String(row.platNomor || '-').trim();
         const trip = String(row.trip || row.rute || row.namaRute || row.tlc || 'JKT - SUB').trim();
 
@@ -3647,12 +3819,13 @@ const JNTFirebaseService = {
 
         const emitMergedSLA = () => {
             const mergedMap = new Map();
+            const deletedSet = this._getDeletedTripIdsSet();
 
             // 1. Gabungkan dari incoming
             incCache.forEach(item => {
                 if (!item) return;
-                const k = item.kodeTugas || item.id;
-                if (k && !DEMO_TRIP_IDS.has(k) && !isReturnTripItem(item, k) && (item.jamBerangkat || item.trip || item.platNomor)) {
+                const k = String(item.kodeTugas || item.id || '').trim();
+                if (k && !DEMO_TRIP_IDS.has(k) && !deletedSet.has(k) && !isReturnTripItem(item, k) && (item.jamBerangkat || item.trip || item.platNomor)) {
                     mergedMap.set(k, { ...item });
                 }
             });
@@ -3660,8 +3833,8 @@ const JNTFirebaseService = {
             // 2. Gabungkan dari monitoring_4h (agar trip yang ada di Monitoring 4 Jam 100% muncul juga di SLA Vendor & Dashboard!)
             monCache.forEach(item => {
                 if (!item) return;
-                const k = item.kodeTugas || item.id;
-                if (k && !DEMO_TRIP_IDS.has(k) && !isReturnTripItem(item, k) && (item.jamBerangkat || item.trip || item.platNomor || mergedMap.has(k))) {
+                const k = String(item.kodeTugas || item.id || '').trim();
+                if (k && !DEMO_TRIP_IDS.has(k) && !deletedSet.has(k) && !isReturnTripItem(item, k) && (item.jamBerangkat || item.trip || item.platNomor || mergedMap.has(k))) {
                     const existing = mergedMap.get(k) || {};
                     mergedMap.set(k, { ...item, ...existing, slots: item.slots || existing.slots || {} });
                 }
@@ -3670,8 +3843,8 @@ const JNTFirebaseService = {
             // 3. Gabungkan dari sla_outbound
             slaCache.forEach(item => {
                 if (!item) return;
-                const k = item.kodeTugas || item.id;
-                if (k && !DEMO_TRIP_IDS.has(k) && !isReturnTripItem(item, k) && (item.jamBerangkat || item.trip || item.platNomor || mergedMap.has(k))) {
+                const k = String(item.kodeTugas || item.id || '').trim();
+                if (k && !DEMO_TRIP_IDS.has(k) && !deletedSet.has(k) && !isReturnTripItem(item, k) && (item.jamBerangkat || item.trip || item.platNomor || mergedMap.has(k))) {
                     const existing = mergedMap.get(k) || {};
                     mergedMap.set(k, { ...existing, ...item });
                 }
@@ -4324,24 +4497,26 @@ const JNTFirebaseService = {
 
         const emitMergedData = () => {
             const mergedMap = new Map();
+            const deletedSet = this._getDeletedTripIdsSet();
 
             // 1. All SLA Outbound trips from Firestore / local cache
             slaCache.forEach(item => {
-                const key = item.kodeTugas || item.id;
-                if (key && !DEMO_TRIP_IDS.has(key)) mergedMap.set(key, { ...item, slots: {} });
+                const key = String(item.kodeTugas || item.id || '').trim();
+                if (key && !DEMO_TRIP_IDS.has(key) && !deletedSet.has(key)) mergedMap.set(key, { ...item, slots: {} });
             });
 
             // 2. All Incoming trips from Firestore / local cache
             incCache.forEach(item => {
-                const key = item.kodeTugas || item.id;
-                if (key && !DEMO_TRIP_IDS.has(key) && !mergedMap.has(key)) mergedMap.set(key, { ...item, slots: {} });
+                const key = String(item.kodeTugas || item.id || '').trim();
+                if (key && !DEMO_TRIP_IDS.has(key) && !deletedSet.has(key) && !mergedMap.has(key)) mergedMap.set(key, { ...item, slots: {} });
             });
 
             // 3. Synchronize All SLA Return (Armada Balikan)
             retCache.forEach(ret => {
-                const retKey = ret.kodeTugasBalikan || ret.kodeBalikan || ret.kodeTugas || (ret.id ? `${ret.id}-RET` : '');
-                if (!retKey) return;
-                const asalKey = ret.kodeTugasAsal || ret.id;
+                const retKey = String(ret.kodeTugasBalikan || ret.kodeBalikan || ret.kodeTugas || (ret.id ? `${ret.id}-RET` : '')).trim();
+                if (!retKey || deletedSet.has(retKey)) return;
+                const asalKey = String(ret.kodeTugasAsal || ret.id || '').trim();
+                if (asalKey && deletedSet.has(asalKey)) return;
                 const origin = mergedMap.get(asalKey) || {};
                 const originTrip = origin.trip || origin.namaRute || '';
                 const tripName = ret.trip || (originTrip ? `BALIKAN ${originTrip}` : 'BALIKAN GATEWAY - JKT999');
@@ -4372,8 +4547,8 @@ const JNTFirebaseService = {
 
             // 4. All Monitoring 4H slot check-ins from Firestore / local cache
             monCache.forEach(item => {
-                const key = item.kodeTugas || item.id;
-                if (key && !DEMO_TRIP_IDS.has(key)) {
+                const key = String(item.kodeTugas || item.id || '').trim();
+                if (key && !DEMO_TRIP_IDS.has(key) && !deletedSet.has(key)) {
                     const existing = mergedMap.get(key) || {};
                     const mergedSlots = { ...(existing.slots || {}), ...(item.slots || {}) };
                     mergedMap.set(key, {
