@@ -37,23 +37,29 @@ const SLACountdownEngine = {
             if (!isNaN(d.getTime())) return d;
         }
 
-        // Handle "DD/MM/YYYY HH:mm" or "DD/MM HH:mm"
-        const parts = s.split(' ');
-        if (parts.length >= 1 && parts[0].includes('/')) {
-            const dateParts = parts[0].split('/');
-            const timeParts = parts.length > 1 && parts[1].includes(':') ? parts[1].split(':') : [0, 0];
+        // Handle "MM/DD/YYYY HH:mm" (standard) or "DD/MM/YYYY HH:mm" (legacy) or "MM/DD HH:mm"
+        const m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:[,\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?/);
+        if (m) {
+            const p1 = parseInt(m[1], 10);
+            const p2 = parseInt(m[2], 10);
+            let year = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+            if (year < 100) year += 2000;
+            let hours = m[4] !== undefined ? parseInt(m[4], 10) : 0;
+            let minutes = m[5] !== undefined ? parseInt(m[5], 10) : 0;
+            let seconds = m[6] !== undefined ? parseInt(m[6], 10) : 0;
 
-            let day = parseInt(dateParts[0], 10);
-            let month = parseInt(dateParts[1], 10) - 1;
-            let year = dateParts[2] ? parseInt(dateParts[2], 10) : new Date().getFullYear();
-            let hours = parseInt(timeParts[0], 10);
-            let minutes = parseInt(timeParts[1], 10);
-            let seconds = timeParts[2] ? parseInt(timeParts[2], 10) : 0;
-
-            if (isNaN(day) || isNaN(month)) return null;
-            if (isNaN(hours)) hours = 0;
-            if (isNaN(minutes)) minutes = 0;
-            if (isNaN(seconds)) seconds = 0;
+            if (isNaN(p1) || isNaN(p2)) return null;
+            let month, day;
+            if (p1 > 12) {
+                day = p1;
+                month = p2 - 1;
+            } else if (p2 > 12) {
+                month = p1 - 1;
+                day = p2;
+            } else {
+                month = p1 - 1;
+                day = p2;
+            }
 
             const parsed = new Date(year, month, day, hours, minutes, seconds);
             return isNaN(parsed.getTime()) ? null : parsed;
@@ -194,9 +200,10 @@ const SLACountdownEngine = {
     formatTimeOnly(date) {
         if (!date) return '-';
         const pad = (num) => String(num).padStart(2, '0');
-        const dd = pad(date.getDate());
         const mm = pad(date.getMonth() + 1);
-        return `${dd}/${mm} ${pad(date.getHours())}:${pad(date.getMinutes())} WIB`;
+        const dd = pad(date.getDate());
+        const yyyy = date.getFullYear();
+        return `${mm}/${dd}/${yyyy} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
     },
 
     _isScrolling: false,

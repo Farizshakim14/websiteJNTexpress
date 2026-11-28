@@ -881,17 +881,17 @@
             }
         }
 
-        // Normalisasi Waktu Keberangkatan dari cell Excel
+        // Normalisasi Waktu Keberangkatan dari cell Excel ke format standar MM/DD/YYYY HH:mm
         function normalizeExcelDepartureTime(raw) {
             if (!raw) return '';
             if (raw instanceof Date && !isNaN(raw.getTime())) {
                 const pad = n => String(n).padStart(2, '0');
-                const d = pad(raw.getDate());
                 const m = pad(raw.getMonth() + 1);
+                const d = pad(raw.getDate());
                 const y = raw.getFullYear();
                 const hh = pad(raw.getHours());
                 const mm = pad(raw.getMinutes());
-                return `${d}/${m}/${y} ${hh}:${mm} WIB`;
+                return `${m}/${d}/${y} ${hh}:${mm}`;
             }
             if (typeof raw === 'number' && raw > 30000 && raw < 60000) {
                 // Serial Excel Date
@@ -912,15 +912,18 @@
                 return '';
             }
             if (/^\d{1,2}[:.]\d{2}$/.test(s)) {
-                // Hanya jam: tambahkan tanggal hari ini
+                // Hanya jam: tambahkan tanggal hari ini (MM/DD/YYYY HH:mm)
                 const now = new Date();
                 const pad = n => String(n).padStart(2, '0');
-                const d = pad(now.getDate());
                 const m = pad(now.getMonth() + 1);
+                const d = pad(now.getDate());
                 const y = now.getFullYear();
-                return `${d}/${m}/${y} ${s.replace('.', ':')} WIB`;
+                return `${m}/${d}/${y} ${s.replace('.', ':')}`;
             }
-            return s;
+            if (typeof window.jntFormatDateTime === 'function') {
+                return window.jntFormatDateTime(s) || s;
+            }
+            return s.replace(/\s*WIB$/i, '').trim();
         }
 
         // Handle File Dropzone & File Selection
@@ -967,9 +970,9 @@
             if (type === 'SLA') {
                 const sampleSLA = [
                     ['Kode Tugas', 'Nama Rute', 'TLC Tujuan', 'Vendor', 'Plat Nomor', 'Driver Utama', 'No HP / WhatsApp Driver', 'Driver Cadangan', 'No HP Cadangan', 'Jam Berangkat', 'Target SLA (Jam)'],
-                    ['T-SLA-001', 'JKT - SUB FUSO', 'SUB', 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)', 'B 9134 PXX', 'Nasrul F.', '0812-1111-2222', '', '', '11/11/2026 08:30 WIB', 16],
-                    ['T-SLA-002', 'JKT - BDG CDD', 'BDG', 'PT. ASIA PASIFIK LOGISTIK (APL)', 'B 9041 SXX', 'Dian OS', '0812-3333-4444', 'Budi S.', '0812-9999-0000', '11/11/2026 09:15 WIB', 8],
-                    ['T-SLA-003', 'JKT - SEG CDD', 'SEG', 'PT. KENCANA LOGISTIK SAMUDERA (KLS)', 'B 1512 KLS', 'Imron (0813-8888-9999)', '', '', '', '11/11/2026 10:00 WIB', 4]
+                    ['T-SLA-001', 'JKT - SUB FUSO', 'SUB', 'PT. SERIKAT HANTAR EKSPEDISI (SERYU)', 'B 9134 PXX', 'Nasrul F.', '0812-1111-2222', '', '', '10/29/2026 08:30', 16],
+                    ['T-SLA-002', 'JKT - BDG CDD', 'BDG', 'PT. ASIA PASIFIK LOGISTIK (APL)', 'B 9041 SXX', 'Dian OS', '0812-3333-4444', 'Budi S.', '0812-9999-0000', '10/29/2026 09:15', 8],
+                    ['T-SLA-003', 'JKT - SEG CDD', 'SEG', 'PT. KENCANA LOGISTIK SAMUDERA (KLS)', 'B 1512 KLS', 'Imron (0813-8888-9999)', '', '', '', '10/29/2026 10:00', 4]
                 ];
                 const ws = XLSX.utils.aoa_to_sheet(sampleSLA);
                 ws['!cols'] = [{ wch: 16 }, { wch: 20 }, { wch: 12 }, { wch: 38 }, { wch: 14 }, { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 15 }];
@@ -979,8 +982,8 @@
             } else {
                 const sample4H = [
                     ['Kode Tugas', 'Nama Rute', 'TLC Tujuan', 'Vendor', 'Plat Nomor', 'Driver Utama', 'No HP Driver', 'Jam Berangkat', '00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'D2_00:00', 'D2_04:00', 'D2_08:00', 'D2_12:00', 'D2_16:00', 'D2_20:00'],
-                    ['T-4H-001', 'SEG FUSO', 'SEG', 'PT. KENCANA LOGISTIK SAMUDERA (KLS)', 'B 1512 KLS', 'Imron', '0813-8888-9999', '11/11/2026 13:28 WIB', '-', '-', '-', 'OUT JKT999 13:28', 'KM 57 TOLL 15:45', 'IN SEG 18:20', '-', '-', '-', '-', '-', '-'],
-                    ['T-4H-002', 'SRG FUSO', 'SRG', 'PT. ASIA PASIFIK LOGISTIK (APL)', 'B 9096 SYQ', 'Hartono', '0812-7777-8888', '11/11/2026 15:16 WIB', '-', '-', '-', '-', 'OUT JKT999 15:16', 'CIKAMPEK UTAMA 19:30', 'PALIMANAN 23:45', '-', '-', '-', '-', '-']
+                    ['T-4H-001', 'SEG FUSO', 'SEG', 'PT. KENCANA LOGISTIK SAMUDERA (KLS)', 'B 1512 KLS', 'Imron', '0813-8888-9999', '10/29/2026 13:28', '-', '-', '-', 'OUT JKT999 13:28', 'KM 57 TOLL 15:45', 'IN SEG 18:20', '-', '-', '-', '-', '-', '-'],
+                    ['T-4H-002', 'SRG FUSO', 'SRG', 'PT. ASIA PASIFIK LOGISTIK (APL)', 'B 9096 SYQ', 'Hartono', '0812-7777-8888', '10/29/2026 15:16', '-', '-', '-', '-', 'OUT JKT999 15:16', 'CIKAMPEK UTAMA 19:30', 'PALIMANAN 23:45', '-', '-', '-', '-', '-']
                 ];
                 const ws = XLSX.utils.aoa_to_sheet(sample4H);
                 ws['!cols'] = [{ wch: 16 }, { wch: 16 }, { wch: 12 }, { wch: 38 }, { wch: 14 }, { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
@@ -1144,7 +1147,7 @@
             return (!isNaN(n) && n > 0) ? n : null;
         }
 
-        // Hitung Timestamp Slot 4H (Kombinasi Tanggal Keberangkatan & Offset Hari Slot)
+        // Hitung Timestamp Slot 4H (Kombinasi Tanggal Keberangkatan & Offset Hari Slot) -> Format MM/DD/YYYY HH:mm
         function computeSlotTimestamp(jamBerangkat, slotKey, timeFound) {
             let dayOffset = 0;
             const dayMatch = (slotKey || '').match(/^D(\d+)_/i);
@@ -1157,26 +1160,13 @@
                 timeStr = hrMatch ? hrMatch[1] : '08:00';
             }
 
-            if (jamBerangkat) {
-                const dateMatch = jamBerangkat.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-                if (dateMatch) {
-                    const d = parseInt(dateMatch[1], 10);
-                    const m = parseInt(dateMatch[2], 10) - 1;
-                    const y = parseInt(dateMatch[3], 10);
-                    const targetDate = new Date(y, m, d);
-                    targetDate.setDate(targetDate.getDate() + dayOffset);
-                    const pad = n => String(n).padStart(2, '0');
-                    const dStr = pad(targetDate.getDate());
-                    const mStr = pad(targetDate.getMonth() + 1);
-                    const yStr = targetDate.getFullYear();
-                    return `${dStr}/${mStr}/${yStr} ${timeStr} WIB`;
-                }
-            }
-
-            const now = new Date();
-            now.setDate(now.getDate() + dayOffset);
+            const baseDate = (typeof window.jntParseDate === 'function' ? window.jntParseDate(jamBerangkat) : null) || new Date();
+            const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + dayOffset);
             const pad = n => String(n).padStart(2, '0');
-            return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${timeStr} WIB`;
+            const mStr = pad(targetDate.getMonth() + 1);
+            const dStr = pad(targetDate.getDate());
+            const yStr = targetDate.getFullYear();
+            return `${mStr}/${dStr}/${yStr} ${timeStr}`;
         }
 
         // Deteksi Cerdas Kolom Vendor (Prioritas Vendor 3PL, Anti tertukar dengan Perusahaan J&T)
@@ -1576,7 +1566,9 @@
                 });
 
                 if (!jamBerangkat) {
-                    jamBerangkat = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                    jamBerangkat = (typeof window.jntFormatDateTime === 'function')
+                        ? window.jntFormatDateTime(new Date())
+                        : JNTFirebaseService.formatStandardDateTime(new Date());
                 }
 
                 results.push({
@@ -1721,12 +1713,12 @@
                     </td>
                     <td class="excel-preview-cell-jam">
                         <span class="excel-preview-badge-jam">
-                            🟢 ${r.jamBerangkat}
+                            🟢 ${window.jntFormatDateTime ? window.jntFormatDateTime(r.jamBerangkat) : r.jamBerangkat}
                         </span>
                     </td>
                     <td><strong>${r.targetSLA} Jam</strong></td>
                     <td><strong style="color: #38BDF8;">${r.totalAwb ? Number(r.totalAwb).toLocaleString('id-ID') : '-'}</strong></td>
-                    <td>${r.jamSampaiAktual ? '<span class="excel-preview-sampai-val">' + r.jamSampaiAktual + '</span>' : '<span style="color:#94A3B8;">Belum Sampai</span>'}</td>
+                    <td>${r.jamSampaiAktual ? '<span class="excel-preview-sampai-val">' + (window.jntFormatDateTime ? window.jntFormatDateTime(r.jamSampaiAktual) : r.jamSampaiAktual) + '</span>' : '<span style="color:#94A3B8;">Belum Sampai</span>'}</td>
                     <td style="text-align: center;">
                         <span class="excel-preview-badge-status">
                             ✅ Siap
@@ -1811,7 +1803,7 @@
             const activeUser = sessionStorage.getItem('jnt_active_username') || 'Operator';
             if (successCount > 0) {
                 await JNTFirebaseService.logAuditEvent({
-                    waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                    waktu: JNTFirebaseService.formatStandardDateTime(),
                     operator: activeUser,
                     shiftId: JNTFirebaseService.getActiveShiftId(),
                     modul: "Report & Excel",
@@ -2126,8 +2118,8 @@
                             <td><strong>${m.platNomor || '-'}</strong></td>
                             <td>${m.trip || m.namaRute || '-'}</td>
                             <td><strong style="color: #38BDF8; font-weight: 800; font-size: 11.5px;">${(typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatVendorShort) ? JNTFirebaseService.formatVendorShort(m.vendor) : (m.vendor || '-')}</strong></td>
-                            <td><span style="color:#16A34A;font-weight:700;">🟢 ${m.jamBerangkat || '-'}</span></td>
-                            <td style="font-size: 11.5px; color: #64748B;">${m.lastUpdateTime || m.jamSampaiAktual || '-'} (${m.lastUpdateLokasi || m.lokasiSampai || '-'})</td>
+                            <td><span style="color:#16A34A;font-weight:700;">🟢 ${m.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(m.jamBerangkat) : m.jamBerangkat) : '-'}</span></td>
+                            <td style="font-size: 11.5px; color: #64748B;">${(m.lastUpdateTime || m.jamSampaiAktual) ? (window.jntFormatDateTime ? window.jntFormatDateTime(m.lastUpdateTime || m.jamSampaiAktual) : (m.lastUpdateTime || m.jamSampaiAktual)) : '-'} (${m.lastUpdateLokasi || m.lokasiSampai || '-'})</td>
                             <td style="text-align: center;">
                                 <span style="background:${badgeBg}; color:${badgeColor}; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">
                                     ${st}
@@ -2183,7 +2175,7 @@
                             <td><strong>${t.jenis || 'Kendala'}</strong> — ${t.kategoriTrouble || '-'}</td>
                             <td><span style="color:#DC2626; font-weight:700;">${t.severity || 'Normal'}</span></td>
                             <td>${t.lokasiKejadian || '-'}</td>
-                            <td style="font-size: 11.5px; color: #64748B;">${t.waktuKejadian || '-'}</td>
+                            <td style="font-size: 11.5px; color: #64748B;">${t.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(t.waktuKejadian) : t.waktuKejadian) : '-'}</td>
                             <td style="font-size: 12px;">${t.deskripsi || t.keterangan || '-'}</td>
                             <td style="text-align: center;">
                                 <span style="background:${badgeBg}; color:${badgeColor}; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">

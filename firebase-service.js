@@ -677,7 +677,7 @@ const JNTFirebaseService = {
             this.clearSyncConflict(colName, docId);
 
             await this.logAuditEvent({
-                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                waktu: this.formatStandardDateTime(),
                 operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
                 shiftId: this.getActiveShiftId(),
                 modul: "Conflict Resolution",
@@ -721,7 +721,7 @@ const JNTFirebaseService = {
             this.clearSyncConflict(colName, docId);
 
             await this.logAuditEvent({
-                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                waktu: this.formatStandardDateTime(),
                 operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
                 shiftId: this.getActiveShiftId(),
                 modul: "Conflict Resolution",
@@ -762,7 +762,7 @@ const JNTFirebaseService = {
             this.clearSyncConflict(colName, docId);
 
             await this.logAuditEvent({
-                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                waktu: this.formatStandardDateTime(),
                 operator: sessionStorage.getItem('jnt_active_username') || "Supervisor",
                 shiftId: this.getActiveShiftId(),
                 modul: "Conflict Resolution",
@@ -1021,27 +1021,74 @@ const JNTFirebaseService = {
     },
 
     /**
-     * Parser tanggal monitoring yang toleran terhadap format:
-     *  - "dd/mm/yyyy HH:MM" (format input operator)
-     *  - "dd/mm/yy, HH.MM"  (format toLocaleString id-ID)
-     *  - ISO "yyyy-mm-ddTHH:MM"
+     * Parser tanggal operasional standar yang mendukung:
+     *  - "MM/DD/YYYY HH:mm" (format standar baru, misal: "10/29/2026 17:20")
+     *  - "DD/MM/YYYY HH:mm" (format legacy, misal: "29/10/2026 17:20 WIB")
+     *  - "DD/MM/YY, HH.mm"  (format toLocaleString id-ID)
+     *  - ISO "YYYY-MM-DDTHH:mm" / "YYYY-MM-DD HH:mm"
      */
-    parseMonitoringDate(value) {
+    parseStandardDate(value) {
         if (!value) return null;
         if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+        if (typeof value === 'number') {
+            const d = new Date(value);
+            return isNaN(d.getTime()) ? null : d;
+        }
         const s = String(value).trim();
+        if (!s || /^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(s)) return null;
+
         if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
             const d = new Date(s);
             return isNaN(d.getTime()) ? null : d;
         }
-        const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})[,\s]+(\d{1,2})[:.](\d{2})/);
+
+        const m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:[,\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?/);
         if (m) {
-            let y = parseInt(m[3], 10);
+            const p1 = parseInt(m[1], 10);
+            const p2 = parseInt(m[2], 10);
+            let y = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
             if (y < 100) y += 2000;
-            const d = new Date(y, parseInt(m[2], 10) - 1, parseInt(m[1], 10), parseInt(m[4], 10), parseInt(m[5], 10));
+            const hh = m[4] !== undefined ? parseInt(m[4], 10) : 0;
+            const mm = m[5] !== undefined ? parseInt(m[5], 10) : 0;
+            const ss = m[6] !== undefined ? parseInt(m[6], 10) : 0;
+
+            let monthIdx, day;
+            if (p1 > 12) {
+                day = p1;
+                monthIdx = p2 - 1;
+            } else if (p2 > 12) {
+                monthIdx = p1 - 1;
+                day = p2;
+            } else {
+                monthIdx = p1 - 1;
+                day = p2;
+            }
+
+            const d = new Date(y, monthIdx, day, hh, mm, ss);
             return isNaN(d.getTime()) ? null : d;
         }
-        return null;
+
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d;
+    },
+
+    /**
+     * Format waktu standar operasional J&T TMS: "MM/DD/YYYY HH:mm" (contoh: "10/29/2026 17:20")
+     */
+    formatStandardDateTime(input = new Date()) {
+        if (input === null || input === undefined || input === '') return '';
+        if (typeof input === 'string') {
+            const trimmed = input.trim();
+            if (!trimmed || /^(-|—|kosong|belum|nihil|null|undefined|n\/a)$/i.test(trimmed)) return trimmed === '-' ? '-' : '';
+        }
+        const d = this.parseStandardDate(input);
+        if (!d) return typeof input === 'string' ? input.replace(/\s*WIB$/i, '').trim() : '';
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    },
+
+    parseMonitoringDate(value) {
+        return this.parseStandardDate(value);
     },
 
     /** Ambil jam (0-23) dari string waktu apa pun; fallback ke parsing "HH:MM" sederhana */
@@ -3120,10 +3167,10 @@ const JNTFirebaseService = {
                 fixedArr.setDate(fixedArr.getDate() + 1);
             }
             const pad = n => String(n).padStart(2, '0');
-            return `${pad(fixedArr.getDate())}/${pad(fixedArr.getMonth() + 1)}/${fixedArr.getFullYear()} ${pad(fixedArr.getHours())}:${pad(fixedArr.getMinutes())} WIB`;
+            return `${pad(fixedArr.getMonth() + 1)}/${pad(fixedArr.getDate())}/${fixedArr.getFullYear()} ${pad(fixedArr.getHours())}:${pad(fixedArr.getMinutes())}`;
         }
 
-        return cleanArr;
+        return this.formatStandardDateTime(cleanArr) || cleanArr;
     },
 
     normalizeVendorName(rawVendor, platNomor = '') {
@@ -3839,7 +3886,7 @@ const JNTFirebaseService = {
 
         // Log Audit Event
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: tripData.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
             shiftId: shiftId,
             modul: "Incoming SSOT",
@@ -3930,11 +3977,11 @@ const JNTFirebaseService = {
             driverPhone: driverPhone,
             driver2: driver2,
             driver2Phone: driver2Phone,
-            jamBerangkat: jamBerangkat || (existing ? existing.jamBerangkat : new Date().toLocaleString('id-ID')),
+            jamBerangkat: jamBerangkat ? this.formatStandardDateTime(jamBerangkat) : (existing ? existing.jamBerangkat : this.formatStandardDateTime()),
             targetSLAOutboundHours: targetSLA ? parseFloat(targetSLA) : masterInfo.targetSLAOutboundHours,
             targetSLARoundtripHours: masterInfo.targetSLARoundtripHours,
             totalAwb: (totalAwb !== null) ? totalAwb : (existing ? existing.totalAwb : null),
-            jamSampaiAktual: jamSampai || (existing ? existing.jamSampaiAktual : ''),
+            jamSampaiAktual: jamSampai ? this.formatStandardDateTime(jamSampai) : (existing ? existing.jamSampaiAktual : ''),
             status: jamSampai ? 'COMPLETED' : (existing ? existing.status : 'ON PROGRESS'),
             inputBy: inputBy,
             shiftId: shiftId,
@@ -3977,7 +4024,7 @@ const JNTFirebaseService = {
                         lokasi: sData.lokasi,
                         keterangan: sData.keterangan || "Update dari Excel Monitoring 4H",
                         jenisUpdate: sData.jenisUpdate || "Lokasi Normal",
-                        jamUpdateAktual: sData.jamUpdateAktual || tripData.jamBerangkat || new Date().toLocaleString('id-ID'),
+                        jamUpdateAktual: this.formatStandardDateTime(sData.jamUpdateAktual || tripData.jamBerangkat || new Date()),
                         inputBy: inputBy,
                         shiftId: shiftId,
                         statusUpdate: "SUDAH UPDATE"
@@ -3991,7 +4038,7 @@ const JNTFirebaseService = {
                     const isArr = !isOut && (locUp.startsWith('IN') || locUp.includes('GATEWAY IN') || locUp.includes('GW IN') || locUp.includes('SAMPAI') || locUp.includes('TIBA') || sData.jenisUpdate === 'Sampai');
                     if (isArr) {
                         hasArrival = true;
-                        tripData.jamSampaiAktual = sData.jamUpdateAktual || tripData.jamSampaiAktual || new Date().toLocaleString('id-ID');
+                        tripData.jamSampaiAktual = this.formatStandardDateTime(sData.jamUpdateAktual || tripData.jamSampaiAktual || new Date());
                     }
                 }
             });
@@ -4182,11 +4229,11 @@ const JNTFirebaseService = {
                         driverPhone: d1Info.driverPhone,
                         driver2: driver2,
                         driver2Phone: driver2Phone,
-                        jamBerangkat: jamBerangkat || (existing ? existing.jamBerangkat : new Date().toLocaleString('id-ID')),
+                        jamBerangkat: jamBerangkat ? this.formatStandardDateTime(jamBerangkat) : (existing ? existing.jamBerangkat : this.formatStandardDateTime()),
                         targetSLAOutboundHours: targetSLA ? parseFloat(targetSLA) : masterInfo.targetSLAOutboundHours,
                         targetSLARoundtripHours: masterInfo.targetSLARoundtripHours,
                         totalAwb: (totalAwb !== null) ? totalAwb : (existing ? existing.totalAwb : null),
-                        jamSampaiAktual: jamSampai || (existing ? existing.jamSampaiAktual : ''),
+                        jamSampaiAktual: jamSampai ? this.formatStandardDateTime(jamSampai) : (existing ? existing.jamSampaiAktual : ''),
                         status: jamSampai ? 'COMPLETED' : (existing ? existing.status : 'ON PROGRESS'),
                         inputBy: inputBy,
                         shiftId: shiftId,
@@ -4224,7 +4271,7 @@ const JNTFirebaseService = {
                                     lokasi: sData.lokasi,
                                     keterangan: sData.keterangan || "Update dari Excel Monitoring 4H",
                                     jenisUpdate: sData.jenisUpdate || "Lokasi Normal",
-                                    jamUpdateAktual: sData.jamUpdateAktual || tripData.jamBerangkat || new Date().toLocaleString('id-ID'),
+                                    jamUpdateAktual: this.formatStandardDateTime(sData.jamUpdateAktual || tripData.jamBerangkat || new Date()),
                                     inputBy: inputBy,
                                     shiftId: shiftId,
                                     statusUpdate: "SUDAH UPDATE"
@@ -4238,7 +4285,7 @@ const JNTFirebaseService = {
                                 const isArr = !isOut && (locUp.startsWith('IN') || locUp.includes('GATEWAY IN') || locUp.includes('GW IN') || locUp.includes('SAMPAI') || locUp.includes('TIBA') || sData.jenisUpdate === 'Sampai');
                                 if (isArr) {
                                     hasArrival = true;
-                                    tripData.jamSampaiAktual = sData.jamUpdateAktual || tripData.jamSampaiAktual || new Date().toLocaleString('id-ID');
+                                    tripData.jamSampaiAktual = this.formatStandardDateTime(sData.jamUpdateAktual || tripData.jamSampaiAktual || new Date());
                                 }
                             }
                         });
@@ -4571,7 +4618,7 @@ const JNTFirebaseService = {
         }
 
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: updateObj.inputBy || sessionStorage.getItem('jnt_active_username') || "Farizs Hakim",
             shiftId: shiftId,
             modul: "SLA Vendor",
@@ -4586,7 +4633,7 @@ const JNTFirebaseService = {
         // Cascade delete dari semua 5 collection trip
         await this.deleteTripCascade(kodeTugas, true);
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: sessionStorage.getItem('jnt_active_username') || 'Operator',
             shiftId: shiftId,
             modul: 'SLA Vendor',
@@ -4769,7 +4816,7 @@ const JNTFirebaseService = {
 
         // 4. Log Audit Trail
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: returnObj.inputBy || sessionStorage.getItem('jnt_active_username') || "Operator",
             shiftId: shiftId,
             modul: "SLA Vendor",
@@ -5278,7 +5325,7 @@ const JNTFirebaseService = {
             lokasi: lokasi,
             keterangan: keterangan,
             jenisUpdate: jenisUpdate,
-            jamUpdateAktual: jamUpdateAktual || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            jamUpdateAktual: jamUpdateAktual ? this.formatStandardDateTime(jamUpdateAktual) : this.formatStandardDateTime(),
             inputBy: inputBy,
             shiftId: shiftId,
             statusUpdate: "SUDAH UPDATE"
@@ -5660,7 +5707,7 @@ const JNTFirebaseService = {
             kategoriTrouble: incidentData.kategoriTrouble || "Kendala Operasional",
             severity: incidentData.severity || "MEDIUM",
             lokasiKejadian: incidentData.lokasiKejadian || "Rest Area / Jalur Rute",
-            waktuKejadian: incidentData.waktuKejadian || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktuKejadian: incidentData.waktuKejadian ? this.formatStandardDateTime(incidentData.waktuKejadian) : this.formatStandardDateTime(),
             platNomor: incidentData.platNomor || incMaster.platNomor || "-",
             driver: incidentData.driver || incMaster.driver1 || incMaster.driver || "-",
             driverPhone: incidentData.driverPhone || incMaster.driverPhone || incMaster.driverPhone1 || "-",
@@ -5678,7 +5725,7 @@ const JNTFirebaseService = {
             createdAt: new Date().toISOString(),
             history: [
                 {
-                    time: incidentData.waktuKejadian || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                    time: incidentData.waktuKejadian ? this.formatStandardDateTime(incidentData.waktuKejadian) : this.formatStandardDateTime(),
                     note: `Laporan incident ${incidentData.jenis || 'Trouble'} dikirim oleh ${incidentData.dilaporkanOleh || sessionStorage.getItem('jnt_active_username') || 'Operator'}`,
                     status: incidentData.status || "OPEN",
                     user: incidentData.dilaporkanOleh || sessionStorage.getItem('jnt_active_username') || "Operator"
@@ -5714,7 +5761,7 @@ const JNTFirebaseService = {
         }
 
         const history = Array.isArray(data.history) ? [...data.history] : [];
-        const nowStr = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+        const nowStr = this.formatStandardDateTime();
         history.push({
             time: nowStr,
             note: note || `Status diperbarui menjadi ${newStatus}`,
@@ -5841,7 +5888,7 @@ const JNTFirebaseService = {
             ...(shiftData.handoverFrom ? {
                 handoverFrom: shiftData.handoverFrom,
                 handoverNote: shiftData.handoverNote || "Pergantian Shift Operasional",
-                handoverTime: shiftData.handoverTime || new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+                handoverTime: shiftData.handoverTime ? this.formatStandardDateTime(shiftData.handoverTime) : this.formatStandardDateTime()
             } : {}),
             createdAt: new Date().toISOString()
         };
@@ -5852,7 +5899,7 @@ const JNTFirebaseService = {
         await this.saveDoc('shifts', newShiftId, newShiftObj, true);
 
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: shiftData.operator1.nama,
             shiftId: newShiftId,
             modul: "Shift Management",
@@ -5894,11 +5941,11 @@ const JNTFirebaseService = {
             operator2: { nama: newOp2, role: "Operator Pendamping", tugas: op2Tugas || "SLA" },
             handoverFrom: prevOpNames,
             handoverNote: reason,
-            handoverTime: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+            handoverTime: this.formatStandardDateTime()
         });
 
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: newOp1,
             shiftId: nextShift.shiftId,
             modul: "Shift Management",
@@ -5919,7 +5966,7 @@ const JNTFirebaseService = {
         this.saveShiftToHostingHistory({ ...existingShift, ...updated, status: 'COMPLETED' }).catch(() => { });
 
         await this.logAuditEvent({
-            waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+            waktu: this.formatStandardDateTime(),
             operator: sessionStorage.getItem('jnt_active_username') || "System",
             shiftId: id,
             modul: "Shift Management",
@@ -7355,6 +7402,8 @@ const JNTFirebaseService = {
 
 // Explicit Global Attachment to Window Object
 window.JNTFirebaseService = JNTFirebaseService;
+window.jntFormatDateTime = (val) => JNTFirebaseService.formatStandardDateTime(val);
+window.jntParseDate = (val) => JNTFirebaseService.parseStandardDate(val);
 
 // Network State & Auto-Retry Listeners
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {

@@ -2386,7 +2386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const driverDisplay = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.formatDriverDisplay)
                     ? JNTFirebaseService.formatDriverDisplay(item.driver1 || item.driver, item.driverPhone, item.driver2, item.driver2Phone)
                     : `<strong>${jntEscapeHtml(item.driver1 || item.driver || '-')}</strong>`;
-                const jamBerangkat = item.jamBerangkat || '-';
+                const jamBerangkat = item.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.jamBerangkat) : item.jamBerangkat) : '-';
 
                 let badgeHtml = `<span class="badge-status blue-outline" style="font-size: 11px;">🔵 Di Jalan</span>`;
                 if (item._normStatus === 'COMPLETED') {
@@ -2692,7 +2692,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td><span style="color: #DC2626; font-weight: 600;">${s.handoverFrom}</span></td>
                         <td><span style="color: #16A34A; font-weight: 600;">${newOps}</span></td>
                         <td><span style="font-weight: 700; color: #0F172A;">${jamMulaiAkhir}</span></td>
-                        <td>${s.handoverTime || s.tanggal || '-'}</td>
+                        <td>${(s.handoverTime || s.tanggal) ? (window.jntFormatDateTime ? window.jntFormatDateTime(s.handoverTime || s.tanggal) : (s.handoverTime || s.tanggal)) : '-'}</td>
                         <td>${s.handoverNote || 'Pergantian Shift Operasional'}</td>
                     </tr>
                 `;
@@ -2736,7 +2736,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `
                     <tr class="inc-row">
                         <td class="col-center">${idx + 1}</td>
-                        <td><strong>${jntEscapeHtml(item.waktu || '-')}</strong></td>
+                        <td><strong>${jntEscapeHtml(item.waktu ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktu) : item.waktu) : '-')}</strong></td>
                         <td><span class="badge-status blue-outline font-monospace" style="font-size: 11.5px;">${jntEscapeHtml(item.shiftId || 'SHIFT-20261111-01')}</span></td>
                         <td><strong>${jntEscapeHtml(item.operator || 'System')}</strong></td>
                         <td><span class="audit-badge ${badgeClass}">${jntEscapeHtml(item.modul || 'General')}</span></td>
@@ -2783,7 +2783,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <strong style="color: #0F172A; display: block; font-size: 13px;">${jntEscapeHtml(l.aktivitas || '-')}</strong>
                                     <span style="font-size: 11.5px; color: #64748B;">👤 ${jntEscapeHtml(l.operator || '-')} • 📦 ${jntEscapeHtml(l.modul || '-')} • 🆔 ${jntEscapeHtml(l.kodeTugas || '-')}</span>
                                 </div>
-                                <span style="font-size: 11.5px; color: #2563EB; font-weight: 700; font-family: monospace;">${jntEscapeHtml(l.waktu || '-')}</span>
+                                <span style="font-size: 11.5px; color: #2563EB; font-weight: 700; font-family: monospace;">${jntEscapeHtml(l.waktu ? (window.jntFormatDateTime ? window.jntFormatDateTime(l.waktu) : l.waktu) : '-')}</span>
                             </div>
                         `;
                     }).join('');
@@ -3065,7 +3065,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     await JNTFirebaseService.saveActiveShift(updatedObj);
                     await JNTFirebaseService.logAuditEvent({
-                        waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                        waktu: JNTFirebaseService.formatStandardDateTime(),
                         operator: activeUsername,
                         shiftId: active.shiftId || active.id,
                         modul: "Shift Management",
@@ -3255,7 +3255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const trip = data.trip || data.namaRute || '-';
         const driver = data.driver1 || data.driver || '-';
         const vendor = data.vendor || 'PT J&T Logistics';
-        const jamBerangkat = data.jamBerangkat || '-';
+        const jamBerangkat = data.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(data.jamBerangkat) : data.jamBerangkat) : '-';
         const targetSLA = data.targetSLAHours ? `${data.targetSLAHours} Jam` : 'Target Terhubung';
         const totalAwb = data.totalAwb ? `${Number(data.totalAwb).toLocaleString('id-ID')} Paket` : '-';
         const inputBy = data.inputBy || sessionStorage.getItem('jnt_active_username') || 'Operator';
@@ -3415,7 +3415,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const trComboboxWrap = document.getElementById('tr-armada-combobox');
         const trWaktuKejadian = document.getElementById('tr-waktu-kejadian');
         if (trWaktuKejadian) {
-            trWaktuKejadian.value = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+            trWaktuKejadian.value = window.jntFormatDateTime ? window.jntFormatDateTime(new Date()) : JNTFirebaseService.formatStandardDateTime(new Date());
         }
 
         const fillTroubleArmadaFields = (trip) => {
@@ -3700,7 +3700,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnReportIncident) {
             btnReportIncident.addEventListener('click', () => {
                 if (trWaktuKejadian) {
-                    trWaktuKejadian.value = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                    trWaktuKejadian.value = window.jntFormatDateTime ? window.jntFormatDateTime(new Date()) : JNTFirebaseService.formatStandardDateTime(new Date());
                 }
                 if (typeof window._refreshTroubleArmadaCombobox === 'function') {
                     window._refreshTroubleArmadaCombobox();
@@ -3794,7 +3794,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (dtRoute) dtRoute.textContent = incident.rute || incident.trip || '-';
-            if (dtWaktu) dtWaktu.textContent = `${incident.waktuKejadian || '-'} WIB`;
+            if (dtWaktu) dtWaktu.textContent = incident.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(incident.waktuKejadian) : incident.waktuKejadian) : '-';
             if (dtLokasi) dtLokasi.textContent = incident.lokasiKejadian || incident.lokasi || '-';
             if (dtVendor) dtVendor.textContent = incident.vendor || 'J&T Express';
             if (dtPlat) dtPlat.textContent = incident.platNomor || '-';
@@ -3873,12 +3873,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     : [{ time: incident.waktuKejadian || '-', note: 'Laporan pertama masuk sistem', user: incident.dilaporkanOleh || 'Operator' }];
 
                 dtTimeline.innerHTML = history.map(h => {
+                    const fmtTime = h.time ? (window.jntFormatDateTime ? window.jntFormatDateTime(h.time) : h.time) : '-';
                     return `
                         <div class="history-step" style="display: flex; gap: 10px; align-items: flex-start;">
                             <div class="step-dot ${h.status === 'SUDAH SELESAI' ? 'green-dot' : 'orange-dot'}"></div>
                             <div class="step-meta" style="flex: 1;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span class="timeline-step-time">${jntEscapeHtml(h.time || '-')}</span>
+                                    <span class="timeline-step-time">${jntEscapeHtml(fmtTime)}</span>
                                 </div>
                                 <span class="timeline-step-note">${jntEscapeHtml(h.note || '-')}</span>
                                 <span class="timeline-step-user">oleh ${jntEscapeHtml(h.user || 'Petugas')}</span>
@@ -3952,10 +3953,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const resolvedTlc = item.tlc || matchedTrip.tlc || matchedTrip.trip || item.rute || '-';
                     const resolvedRute = item.rute || matchedTrip.namaRute || matchedTrip.trip || '-';
 
+                    const fmtWaktuKejadian = item.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktuKejadian) : item.waktuKejadian) : '-';
                     return `
                         <tr class="inc-row trouble-row ${isSelected ? 'active-selected' : ''}" data-incident-id="${safeId}">
                             <td class="col-center" style="font-weight: 600; color: #94A3B8;">${rowNum}</td>
-                            <td><span class="time-main" style="font-size: 11.5px; font-weight: 700;">${jntEscapeHtml(item.waktuKejadian || '-')}</span></td>
+                            <td><span class="time-main" style="font-size: 11.5px; font-weight: 700;">${jntEscapeHtml(fmtWaktuKejadian)}</span></td>
                             <td><span class="kode-tugas-mono font-bold">${jntEscapeHtml(item.kodeTugas || '-')}</span></td>
                             <td style="text-align: center; min-width: 120px;">
                                 <div style="font-weight: 700; font-size: 11.5px; color: #38BDF8;">${jntEscapeHtml(resolvedTlc)}</div>
@@ -4440,8 +4442,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const unameLower = (u.username || '').toLowerCase().trim();
             const sessInfo = onlineSessionDetailsMap.get(unameLower);
             const isOnlineNow = onlineUsersMap.has(unameLower);
-            const resolvedLastLogin = u.lastLogin
-                || (sessInfo && sessInfo.lastSeen ? new Date(sessInfo.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB' : '')
+            const rawLastLoginVal = u.lastLogin
+                || (sessInfo && sessInfo.lastSeen ? (window.jntFormatDateTime ? window.jntFormatDateTime(sessInfo.lastSeen) : new Date(sessInfo.lastSeen).toLocaleString('id-ID')) : '');
+            const resolvedLastLogin = (rawLastLoginVal ? (window.jntFormatDateTime ? window.jntFormatDateTime(rawLastLoginVal) : rawLastLoginVal) : '')
                 || (isOnlineNow ? 'Sedang Online' : '-');
             const resolvedCreated = u.createdAt
                 ? (isNaN(new Date(u.createdAt).getTime()) ? String(u.createdAt) : new Date(u.createdAt).toLocaleDateString('id-ID'))
@@ -4488,7 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const itemsHtml = [];
                     if (sessInfo && sessInfo.lastSeen) {
-                        const tStr = new Date(sessInfo.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB';
+                        const tStr = window.jntFormatDateTime ? window.jntFormatDateTime(sessInfo.lastSeen) : new Date(sessInfo.lastSeen).toLocaleString('id-ID');
                         const ua = String(sessInfo.userAgent || '');
                         const devLabel = ua.includes('Mobile') ? 'Mobile Browser' : (ua.includes('Windows') ? 'Browser - Windows' : 'Web Session');
                         itemsHtml.push(`
@@ -4505,12 +4508,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         `);
                     }
                     userLogs.forEach(l => {
+                        const fmtLogTime = l.waktu ? (window.jntFormatDateTime ? window.jntFormatDateTime(l.waktu) : l.waktu) : '-';
                         itemsHtml.push(`
                             <div class="login-history-item">
                                 <div class="history-left">
                                     <span class="green-dot-sm">🔹</span>
                                     <div>
-                                        <span class="history-time">${jntEscapeHtml(l.waktu || '-')}</span>
+                                        <span class="history-time">${jntEscapeHtml(fmtLogTime)}</span>
                                         <span class="history-device" style="display:block; max-width:210px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${jntEscapeHtml(l.aktivitas || '-')}">${jntEscapeHtml(l.aktivitas || '-')}</span>
                                     </div>
                                 </div>
@@ -4599,8 +4603,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             : (u.tlc || 'Head Office')
                     );
                     const sessData = onlineSessionDetailsMap.get(unameLower);
-                    const rawLastLogin = u.lastLogin
-                        || (sessData && sessData.lastSeen ? new Date(sessData.lastSeen).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '')
+                    const rawLastLogin = (u.lastLogin ? (window.jntFormatDateTime ? window.jntFormatDateTime(u.lastLogin) : u.lastLogin) : '')
+                        || (sessData && sessData.lastSeen ? (window.jntFormatDateTime ? window.jntFormatDateTime(sessData.lastSeen) : new Date(sessData.lastSeen).toLocaleString('id-ID')) : '')
                         || (isOnline ? 'Sedang Online' : '-');
                     const safeLastLogin = jntEscapeHtml(rawLastLogin);
                     const safeRole = jntEscapeHtml(displayRole);
@@ -5008,7 +5012,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, true);
 
                     await JNTFirebaseService.logAuditEvent({
-                        waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                        waktu: JNTFirebaseService.formatStandardDateTime(),
                         operator: activeUsername,
                         shiftId: JNTFirebaseService.getActiveShiftId(),
                         modul: "User Management",
@@ -5166,13 +5170,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dateFrom = document.getElementById('exp-date-from')?.value || '';
                 const dateTo = document.getElementById('exp-date-to')?.value || '';
 
-                // Helper: Parse tanggal fleksibel (DD/MM/YYYY atau YYYY-MM-DD) menjadi YYYY-MM-DD untuk filter rentang
+                // Helper: Parse tanggal fleksibel (MM/DD/YYYY, DD/MM/YYYY, atau YYYY-MM-DD) menjadi YYYY-MM-DD untuk filter rentang
                 const extractIsoDate = (rawStr) => {
                     if (!rawStr) return '';
+                    if (typeof window.jntParseDate === 'function') {
+                        const dt = window.jntParseDate(rawStr);
+                        if (dt) {
+                            const pad = n => String(n).padStart(2, '0');
+                            return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+                        }
+                    }
                     const s = String(rawStr).trim();
                     const dmy = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
                     if (dmy) {
-                        return `${dmy[3]}-${String(dmy[2]).padStart(2, '0')}-${String(dmy[1]).padStart(2, '0')}`;
+                        const p1 = parseInt(dmy[1], 10);
+                        const p2 = parseInt(dmy[2], 10);
+                        const m = p1 > 12 ? p2 : p1;
+                        const d = p1 > 12 ? p1 : p2;
+                        return `${dmy[3]}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     }
                     const ymd = s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
                     if (ymd) {
@@ -5218,9 +5233,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'Vendor': item.vendor || '',
                                 'Driver Utama': item.driver1 || '',
                                 'No HP Driver': item.driverPhone || '',
-                                'Jam Berangkat': item.jamBerangkat || '',
+                                'Jam Berangkat': item.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.jamBerangkat) : item.jamBerangkat) : '',
                                 'Target SLA': targetH + ' Jam',
-                                'Jam Sampai Aktual': item.jamSampaiAktual || '',
+                                'Jam Sampai Aktual': item.jamSampaiAktual ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.jamSampaiAktual) : item.jamSampaiAktual) : '',
                                 'Total AWB': item.totalAwb || '',
                                 'Status SLA': item.statusSla || item.status || 'BERJALAN'
                             };
@@ -5239,9 +5254,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             'Trip / Rute': item.trip || item.namaRute || '',
                             'Vendor': item.vendor || '',
                             'Driver Utama': item.driver1 || '',
-                            'Jam Berangkat': item.jamBerangkat || '',
+                            'Jam Berangkat': item.jamBerangkat ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.jamBerangkat) : item.jamBerangkat) : '',
                             'Status Perjalanan': item.statusPerjalanan || '',
-                            'Update Terakhir': item.lastUpdateTime || item.jamSampaiAktual || '',
+                            'Update Terakhir': (item.lastUpdateTime || item.jamSampaiAktual) ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.lastUpdateTime || item.jamSampaiAktual) : (item.lastUpdateTime || item.jamSampaiAktual)) : '',
                             'Posisi Terakhir': item.lastUpdateLokasi || item.lokasiSampai || '',
                             'Input By': item.lastUpdateBy || item.inputBy || ''
                         }));
@@ -5262,7 +5277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             'Kategori': item.kategoriTrouble || '',
                             'Tingkat Keparahan': item.severity || '',
                             'Lokasi Kejadian': item.lokasiKejadian || '',
-                            'Waktu Kejadian': item.waktuKejadian || '',
+                            'Waktu Kejadian': item.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktuKejadian) : item.waktuKejadian) : '',
                             'Keterangan': item.deskripsi || item.keterangan || '',
                             'Status': item.status || ''
                         }));
@@ -5293,7 +5308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const auData = filterByDateRange(auRaw, i => i.waktu || i.createdAt);
                         const rows = auData.map((item, idx) => ({
                             'No': idx + 1,
-                            'Waktu': item.waktu || '',
+                            'Waktu': item.waktu ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktu) : item.waktu) : '',
                             'Shift ID': item.shiftId || '',
                             'Operator': item.operator || '',
                             'Modul': item.modul || '',

@@ -975,13 +975,14 @@
                             if (mod.toLowerCase().includes('trouble') || mod.toLowerCase().includes('delete')) dotClass = 'red';
                             else if (mod.toLowerCase().includes('sla') || mod.toLowerCase().includes('incoming')) dotClass = 'green';
 
+                            var fmtWaktu = log.waktu ? (window.jntFormatDateTime ? window.jntFormatDateTime(log.waktu) : log.waktu) : '-';
                             var titleText = mod + (log.kodeTugas && log.kodeTugas !== '-' ? ' • ' + log.kodeTugas : '');
                             return '<div class="p-act-item">'
                                 + '<div class="p-act-dot ' + dotClass + '"></div>'
                                 + '<div class="p-act-meta">'
                                 + '<strong>' + escHtml(titleText) + '</strong>'
                                 + '<span>' + escHtml(log.aktivitas || '-') + '</span>'
-                                + '<span class="p-act-time">' + escHtml(log.waktu || '-') + ' • Oleh: ' + escHtml(log.operator || '-') + '</span>'
+                                + '<span class="p-act-time">' + escHtml(fmtWaktu) + ' • Oleh: ' + escHtml(log.operator || '-') + '</span>'
                                 + '</div>'
                                 + '</div>';
                         }).join('');
@@ -1030,7 +1031,7 @@
 
                 var activeUa = sessionData && sessionData.userAgent ? parseUserAgentInfo(sessionData.userAgent) : uaInfo;
                 var lastSeenStr = (sessionData && sessionData.lastSeen)
-                    ? new Date(Number(sessionData.lastSeen)).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) + ' WIB'
+                    ? (window.jntFormatDateTime ? window.jntFormatDateTime(Number(sessionData.lastSeen)) : new Date(Number(sessionData.lastSeen)).toLocaleString('id-ID'))
                     : 'Baru saja (Aktif)';
                 var sidShort = (sessionData && sessionData.sessionId)
                     ? String(sessionData.sessionId).slice(0, 10).toUpperCase()

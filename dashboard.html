@@ -660,15 +660,21 @@
 
             function parseTripDate(dateStr) {
                 if (!dateStr) return null;
+                if (typeof window.jntParseDate === 'function') return window.jntParseDate(dateStr);
+                if (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.parseStandardDate) {
+                    return JNTFirebaseService.parseStandardDate(dateStr);
+                }
                 if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
                 if (typeof dateStr === 'number') return new Date(dateStr);
 
                 const s = String(dateStr).trim();
                 const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
                 if (dmy) {
-                    const day = parseInt(dmy[1], 10);
-                    const month = parseInt(dmy[2], 10) - 1;
+                    const p1 = parseInt(dmy[1], 10);
+                    const p2 = parseInt(dmy[2], 10);
                     const year = parseInt(dmy[3], 10);
+                    const month = p1 > 12 ? (p2 - 1) : (p1 - 1);
+                    const day = p1 > 12 ? p1 : p2;
                     return new Date(year, month, day);
                 }
 

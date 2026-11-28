@@ -1966,9 +1966,13 @@
             // OPEN MODAL — global helper & tombol filter bar
             // ═══════════════════════════════════════════════════════
             function fillCurrentTime() {
-                const now = new Date();
-                const pad = n => String(n).padStart(2, '0');
-                const str = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())} WIB`;
+                const str = (typeof window.jntFormatDateTime === 'function')
+                    ? window.jntFormatDateTime(new Date())
+                    : (() => {
+                        const now = new Date();
+                        const pad = n => String(n).padStart(2, '0');
+                        return `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                    })();
                 const el = document.getElementById('mon-jam-update-aktual');
                 if (el) el.value = str;
             }
@@ -2266,7 +2270,7 @@
                 if (!tVal) return '';
                 const parts = tVal.split('-');
                 if (parts.length < 3) return '';
-                return `${parts[2]}/${parts[1]}/${parts[0]} ${jVal}:${mVal}`;
+                return `${parts[1]}/${parts[2]}/${parts[0]} ${jVal}:${mVal}`;
             }
 
             window.openSelesaiModal = (kodeTugas) => {
@@ -2646,8 +2650,8 @@
                 const d2 = item.driver2 || incData.driver2 || '';
                 setText('trip-info-driver', d2 ? `${d1} / Cad: ${d2}` : d1);
                 setText('trip-info-sla', `${slaH} Jam (${isRet ? 'Armada Balikan' : 'Armada Berangkat'})`);
-                setText('trip-info-berangkat', dep);
-                setText('trip-info-sampai', arr);
+                setText('trip-info-berangkat', dep && dep !== '-' ? (window.jntFormatDateTime ? window.jntFormatDateTime(dep) : dep) : '-');
+                setText('trip-info-sampai', arr && arr !== '-' ? (window.jntFormatDateTime ? window.jntFormatDateTime(arr) : arr) : '-');
                 setText('trip-info-lokasi', item.lokasiSampai || incData.lokasiSampai || item.lastUpdateLokasi || (arrSlot && arrSlot.lokasi) || '-');
                 setText('trip-info-operator', item.inputBy || incData.inputBy || (arrSlot && arrSlot.inputBy) || '-');
 
@@ -3073,13 +3077,18 @@
                 const searchVal = (document.getElementById('filter-mon-search')?.value || '').toLowerCase().trim();
 
                 const filtered = rawMonitoringList.filter(item => {
-                    // 1. Filter Tanggal (Format DD/MM/YYYY)
+                    // 1. Filter Tanggal (Mendukung MM/DD/YYYY & DD/MM/YYYY)
                     if (dateVal) {
                         const dParts = dateVal.split('-');
                         if (dParts.length === 3) {
-                            const dateStr = dParts[2] + '/' + dParts[1] + '/' + dParts[0];
+                            const targetY = parseInt(dParts[0], 10);
+                            const targetM = parseInt(dParts[1], 10) - 1;
+                            const targetD = parseInt(dParts[2], 10);
                             const rawDate = item.jamBerangkat || item.tanggalMonitoring || item.createdAt || '';
-                            if (!rawDate.startsWith(dateStr) && !rawDate.includes(dateStr)) return false;
+                            const parsedDt = parseCustomDate(rawDate);
+                            if (!parsedDt || parsedDt.getFullYear() !== targetY || parsedDt.getMonth() !== targetM || parsedDt.getDate() !== targetD) {
+                                return false;
+                            }
                         }
                     }
 
@@ -3383,9 +3392,11 @@
 
                         const lastUpdateDisplay = (() => {
                             const t = item.lastUpdateTime || item.jamBerangkat || '';
-                            if (!t) return '-';
-                            const s = String(t).length > 16 ? String(t).substring(0, 16) : t;
-                            return s.includes('WIB') ? s : s + ' WIB';
+                            if (!t || t === '-') return '-';
+                            if (typeof window.jntFormatDateTime === 'function') {
+                                return window.jntFormatDateTime(t) || t;
+                            }
+                            return String(t).replace(/\s*WIB$/i, '').trim();
                         })();
 
                         const absIdx = startIdx + idx + 1;
@@ -3945,7 +3956,9 @@
                 const keterangan = document.getElementById('sqp-ket').value.trim();
                 const jenisUpdate = document.getElementById('sqp-jenis').value;
                 const statusPerjalanan = document.getElementById('sqp-status').value;
-                const jamUpdateAktual = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                const jamUpdateAktual = (typeof window.jntFormatDateTime === 'function')
+                    ? window.jntFormatDateTime(new Date())
+                    : JNTFirebaseService.formatStandardDateTime(new Date());
 
                 // Panggil dengan positional params sesuai signature fungsi
                 await JNTFirebaseService.saveMonitoringSlotUpdate(

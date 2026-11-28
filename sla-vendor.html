@@ -1375,17 +1375,20 @@
         // ── UTILITY FUNCTIONS ─────────────────────────────────────────────────
         function parseCustomDate(str) {
             if (!str) return null;
-            const parts = str.trim().split(' ');
+            if (typeof window.jntParseDate === 'function') return window.jntParseDate(str);
+            if (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.parseStandardDate) {
+                return JNTFirebaseService.parseStandardDate(str);
+            }
+            const parts = String(str).trim().split(' ');
             if (parts.length < 2) return null;
             const dParts = parts[0].split('/');
             const tParts = parts[1].split(':');
-            return new Date(
-                dParts[2] ? parseInt(dParts[2]) : 2026,
-                parseInt(dParts[1]) - 1,
-                parseInt(dParts[0]),
-                parseInt(tParts[0]),
-                parseInt(tParts[1])
-            );
+            const p0 = parseInt(dParts[0], 10);
+            const p1 = parseInt(dParts[1], 10);
+            const y = dParts[2] ? parseInt(dParts[2], 10) : 2026;
+            const monthIdx = p0 > 12 ? (p1 - 1) : (p0 - 1);
+            const day = p0 > 12 ? p0 : p1;
+            return new Date(y, monthIdx, day, parseInt(tParts[0], 10) || 0, parseInt(tParts[1], 10) || 0);
         }
 
         function formatDuration(minutes) {
@@ -1398,10 +1401,10 @@
             if (!str || /^(kosong|belum|nihil|-|—|null|undefined|n\/a)$/i.test(String(str).trim())) {
                 return '<span class="text-dim">Belum Sampai</span>';
             }
-            const parts = String(str).trim().split(' ');
-            if (parts.length < 2) return '<div>' + str + '</div>';
-            const timeStr = parts[1].includes('WIB') ? parts[1] : (parts[1] + ' WIB');
-            return '<div class="date-hierarchy"><span class="date-part">' + parts[0] + '</span><span class="time-part">' + timeStr + '</span></div>';
+            const formatted = (typeof window.jntFormatDateTime === 'function')
+                ? window.jntFormatDateTime(str)
+                : String(str).replace(/\s*WIB$/i, '').trim();
+            return '<span class="datetime-std" style="font-weight:700; white-space:nowrap;">' + (formatted || str) + '</span>';
         }
 
         function formatLateDisplay(minutes) {
@@ -1831,7 +1834,10 @@
             var hasFotoRet = Boolean(fotoSampai || i.hasFotoSampai);
             var hasSampai = Boolean((i.jamSampaiJKT999 && i.jamSampaiJKT999 !== '-') || (i.jamSampaiAktual && i.jamSampaiAktual !== '-') || i.statusBalikan === 'SUDAH SELESAI' || i.statusPerjalanan === 'COMPLETED');
 
-            var arrivalDisplay = i.jamSampaiJKT999 || i.jamSampaiAktual || '-';
+            var rawArr = i.jamSampaiJKT999 || i.jamSampaiAktual || '';
+            var arrivalDisplay = rawArr && rawArr !== '-'
+                ? ((typeof window.jntFormatDateTime === 'function' ? window.jntFormatDateTime(rawArr) : rawArr) || rawArr)
+                : '-';
             if (hasFotoRet && hasSampai) {
                 arrivalDisplay += '<div style="margin-top:4px;">' +
                     '<button type="button" class="btn-view-photo" onclick="window.previewSLAFotoByKode(\'' + safeRetKodeJs + '\', true)" title="Lihat Foto Bukti Sampai">&#128247; Foto Bukti</button>' +
@@ -1850,9 +1856,14 @@
                 ? formatDuration(i.durasiBalikanMinutes)
                 : '<span style="color:#2563EB; font-size:11px; font-weight:700;">ON PROGRESS</span>';
 
+            var rawDep = i.jamBerangkatGateway || i.jamBerangkat || '';
+            var depDisplay = rawDep && rawDep !== '-'
+                ? ((typeof window.jntFormatDateTime === 'function' ? window.jntFormatDateTime(rawDep) : rawDep) || rawDep)
+                : '-';
+
             return '<td><strong style="color:#2563EB; font-family:monospace; font-size:12.5px;">' + kodeBalikan + '</strong></td>' +
                 '<td><span style="font-family:monospace; font-weight:600; color:#94A3B8;">' + kodeAsal + '</span></td>' +
-                '<td>' + (i.jamBerangkatGateway || i.jamBerangkat || '-') + '</td>' +
+                '<td>' + depDisplay + '</td>' +
                 '<td>' + arrivalDisplay + '</td>' +
                 '<td><strong>' + (i.targetSLABalikanHours || 16) + ' Jam</strong></td>' +
                 '<td><strong>' + durasiDisplay + '</strong></td>' +
@@ -2080,17 +2091,23 @@
                     return matched ? isVendorMatch(matched.vendor, cur) : false;
                 });
 
-                // 2. Filter Tanggal
+                // 2. Filter Tanggal (Mendukung MM/DD/YYYY & DD/MM/YYYY)
                 var filterDate = document.getElementById('filter-sla-date') ? document.getElementById('filter-sla-date').value : '';
                 if (filterDate) {
                     var dParts = filterDate.split('-');
                     if (dParts.length === 3) {
-                        var dateStr = dParts[2] + '/' + dParts[1] + '/' + dParts[0];
+                        var targetY = parseInt(dParts[0], 10);
+                        var targetM = parseInt(dParts[1], 10) - 1;
+                        var targetD = parseInt(dParts[2], 10);
+                        var matchDateFn = function (rawStr) {
+                            var dt = parseCustomDate(rawStr);
+                            return dt && dt.getFullYear() === targetY && dt.getMonth() === targetM && dt.getDate() === targetD;
+                        };
                         filteredOut = filteredOut.filter(function (i) {
-                            return i.jamBerangkat && i.jamBerangkat.startsWith(dateStr);
+                            return matchDateFn(i.jamBerangkat);
                         });
                         filteredRet = filteredRet.filter(function (i) {
-                            return i.jamBerangkatGateway && i.jamBerangkatGateway.startsWith(dateStr);
+                            return matchDateFn(i.jamBerangkatGateway || i.jamBerangkat);
                         });
                     }
                 }
@@ -2498,7 +2515,7 @@
                 if (!tVal) return '';
                 var parts = tVal.split('-');
                 if (parts.length < 3) return '';
-                return parts[2] + '/' + parts[1] + '/' + parts[0] + ' ' + jVal + ':' + mVal;
+                return parts[1] + '/' + parts[2] + '/' + parts[0] + ' ' + jVal + ':' + mVal;
             }
 
             function formatToDatetimeLocal(d) {
@@ -2512,7 +2529,7 @@
                 if (parts.length < 2) return val;
                 var dateParts = parts[0].split('-');
                 if (dateParts.length < 3) return val;
-                return dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0] + ' ' + parts[1];
+                return dateParts[1] + '/' + dateParts[2] + '/' + dateParts[0] + ' ' + parts[1];
             }
 
             // ── INPUT SANITIZERS & AUTO FORMATTERS ─────────────────────────────
@@ -2987,8 +3004,10 @@
                 setText('sla-info-driver', d2 ? (d1 + ' / Cad: ' + d2) : d1);
                 var slaH = isReturn ? (item.targetSLABalikanHours || 16) : (item.targetSLAHours || 16);
                 setText('sla-info-sla', slaH + ' Jam (' + (isReturn ? 'Armada Balikan' : 'Armada Berangkat') + ')');
-                setText('sla-info-berangkat', isReturn ? (item.jamBerangkatGateway || item.jamBerangkat || '-') : (item.jamBerangkat || '-'));
-                setText('sla-info-sampai', isReturn ? (item.jamSampaiJKT999 || item.jamSampaiAktual || '-') : (item.jamSampaiAktual || '-'));
+                var rawBerangkatInfo = isReturn ? (item.jamBerangkatGateway || item.jamBerangkat || '') : (item.jamBerangkat || '');
+                var rawSampaiInfo = isReturn ? (item.jamSampaiJKT999 || item.jamSampaiAktual || '') : (item.jamSampaiAktual || '');
+                setText('sla-info-berangkat', rawBerangkatInfo ? (window.jntFormatDateTime ? window.jntFormatDateTime(rawBerangkatInfo) : rawBerangkatInfo) : '-');
+                setText('sla-info-sampai', rawSampaiInfo ? (window.jntFormatDateTime ? window.jntFormatDateTime(rawSampaiInfo) : rawSampaiInfo) : '-');
                 setText('sla-info-lokasi', item.lokasiSampai || incData.lokasiSampai || '-');
                 setText('sla-info-operator', item.inputBy || incData.inputBy || '-');
                 setText('sla-info-catatan', item.catatanSampai || item.catatan || item.alasan || incData.catatanSampai || 'Lancar / Tidak ada catatan khusus.');
@@ -3253,7 +3272,8 @@
                 if (textRute) textRute.textContent = item.trip || item.namaRute || 'Gateway → JKT999';
 
                 var textDep = document.getElementById('sla-ret-upd-dep-text');
-                if (textDep) textDep.textContent = item.jamBerangkatGateway || item.jamBerangkat || '-';
+                var rawRetDep = item.jamBerangkatGateway || item.jamBerangkat || '';
+                if (textDep) textDep.textContent = rawRetDep ? (window.jntFormatDateTime ? window.jntFormatDateTime(rawRetDep) : rawRetDep) : '-';
 
                 var hiddenBalikan = document.getElementById('sla-ret-upd-kode-balikan');
                 if (hiddenBalikan) hiddenBalikan.value = realBalikan;
