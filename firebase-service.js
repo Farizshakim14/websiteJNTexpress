@@ -5704,9 +5704,8 @@ const JNTFirebaseService = {
             incidentId: deterministicId,
             id: deterministicId,
             kodeTugas: incidentData.kodeTugas || "-",
-            jenis: incidentData.jenis || "Trouble Armada",
-            kategoriTrouble: incidentData.kategoriTrouble || "Kendala Operasional",
-            severity: incidentData.severity || "MEDIUM",
+            jenis: incidentData.jenis || "Kerusakan pada Kendaraan-车辆损坏 / 故障",
+            kategoriTrouble: incidentData.kategoriTrouble || incidentData.jenis || "Kerusakan pada Kendaraan-车辆损坏 / 故障",
             lokasiKejadian: incidentData.lokasiKejadian || "Rest Area / Jalur Rute",
             waktuKejadian: incidentData.waktuKejadian ? this.formatStandardDateTime(incidentData.waktuKejadian) : this.formatStandardDateTime(),
             platNomor: incidentData.platNomor || incMaster.platNomor || "-",
@@ -5747,7 +5746,7 @@ const JNTFirebaseService = {
             shiftId: shiftId,
             modul: "Trouble & Laka",
             kodeTugas: fullIncident.kodeTugas,
-            aktivitas: `Melaporkan Incident ${fullIncident.jenis} (${fullIncident.kategoriTrouble} - Severity ${fullIncident.severity})`
+            aktivitas: `Melaporkan Incident: ${fullIncident.jenis}`
         });
 
         return fullIncident;

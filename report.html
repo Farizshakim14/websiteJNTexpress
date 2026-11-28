@@ -472,8 +472,7 @@
                                     <tr>
                                         <th style="width: 45px; text-align: center;">No</th>
                                         <th>Kode Tugas</th>
-                                        <th>Jenis &amp; Kategori</th>
-                                        <th>Tingkat Keparahan</th>
+                                        <th>Jenis Kejadian</th>
                                         <th>Lokasi Kejadian</th>
                                         <th>Waktu Kejadian</th>
                                         <th>Keterangan Kendala</th>
@@ -482,7 +481,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="8" style="text-align: center; color: #94A3B8; padding: 30px;">
+                                        <td colspan="7" style="text-align: center; color: #94A3B8; padding: 30px;">
                                             Memuat data incident...</td>
                                     </tr>
                                 </tbody>
@@ -2169,11 +2168,13 @@
                         let badgeBg = '#FFFBEB'; let badgeColor = '#D97706';
                         if (st === 'SELESAI' || st === 'SUDAH SELESAI' || st === 'SOLVED') { badgeBg = '#ECFDF5'; badgeColor = '#059669'; }
 
+                        const jenisLabel = (t.kategoriTrouble && t.kategoriTrouble !== t.jenis && (t.jenis === 'Trouble' || t.jenis === 'Laka'))
+                            ? `${t.jenis} — ${t.kategoriTrouble}`
+                            : (t.jenis || t.kategoriTrouble || 'Kendala');
                         return `<tr>
                             <td style="text-align: center; font-weight: 600; color: #64748B;">${i + 1}</td>
                             <td><strong style="font-family: monospace;">${t.kodeTugas || '-'}</strong></td>
-                            <td><strong>${t.jenis || 'Kendala'}</strong> — ${t.kategoriTrouble || '-'}</td>
-                            <td><span style="color:#DC2626; font-weight:700;">${t.severity || 'Normal'}</span></td>
+                            <td><strong>${jenisLabel}</strong></td>
                             <td>${t.lokasiKejadian || '-'}</td>
                             <td style="font-size: 11.5px; color: #64748B;">${t.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(t.waktuKejadian) : t.waktuKejadian) : '-'}</td>
                             <td style="font-size: 12px;">${t.deskripsi || t.keterangan || '-'}</td>
@@ -2185,7 +2186,7 @@
                         </tr>`;
                     });
                     if (rows.length > 0) tbody.innerHTML = rows.join('');
-                    else tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada laporan trouble &amp; laka.</td></tr>`;
+                    else tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94A3B8; padding: 24px;">Belum ada laporan trouble &amp; laka.</td></tr>`;
                 }
 
                 renderOperatorPerformanceReport();

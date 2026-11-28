@@ -3708,11 +3708,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        const isLakaIncident = (item) => {
+            const combined = `${item.jenis || ''} ${item.kategoriTrouble || ''}`.toLowerCase();
+            return combined.includes('laka') || combined.includes('kecelakaan');
+        };
+
         // Render KPI Counters
         const renderTroubleKPIs = (list) => {
             const total = list.length;
-            const troubleCount = list.filter(t => (t.jenis || '').toLowerCase().includes('trouble')).length;
-            const lakaCount = list.filter(t => (t.jenis || '').toLowerCase().includes('laka')).length;
+            const lakaCount = list.filter(t => isLakaIncident(t)).length;
+            const troubleCount = total - lakaCount;
             const penangananCount = list.filter(t => t.status === 'DALAM PENANGANAN' || t.status === 'OPEN').length;
             const selesaiCount = list.filter(t => t.status === 'SUDAH SELESAI' || t.status === 'SELESAI').length;
 
@@ -3788,9 +3793,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (dtCode) dtCode.textContent = incident.kodeTugas || incident.incidentId || '-';
+            const isLaka = isLakaIncident(incident);
             if (dtTypeTag) {
-                dtTypeTag.textContent = incident.jenis || 'Trouble';
-                dtTypeTag.className = (incident.jenis || '').includes('Laka') ? 'incident-badge-type laka-type' : 'incident-badge-type trouble-type';
+                dtTypeTag.textContent = isLaka ? 'Laka' : 'Trouble';
+                dtTypeTag.className = isLaka ? 'incident-badge-type laka-type' : 'incident-badge-type trouble-type';
             }
 
             if (dtRoute) dtRoute.textContent = incident.rute || incident.trip || '-';
@@ -3802,17 +3808,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dtDriverPhone) dtDriverPhone.textContent = incident.driverPhone && incident.driverPhone !== '-' ? incident.driverPhone : '-';
             if (dtDriver2) dtDriver2.textContent = incident.driver2 || '-';
 
-            // Severity Badge
-            const sev = (incident.severity || 'MEDIUM').toUpperCase();
-            let sevClass = 'orange-outline';
-            if (sev === 'LOW') sevClass = 'green-outline';
-            else if (sev === 'HIGH' || sev === 'CRITICAL') sevClass = 'red-outline';
-            if (dtSeverity) {
-                dtSeverity.className = `badge-status ${sevClass}`;
-                dtSeverity.textContent = sev;
-            }
-
-            if (dtJenis) dtJenis.textContent = incident.kategoriTrouble || incident.jenis || '-';
+            const resolvedJenisLabel = (incident.kategoriTrouble && incident.kategoriTrouble !== incident.jenis && (incident.jenis === 'Trouble' || incident.jenis === 'Laka'))
+                ? `${incident.jenis} — ${incident.kategoriTrouble}`
+                : (incident.jenis || incident.kategoriTrouble || '-');
+            if (dtJenis) dtJenis.textContent = resolvedJenisLabel;
             if (dtKet) dtKet.textContent = incident.deskripsi || incident.keterangan || incident.kronologi || '-';
 
             if (dtStatus) {
@@ -3897,19 +3896,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const filterJenis = (document.getElementById('tr-filter-jenis')?.value || '').toLowerCase().trim();
             const filterStatus = (document.getElementById('tr-filter-status')?.value || '').trim();
-            const filterSeverity = (document.getElementById('tr-filter-severity')?.value || '').trim();
             const filterSearch = (document.getElementById('tr-filter-search')?.value || '').toLowerCase().trim();
 
             let filtered = [...allTroublesCache];
 
             if (filterJenis) {
-                filtered = filtered.filter(t => (t.jenis || '').toLowerCase().includes(filterJenis));
+                filtered = filtered.filter(t =>
+                    (t.jenis || '').toLowerCase().includes(filterJenis) ||
+                    (t.kategoriTrouble || '').toLowerCase().includes(filterJenis)
+                );
             }
             if (filterStatus) {
                 filtered = filtered.filter(t => t.status === filterStatus);
-            }
-            if (filterSeverity) {
-                filtered = filtered.filter(t => t.severity === filterSeverity);
             }
             if (filterSearch) {
                 filtered = filtered.filter(t =>
@@ -3919,6 +3917,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     (t.lokasiKejadian || '').toLowerCase().includes(filterSearch) ||
                     (t.rute || '').toLowerCase().includes(filterSearch) ||
                     (t.vendor || '').toLowerCase().includes(filterSearch) ||
+                    (t.jenis || '').toLowerCase().includes(filterSearch) ||
+                    (t.kategoriTrouble || '').toLowerCase().includes(filterSearch) ||
                     (t.incidentId || '').toLowerCase().includes(filterSearch)
                 );
             }
@@ -3938,14 +3938,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isSelected = selectedIncident && (selectedIncident.id === item.id || selectedIncident.incidentId === item.incidentId);
                     const isSelesai = item.status === 'SUDAH SELESAI' || item.status === 'SELESAI';
                     const badgeClass = isSelesai ? 'green-outline' : (item.status === 'OPEN' ? 'red-outline' : 'orange-outline');
-                    const isLaka = (item.jenis || '').includes('Laka');
+                    const isLaka = isLakaIncident(item);
                     const jenisColor = isLaka ? '#A855F7' : '#EF4444';
-                    const jenisIcon = isLaka ? '💥 Laka' : '⚠️ Trouble';
-
-                    const sev = (item.severity || 'MEDIUM').toUpperCase();
-                    let sevBadgeClass = 'orange-outline';
-                    if (sev === 'LOW') sevBadgeClass = 'green-outline';
-                    else if (sev === 'HIGH' || sev === 'CRITICAL') sevBadgeClass = 'red-outline';
+                    const jenisIcon = isLaka ? '💥' : '⚠️';
+                    const rawJenisText = (item.kategoriTrouble && item.kategoriTrouble !== item.jenis && (item.jenis === 'Trouble' || item.jenis === 'Laka'))
+                        ? item.kategoriTrouble
+                        : (item.jenis || item.kategoriTrouble || 'Trouble');
 
                     const vendorShort = formatVendorShort(item.vendor);
                     const safeId = jntEscapeHtml(item.id || item.incidentId || '');
@@ -3973,8 +3971,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${item.driver2 && item.driver2 !== '-' ? `<div style="font-size: 10px; color: #94A3B8;">Cad: ${jntEscapeHtml(item.driver2)}</div>` : ''}
                             </td>
                             <td>
-                                <div><span style="color: ${jenisColor}; font-weight: 800; font-size: 11.5px;">${jenisIcon}</span></div>
-                                <div style="margin-top: 3px;"><span class="badge-status ${sevBadgeClass}" style="font-size: 9.5px; padding: 1px 6px;">${jntEscapeHtml(sev)}</span></div>
+                                <div style="color: ${jenisColor}; font-weight: 700; font-size: 11.5px; line-height: 1.35;">${jenisIcon} ${jntEscapeHtml(rawJenisText)}</div>
                             </td>
                             <td style="font-size: 11.5px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${jntEscapeHtml(item.lokasiKejadian || '-')}">
                                 ${jntEscapeHtml(item.lokasiKejadian || '-')}
@@ -4190,9 +4187,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const driver = document.getElementById('tr-driver')?.value;
                     const driverPhone = document.getElementById('tr-driver-phone')?.value;
                     const rute = document.getElementById('tr-rute-tlc')?.value;
-                    const severity = document.getElementById('tr-severity')?.value || 'MEDIUM';
-                    const jenis = document.getElementById('tr-jenis')?.value || 'Trouble';
-                    const kategoriTrouble = document.getElementById('tr-kategori-select')?.value || 'Kendala Operasional';
+                    const jenis = document.getElementById('tr-jenis')?.value || 'Kerusakan pada Kendaraan-车辆损坏 / 故障';
+                    const kategoriTrouble = jenis;
                     const lokasiKejadian = document.getElementById('tr-lokasi')?.value;
                     const kronologi = document.getElementById('tr-kronologi')?.value;
                     const dampak = document.getElementById('tr-dampak')?.value || '';
@@ -4210,11 +4206,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         driver,
                         driverPhone,
                         rute,
-                        severity,
                         jenis,
                         kategoriTrouble,
                         lokasiKejadian,
-                        deskripsi: `${kronologi} | Dampak: ${dampak}`,
+                        deskripsi: dampak ? `${kronologi} | Dampak: ${dampak}` : kronologi,
                         status: 'DALAM PENANGANAN',
                         dilaporkanOleh: activeUsername,
                         fotoKejadian: [...pendingKejadianPhotos]
@@ -5273,9 +5268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             'Kode Tugas': item.kodeTugas || '',
                             'Plat Nomor': item.platNomor || '',
                             'Vendor': item.vendor || '',
-                            'Jenis': item.jenis || '',
-                            'Kategori': item.kategoriTrouble || '',
-                            'Tingkat Keparahan': item.severity || '',
+                            'Jenis Kejadian': item.jenis || item.kategoriTrouble || '',
                             'Lokasi Kejadian': item.lokasiKejadian || '',
                             'Waktu Kejadian': item.waktuKejadian ? (window.jntFormatDateTime ? window.jntFormatDateTime(item.waktuKejadian) : item.waktuKejadian) : '',
                             'Keterangan': item.deskripsi || item.keterangan || '',

@@ -375,9 +375,49 @@
                         <div class="filter-group">
                             <label>Jenis Kejadian</label>
                             <select id="tr-filter-jenis">
-                                <option value="">Semua Jenis</option>
-                                <option value="Trouble">Trouble</option>
-                                <option value="Laka">Laka</option>
+                                <option value="">Semua Jenis Kejadian</option>
+                                <optgroup label="🚛 Transportasi">
+                                    <option value="Antrian Kendaraan di Pelabuhan">Antrian Kendaraan di Pelabuhan-港口车辆排队 / 拥堵</option>
+                                    <option value="Dangerous Goods (Retur)">Dangerous Goods (Retur)-危险品（退货）</option>
+                                    <option value="Kecelakaan Kendaraan">Kecelakaan Kendaraan-交通事故 / 车辆事故</option>
+                                    <option value="Kelangkaan BBM/Solar">Kelangkaan BBM/Solar-燃料 / 柴油短缺</option>
+                                    <option value="Kemacetan">Kemacetan-交通拥堵</option>
+                                    <option value="Kerusakan pada Kendaraan">Kerusakan pada Kendaraan-车辆损坏 / 故障</option>
+                                    <option value="Kendaraan Disita">Kendaraan Disita-车辆被扣押</option>
+                                    <option value="Pembatalan Penerbangan">Pembatalan Penerbangan-航班取消</option>
+                                    <option value="Tidak Ada Jadwal Penyeberangan">Tidak Ada Jadwal Penyeberangan-无轮渡班次</option>
+                                    <option value="Vendor Bermasalah">Vendor Bermasalah-供应商/服务商异常</option>
+                                    <option value="Perubahan Jadwal Penyeberangan">Perubahan Jadwal Penyeberangan-轮渡时刻表变更</option>
+                                    <option value="Pencurian Paket">Pencurian Paket-包裹盗窃</option>
+                                </optgroup>
+                                <optgroup label="🏢 Non Transportasi">
+                                    <option value="Angin Topan/Puting Beliung">Angin Topan/Puting Beliung-台风 / 龙卷风</option>
+                                    <option value="Banjir">Banjir-洪水 / 内涝</option>
+                                    <option value="Cuaca Buruk">Cuaca Buruk-恶劣天气</option>
+                                    <option value="Demonstrasi">Demonstrasi-示威游行 / 抗议活动</option>
+                                    <option value="Event Adat/Karnaval">Event Adat/Karnaval-传统民俗活动 / 狂欢节</option>
+                                    <option value="Gempa Bumi">Gempa Bumi-地震</option>
+                                    <option value="Hari Libur Nasional">Hari Libur Nasional-法定节假日</option>
+                                    <option value="Hujan Deras">Hujan Deras-暴雨 / 大雨</option>
+                                    <option value="Insiden-Insiden Ilegal">Insiden-Insiden Ilegal-违法违规事件</option>
+                                    <option value="Kebakaran">Kebakaran-火灾</option>
+                                    <option value="Kecelakaan Non Cedera">Kecelakaan Non Cedera-财产损失事故（无伤亡）</option>
+                                    <option value="Kendala Jaringan">Kendala Jaringan-网络故障</option>
+                                    <option value="Kendala Operasional Mitra Jastip">Kendala Operasional Mitra Jastip-代购/转运合作伙伴运营受阻</option>
+                                    <option value="Kerugian Pada Aset Tetap">Kerugian Pada Aset Tetap-固定资产损失</option>
+                                    <option value="Letusan Gunung Berapi">Letusan Gunung Berapi-火山喷发</option>
+                                    <option value="Longsor">Longsor-滑坡 / 泥石流</option>
+                                    <option value="Masalah Operasional di DP">Masalah Operasional di DP-网点（DP）运营异常</option>
+                                    <option value="Pemadaman Listrik">Pemadaman Listrik-停电</option>
+                                    <option value="Pemeriksaan Bea Cukai">Pemeriksaan Bea Cukai-海关查验</option>
+                                    <option value="Pencurian Paket Oleh Staff">Pencurian Paket Oleh Staff-内部员工盗窃包裹</option>
+                                    <option value="Penutupan Jalan">Penutupan Jalan-道路封闭</option>
+                                    <option value="Penyakit Menular Epidemik">Penyakit Menular Epidemik-传染病疫情（如流行性感冒）</option>
+                                    <option value="Penyelidikan Oleh Dep. Pemerintah">Penyelidikan Oleh Dep. Pemerintah-政府部门调查</option>
+                                    <option value="Penyitaan Selundupan Paket">Penyitaan Selundupan Paket-走私/违禁包裹被没收</option>
+                                    <option value="Melambat/Aksi Mogok Kolektif">Melambat/Aksi Mogok Kolektif-怠工 / 集体罢工</option>
+                                    <option value="Kecelakaan Kerja">Kecelakaan Kerja-工伤事故</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -387,16 +427,6 @@
                                 <option value="OPEN">OPEN</option>
                                 <option value="DALAM PENANGANAN">DALAM PENANGANAN</option>
                                 <option value="SUDAH SELESAI">SUDAH SELESAI</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Tingkat Keparahan</label>
-                            <select id="tr-filter-severity">
-                                <option value="">Semua Severity</option>
-                                <option value="LOW">LOW</option>
-                                <option value="MEDIUM">MEDIUM</option>
-                                <option value="HIGH">HIGH</option>
-                                <option value="CRITICAL">CRITICAL</option>
                             </select>
                         </div>
                         <div class="filter-group" style="grid-column: span 2;">
@@ -434,7 +464,7 @@
                                         <th style="min-width: 130px; text-align: center;">TLC / Rute</th>
                                         <th style="min-width: 140px;">Armada &amp; Vendor</th>
                                         <th style="min-width: 150px;">Driver &amp; Kontak</th>
-                                        <th style="min-width: 125px;">Jenis &amp; Severity</th>
+                                        <th style="min-width: 185px;">Jenis Kejadian</th>
                                         <th style="min-width: 140px;">Lokasi Kejadian</th>
                                         <th style="min-width: 110px; text-align: center;">Status</th>
                                         <th style="width: 60px; text-align: center;">Aksi</th>
@@ -517,12 +547,8 @@
                                 <span class="info-value" id="dt-incident-driver2">-</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">⚠️ Tingkat Keparahan</span>
-                                <span class="badge-status orange-outline" id="dt-incident-severity">-</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🔧 Jenis Kendala</span>
-                                <span class="info-value font-bold" id="dt-incident-jenis" style="color: #EF4444;">-</span>
+                                <span class="info-label">🔧 Jenis Kejadian</span>
+                                <span class="info-value font-bold" id="dt-incident-jenis" style="color: #EF4444; text-align: right;">-</span>
                             </div>
                             <div class="info-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                                 <span class="info-label">📝 Keterangan &amp; Kronologi</span>
@@ -652,34 +678,50 @@
                         <input type="text" id="tr-rute-tlc" class="form-input-readonly" placeholder="Otomatis dari SSOT..." readonly>
                     </div>
                     <div class="form-field">
-                        <label>Tingkat Keparahan (Severity Level)</label>
-                        <select id="tr-severity" class="form-control" required>
-                            <option value="LOW">🟢 LOW (Ringan / Penanganan cepat)</option>
-                            <option value="MEDIUM" selected>🟡 MEDIUM (Sedang / Perlu Bantuan Mekanik)</option>
-                            <option value="HIGH">🔴 HIGH (Berat / Perlu Unit Derek)</option>
-                            <option value="CRITICAL">💥 CRITICAL (Kecelakaan Fatal / Laka)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row-2">
-                    <div class="form-field">
                         <label>Jenis Kejadian</label>
                         <select id="tr-jenis" class="form-control" required>
-                            <option value="Trouble">⚠️ Trouble Kendaraan</option>
-                            <option value="Laka">💥 Kecelakaan / Laka Lantas</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label>Kategori Kendala</label>
-                        <select id="tr-kategori-select" class="form-control" required>
-                            <option value="Ban Pecah / Kerusakan Ban">Ban Pecah / Kerusakan Ban</option>
-                            <option value="Mogok / Mesin Overheat">Mogok / Mesin Overheat</option>
-                            <option value="Kemacetan Parah Jalur Tol">Kemacetan Parah Jalur Tol</option>
-                            <option value="Antrean Panjang Pelabuhan">Antrean Panjang Pelabuhan</option>
-                            <option value="Cuaca Buruk / Banjir">Cuaca Buruk / Banjir</option>
-                            <option value="Laka Lantas">Kecelakaan Lalu Lintas (Laka)</option>
-                            <option value="Lainnya">Lainnya</option>
+                            <optgroup label="🚛 Transportasi">
+                                <option value="Kerusakan pada Kendaraan-车辆损坏 / 故障" selected>Kerusakan pada Kendaraan-车辆损坏 / 故障</option>
+                                <option value="Kecelakaan Kendaraan-交通事故 / 车辆事故">Kecelakaan Kendaraan-交通事故 / 车辆事故</option>
+                                <option value="Kemacetan-交通拥堵">Kemacetan-交通拥堵</option>
+                                <option value="Antrian Kendaraan di Pelabuhan-港口车辆排队 / 拥堵">Antrian Kendaraan di Pelabuhan-港口车辆排队 / 拥堵</option>
+                                <option value="Kelangkaan BBM/Solar-燃料 / 柴油短缺">Kelangkaan BBM/Solar-燃料 / 柴油短缺</option>
+                                <option value="Kendaraan Disita-车辆被扣押">Kendaraan Disita-车辆被扣押</option>
+                                <option value="Tidak Ada Jadwal Penyeberangan-无轮渡班次">Tidak Ada Jadwal Penyeberangan-无轮渡班次</option>
+                                <option value="Perubahan Jadwal Penyeberangan-轮渡时刻表变更">Perubahan Jadwal Penyeberangan-轮渡时刻表变更</option>
+                                <option value="Vendor Bermasalah-供应商/服务商异常">Vendor Bermasalah-供应商/服务商异常</option>
+                                <option value="Dangerous Goods (Retur)-危险品（退货）">Dangerous Goods (Retur)-危险品（退货）</option>
+                                <option value="Pembatalan Penerbangan-航班取消">Pembatalan Penerbangan-航班取消</option>
+                                <option value="Pencurian Paket-包裹盗窃">Pencurian Paket-包裹盗窃</option>
+                            </optgroup>
+                            <optgroup label="🏢 Non Transportasi">
+                                <option value="Angin Topan/Puting Beliung-台风 / 龙卷风">Angin Topan/Puting Beliung-台风 / 龙卷风</option>
+                                <option value="Banjir-洪水 / 内涝">Banjir-洪水 / 内涝</option>
+                                <option value="Cuaca Buruk-恶劣天气">Cuaca Buruk-恶劣天气</option>
+                                <option value="Demonstrasi-示威游行 / 抗议活动">Demonstrasi-示威游行 / 抗议活动</option>
+                                <option value="Event Adat/Karnaval-传统民俗活动 / 狂欢节">Event Adat/Karnaval-传统民俗活动 / 狂欢节</option>
+                                <option value="Gempa Bumi-地震">Gempa Bumi-地震</option>
+                                <option value="Hari Libur Nasional-法定节假日">Hari Libur Nasional-法定节假日</option>
+                                <option value="Hujan Deras-暴雨 / 大雨">Hujan Deras-暴雨 / 大雨</option>
+                                <option value="Insiden-Insiden Ilegal-违法违规事件">Insiden-Insiden Ilegal-违法违规事件</option>
+                                <option value="Kebakaran-火灾">Kebakaran-火灾</option>
+                                <option value="Kecelakaan Non Cedera-财产损失事故（无伤亡）">Kecelakaan Non Cedera-财产损失事故（无伤亡）</option>
+                                <option value="Kendala Jaringan-网络故障">Kendala Jaringan-网络故障</option>
+                                <option value="Kendala Operasional Mitra Jastip-代购/转运合作伙伴运营受阻">Kendala Operasional Mitra Jastip-代购/转运合作伙伴运营受阻</option>
+                                <option value="Kerugian Pada Aset Tetap-固定资产损失">Kerugian Pada Aset Tetap-固定资产损失</option>
+                                <option value="Letusan Gunung Berapi-火山喷发">Letusan Gunung Berapi-火山喷发</option>
+                                <option value="Longsor-滑坡 / 泥石流">Longsor-滑坡 / 泥石流</option>
+                                <option value="Masalah Operasional di DP-网点（DP）运营异常">Masalah Operasional di DP-网点（DP）运营异常</option>
+                                <option value="Pemadaman Listrik-停电">Pemadaman Listrik-停电</option>
+                                <option value="Pemeriksaan Bea Cukai-海关查验">Pemeriksaan Bea Cukai-海关查验</option>
+                                <option value="Pencurian Paket Oleh Staff-内部员工盗窃包裹">Pencurian Paket Oleh Staff-内部员工盗窃包裹</option>
+                                <option value="Penutupan Jalan-道路封闭">Penutupan Jalan-道路封闭</option>
+                                <option value="Penyakit Menular Epidemik-传染病疫情（如流行性感冒）">Penyakit Menular Epidemik-传染病疫情（如流行性感冒）</option>
+                                <option value="Penyelidikan Oleh Dep. Pemerintah-政府部门调查">Penyelidikan Oleh Dep. Pemerintah-政府部门调查</option>
+                                <option value="Penyitaan Selundupan Paket-走私/违禁包裹被没收">Penyitaan Selundupan Paket-走私/违禁包裹被没收</option>
+                                <option value="Melambat/Aksi Mogok Kolektif-怠工 / 集体罢工">Melambat/Aksi Mogok Kolektif-怠工 / 集体罢工</option>
+                                <option value="Kecelakaan Kerja-工伤事故">Kecelakaan Kerja-工伤事故</option>
+                            </optgroup>
                         </select>
                     </div>
                 </div>
