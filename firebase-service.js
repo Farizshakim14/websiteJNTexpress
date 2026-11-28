@@ -226,6 +226,12 @@ const JNTFirebaseService = {
 
         // Pulihkan sessionStorage jika sempat diubah dari console
         this.enforceVerifiedSessionIntegrity();
+
+        // Jika role yang terverifikasi adalah VENDOR, muat ulang listener onSnapshot
+        // agar menggunakan query terfilter .where('vendor', '==', ...) yang selaras dengan Firestore Security Rules
+        if (normRole === 'VENDOR' && typeof this.refreshVendorScopedListeners === 'function') {
+            this.refreshVendorScopedListeners();
+        }
     },
 
     enforceVerifiedSessionIntegrity() {
@@ -2123,6 +2129,38 @@ const JNTFirebaseService = {
      * Menjamin setiap koleksi (termasuk 5 koleksi Master Data) menggunakan onSnapshot Cloud Firestore sebagai sumber utama.
      * Ketika snapshot diterima dari server Firestore, cache lokal (RAM & localStorage) langsung diganti 100% dengan data server.
      */
+    _buildCollectionQuery(colName) {
+        if (!window.db) return null;
+        const baseCol = window.db.collection(colName);
+        const vendorScopedCols = new Set([
+            'incoming',
+            'sla_outbound',
+            'monitoring_4h',
+            'sla_return',
+            'sla_roundtrip',
+            'troubles',
+            'master_fleets'
+        ]);
+        const role = this.getVerifiedRole ? this.getVerifiedRole() : '';
+        if (role === 'VENDOR' && vendorScopedCols.has(colName)) {
+            const scope = this.getActiveVendorScope ? this.getActiveVendorScope() : null;
+            if (scope && scope.fullName && typeof baseCol.where === 'function') {
+                return baseCol.where('vendor', '==', scope.fullName);
+            }
+        }
+        return baseCol;
+    },
+
+    refreshVendorScopedListeners() {
+        if (!this._sharedListeners) return;
+        Object.keys(this._sharedListeners).forEach(colName => {
+            const entry = this._sharedListeners[colName];
+            if (entry && typeof entry.restart === 'function') {
+                entry.restart();
+            }
+        });
+    },
+
     _attachSharedSnapshot(colName, onDocs, onError) {
         this._sharedListeners = this._sharedListeners || {};
         let entry = this._sharedListeners[colName];
@@ -2134,7 +2172,8 @@ const JNTFirebaseService = {
                 rawFirestoreDocs: null,
                 lastDocs: null,
                 unsubFirestore: null,
-                authUnsub: null
+                authUnsub: null,
+                restart: null
             };
             this._sharedListeners[colName] = entry;
 
@@ -2144,8 +2183,17 @@ const JNTFirebaseService = {
                     entry.unsubFirestore();
                     entry.unsubFirestore = null;
                 }
+                // Role VENDOR tidak diizinkan membaca koleksi shifts, users, atau audit_logs di Firestore Rules
+                const activeRole = this.getVerifiedRole ? this.getVerifiedRole() : '';
+                if (activeRole === 'VENDOR' && ['shifts', 'users', 'audit_logs'].includes(colName)) {
+                    entry.rawFirestoreDocs = [];
+                    entry.lastDocs = [];
+                    entry.subscribers.forEach(fn => { try { fn([]); } catch (_) { } });
+                    return;
+                }
                 try {
-                    entry.unsubFirestore = window.db.collection(colName).onSnapshot(snap => {
+                    const queryRef = this._buildCollectionQuery(colName) || window.db.collection(colName);
+                    entry.unsubFirestore = queryRef.onSnapshot(snap => {
                         const rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         entry.rawFirestoreDocs = rawDocs;
                         // Filter hanya untuk membuang ID yang sedang dihapus / demo, TANPA menyuntikkan arsip lama
@@ -2184,6 +2232,7 @@ const JNTFirebaseService = {
                 }
             };
 
+            entry.restart = startFirestoreSub;
             startFirestoreSub();
 
             if (window.auth && !window.auth.currentUser) {
@@ -3732,6 +3781,8 @@ const JNTFirebaseService = {
         const roundtripDoc = {
             kodeTugas: tripData.kodeTugas,
             trip: fullTripData.trip,
+            vendor: fullTripData.vendor || "PT. SERIKAT HANTAR EKSPEDISI (SERYU)",
+            platNomor: fullTripData.platNomor || "",
             wilayah: masterInfo.wilayah,
             targetSLAPP: masterInfo.targetSLARoundtripHours,
             totalDurasiPPMinutes: 0,
@@ -4747,11 +4798,18 @@ const JNTFirebaseService = {
             const retData = await this.getDoc('sla_return', kodeTugas) || {};
 
             const targetSLAPP = incData.targetSLARoundtripHours || 32;
+            const resolvedVendor = this.resolveTripVendor({
+                vendor: outData.vendor || incData.vendor || retData.vendor || '',
+                platNomor: outData.platNomor || incData.platNomor || retData.platNomor || ''
+            });
+            const resolvedPlat = outData.platNomor || incData.platNomor || retData.platNomor || '-';
 
             if (!retData || !retData.jamSampaiJKT999) {
                 await this.saveDoc('sla_roundtrip', kodeTugas, {
                     kodeTugas: kodeTugas,
-                    trip: incData.trip || "-",
+                    trip: incData.trip || outData.trip || "-",
+                    vendor: resolvedVendor,
+                    platNomor: resolvedPlat,
                     wilayah: incData.wilayah || "JAWA",
                     targetSLAPP: targetSLAPP,
                     durasiBerangkatMinutes: outData.durasiBerangkatMinutes || 0,
@@ -4779,7 +4837,9 @@ const JNTFirebaseService = {
 
             await this.saveDoc('sla_roundtrip', kodeTugas, {
                 kodeTugas: kodeTugas,
-                trip: incData.trip || "-",
+                trip: incData.trip || outData.trip || "-",
+                vendor: resolvedVendor,
+                platNomor: resolvedPlat,
                 wilayah: incData.wilayah || "JAWA",
                 targetSLAPP: targetSLAPP,
                 durasiBerangkatMinutes: durasiBerangkatMin,

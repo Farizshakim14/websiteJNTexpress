@@ -3,6 +3,7 @@ rules_version = '2';
 // =========================================================================
 // J&T EXPRESS — TRANSPORTATION MONITORING SYSTEM (TMS) v5
 // ENTERPRISE FIRESTORE SECURITY RULES (9-ROLE RBAC & VENDOR OWNERSHIP)
+// Optimized with `let` bindings & `in` sets to stay well under 1,000 AST expressions.
 // =========================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,29 +14,20 @@ service cloud.firestore {
         && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
-    function hasUidProfile() {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
-    }
-
     function userProfile() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isAccountActive() {
-      return hasUidProfile()
-        && (!('status' in userProfile())
-            || (userProfile().status != 'Nonaktif'
-                && userProfile().status != 'NONAKTIF'
-                && userProfile().status != 'nonaktif'
-                && userProfile().status != 'Inactive'
-                && userProfile().status != 'INACTIVE'));
-    }
-
+    // Single `get()` evaluation bound via `let p` to eliminate redundant AST expansion
     function userRole() {
-      return isAccountActive() && ('role' in userProfile())
-        ? userProfile().role
-        : 'NONE';
+      let p = isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? userProfile()
+        : null;
+      let isActive = p != null && (
+        !('status' in p)
+        || !(p.status in ['Nonaktif', 'NONAKTIF', 'nonaktif', 'Inactive', 'INACTIVE'])
+      );
+      return isActive && ('role' in p) ? p.role : 'NONE';
     }
 
     // ── 2. OFFICIAL 9 ROLES DEFINITIONS (J&T TMS RBAC MATRIX) ───────────
@@ -49,106 +41,93 @@ service cloud.firestore {
     // 8. FINANCE
     // 9. VENDOR
 
-    function isDeveloper() {
-      return userRole() == 'DEVELOPER';
-    }
+    function isDeveloper() { return userRole() == 'DEVELOPER'; }
+    function isOwner() { return userRole() == 'OWNER'; }
+    function isAdmin() { return userRole() == 'ADMIN'; }
+    function isManager() { return userRole() == 'MANAGER'; }
+    function isAsistenManager() { return userRole() == 'ASISTEN_MANAGER'; }
+    function isSupervisor() { return userRole() == 'SUPERVISOR'; }
+    function isStaffDispatch() { return userRole() in ['STAFF_VEHICLE_DISPATCH', 'OPERATOR_SLA', 'OPERATOR_MONITORING']; }
+    function isFinance() { return userRole() == 'FINANCE'; }
+    function isVendor() { return userRole() == 'VENDOR'; }
 
-    function isOwner() {
-      return userRole() == 'OWNER';
-    }
-
-    function isAdmin() {
-      return userRole() == 'ADMIN';
-    }
-
-    function isManager() {
-      return userRole() == 'MANAGER';
-    }
-
-    function isAsistenManager() {
-      return userRole() == 'ASISTEN_MANAGER';
-    }
-
-    function isSupervisor() {
-      return userRole() == 'SUPERVISOR';
-    }
-
-    function isStaffDispatch() {
-      return userRole() == 'STAFF_VEHICLE_DISPATCH'
-        || userRole() == 'OPERATOR_SLA'
-        || userRole() == 'OPERATOR_MONITORING';
-    }
-
-    function isFinance() {
-      return userRole() == 'FINANCE';
-    }
-
-    function isVendor() {
-      return userRole() == 'VENDOR';
-    }
-
-    // ── 3. ROLE TIER GROUPINGS PER OFFICIAL ACCESS MATRIX ───────────────
-    // Top Executive / Super-Admin Tier (Full Control + Backup/Restore + Top-Tier User Management)
+    // ── 3. ROLE TIER GROUPINGS (SINGLE userRole() EVALUATION PER CHECK) ─
     function isTopTierAdmin() {
-      return isDeveloper() || isOwner() || isAdmin();
+      return userRole() in ['DEVELOPER', 'OWNER', 'ADMIN'];
     }
 
-    // Management & Supervision Tier (Master Data + Operational Full + Lower-Level User Management)
     function isManagementOrSpv() {
-      return isTopTierAdmin() || isManager() || isAsistenManager() || isSupervisor();
+      return userRole() in [
+        'DEVELOPER',
+        'OWNER',
+        'ADMIN',
+        'MANAGER',
+        'ASISTEN_MANAGER',
+        'SUPERVISOR'
+      ];
     }
 
-    // Internal J&T Staff (Can read all internal operational & master data)
     function isInternalReader() {
-      return isManagementOrSpv() || isStaffDispatch() || isFinance();
+      return userRole() in [
+        'DEVELOPER',
+        'OWNER',
+        'ADMIN',
+        'MANAGER',
+        'ASISTEN_MANAGER',
+        'SUPERVISOR',
+        'STAFF_VEHICLE_DISPATCH',
+        'OPERATOR_SLA',
+        'OPERATOR_MONITORING',
+        'FINANCE'
+      ];
     }
 
-    // Internal Operational Writer (Can create & update operational trips/monitoring/troubles/shifts)
     function isInternalOperationalWriter() {
-      return isManagementOrSpv() || isStaffDispatch();
+      return userRole() in [
+        'DEVELOPER',
+        'OWNER',
+        'ADMIN',
+        'MANAGER',
+        'ASISTEN_MANAGER',
+        'SUPERVISOR',
+        'STAFF_VEHICLE_DISPATCH',
+        'OPERATOR_SLA',
+        'OPERATOR_MONITORING'
+      ];
     }
 
-    // Operational Deleter (DEVELOPER, OWNER, ADMIN, MANAGER, ASISTEN_MANAGER, SUPERVISOR)
-    // STAFF_VEHICLE_DISPATCH, FINANCE, and VENDOR are strictly forbidden from deleting operational data
     function canDeleteOperational() {
       return isManagementOrSpv();
     }
 
-    // Master Data Writer (DEVELOPER, OWNER, ADMIN, MANAGER, ASISTEN_MANAGER, SUPERVISOR)
     function canWriteMasterData() {
       return isManagementOrSpv();
     }
 
     // ── 4. VENDOR OWNERSHIP VALIDATION (SERVER-SIDE ENFORCED) ───────────
-    // Validates document vendor against verified userProfile() in /users/$(request.auth.uid)
-    // Never trusts vendorId sent freely from browser console
-    function userVendorName() {
-      return ('vendorName' in userProfile() && userProfile().vendorName != null)
-        ? userProfile().vendorName
-        : (('vendor' in userProfile() && userProfile().vendor != null) ? userProfile().vendor : '');
-    }
-
-    function userVendorShort() {
-      return ('vendorShort' in userProfile() && userProfile().vendorShort != null)
-        ? userProfile().vendorShort
-        : '';
-    }
-
+    // Single `let p = userProfile()` binding per call
     function isOwnVendorDoc(docData) {
-      return isVendor()
-        && docData != null
+      let p = isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? userProfile()
+        : null;
+      let isActiveVendor = p != null
+        && (!('status' in p) || !(p.status in ['Nonaktif', 'NONAKTIF', 'nonaktif', 'Inactive', 'INACTIVE']))
+        && ('role' in p) && p.role == 'VENDOR';
+      let vName = isActiveVendor && ('vendorName' in p) && p.vendorName != null
+        ? p.vendorName
+        : (isActiveVendor && ('vendor' in p) && p.vendor != null ? p.vendor : '');
+      let vShort = isActiveVendor && ('vendorShort' in p) && p.vendorShort != null
+        ? p.vendorShort
+        : '';
+      let docVendor = docData != null && ('vendor' in docData) && docData.vendor != null
+        ? docData.vendor
+        : (docData != null && ('namaVendor' in docData) && docData.namaVendor != null ? docData.namaVendor : '');
+      return isActiveVendor
+        && docVendor != ''
         && (
-          (('vendor' in docData) && docData.vendor != null && (
-            (userVendorName() != '' && docData.vendor == userVendorName())
-            || (userVendorShort() != '' && docData.vendor == userVendorShort())
-            || (userVendorShort() != '' && docData.vendor.matches('.*\\(' + userVendorShort() + '\\).*'))
-            || (userVendorShort() != '' && docData.vendor.matches('.*' + userVendorShort() + '.*'))
-          ))
-          || (('namaVendor' in docData) && docData.namaVendor != null && (
-            (userVendorName() != '' && docData.namaVendor == userVendorName())
-            || (userVendorShort() != '' && docData.namaVendor == userVendorShort())
-            || (userVendorShort() != '' && docData.namaVendor.matches('.*' + userVendorShort() + '.*'))
-          ))
+          (vName != '' && docVendor == vName)
+          || (vShort != '' && docVendor == vShort)
+          || (vShort != '' && docVendor.matches('.*' + vShort + '.*'))
         );
     }
 
@@ -156,7 +135,6 @@ service cloud.firestore {
     // Cannot alter SLA target, jamBerangkat, kodeTugas, or transfer trip to another vendor
     function isValidVendorMonitoringUpdate() {
       return isOwnVendorDoc(resource.data)
-        && isOwnVendorDoc(request.resource.data)
         && request.resource.data.kodeTugas == resource.data.kodeTugas
         && request.resource.data.vendor == resource.data.vendor
         && request.resource.data.jamBerangkat == resource.data.jamBerangkat
@@ -180,49 +158,40 @@ service cloud.firestore {
         ]);
     }
 
-    // Hierarchy check for User Management:
-    // - DEVELOPER, OWNER, ADMIN: Can manage all roles (except ADMIN/OWNER cannot delete DEVELOPER)
-    // - MANAGER, ASISTEN_MANAGER: Can manage SUPERVISOR, STAFF_VEHICLE_DISPATCH, FINANCE, VENDOR
-    // - SUPERVISOR: Can manage STAFF_VEHICLE_DISPATCH, VENDOR
-    function isTargetRoleManageable(targetRole) {
-      return isDeveloper()
-        || ((isOwner() || isAdmin()) && targetRole != 'DEVELOPER')
-        || ((isManager() || isAsistenManager()) && targetRole in ['SUPERVISOR', 'STAFF_VEHICLE_DISPATCH', 'FINANCE', 'VENDOR'])
-        || (isSupervisor() && targetRole in ['STAFF_VEHICLE_DISPATCH', 'VENDOR']);
+    // Hierarchy check for User Management (Single `let r = userRole()` evaluation)
+    function canManageTargetRole(actorRole, targetRole) {
+      return actorRole == 'DEVELOPER'
+        || (actorRole in ['OWNER', 'ADMIN'] && targetRole != 'DEVELOPER')
+        || (actorRole in ['MANAGER', 'ASISTEN_MANAGER'] && targetRole in ['SUPERVISOR', 'STAFF_VEHICLE_DISPATCH', 'FINANCE', 'VENDOR'])
+        || (actorRole == 'SUPERVISOR' && targetRole in ['STAFF_VEHICLE_DISPATCH', 'VENDOR']);
     }
 
     // ── 5. OPERATIONAL COLLECTIONS ──────────────────────────────────────
 
-    // 5A. Incoming Trips SSOT
     match /incoming/{kodeTugas} {
       allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
       allow create, update: if isInternalOperationalWriter();
       allow delete: if canDeleteOperational();
     }
 
-    // 5B. SLA Outbound
     match /sla_outbound/{kodeTugas} {
       allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
       allow create, update: if isInternalOperationalWriter();
       allow delete: if canDeleteOperational();
     }
 
-    // 5C. SLA Return (Balikan)
     match /sla_return/{kodeTugas} {
       allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
       allow create, update: if isInternalOperationalWriter();
       allow delete: if canDeleteOperational();
     }
 
-    // 5D. SLA Roundtrip (PP)
     match /sla_roundtrip/{kodeTugas} {
       allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
       allow create, update: if isInternalOperationalWriter();
       allow delete: if canDeleteOperational();
     }
 
-    // 5E. Monitoring 4 Jam (Check-in Posisi Armada)
-    // VENDOR allowed to read own vendor trips & update ONLY position check-in fields on own vendor trips
     match /monitoring_4h/{kodeTugas} {
       allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
       allow create: if isInternalOperationalWriter();
@@ -230,8 +199,6 @@ service cloud.firestore {
       allow delete: if canDeleteOperational();
     }
 
-    // 5F. Trouble & Laka Incidents
-    // VENDOR allowed to read own vendor troubles and create trouble reports for own vendor armada
     match /troubles/{incidentId} {
       allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
       allow create: if isInternalOperationalWriter() || isOwnVendorDoc(request.resource.data);
@@ -239,7 +206,6 @@ service cloud.firestore {
       allow delete: if canDeleteOperational();
     }
 
-    // 5G. Shift Management & Handover
     match /shifts/{shiftId} {
       allow read: if isInternalReader();
       allow create, update: if isInternalOperationalWriter();
@@ -274,10 +240,6 @@ service cloud.firestore {
 
     // ── 7. USER MANAGEMENT & AUTHENTICATION COLLECTIONS ─────────────────
 
-    // 7A. Users Collection (/users/{userId})
-    // Supports self-read, safe self-profile update (cannot change own role/status/vendor!),
-    // safe initial UID migration (when user mirrors their existing legacy username doc to their own UID with identical role),
-    // and hierarchical User Management by authorized managers/admins.
     match /users/{userId} {
       allow read: if isSignedIn() && (
         request.auth.uid == userId
@@ -287,10 +249,7 @@ service cloud.firestore {
       );
 
       allow create: if isSignedIn() && (
-        // 1. Hierarchical User Creation by Admin/Management/SPV
-        (isManagementOrSpv() && isTargetRoleManageable(request.resource.data.role))
-        // 2. Safe Legacy UID Migration: authenticated user mirroring their own existing /users/{username} doc to /users/{uid}
-        // Must match existing legacy doc's role & vendor (zero privilege escalation)
+        canManageTargetRole(userRole(), request.resource.data.role)
         || (
           request.auth.uid == userId
           && ('username' in request.resource.data)
@@ -300,11 +259,10 @@ service cloud.firestore {
       );
 
       allow update: if isSignedIn() && (
-        // 1. Hierarchical User Update by Admin/Management/SPV
-        (isManagementOrSpv()
-          && isTargetRoleManageable(resource.data.role)
-          && isTargetRoleManageable(request.resource.data.role))
-        // 2. Self Profile Update (Name/Phone/Photo/Bio) — STRICTLY FORBIDDEN from changing role, status, vendorName, or vendorShort!
+        (
+          canManageTargetRole(userRole(), resource.data.role)
+          && canManageTargetRole(userRole(), request.resource.data.role)
+        )
         || (
           request.auth.uid == userId
           && request.resource.data.role == resource.data.role
@@ -314,12 +272,11 @@ service cloud.firestore {
         )
       );
 
-      allow delete: if isManagementOrSpv()
-        && isTargetRoleManageable(resource.data.role)
-        && request.auth.uid != userId;
+      allow delete: if isSignedIn()
+        && request.auth.uid != userId
+        && canManageTargetRole(userRole(), resource.data.role);
     }
 
-    // 7B. Minimal Username -> Email Lookup (Single doc get only, no list/enumeration)
     match /user_lookup/{username} {
       allow get: if true;
       allow list: if false;
@@ -329,12 +286,10 @@ service cloud.firestore {
       allow delete: if isManagementOrSpv();
     }
 
-    // 7C. Active Sessions (Single-Device Session Lock)
     match /active_sessions/{username} {
       allow read, create, update, delete: if isSignedIn();
     }
 
-    // 7D. Immutable Audit Trail Logs
     match /audit_logs/{logId} {
       allow read: if isInternalReader();
       allow create: if isSignedIn();
