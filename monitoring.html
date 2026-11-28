@@ -272,8 +272,7 @@
                 </div>
 
                 <!-- Filter Grid Card (Identik dengan SLA Vendor - Collapsible) -->
-                <div class="inc-filter-card collapsible-section-wrapper" id="mon-section-filter-wrapper"
-                    style="background: #FFFFFF; border-radius: 12px; padding: 8px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
+                <div class="inc-filter-card collapsible-section-wrapper" id="mon-section-filter-wrapper">
                     <div class="collapsible-section-header">
                         <span class="collapsible-section-title">🔍 Filter &amp; Pencarian Armada</span>
                         <button type="button" class="btn-collapse-toggle" id="btn-toggle-mon-filter"
@@ -282,28 +281,20 @@
                         </button>
                     </div>
                     <div class="collapsible-section-body">
-                        <div class="filter-inputs-grid"
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
+                        <div class="filter-inputs-grid">
                             <div class="filter-group">
-                                <label for="filter-mon-date"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
-                                <input type="date" id="filter-mon-date"
-                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <label for="filter-mon-date">Tanggal</label>
+                                <input type="date" id="filter-mon-date">
                             </div>
                             <div class="filter-group">
-                                <label for="filter-mon-rute"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
-                                <select id="filter-mon-rute"
-                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <label for="filter-mon-rute">Rute</label>
+                                <select id="filter-mon-rute">
                                     <option value="">Semua Rute</option>
                                 </select>
                             </div>
                             <div class="filter-group">
-                                <label for="filter-mon-status"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
-                                    SLA</label>
-                                <select id="filter-mon-status"
-                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <label for="filter-mon-status">Status SLA</label>
+                                <select id="filter-mon-status">
                                     <option value="">Semua Status</option>
                                     <option value="OUT">OUT (Di Jalan)</option>
                                     <option value="IN">IN (Sudah Sampai)</option>
@@ -311,12 +302,10 @@
                                 </select>
                             </div>
                             <div class="filter-group" style="grid-column: span 2;">
-                                <label for="filter-mon-search"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
-                                    Kode Tugas / Plat / Driver / Trip</label>
+                                <label for="filter-mon-search">Cari Kode Tugas / Plat / Driver / Trip</label>
                                 <div style="position: relative;">
                                     <input type="text" id="filter-mon-search" placeholder="Ketik disini..."
-                                        style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                        style="padding-left: 32px;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
                                         style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
                                         <circle cx="11" cy="11" r="8"></circle>
@@ -325,9 +314,7 @@
                                 </div>
                             </div>
                             <div class="filter-group">
-                                <button type="button" id="btn-reset-monitoring" class="btn-inc-reset"
-                                    style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
-                                    Reset</button>
+                                <button type="button" id="btn-reset-monitoring" class="btn-inc-reset">🔄 Reset</button>
                             </div>
                         </div>
                     </div>
@@ -343,115 +330,81 @@
                         </button>
                     </div>
                     <div class="collapsible-section-body">
-                        <div class="inc-kpi-grid" id="mon-section-kpi-cards"
-                            style="margin-bottom: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                        <div class="inc-kpi-grid" id="mon-section-kpi-cards">
                             <!-- Card 1: SLOT AKTIF -->
-                            <div class="inc-kpi-card"
-                                style="border-left: 4px solid #3B82F6; background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-                                <div class="inc-kpi-icon-circle blue-light"
-                                    style="background: #EFF6FF; color: #2563EB; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                        style="width: 22px; height: 22px;">
+                            <div class="inc-kpi-card" style="border-left: 4px solid #3B82F6;">
+                                <div class="inc-kpi-icon-circle blue-light">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <polyline points="12 6 12 12 16 14"></polyline>
                                     </svg>
                                 </div>
-                                <div class="inc-kpi-info" style="margin-top: 12px;">
-                                    <span class="inc-kpi-label"
-                                        style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">SLOT
-                                        AKTIF SAAT INI</span>
-                                    <div class="inc-kpi-val-row" style="margin-top: 4px;">
+                                <div class="inc-kpi-info">
+                                    <span class="inc-kpi-label">SLOT AKTIF SAAT INI</span>
+                                    <div class="inc-kpi-val-row">
                                         <span class="inc-kpi-number" id="lbl-active-slot-time"
-                                            style="font-size: 20px; font-weight: 800; color: #1E40AF;">—</span>
+                                            style="font-size: 20px; color: #1E40AF;">—</span>
                                     </div>
-                                    <span class="inc-kpi-sub"
-                                        style="font-size: 11.5px; color: #2563EB; font-weight: 600;">Waktu
-                                        Lokal WIB</span>
+                                    <span class="inc-kpi-sub" style="color: #2563EB;">Waktu Lokal WIB</span>
                                 </div>
                             </div>
 
                             <!-- Card 2: TOTAL ARMADA -->
-                            <div class="inc-kpi-card"
-                                style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
-                                <div class="inc-kpi-icon-circle red-light"
-                                    style="background: #FEF2F2; color: #E30613; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                        style="width: 22px; height: 22px;">
+                            <div class="inc-kpi-card">
+                                <div class="inc-kpi-icon-circle red-light">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                         <path d="M1 3h15v13H1z"></path>
                                         <path d="M16 8h4l3 3v5h-7V8z"></path>
                                         <circle cx="5.5" cy="18.5" r="2.5"></circle>
                                         <circle cx="18.5" cy="18.5" r="2.5"></circle>
                                     </svg>
                                 </div>
-                                <div class="inc-kpi-info" style="margin-top: 12px;">
-                                    <span class="inc-kpi-label"
-                                        style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">TOTAL
-                                        ARMADA (DITAMPILKAN)</span>
-                                    <div class="inc-kpi-val-row"
-                                        style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
-                                        <span class="inc-kpi-number" id="kpi-total-armada"
-                                            style="font-size: 24px; font-weight: 800; color: #0F172A;">0</span>
-                                        <span class="inc-kpi-unit"
-                                            style="font-size: 12px; color: #64748B; font-weight: 600;">Unit</span>
+                                <div class="inc-kpi-info">
+                                    <span class="inc-kpi-label">TOTAL ARMADA (DITAMPILKAN)</span>
+                                    <div class="inc-kpi-val-row">
+                                        <span class="inc-kpi-number" id="kpi-total-armada">0</span>
+                                        <span class="inc-kpi-unit">Unit</span>
                                     </div>
-                                    <span class="inc-kpi-sub" style="font-size: 11.5px; color: #64748B;">Dari <span
+                                    <span class="inc-kpi-sub" style="color: #64748B;">Dari <span
                                             id="kpi-total-all">0</span> total data</span>
                                 </div>
                             </div>
 
                             <!-- Card 3: SUDAH UPDATE -->
-                            <div class="inc-kpi-card"
-                                style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
-                                <div class="inc-kpi-icon-circle green-light"
-                                    style="background: #F0FDF4; color: #16A34A; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                        style="width: 22px; height: 22px;">
+                            <div class="inc-kpi-card">
+                                <div class="inc-kpi-icon-circle green-light">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                 </div>
-                                <div class="inc-kpi-info" style="margin-top: 12px;">
-                                    <span class="inc-kpi-label"
-                                        style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">🟢
-                                        SUDAH UPDATE (SLOT AKTIF)</span>
-                                    <div class="inc-kpi-val-row"
-                                        style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                <div class="inc-kpi-info">
+                                    <span class="inc-kpi-label">🟢 SUDAH UPDATE (SLOT AKTIF)</span>
+                                    <div class="inc-kpi-val-row">
                                         <span class="inc-kpi-number" id="kpi-sudah-update"
-                                            style="font-size: 24px; font-weight: 800; color: #16A34A;">0</span>
-                                        <span class="inc-kpi-unit"
-                                            style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
+                                            style="color: #16A34A;">0</span>
+                                        <span class="inc-kpi-unit">Armada</span>
                                     </div>
-                                    <span class="inc-kpi-sub"
-                                        style="font-size: 11.5px; color: #16A34A; font-weight: 600;">Tepat
-                                        Waktu</span>
+                                    <span class="inc-kpi-sub green">Tepat Waktu</span>
                                 </div>
                             </div>
 
                             <!-- Card 4: BELUM UPDATE -->
-                            <div class="inc-kpi-card"
-                                style="background: #FFFFFF; border-radius: 12px; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1.5px solid #FCD34D;">
-                                <div class="inc-kpi-icon-circle orange-light"
-                                    style="background: #FFFBEB; color: #D97706; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                        style="width: 22px; height: 22px;">
+                            <div class="inc-kpi-card" style="border: 1.5px solid #FCD34D;">
+                                <div class="inc-kpi-icon-circle orange-light">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <line x1="12" y1="8" x2="12" y2="12"></line>
                                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
                                     </svg>
                                 </div>
-                                <div class="inc-kpi-info" style="margin-top: 12px;">
-                                    <span class="inc-kpi-label"
-                                        style="font-size: 11px; font-weight: 700; color: #D97706; letter-spacing: 0.5px;">🟡
-                                        BELUM UPDATE (SLOT AKTIF)</span>
-                                    <div class="inc-kpi-val-row"
-                                        style="margin-top: 4px; display: flex; align-items: baseline; gap: 6px;">
+                                <div class="inc-kpi-info">
+                                    <span class="inc-kpi-label" style="color: #D97706;">🟡 BELUM UPDATE (SLOT AKTIF)</span>
+                                    <div class="inc-kpi-val-row">
                                         <span class="inc-kpi-number" id="kpi-belum-update"
-                                            style="font-size: 24px; font-weight: 800; color: #D97706;">0</span>
-                                        <span class="inc-kpi-unit"
-                                            style="font-size: 12px; color: #64748B; font-weight: 600;">Armada</span>
+                                            style="color: #D97706;">0</span>
+                                        <span class="inc-kpi-unit">Armada</span>
                                     </div>
-                                    <span class="inc-kpi-sub"
-                                        style="font-size: 11.5px; color: #D97706; font-weight: 600;">Perlu
-                                        Check-In</span>
+                                    <span class="inc-kpi-sub" style="color: #D97706;">Perlu Check-In</span>
                                 </div>
                             </div>
                         </div>
@@ -473,18 +426,13 @@
                 </div>
 
                 <!-- Main Split Layout -->
-                <div class="inc-split-container"
-                    style="display: flex; flex-direction: column; gap: 16px; align-items: stretch;">
+                <div class="inc-split-container" style="flex-direction: column; align-items: stretch;">
 
                     <!-- Table Section -->
-                    <div class="inc-table-card"
-                        style="width: 100%; min-width: 0; background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 12px 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-                        <div class="inc-table-header"
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="inc-table-card">
+                        <div class="inc-table-header">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <h3 class="inc-table-title"
-                                    style="font-size: 15px; font-weight: 800; color: #0F172A; margin: 0;">Daftar
-                                    Monitoring 4 Jam</h3>
+                                <h3 class="inc-table-title" style="margin: 0;">Daftar Monitoring 4 Jam</h3>
                             </div>
                             <span id="mon-data-source-badge" style="display:none;"></span>
                         </div>

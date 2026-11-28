@@ -2552,28 +2552,6 @@ body.dark-body-theme .btn-mode.active {
 }
 
 /* Danger Reset Box */
-@media (max-width: 1280px) {
-    .settings-grid-container {
-        grid-template-columns: 1fr;
-    }
-
-    .inc-kpi-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .filter-inputs-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .inc-split-container {
-        flex-direction: column;
-    }
-
-    .inc-detail-card {
-        width: 100%;
-        min-width: 100%;
-    }
-}
 
 /* ==========================================================================
    PROFILE PAGE STYLES
@@ -2896,37 +2874,6 @@ body.dark-body-theme .btn-mode.active {
     font-size: 10px !important;
     color: #94A3B8 !important;
     margin-top: 2px;
-}
-
-@media (max-width: 992px) {
-    .profile-hero-main {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .profile-name-row {
-        justify-content: center;
-    }
-
-    .p-stat-val {
-        font-size: 15px;
-        font-weight: 800;
-        color: #0F172A;
-        display: block;
-        white-space: nowrap;
-    }
-
-    .p-stat-lbl {
-        font-size: 11px;
-        color: #64748B;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .form-grid-2col {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* ==========================================================================
@@ -4601,22 +4548,6 @@ body.dark-body-theme .shift-kpi-grid-6 .inc-kpi-number {
     color: #FFFFFF !important;
 }
 
-@media (max-width: 1280px) {
-    .shift-kpi-grid-6 {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .operator-cards-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .shift-kpi-grid-6 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
 .audit-badge {
     padding: 3px 8px;
     border-radius: 6px;
@@ -5485,80 +5416,6 @@ body.dark-body-theme .inc-notif-bell {
     visibility: visible;
 }
 
-@media (max-width: 992px) {
-
-    html,
-    body {
-        height: auto !important;
-        min-height: 100% !important;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    .app-container {
-        height: auto !important;
-        min-height: 100vh !important;
-        overflow: visible !important;
-    }
-
-    .dashboard-layout {
-        display: block !important;
-        width: 100% !important;
-        height: auto !important;
-        min-height: 100vh !important;
-        overflow: visible !important;
-    }
-
-    .main-incoming-body {
-        height: auto !important;
-        min-height: 100vh !important;
-        overflow-y: visible !important;
-        overflow-x: visible !important;
-        padding: 12px 14px !important;
-    }
-
-    .sidebar-panel {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        height: 100vh !important;
-        z-index: 999 !important;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: none;
-    }
-
-    .sidebar-panel.mobile-open {
-        transform: translateX(0) !important;
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5) !important;
-    }
-
-    .hamburger-btn {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        padding: 6px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background-color 0.15s ease;
-    }
-
-    .hamburger-btn:hover {
-        background-color: rgba(100, 116, 139, 0.12);
-    }
-}
-
-@media (min-width: 993px) {
-    .sidebar-backdrop {
-        display: none !important;
-    }
-
-    .sidebar-panel {
-        transform: none !important;
-    }
-}
-
 /* Topbar User Dropdown Menu */
 .topbar-user-wrapper {
     position: relative;
@@ -5737,746 +5594,6 @@ body.dark-body-theme .dropdown-nav-item.logout-item {
 body.dark-body-theme .dropdown-nav-item.logout-item:hover {
     background-color: rgba(239, 68, 68, 0.15) !important;
     color: #F87171 !important;
-}
-
-/* ── LARGE DESKTOP (1400px+): give sidebar & topbar more breathing room ── */
-@media (min-width: 1400px) {
-    .sidebar-panel {
-        width: 210px;
-        min-width: 210px;
-    }
-
-    .jnt-logo-text {
-        font-size: 18px;
-    }
-
-    .express-tag {
-        font-size: 12px;
-    }
-
-    .inc-kpi-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
-}
-
-/* ── LAPTOP (≤1280px): collapse 6-col grids to 3 ── */
-@media (max-width: 1280px) {
-    .dashboard-layout {
-        overflow: visible;
-    }
-
-    .inc-kpi-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .filter-inputs-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .shift-kpi-grid-6 {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .settings-grid-container {
-        grid-template-columns: 1fr;
-    }
-
-    .inc-split-container {
-        flex-direction: column;
-    }
-
-    .inc-detail-card {
-        width: 100%;
-        min-width: 100%;
-    }
-
-    .operator-cards-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ── TABLET LANDSCAPE (≤1024px): sidebar still visible but narrower ── */
-@media (max-width: 1024px) {
-    .sidebar-panel {
-        width: 190px;
-        min-width: 190px;
-    }
-
-    .sidebar-nav .nav-link {
-        padding: 7px 10px;
-        font-size: 11.5px;
-        gap: 8px;
-    }
-
-    .sidebar-nav .nav-icon {
-        width: 14px;
-        height: 14px;
-    }
-
-    .jnt-logo-text {
-        font-size: 17px;
-    }
-
-    .express-tag {
-        font-size: 11px;
-    }
-
-    .profile-name {
-        font-size: 11.5px;
-    }
-
-    .profile-role {
-        font-size: 9.5px;
-    }
-
-    .inc-top-right {
-        gap: 10px;
-    }
-
-    .inc-date-chip {
-        display: none;
-    }
-
-    .inc-kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .filter-inputs-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .form-grid-2col {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ── TABLET PORTRAIT (≤992px): sidebar becomes mobile overlay ── */
-@media (max-width: 992px) {
-    /* Sidebar: hidden drawer */
-
-    .sidebar-panel {
-        position: fixed !important;
-        top: 0;
-        left: 0;
-        height: 100vh !important;
-        width: 260px !important;
-        min-width: 260px !important;
-        z-index: 999 !important;
-        transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: none;
-    }
-
-    .sidebar-panel.mobile-open {
-        transform: translateX(0) !important;
-        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45) !important;
-    }
-
-    /* Hamburger: always visible */
-
-    .hamburger-btn {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        padding: 6px;
-        border-radius: 8px;
-        background-color: rgba(100, 116, 139, 0.08);
-        transition: background-color 0.15s ease;
-        flex-shrink: 0;
-    }
-
-    .hamburger-btn:hover,
-    .hamburger-btn:focus {
-        background-color: rgba(227, 6, 19, 0.1);
-        color: var(--primary-red);
-    }
-
-    .hamburger-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    /* Main content: full width */
-
-    .main-incoming-body {
-        width: 100% !important;
-        min-width: 0 !important;
-        padding: 14px 16px;
-    }
-
-    /* Topbar adjustments */
-
-    .inc-top-nav {
-        padding-bottom: 10px;
-    }
-
-    .inc-main-title {
-        font-size: 17px !important;
-    }
-
-    .inc-breadcrumb {
-        font-size: 11.5px;
-    }
-
-    .inc-date-chip {
-        display: none;
-    }
-
-    .inc-user-meta {
-        display: none;
-    }
-
-    .inc-top-right {
-        gap: 8px;
-    }
-
-    /* Grids */
-
-    .inc-kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .filter-inputs-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .shift-kpi-grid-6 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .operator-cards-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .form-grid-2col {
-        grid-template-columns: 1fr;
-    }
-
-    .inc-split-container {
-        flex-direction: column;
-    }
-
-    .inc-detail-card {
-        width: 100%;
-        min-width: 100%;
-    }
-
-    /* Profile */
-
-    .profile-hero-main {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        margin-top: -30px;
-    }
-
-    .profile-name-row {
-        justify-content: center;
-    }
-
-    .profile-hero-actions {
-        text-align: center;
-    }
-
-    .profile-sub-meta {
-        justify-content: center;
-    }
-
-    /* Tables */
-
-    .inc-table-scroll {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .inc-data-table {
-        min-width: 700px;
-    }
-}
-
-/* ── MOBILE (≤768px): full one-column layout ── */
-@media (max-width: 768px) {
-    .fullscreen-login-bg {
-        object-position: center top;
-    }
-
-    .form-panel {
-        padding: 16px;
-    }
-
-    .login-card {
-        padding: 24px 20px 20px 20px;
-        max-width: 100%;
-        border-radius: 16px;
-    }
-
-    .login-title {
-        font-size: 24px;
-    }
-
-    .red-diagonal-accent {
-        width: 280px;
-        height: 280px;
-    }
-
-    /* Topbar: collapse more */
-
-    .inc-user-meta {
-        display: none;
-    }
-
-    .inc-notif-bell {
-        width: 34px;
-        height: 34px;
-    }
-
-    .inc-avatar-img {
-        width: 32px;
-        height: 32px;
-    }
-
-    /* Grids: single column */
-
-    .inc-kpi-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .filter-inputs-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .shift-kpi-grid-6 {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-
-    .form-grid-2col {
-        grid-template-columns: 1fr;
-    }
-
-    /* Action rows: stack */
-
-    .inc-action-row {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .btn-jnt-red,
-    .btn-inc-add,
-    .btn-inc-import {
-        font-size: 12px;
-        padding: 7px 12px;
-    }
-
-    /* Page heading */
-
-    .inc-main-title {
-        font-size: 16px !important;
-    }
-
-    /* Main body padding */
-
-    .main-incoming-body {
-        padding: 12px 12px;
-    }
-
-    /* Tables scroll */
-
-    .inc-data-table {
-        min-width: 600px;
-        font-size: 12px;
-    }
-
-    .inc-data-table th,
-    .inc-data-table td {
-        padding: 8px 10px !important;
-    }
-
-    /* Profile stats: 2 columns */
-
-    .profile-stats-row {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    /* Topbar dropdown */
-
-    .topbar-user-dropdown {
-        min-width: 190px;
-        right: -4px;
-    }
-
-    /* Toast notifications */
-
-    .jnt-toast-container {
-        right: 12px;
-        bottom: 16px;
-    }
-
-    .jnt-toast-item {
-        min-width: 280px;
-        max-width: calc(100vw - 24px);
-        font-size: 12px;
-        padding: 12px 14px;
-    }
-}
-
-/* ── SMALL MOBILE (≤640px): fine-tune compact layout ── */
-@media (max-width: 640px) {
-    /* Login */
-
-    .login-card {
-        padding: 28px 18px 20px;
-    }
-
-    .login-title {
-        font-size: 24px;
-    }
-
-    .login-subtitle {
-        font-size: 13px;
-    }
-
-    .form-input {
-        font-size: 14px;
-        padding: 12px 42px;
-    }
-
-    /* Topbar: minimal */
-
-    .inc-top-right {
-        gap: 6px;
-    }
-
-    .inc-date-chip {
-        display: none;
-    }
-
-    .inc-main-title {
-        font-size: 15px !important;
-    }
-
-    .inc-breadcrumb {
-        font-size: 11px;
-        display: none;
-    }
-
-    /* KPI grids */
-
-    .inc-kpi-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .inc-kpi-number {
-        font-size: 20px;
-    }
-
-    .inc-kpi-label {
-        font-size: 11px;
-    }
-
-    .inc-kpi-card {
-        padding: 12px;
-    }
-
-    /* Modals */
-
-    .modal-overlay {
-        align-items: flex-end !important;
-    }
-
-    /* Tables */
-
-    .inc-data-table {
-        min-width: 560px;
-        font-size: 11.5px;
-    }
-
-    /* Profile */
-
-    .profile-hero-img {
-        width: 80px;
-        height: 80px;
-    }
-
-    .profile-full-name {
-        font-size: 18px;
-    }
-
-    .profile-stats-row {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .p-stat-val {
-        font-size: 13px;
-    }
-
-    /* User chip in topbar — show only avatar */
-
-    .inc-user-meta {
-        display: none;
-    }
-
-    .inc-avatar-img {
-        width: 30px;
-        height: 30px;
-    }
-}
-
-/* ── VERY SMALL MOBILE (≤480px) ── */
-@media (max-width: 480px) {
-    /* Login: single column, no banner */
-
-    .form-panel {
-        padding: 20px 16px 24px;
-    }
-
-    .login-card {
-        padding: 24px 16px 20px;
-        border-radius: 12px;
-    }
-
-    .login-title {
-        font-size: 22px;
-    }
-
-    /* Topbar hamburger + title only */
-
-    .inc-top-right {
-        gap: 4px;
-    }
-
-    .inc-notif-bell {
-        width: 30px;
-        height: 30px;
-    }
-
-    .inc-notif-bell svg {
-        width: 15px;
-        height: 15px;
-    }
-
-    /* Grids: single column */
-
-    .inc-kpi-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-    }
-
-    .shift-kpi-grid-6 {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-    }
-
-    .filter-inputs-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* KPI cards: compact */
-
-    .inc-kpi-card {
-        padding: 10px;
-    }
-
-    .inc-kpi-number {
-        font-size: 18px;
-    }
-
-    .inc-kpi-icon-circle {
-        width: 36px;
-        height: 36px;
-    }
-
-    .inc-kpi-icon-circle svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    /* Main padding */
-
-    .main-incoming-body {
-        padding: 10px 10px;
-    }
-
-    /* Profile */
-
-    .profile-stats-row {
-        grid-template-columns: 1fr;
-    }
-
-    .p-stat-box {
-        border-right: none;
-        border-bottom: 1px solid #F1F5F9;
-    }
-
-    .profile-hero-main {
-        padding: 0 14px 16px;
-    }
-
-    /* Toast */
-
-    .jnt-toast-item {
-        min-width: 260px;
-        font-size: 11.5px;
-    }
-
-    /* Pagination */
-
-    .inc-pagination {
-        flex-wrap: wrap;
-        gap: 4px;
-        justify-content: center;
-    }
-}
-
-/* ── MINIMUM (≤360px): absolute minimum usable layout ── */
-@media (max-width: 360px) {
-    .login-title {
-        font-size: 20px;
-    }
-
-    .form-input {
-        font-size: 13.5px;
-    }
-
-    .btn-login {
-        font-size: 14px;
-        padding: 12px;
-    }
-
-    .inc-main-title {
-        font-size: 14px !important;
-    }
-
-    .inc-kpi-number {
-        font-size: 16px;
-    }
-
-    .inc-kpi-grid,
-    .shift-kpi-grid-6 {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
-    }
-
-    .main-incoming-body {
-        padding: 8px;
-    }
-
-    .sidebar-panel {
-        width: 240px !important;
-        min-width: 240px !important;
-    }
-}
-
-/* ── UTILITY: Force tables to scroll on all mobile ── */
-@media (max-width: 992px) {
-    /* All table wrappers get horizontal scroll */
-
-    .inc-table-scroll,
-    [class*="table-scroll"],
-    [class*="table-wrapper"] {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Action row wrapping */
-
-    .inc-action-row {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    /* Fix overflow on page body */
-
-    .dashboard-layout {
-        height: auto;
-        min-height: 100vh;
-        overflow: visible;
-    }
-
-    .main-incoming-body {
-        height: auto;
-        overflow-y: visible;
-    }
-
-    /* Sidebar footer: hide truck image on mobile to save space */
-
-    .truck-image-wrapper {
-        display: none;
-    }
-}
-
-/* ── LOGIN SCROLL LOCK OVERRIDE — Tablet & Mobile ──────────────────────────
-   Di desktop, login page mengunci body supaya hanya form-panel yang scroll.
-   Di tablet/HP (≤992px), lepas kunci agar semua konten tetap bisa dijangkau.
-   ─────────────────────────────────────────────────────────────────────────── */
-@media (max-width: 992px) {
-    body.login-page {
-        overflow: auto;
-        height: auto;
-    }
-
-    body.login-page .app-container {
-        height: auto;
-        min-height: 100vh;
-        overflow: visible;
-    }
-
-    .login-section {
-        height: auto;
-        min-height: 100vh;
-        overflow: visible;
-    }
-
-    .form-panel {
-        max-height: none;
-        overflow-y: visible;
-    }
-}
-
-@media (max-width: 768px) {
-    .form-panel {
-        max-height: none;
-        overflow-y: visible;
-        min-height: auto;
-    }
-
-    .login-card {
-        margin-bottom: 16px;
-    }
-}
-
-/* ── PRINT MEDIA: hide UI chrome, show content ── */
-@media print {
-
-    .sidebar-panel,
-    .inc-top-nav,
-    .inc-action-row,
-    .hamburger-btn,
-    .sidebar-backdrop,
-    .jnt-toast-container,
-    .topbar-user-dropdown,
-    .modal-overlay {
-        display: none !important;
-    }
-
-    .main-incoming-body {
-        padding: 0;
-        width: 100%;
-    }
-
-    .inc-table-scroll {
-        overflow: visible;
-    }
-
-    .inc-data-table {
-        min-width: unset;
-        font-size: 11px;
-    }
 }
 
 /* ==========================================================================
@@ -6877,40 +5994,6 @@ body.dark-body-theme .dropdown-nav-item.logout-item:hover {
     font-size: 16px;
     font-weight: 800;
     margin: 2px 0;
-}
-
-@media (max-width: 1440px) {
-    .exec-middle-4grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-}
-
-@media (max-width: 1100px) {
-
-    .exec-kpi-5grid,
-    .exec-bottom-5grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .exec-lower-2grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .exec-kpi-5grid,
-    .exec-bottom-5grid,
-    .exec-middle-4grid {
-        grid-template-columns: 1fr;
-    }
-
-    .exec-header-banner {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
 }
 
 /* Backdrop */
@@ -10133,19 +9216,6 @@ button:active:not(:disabled),
     border-color: #E30613;
 }
 
-@media (max-width: 1024px) {
-    .profile-stats-row.v2-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-    .profile-stats-row.v2-stats-grid,
-    .v2-rbac-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
 :is(html, body).dark-body-theme .v2-rbac-icon {
     background: #0F172A;
     border-color: #233047;
@@ -10240,10 +9310,10 @@ button:active:not(:disabled),
 }
 
 /* ==========================================================================
-   UNIFIED RESPONSIVE SYSTEM (DESKTOP, TABLET & MOBILE CONSISTENCY)
-   Menjamin seluruh 10 halaman (Dashboard, Monitoring 4H, SLA Vendor, Trouble,
-   Shift, Master Data, Report, Users, Settings, Profile) tampil fleksibel,
-   proporsional, dan konsisten di semua ukuran layar.
+   UNIFIED COMPONENT & RESPONSIVE SYSTEM (CLEAN CODE ARCHITECTURE)
+   Menyatukan komponen UI yang berfungsi sama di seluruh 10 menu (Dashboard,
+   Monitoring 4H, SLA Vendor, Trouble, Shift, Master Data, Report, Users,
+   Settings, Profile) serta seluruh breakpoint Desktop, Tablet & Mobile.
    ========================================================================== */
 
 /* 1. Standarisasi Tombol Aksi Utama & Sekunder di Seluruh Halaman */
@@ -10277,7 +9347,145 @@ button:active:not(:disabled),
     display: block;
 }
 
-/* 2. Tablet & Laptop Compact Breakpoint (≤ 1200px) */
+/* 2. Standarisasi Collapsible Filter Card & KPI Cards (Monitoring, SLA, Shift, Report) */
+.inc-filter-card.collapsible-section-wrapper {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    padding: 8px 14px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    margin-bottom: 12px;
+}
+
+.inc-filter-card.collapsible-section-wrapper .filter-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.inc-filter-card.collapsible-section-wrapper .filter-group label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.inc-filter-card.collapsible-section-wrapper .filter-group input,
+.inc-filter-card.collapsible-section-wrapper .filter-group select {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 7px;
+    border: 1px solid #CBD5E1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inc-filter-card.collapsible-section-wrapper .btn-inc-reset {
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-weight: 700;
+    font-size: 12px;
+    border: 1px solid #CBD5E1;
+    background: #F8FAFC;
+    cursor: pointer;
+    width: 100%;
+}
+
+#mon-section-kpi-cards {
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.shift-kpi-grid-6 .inc-kpi-card {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.shift-kpi-grid-6 .inc-kpi-icon-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+}
+
+.shift-kpi-grid-6 .inc-kpi-number {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.shift-kpi-grid-6 .inc-kpi-unit {
+    font-size: 11.5px;
+    color: #64748B;
+}
+
+.inc-kpi-icon-circle.teal-light {
+    background-color: #CCFBF1;
+    color: #0D9488;
+}
+
+/* 3. Large Desktop (≥ 1400px) & Executive 4-Grid (≤ 1440px) */
+@media (min-width: 1400px) {
+    .sidebar-panel {
+        width: 210px;
+        min-width: 210px;
+    }
+
+    .jnt-logo-text {
+        font-size: 18px;
+    }
+
+    .express-tag {
+        font-size: 12px;
+    }
+
+    .inc-kpi-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+@media (max-width: 1440px) {
+    .exec-middle-4grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+/* 4. Laptop Breakpoint (≤ 1280px) */
+@media (max-width: 1280px) {
+    .dashboard-layout {
+        overflow: visible;
+    }
+
+    .inc-kpi-grid,
+    .filter-inputs-grid,
+    .shift-kpi-grid-6 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .settings-grid-container,
+    .operator-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inc-split-container {
+        flex-direction: column;
+    }
+
+    .inc-detail-card {
+        width: 100%;
+        min-width: 100%;
+    }
+}
+
+/* 5. Compact Laptop & Tablet Breakpoint (≤ 1200px & ≤ 1100px) */
 @media (max-width: 1200px) {
     #mon-section-kpi-cards,
     .sla-kpi-grid {
@@ -10294,9 +9502,177 @@ button:active:not(:disabled),
     }
 }
 
-/* 3. Universal Tablet & Mobile Layout (≤ 992px) */
+@media (max-width: 1100px) {
+    .exec-kpi-5grid,
+    .exec-bottom-5grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .exec-lower-2grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 6. Tablet Landscape Breakpoint (≤ 1024px) */
+@media (max-width: 1024px) {
+    .sidebar-panel {
+        width: 190px;
+        min-width: 190px;
+    }
+
+    .sidebar-nav .nav-link {
+        padding: 7px 10px;
+        font-size: 11.5px;
+        gap: 8px;
+    }
+
+    .sidebar-nav .nav-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .jnt-logo-text {
+        font-size: 17px;
+    }
+
+    .express-tag {
+        font-size: 11px;
+    }
+
+    .profile-name {
+        font-size: 11.5px;
+    }
+
+    .profile-role {
+        font-size: 9.5px;
+    }
+
+    .inc-top-right {
+        gap: 10px;
+    }
+
+    .inc-date-chip {
+        display: none;
+    }
+
+    .inc-kpi-grid,
+    .filter-inputs-grid,
+    .profile-stats-row.v2-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid-2col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 7. Desktop vs Mobile Drawer Toggle Boundary (≥ 993px & ≤ 992px) */
+@media (min-width: 993px) {
+    .sidebar-backdrop {
+        display: none !important;
+    }
+
+    .sidebar-panel {
+        transform: none !important;
+    }
+}
+
 @media (max-width: 992px) {
-    /* Top Header Navigation: fleksibel & tidak pernah terpotong */
+    /* Document & Layout Scroll Unlock */
+    html,
+    body {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    body.login-page {
+        overflow: auto;
+        height: auto;
+    }
+
+    .app-container,
+    body.login-page .app-container,
+    .login-section {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+    }
+
+    .form-panel {
+        max-height: none;
+        overflow-y: visible;
+    }
+
+    .dashboard-layout {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+    }
+
+    .main-incoming-body {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: visible !important;
+        overflow-x: visible !important;
+        padding: 12px 14px !important;
+    }
+
+    /* Sidebar Drawer Overlay */
+    .sidebar-panel {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        height: 100vh !important;
+        width: 260px !important;
+        min-width: 260px !important;
+        z-index: 999 !important;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: none;
+    }
+
+    .sidebar-panel.mobile-open {
+        transform: translateX(0) !important;
+        box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45) !important;
+    }
+
+    .truck-image-wrapper {
+        display: none;
+    }
+
+    .hamburger-btn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+        border-radius: 8px;
+        background-color: rgba(100, 116, 139, 0.08);
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        flex-shrink: 0;
+    }
+
+    .hamburger-btn:hover,
+    .hamburger-btn:focus {
+        background-color: rgba(227, 6, 19, 0.1);
+        color: var(--primary-red);
+    }
+
+    .hamburger-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Top Header Navigation */
     .inc-top-nav,
     .sla-header-modern {
         flex-wrap: wrap !important;
@@ -10315,8 +9691,14 @@ button:active:not(:disabled),
         line-height: 1.25 !important;
     }
 
+    .inc-breadcrumb,
     .header-subtitle {
         font-size: 11.5px !important;
+    }
+
+    .inc-date-chip,
+    .inc-user-meta {
+        display: none;
     }
 
     .inc-top-right {
@@ -10325,8 +9707,77 @@ button:active:not(:disabled),
         gap: 8px !important;
     }
 
-    /* Monitoring 4 Jam Table: Buka kunci 6 kolom sticky (698px) di layar tablet/HP
-       agar seluruh tabel dapat di-geser horizontal dengan leluasa */
+    .inc-action-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    /* Grids & Split Containers */
+    .inc-kpi-grid,
+    .filter-inputs-grid,
+    .shift-kpi-grid-6 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .operator-cards-grid,
+    .form-grid-2col {
+        grid-template-columns: 1fr;
+    }
+
+    .inc-split-container {
+        flex-direction: column;
+    }
+
+    .inc-detail-card {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    /* Profile Layout */
+    .profile-hero-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-top: -30px;
+    }
+
+    .profile-name-row,
+    .profile-sub-meta {
+        justify-content: center;
+    }
+
+    .profile-hero-actions {
+        text-align: center;
+    }
+
+    .p-stat-val {
+        font-size: 15px;
+        font-weight: 800;
+        color: #0F172A;
+        display: block;
+        white-space: nowrap;
+    }
+
+    .p-stat-lbl {
+        font-size: 11px;
+        color: #64748B;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Tables & Monitoring 4H Sticky Columns Unlock */
+    .inc-table-scroll,
+    [class*="table-scroll"],
+    [class*="table-wrapper"] {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .inc-data-table {
+        min-width: 700px;
+    }
+
     .monitoring-table th.mon-sticky-col,
     .monitoring-table td.mon-sticky-col {
         position: static !important;
@@ -10334,7 +9785,7 @@ button:active:not(:disabled),
         box-shadow: none !important;
     }
 
-    /* SLA Card Header Bar & Table Headers */
+    /* Card & Table Headers / Footers */
     .sla-card-header-bar,
     .inc-table-header,
     .excel-preview-table-header,
@@ -10358,7 +9809,20 @@ button:active:not(:disabled),
         justify-content: center;
     }
 
-    /* Master Data & Settings Nav Tabs: Horizontal Touch Scroll */
+    .inc-table-footer {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px !important;
+        text-align: center;
+    }
+
+    .inc-table-footer > div {
+        margin-left: 0 !important;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* Horizontal Touch Scroll Navigation Tabs */
     .settings-nav-tabs,
     .report-tab-nav {
         display: flex !important;
@@ -10380,25 +9844,74 @@ button:active:not(:disabled),
         flex-shrink: 0 !important;
         white-space: nowrap !important;
     }
-
-    /* Table Footer Pagination */
-    .inc-table-footer {
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: 10px !important;
-        text-align: center;
-    }
-
-    .inc-table-footer > div {
-        margin-left: 0 !important;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
 }
 
-/* 4. Mobile Smartphone Breakpoint (≤ 768px) */
+/* 8. Mobile Smartphone Breakpoint (≤ 768px) */
 @media (max-width: 768px) {
-    /* Segmented Tabs (Armada Berangkat / Armada Balikan) */
+    /* Login Page */
+    .fullscreen-login-bg {
+        object-position: center top;
+    }
+
+    .form-panel {
+        padding: 16px;
+        max-height: none;
+        overflow-y: visible;
+        min-height: auto;
+    }
+
+    .login-card {
+        padding: 24px 20px 20px 20px;
+        max-width: 100%;
+        border-radius: 16px;
+        margin-bottom: 16px;
+    }
+
+    .login-title {
+        font-size: 24px;
+    }
+
+    .red-diagonal-accent {
+        width: 280px;
+        height: 280px;
+    }
+
+    /* Topbar & Body */
+    .main-incoming-body {
+        padding: 12px 12px !important;
+    }
+
+    .inc-main-title {
+        font-size: 16px !important;
+    }
+
+    .inc-user-meta {
+        display: none;
+    }
+
+    .inc-notif-bell {
+        width: 34px;
+        height: 34px;
+    }
+
+    .inc-avatar-img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .topbar-user-dropdown {
+        min-width: 190px;
+        right: -4px;
+    }
+
+    /* Buttons & Segmented Tabs */
+    .btn-jnt-red,
+    .btn-inc-add,
+    .btn-inc-import {
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+
     .sla-segmented-tabs {
         flex-direction: row !important;
         flex-wrap: wrap !important;
@@ -10417,9 +9930,23 @@ button:active:not(:disabled),
         font-size: 10px !important;
     }
 
-    /* Filter Grids: 1 Kolom penuh & reset span-2 inline style */
+    /* Grids & Filters */
+    .inc-kpi-grid,
+    .shift-kpi-grid-6,
+    #mon-section-kpi-cards,
+    .sla-kpi-grid,
+    .profile-stats-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
     .filter-inputs-grid,
-    .filter-inputs-grid[style*="grid-template-columns"] {
+    .filter-inputs-grid[style*="grid-template-columns"],
+    .form-grid-2col,
+    #mon-section-bottom-summary,
+    .exec-kpi-5grid,
+    .exec-bottom-5grid,
+    .exec-middle-4grid {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
     }
@@ -10429,15 +9956,21 @@ button:active:not(:disabled),
         grid-column: span 1 !important;
     }
 
-    /* Monitoring Bottom Summary Cards & SLA KPI Grid */
-    #mon-section-kpi-cards,
-    .sla-kpi-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8px !important;
+    .exec-header-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 
-    #mon-section-bottom-summary {
-        grid-template-columns: 1fr !important;
+    /* Tables */
+    .inc-data-table {
+        min-width: 600px;
+        font-size: 12px;
+    }
+
+    .inc-data-table th,
+    .inc-data-table td {
+        padding: 8px 10px !important;
     }
 
     /* Shift Control Hero & Operator Cards */
@@ -10462,7 +9995,7 @@ button:active:not(:disabled),
         padding: 14px !important;
     }
 
-    /* Profile Page V2 Hero Responsive */
+    /* Profile Page V2 Hero */
     .profile-cover-bg.v2-cover {
         height: 120px !important;
         padding: 12px 14px !important;
@@ -10497,7 +10030,7 @@ button:active:not(:disabled),
         justify-content: center;
     }
 
-    /* Modals & Form Rows on Mobile */
+    /* Modals & Toasts */
     .modal-overlay {
         padding: 10px !important;
         align-items: center !important;
@@ -10528,15 +10061,151 @@ button:active:not(:disabled),
         flex: 1 1 auto;
         justify-content: center;
     }
+
+    .jnt-toast-container {
+        right: 12px;
+        bottom: 16px;
+    }
+
+    .jnt-toast-item {
+        min-width: 280px;
+        max-width: calc(100vw - 24px);
+        font-size: 12px;
+        padding: 12px 14px;
+    }
 }
 
-/* 5. Small Mobile Breakpoint (≤ 480px) */
+/* 9. Compact Mobile Breakpoint (≤ 640px) */
+@media (max-width: 640px) {
+    .login-card {
+        padding: 28px 18px 20px;
+    }
+
+    .login-subtitle {
+        font-size: 13px;
+    }
+
+    .form-input {
+        font-size: 14px;
+        padding: 12px 42px;
+    }
+
+    .inc-top-right {
+        gap: 6px !important;
+    }
+
+    .inc-main-title {
+        font-size: 15px !important;
+    }
+
+    .inc-breadcrumb {
+        display: none;
+    }
+
+    .inc-kpi-card {
+        padding: 12px;
+    }
+
+    .inc-kpi-number {
+        font-size: 20px;
+    }
+
+    .inc-kpi-label {
+        font-size: 11px;
+    }
+
+    .inc-data-table {
+        min-width: 560px;
+        font-size: 11.5px;
+    }
+
+    .profile-hero-img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .profile-full-name {
+        font-size: 18px;
+    }
+
+    .profile-stats-row.v2-stats-grid,
+    .v2-rbac-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .p-stat-val {
+        font-size: 13px;
+    }
+
+    .inc-avatar-img {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+/* 10. Small Mobile Breakpoint (≤ 480px) */
 @media (max-width: 480px) {
+    .form-panel {
+        padding: 20px 16px 24px;
+    }
+
+    .login-card {
+        padding: 24px 16px 20px;
+        border-radius: 12px;
+    }
+
+    .login-title {
+        font-size: 22px;
+    }
+
+    .main-incoming-body {
+        padding: 10px 10px !important;
+    }
+
+    .inc-top-right {
+        gap: 4px !important;
+    }
+
+    .inc-notif-bell {
+        width: 30px;
+        height: 30px;
+    }
+
+    .inc-notif-bell svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .inc-kpi-grid,
+    .shift-kpi-grid-6 {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+    }
+
     #mon-section-kpi-cards,
     .sla-kpi-grid,
     .exec-kpi-5grid,
-    .exec-bottom-5grid {
+    .exec-bottom-5grid,
+    .profile-stats-row {
         grid-template-columns: 1fr !important;
+    }
+
+    .inc-kpi-card {
+        padding: 10px;
+    }
+
+    .inc-kpi-number {
+        font-size: 18px;
+    }
+
+    .inc-kpi-icon-circle {
+        width: 36px;
+        height: 36px;
+    }
+
+    .inc-kpi-icon-circle svg {
+        width: 16px;
+        height: 16px;
     }
 
     .inc-action-row {
@@ -10551,5 +10220,86 @@ button:active:not(:disabled),
 
     .sla-tab-btn {
         flex: 1 1 100% !important;
+    }
+
+    .p-stat-box {
+        border-right: none;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .profile-hero-main {
+        padding: 0 14px 16px;
+    }
+
+    .jnt-toast-item {
+        min-width: 260px;
+        font-size: 11.5px;
+    }
+
+    .inc-pagination {
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: center;
+    }
+}
+
+/* 11. Minimum Mobile Breakpoint (≤ 360px) */
+@media (max-width: 360px) {
+    .login-title {
+        font-size: 20px;
+    }
+
+    .form-input {
+        font-size: 13.5px;
+    }
+
+    .btn-login {
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    .inc-main-title {
+        font-size: 14px !important;
+    }
+
+    .inc-kpi-number {
+        font-size: 16px;
+    }
+
+    .main-incoming-body {
+        padding: 8px !important;
+    }
+
+    .sidebar-panel {
+        width: 240px !important;
+        min-width: 240px !important;
+    }
+}
+
+/* 12. Print Media */
+@media print {
+    .sidebar-panel,
+    .inc-top-nav,
+    .inc-action-row,
+    .hamburger-btn,
+    .sidebar-backdrop,
+    .jnt-toast-container,
+    .topbar-user-dropdown,
+    .modal-overlay {
+        display: none !important;
+    }
+
+    .main-incoming-body {
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .inc-table-scroll {
+        overflow: visible !important;
+    }
+
+    .inc-data-table {
+        min-width: unset !important;
+        font-size: 11px;
     }
 }

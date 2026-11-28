@@ -348,8 +348,7 @@
                 </div>
 
                 <!-- FILTER GRID CARD FOR SLA (CARI ARMADA & FILTER IDENTIK MONITORING 4 JAM - COLLAPSIBLE) -->
-                <div class="inc-filter-card collapsible-section-wrapper" id="sla-section-filter-wrapper"
-                    style="background: #FFFFFF; border-radius: 12px; padding: 8px 14px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); margin-bottom: 12px;">
+                <div class="inc-filter-card collapsible-section-wrapper" id="sla-section-filter-wrapper">
                     <div class="collapsible-section-header">
                         <span class="collapsible-section-title">🔍 Filter &amp; Pencarian Armada</span>
                         <button type="button" class="btn-collapse-toggle" id="btn-toggle-sla-filter"
@@ -358,28 +357,20 @@
                         </button>
                     </div>
                     <div class="collapsible-section-body">
-                        <div class="filter-inputs-grid"
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; align-items: flex-end;">
+                        <div class="filter-inputs-grid">
                             <div class="filter-group">
-                                <label for="filter-sla-date"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Tanggal</label>
-                                <input type="date" id="filter-sla-date" onchange="renderFilteredSLATables()"
-                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <label for="filter-sla-date">Tanggal</label>
+                                <input type="date" id="filter-sla-date" onchange="renderFilteredSLATables()">
                             </div>
                             <div class="filter-group">
-                                <label for="filter-sla-rute"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Rute</label>
-                                <select id="filter-sla-rute" onchange="renderFilteredSLATables()"
-                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <label for="filter-sla-rute">Rute</label>
+                                <select id="filter-sla-rute" onchange="renderFilteredSLATables()">
                                     <option value="">Semua Rute</option>
                                 </select>
                             </div>
                             <div class="filter-group">
-                                <label for="filter-sla-status"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Status
-                                    SLA</label>
-                                <select id="filter-sla-status" onchange="renderFilteredSLATables()"
-                                    style="font-size: 12px; font-weight: 600; padding: 7px 10px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                <label for="filter-sla-status">Status SLA</label>
+                                <select id="filter-sla-status" onchange="renderFilteredSLATables()">
                                     <option value="">Semua Status</option>
                                     <option value="OUT">OUT (Di Jalan)</option>
                                     <option value="IN">IN (Sudah Sampai)</option>
@@ -387,13 +378,10 @@
                                 </select>
                             </div>
                             <div class="filter-group" style="grid-column: span 2;">
-                                <label for="filter-sla-search"
-                                    style="font-size: 10.5px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block;">Cari
-                                    Kode Tugas / Plat / Driver / Trip</label>
+                                <label for="filter-sla-search">Cari Kode Tugas / Plat / Driver / Trip</label>
                                 <div style="position: relative;">
                                     <input type="text" id="filter-sla-search" oninput="window.onSLASearchInput && window.onSLASearchInput()"
-                                        placeholder="Ketik disini..."
-                                        style="font-size: 12px; padding: 7px 10px 7px 32px; border-radius: 7px; border: 1px solid #CBD5E1; width: 100%;">
+                                        placeholder="Ketik disini..." style="padding-left: 32px;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"
                                         style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;">
                                         <circle cx="11" cy="11" r="8"></circle>
@@ -403,9 +391,7 @@
                             </div>
                             <div class="filter-group">
                                 <button type="button" id="btn-reset-sla-filter" onclick="resetSLAFilters()"
-                                    class="btn-inc-reset"
-                                    style="padding: 7px 14px; border-radius: 7px; font-weight: 700; font-size: 12px; border: 1px solid #CBD5E1; background: #F8FAFC; cursor: pointer; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">🔄
-                                    Reset</button>
+                                    class="btn-inc-reset">🔄 Reset</button>
                             </div>
                         </div>
                     </div>

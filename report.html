@@ -200,32 +200,30 @@
                             </svg>
                         </button>
                         <div>
-                            <h2 class="inc-main-title" style="font-size: 22px;">Report &amp; Export Center</h2>
+                            <h2 class="inc-main-title">Report &amp; Export Center</h2>
                             <span class="inc-breadcrumb"><span style="color: #64748B;">Dashboard</span> / Report,
                                 Analisis &amp; Sinkronisasi Excel</span>
                         </div>
                     </div>
 
-                    <div class="inc-top-right" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="inc-top-right">
                         <div class="rep-clock-badge" id="rep-clock-badge">
                             🕒 <span id="rep-live-time">--:--:-- WIB</span>
                         </div>
                         <button id="btn-open-export-modal" class="btn-inc-add" type="button"
                             onclick="document.getElementById('modal-export-filter').classList.remove('hidden')"
-                            style="background-color: #16A34A; cursor: pointer; padding: 8px 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            style="background-color: #16A34A; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
                             📥 Export Excel
                         </button>
-                        <button id="btn-open-import-tab" class="btn-inc-reset" type="button"
-                            onclick="switchReportTab('upload')"
-                            style="cursor: pointer; padding: 8px 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #E30613; color: #FFFFFF; border: none;">
+                        <button id="btn-open-import-tab" class="btn-inc-add" type="button"
+                            onclick="switchReportTab('upload')">
                             📤 Upload File Excel
                         </button>
                     </div>
                 </header>
 
                 <!-- TAB HEADERS (5 REPORTING & SYNC TABS) -->
-                <div class="report-tab-nav"
-                    style="display: flex; gap: 8px; border-bottom: 2px solid #E2E8F0; margin-bottom: 20px;">
+                <div class="report-tab-nav">
                     <button class="btn-tab-report active" id="tab-btn-sla" type="button"
                         onclick="switchReportTab('sla')">
                         📊 Report SLA Vendor
