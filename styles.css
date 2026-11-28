@@ -9316,6 +9316,126 @@ button:active:not(:disabled),
    Settings, Profile) serta seluruh breakpoint Desktop, Tablet & Mobile.
    ========================================================================== */
 
+/* 0. Unified Design System Typography Tokens (Skala Font Konsisten Seluruh Menu) */
+:root {
+    --fs-page-title: 22px;     /* Judul Utama Halaman (.inc-main-title, .header-main-title) */
+    --fs-section-title: 15px;  /* Judul Card / Tabel (.inc-table-title, .sla-card-title) */
+    --fs-kpi-number: 24px;     /* Angka Utama KPI (.inc-kpi-number, .sla-kpi-number) */
+    --fs-btn-tab: 13px;        /* Tombol Aksi & Tab Navigasi */
+    --fs-nav-sidebar: 12.5px;  /* Menu Navigasi Sidebar (.nav-link) */
+    --fs-body-table: 12.5px;   /* Isi Tabel, Input Filter & Breadcrumb */
+    --fs-table-th: 11px;       /* Header Kolom Tabel & Label KPI Uppercase */
+    --fs-badge-sub: 11px;      /* Badge Status, Sub-label & Role */
+}
+
+/* Standarisasi Tipografi Sidebar & Profil User (Sidebar vs Topbar) */
+.sidebar-nav .nav-link {
+    font-size: var(--fs-nav-sidebar);
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.sidebar-nav .nav-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.profile-name,
+.inc-user-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.profile-role,
+.inc-user-role {
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Standarisasi Tipografi Header Halaman & Breadcrumb */
+.inc-main-title,
+.header-main-title {
+    font-size: var(--fs-page-title);
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: -0.3px;
+    margin: 0;
+}
+
+.inc-breadcrumb,
+.header-subtitle {
+    font-size: var(--fs-body-table);
+    font-weight: 500;
+    color: #64748B;
+    line-height: 1.4;
+}
+
+/* Standarisasi Tipografi Judul Card/Tabel & Isi Tabel */
+.inc-table-title,
+.sla-card-title,
+.detail-title,
+.detail-code,
+.collapsible-section-title {
+    font-size: var(--fs-section-title);
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.inc-data-table,
+.sla-enterprise-table,
+.shift-history-table,
+.audit-table {
+    font-size: var(--fs-body-table);
+}
+
+.inc-data-table th,
+.sla-enterprise-table th,
+.shift-history-table th,
+.audit-table th {
+    font-size: var(--fs-table-th);
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+/* Standarisasi Tipografi KPI Cards (Label, Angka, Unit, Subtext) */
+.inc-kpi-label,
+.sla-kpi-title {
+    font-size: var(--fs-table-th);
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.inc-kpi-number,
+.sla-kpi-number {
+    font-size: var(--fs-kpi-number);
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.inc-kpi-unit {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.inc-kpi-sub,
+.sla-kpi-badge {
+    font-size: var(--fs-badge-sub);
+    font-weight: 600;
+}
+
+/* Standarisasi Tipografi Tab Navigasi (Settings, Master Data, Report, SLA, Shift) */
+.settings-tab-item,
+.btn-tab-report,
+.sla-tab-btn {
+    font-size: var(--fs-btn-tab);
+    font-weight: 700;
+}
+
 /* 1. Standarisasi Tombol Aksi Utama & Sekunder di Seluruh Halaman */
 .btn-inc-add,
 .btn-jnt-red,
@@ -9329,6 +9449,8 @@ button:active:not(:disabled),
     align-items: center;
     justify-content: center;
     gap: 8px;
+    font-size: var(--fs-btn-tab);
+    font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
     vertical-align: middle;
