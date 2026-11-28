@@ -1185,14 +1185,11 @@
                 updateExecutiveDashboard();
             }
 
-            // Inisialisasi awal dari cache lokal & live subscription (100% Real Data tanpa data dummy)
+            // Inisialisasi awal dari cache lokal & live subscription (100% Real Data & Unified 3-Collection Merge)
             if (typeof JNTFirebaseService !== 'undefined') {
                 if (typeof JNTFirebaseService._purgeLegacyDemoData === 'function') {
                     JNTFirebaseService._purgeLegacyDemoData();
                 }
-                mergeAndEmit(JNTFirebaseService.getLocalStore('incoming') || []);
-                mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
-
                 if (typeof JNTFirebaseService.subscribeSLAOutbound === 'function') {
                     JNTFirebaseService.subscribeSLAOutbound(function (slaList) {
                         if (Array.isArray(slaList)) {
@@ -1200,20 +1197,10 @@
                             mergeAndEmit(slaList);
                         }
                     });
+                } else {
+                    mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
                 }
             }
-
-            window.addEventListener('jnt_data_updated', function () {
-                if (typeof JNTFirebaseService !== 'undefined') {
-                    _rawSlaMap.clear();
-                    mergeAndEmit(JNTFirebaseService.getLocalStore('sla_outbound') || []);
-                    mergeAndEmit(JNTFirebaseService.getLocalStore('incoming') || []);
-                    const monList = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
-                    const outboundOnly = monList.filter(t => t.tripType !== 'RETURN' && !t.isBalikan);
-                    mergeAndEmit(outboundOnly);
-                }
-                updateExecutiveDashboard();
-            });
 
             // Update Jam real-time
             const clockEl = document.getElementById('sh-top-clock-text');
