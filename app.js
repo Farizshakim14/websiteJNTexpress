@@ -246,29 +246,48 @@ document.addEventListener('DOMContentLoaded', () => {
                     jntSafeRedirect('index.html');
                     return;
                 }
-                // Verifikasi status akun aktif di Firestore (di-throttle maksimal 1x setiap 10 menit untuk menghemat kuota Read Firestore)
+                // Verifikasi status akun aktif & integritas role/vendor di Firestore (mencegah manipulasi sessionStorage via Console)
                 try {
-                    const lastCheckTs = Number(sessionStorage.getItem('_jnt_prof_check_ts') || '0');
-                    if (Date.now() - lastCheckTs > 600000) {
-                        sessionStorage.setItem('_jnt_prof_check_ts', String(Date.now()));
-                        let prof = null;
-                        if (window.db) {
-                            const profSnap = await window.db.collection('users').doc(firebaseUser.uid).get();
-                            if (profSnap.exists) prof = profSnap.data();
-                            if (!prof) {
-                                const uLogin = sessionStorage.getItem('jnt_username_login');
-                                if (uLogin) {
-                                    const uSnap = await window.db.collection('users').where('username', '==', uLogin.toLowerCase().trim()).limit(1).get();
+                    let prof = null;
+                    if (window.db) {
+                        const profSnap = await window.db.collection('users').doc(firebaseUser.uid).get();
+                        if (profSnap.exists) prof = profSnap.data();
+                        if (!prof) {
+                            const uLogin = sessionStorage.getItem('jnt_username_login');
+                            if (uLogin) {
+                                const cleanULogin = uLogin.toLowerCase().trim();
+                                const uDoc = await window.db.collection('users').doc(cleanULogin).get();
+                                if (uDoc.exists) {
+                                    prof = uDoc.data();
+                                } else {
+                                    const uSnap = await window.db.collection('users').where('username', '==', cleanULogin).limit(1).get();
                                     if (!uSnap.empty) prof = uSnap.docs[0].data();
+                                }
+                                // Migrasi otomatis profil legacy ke /users/{uid} agar Firestore Security Rules mengenali UID pengguna
+                                if (prof) {
+                                    try {
+                                        await window.db.collection('users').doc(firebaseUser.uid).set({
+                                            ...prof,
+                                            uid: firebaseUser.uid,
+                                            id: firebaseUser.uid,
+                                            username: cleanULogin
+                                        }, { merge: true });
+                                    } catch (_) { }
                                 }
                             }
                         }
-                        if (prof && String(prof.status || '').toLowerCase() === 'nonaktif') {
+                    }
+                    if (prof) {
+                        if (String(prof.status || '').toLowerCase() === 'nonaktif' || String(prof.status || '').toLowerCase() === 'inactive') {
                             alert('⚠️ Akun Anda telah dinonaktifkan oleh Administrator.');
                             try { if (typeof jntReleaseSessionLock === 'function') await jntReleaseSessionLock(); } catch (_) { }
                             if (window.auth) await window.auth.signOut();
                             sessionStorage.clear();
                             jntSafeRedirect('index.html');
+                            return;
+                        }
+                        if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.setVerifiedAuthProfile === 'function') {
+                            JNTFirebaseService.setVerifiedAuthProfile({ ...prof, uid: firebaseUser.uid });
                         }
                     }
                 } catch (_) { }
@@ -867,8 +886,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         profile.role = JNTFirebaseService.normalizeRole(profile.role);
                     }
 
-                    // Validasi Single-Session Lock (1 akun hanya boleh 1 device aktif)
+                    // Sinkronkan dokumen /users/{uid} agar Firestore Security Rules selalu memiliki mapping UID resmi
                     const targetUname = String(profile.username || lookupUname).toLowerCase().trim();
+                    if (window.db && authResult.user && authResult.user.uid) {
+                        try {
+                            await window.db.collection('users').doc(authResult.user.uid).set({
+                                ...profile,
+                                uid: authResult.user.uid,
+                                id: authResult.user.uid,
+                                username: targetUname
+                            }, { merge: true });
+                        } catch (_) { }
+                    }
+                    if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.setVerifiedAuthProfile === 'function') {
+                        JNTFirebaseService.setVerifiedAuthProfile({
+                            ...profile,
+                            uid: authResult.user?.uid || profile.uid || '',
+                            username: targetUname
+                        });
+                    }
+
+                    // Validasi Single-Session Lock (1 akun hanya boleh 1 device aktif)
                     let lockRes = { ok: true };
                     try {
                         lockRes = await jntAcquireSessionLock(targetUname);

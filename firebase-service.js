@@ -193,42 +193,184 @@ const JNTFirebaseService = {
     },
 
     // ----------------------------------------------------
-    // 🏢 VENDOR DATA ISOLATION ENGINE (Khusus Role VENDOR)
-    // Memastikan akun ber-role VENDOR hanya dapat melihat armada, ritase, SLA, kendala,
-    // dan laporan milik perusahaan vendornya sendiri (tidak dapat melihat vendor pesaing).
+    // 🏢 VENDOR DATA ISOLATION & ANTI-PRIVILEGE-ESCALATION ENGINE
+    // Memastikan role dan identitas vendor selalu mengacu pada profil
+    // terverifikasi dari Firebase Auth / Firestore (_verifiedAuthProfile)
+    // dan tidak dapat dimanipulasi melalui DevTools Console (sessionStorage/localStorage).
     // ----------------------------------------------------
-    getActiveVendorScope() {
-        if (typeof sessionStorage === 'undefined') return null;
-        const rawRole = sessionStorage.getItem('jnt_user_role') || '';
-        const normRole = this.normalizeRole ? this.normalizeRole(rawRole) : String(rawRole).toUpperCase();
-        if (normRole !== 'VENDOR') return null;
+    _verifiedAuthProfile: null,
 
-        let rawVendor = sessionStorage.getItem('jnt_user_vendor') || '';
-        if (!rawVendor) {
-            const loginUname = (sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
-            const fullName = (sessionStorage.getItem('jnt_active_username') || '').trim();
-            const tlc = (sessionStorage.getItem('jnt_user_tlc') || '').trim();
+    setVerifiedAuthProfile(profile) {
+        if (!profile || typeof profile !== 'object') {
+            this._verifiedAuthProfile = null;
+            return;
+        }
+        const normRole = this.normalizeRole ? this.normalizeRole(profile.role) : String(profile.role || 'STAFF_VEHICLE_DISPATCH').toUpperCase();
+        const rawVendor = profile.vendorName || profile.vendorShort || profile.vendor || '';
+        const normVendorName = (normRole === 'VENDOR' && rawVendor)
+            ? (this.normalizeVendorName ? this.normalizeVendorName(rawVendor) : rawVendor)
+            : '';
+        const normVendorShort = (normRole === 'VENDOR' && normVendorName)
+            ? (this.formatVendorShort ? this.formatVendorShort(normVendorName) : rawVendor.toUpperCase())
+            : '';
 
-            // 1. Cek dari cache koleksi users
-            const usersList = (this._cachedSubData && this._cachedSubData['users']) || [];
-            const foundUser = usersList.find(u => u && String(u.username || u.id || '').toLowerCase().trim() === loginUname);
-            if (foundUser && (foundUser.vendorName || foundUser.vendorShort || foundUser.vendor)) {
-                rawVendor = foundUser.vendorName || foundUser.vendorShort || foundUser.vendor;
+        this._verifiedAuthProfile = Object.freeze({
+            uid: String(profile.uid || profile.id || '').trim(),
+            username: String(profile.username || '').toLowerCase().trim(),
+            fullname: String(profile.fullname || profile.username || '').trim(),
+            role: normRole,
+            vendorName: normVendorName,
+            vendorShort: normVendorShort,
+            status: String(profile.status || 'Aktif').trim()
+        });
+
+        // Pulihkan sessionStorage jika sempat diubah dari console
+        this.enforceVerifiedSessionIntegrity();
+    },
+
+    enforceVerifiedSessionIntegrity() {
+        if (!this._verifiedAuthProfile || typeof sessionStorage === 'undefined') return this._verifiedAuthProfile;
+        const v = this._verifiedAuthProfile;
+        if (sessionStorage.getItem('jnt_user_role') !== v.role) {
+            console.warn(`[SECURITY] Manipulasi role terdeteksi di sessionStorage! Mengembalikan ke role resmi: ${v.role}`);
+            try { sessionStorage.setItem('jnt_user_role', v.role); } catch (_) { }
+        }
+        if (v.role === 'VENDOR') {
+            const currentVendor = sessionStorage.getItem('jnt_user_vendor') || '';
+            const currentShort = this.formatVendorShort ? this.formatVendorShort(currentVendor) : currentVendor;
+            if (currentShort.toUpperCase() !== v.vendorShort.toUpperCase()) {
+                console.warn(`[SECURITY] Manipulasi identitas vendor terdeteksi di sessionStorage! Mengembalikan ke vendor resmi: ${v.vendorName}`);
+                try { sessionStorage.setItem('jnt_user_vendor', v.vendorName); } catch (_) { }
+            }
+        }
+        return v;
+    },
+
+    getVerifiedRole() {
+        if (this._verifiedAuthProfile && this._verifiedAuthProfile.role) {
+            this.enforceVerifiedSessionIntegrity();
+            return this._verifiedAuthProfile.role;
+        }
+        const rawRole = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_user_role') : '') || '';
+        return this.normalizeRole ? this.normalizeRole(rawRole) : String(rawRole).toUpperCase();
+    },
+
+    assertWritePermission(colName, action = 'write', payload = null, existingDoc = null) {
+        const role = this.getVerifiedRole();
+        const isMasterCol = String(colName || '').startsWith('master_');
+        const isOperationalCol = ['incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h', 'troubles', 'shifts'].includes(colName);
+
+        // 1. FINANCE: Strictly Read-Only across all operational, master, and user collections
+        if (role === 'FINANCE' && (isOperationalCol || isMasterCol || colName === 'users')) {
+            throw new Error(`Akses Ditolak (RBAC): Role FINANCE hanya memiliki akses Baca & Export (Read-Only), tidak diizinkan melakukan ${action} pada [${colName}].`);
+        }
+
+        // Hierarchical User Management Guard (selaras dengan firestore.rules isTargetRoleManageable)
+        if (colName === 'users') {
+            const targetRoleRaw = (payload && payload.role) || (existingDoc && existingDoc.role) || '';
+            const targetRole = targetRoleRaw ? this.normalizeRole(targetRoleRaw) : '';
+            const actorUid = (this._verifiedAuthProfile && this._verifiedAuthProfile.uid) || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_user_uid') : '') || '';
+            const actorUname = (this._verifiedAuthProfile && this._verifiedAuthProfile.username) || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_username_login') : '') || '';
+            const targetUid = (payload && (payload.uid || payload.id)) || (existingDoc && (existingDoc.uid || existingDoc.id)) || '';
+            const targetUname = String((payload && payload.username) || (existingDoc && existingDoc.username) || '').toLowerCase().trim();
+            const isSelfProfileUpdate = action === 'write'
+                && ((actorUid && targetUid && actorUid === targetUid) || (actorUname && targetUname && actorUname === targetUname));
+
+            if (isSelfProfileUpdate) {
+                if (existingDoc && existingDoc.role && targetRole && this.normalizeRole(existingDoc.role) !== targetRole) {
+                    throw new Error(`Akses Ditolak (Anti-Escalation): Pengguna tidak diizinkan mengubah role akunnya sendiri (${existingDoc.role} ➔ ${targetRole}).`);
+                }
+                if (role === 'VENDOR' && existingDoc && payload && payload.vendorName && existingDoc.vendorName && payload.vendorName !== existingDoc.vendorName) {
+                    throw new Error(`Akses Ditolak (Anti-Escalation): Pengguna VENDOR tidak diizinkan mengganti identitas perusahaan vendornya sendiri.`);
+                }
+                return true;
             }
 
-            // 2. Deteksi cerdas dari nama lengkap, username, atau gateway penugasan jika mengandung kode vendor resmi
-            if (!rawVendor) {
-                const combinedText = `${fullName} ${loginUname} ${tlc}`.toUpperCase();
-                const knownCodes = ['SERYU', 'APL', 'KLS', 'JTS', 'CHIJUN', 'PAL', 'SOLUSI', 'REYA', 'SDE', 'MTI', 'LNP', 'FASTRANS', 'ANUGERAH', 'AB'];
-                for (const code of knownCodes) {
-                    const regex = new RegExp(`(^|[^A-Z0-9])${code}([^A-Z0-9]|$)`, 'i');
-                    if (regex.test(combinedText) || (code.length >= 4 && combinedText.includes(code))) {
-                        rawVendor = code;
-                        break;
-                    }
+            if (['STAFF_VEHICLE_DISPATCH', 'FINANCE', 'VENDOR'].includes(role)) {
+                throw new Error(`Akses Ditolak (RBAC): Role ${role} tidak memiliki hak mengakses Manajemen User.`);
+            }
+            if ((role === 'OWNER' || role === 'ADMIN') && targetRole === 'DEVELOPER') {
+                throw new Error(`Akses Ditolak (RBAC): Role ${role} tidak dapat membuat, memodifikasi, atau menghapus akun ber-role DEVELOPER.`);
+            }
+            if ((role === 'MANAGER' || role === 'ASISTEN_MANAGER') && targetRole && !['SUPERVISOR', 'STAFF_VEHICLE_DISPATCH', 'FINANCE', 'VENDOR'].includes(targetRole)) {
+                throw new Error(`Akses Ditolak (RBAC): Role ${role} hanya dapat mengelola akun level SUPERVISOR, STAFF_VEHICLE_DISPATCH, FINANCE, atau VENDOR (tidak dapat mengelola ${targetRole}).`);
+            }
+            if (role === 'SUPERVISOR' && targetRole && !['STAFF_VEHICLE_DISPATCH', 'VENDOR'].includes(targetRole)) {
+                throw new Error(`Akses Ditolak (RBAC): Role SUPERVISOR hanya dapat mengelola akun level STAFF_VEHICLE_DISPATCH atau VENDOR (tidak dapat mengelola ${targetRole}).`);
+            }
+        }
+
+        // 2. STAFF_VEHICLE_DISPATCH: No delete on operational, no write on master data or users
+        if (role === 'STAFF_VEHICLE_DISPATCH') {
+            if (action === 'delete' && (isOperationalCol || isMasterCol || colName === 'users')) {
+                throw new Error(`Akses Ditolak (RBAC): Role STAFF_VEHICLE_DISPATCH tidak memiliki hak menghapus data pada [${colName}].`);
+            }
+            if (isMasterCol || colName === 'users') {
+                throw new Error(`Akses Ditolak (RBAC): Role STAFF_VEHICLE_DISPATCH tidak memiliki akses mengubah [${colName}].`);
+            }
+        }
+
+        // 3. VENDOR: Strict ownership & collection restrictions
+        if (role === 'VENDOR') {
+            if (action === 'delete') {
+                throw new Error(`Akses Ditolak (RBAC): Role VENDOR tidak diizinkan menghapus data operasional.`);
+            }
+            if (isMasterCol || colName === 'users' || colName === 'shifts' || colName === 'incoming' || colName === 'sla_outbound' || colName === 'sla_return' || colName === 'sla_roundtrip') {
+                throw new Error(`Akses Ditolak (RBAC): Role VENDOR tidak diizinkan mengubah koleksi [${colName}].`);
+            }
+            const scope = this.getActiveVendorScope();
+            if (!scope) {
+                throw new Error(`Akses Ditolak (RBAC): Identitas vendor tidak terverifikasi.`);
+            }
+            if (colName === 'monitoring_4h' || colName === 'troubles') {
+                const targetDoc = existingDoc || payload;
+                if (targetDoc && !this.isItemMatchingVendorScope(targetDoc, scope)) {
+                    throw new Error(`Akses Ditolak (Ownership): Role VENDOR (${scope.shortCode}) tidak diizinkan mengakses/mengubah data milik vendor lain.`);
+                }
+                if (payload && payload.vendor && !this.isItemMatchingVendorScope(payload, scope)) {
+                    throw new Error(`Akses Ditolak (Ownership): Role VENDOR (${scope.shortCode}) tidak dapat membuat/mengubah data atas nama vendor lain (${payload.vendor}).`);
                 }
             }
+        }
+        return true;
+    },
 
+    getActiveVendorScope() {
+        const normRole = this.getVerifiedRole();
+        if (normRole !== 'VENDOR') return null;
+
+        // Prioritas 1: Gunakan identitas vendor yang sudah terverifikasi dari profil Firestore (_verifiedAuthProfile)
+        if (this._verifiedAuthProfile && this._verifiedAuthProfile.role === 'VENDOR' && this._verifiedAuthProfile.vendorName) {
+            return {
+                raw: this._verifiedAuthProfile.vendorName,
+                fullName: this._verifiedAuthProfile.vendorName,
+                shortCode: this._verifiedAuthProfile.vendorShort.toUpperCase()
+            };
+        }
+
+        if (typeof sessionStorage === 'undefined') return null;
+        let rawVendor = sessionStorage.getItem('jnt_user_vendor') || '';
+        const loginUname = (sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
+
+        // Cek dari cache koleksi users terlebih dahulu agar tidak mudah dimanipulasi via sessionStorage
+        const usersList = (this._cachedSubData && this._cachedSubData['users']) || [];
+        const foundUser = usersList.find(u => u && String(u.username || u.id || '').toLowerCase().trim() === loginUname);
+        if (foundUser && (foundUser.vendorName || foundUser.vendorShort || foundUser.vendor)) {
+            rawVendor = foundUser.vendorName || foundUser.vendorShort || foundUser.vendor;
+        }
+
+        if (!rawVendor) {
+            const fullName = (sessionStorage.getItem('jnt_active_username') || '').trim();
+            const tlc = (sessionStorage.getItem('jnt_user_tlc') || '').trim();
+            const combinedText = `${fullName} ${loginUname} ${tlc}`.toUpperCase();
+            const knownCodes = ['SERYU', 'APL', 'KLS', 'JTS', 'CHIJUN', 'PAL', 'SOLUSI', 'REYA', 'SDE', 'MTI', 'LNP', 'FASTRANS', 'ANUGERAH', 'AB'];
+            for (const code of knownCodes) {
+                const regex = new RegExp(`(^|[^A-Z0-9])${code}([^A-Z0-9]|$)`, 'i');
+                if (regex.test(combinedText) || (code.length >= 4 && combinedText.includes(code))) {
+                    rawVendor = code;
+                    break;
+                }
+            }
             if (rawVendor) {
                 try { sessionStorage.setItem('jnt_user_vendor', rawVendor); } catch (_) { }
             }
@@ -688,6 +830,11 @@ const JNTFirebaseService = {
         const MAX_OPS_PER_BATCH = 450; // Batas resmi Firestore adalah 500 operasi per WriteBatch
         let totalCommitted = 0;
 
+        for (const op of operations) {
+            if (!op || !op.colName || !op.docId) continue;
+            this.assertWritePermission(op.colName, op.type === 'delete' ? 'delete' : 'write', op.data || null);
+        }
+
         for (let i = 0; i < operations.length; i += MAX_OPS_PER_BATCH) {
             const chunk = operations.slice(i, i + MAX_OPS_PER_BATCH);
             const batch = window.db.batch();
@@ -756,6 +903,10 @@ const JNTFirebaseService = {
     async saveDoc(colName, docId, data, merge = false) {
         console.log(`[FIREBASE-ONLY] START WRITE [${colName}/${docId}]`, data);
 
+        // Validasi RBAC & Ownership sebelum menulis ke Firestore
+        const existingLocal = ((this._cachedSubData && this._cachedSubData[colName]) || []).find(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId)) || null;
+        this.assertWritePermission(colName, 'write', data, existingLocal);
+
         // ⚡ FIREBASE-ONLY: Cek koneksi internet sebelum menulis
         if (!navigator.onLine) {
             const errMsg = 'Tidak ada koneksi internet. Data tidak dapat disimpan. Hubungkan ke internet dan coba lagi.';
@@ -791,7 +942,19 @@ const JNTFirebaseService = {
         const currentList = this.getLocalStore(colName) || [];
         const idx = currentList.findIndex(i => (i.id === docId || i.kodeTugas === docId || i._docId === docId));
         if (idx >= 0) {
-            currentList[idx] = merge ? { ...currentList[idx], ...updatedObj } : updatedObj;
+            if (merge) {
+                const prevItem = currentList[idx] || {};
+                const mergedSlots = (prevItem.slots || updatedObj.slots)
+                    ? { ...(prevItem.slots || {}), ...(updatedObj.slots || {}) }
+                    : undefined;
+                currentList[idx] = {
+                    ...prevItem,
+                    ...updatedObj,
+                    ...(mergedSlots ? { slots: mergedSlots } : {})
+                };
+            } else {
+                currentList[idx] = updatedObj;
+            }
         } else {
             currentList.unshift(updatedObj);
         }
@@ -803,6 +966,9 @@ const JNTFirebaseService = {
 
     async deleteDoc(colName, docId) {
         console.log(`[FIREBASE] START DELETE [${colName}/${docId}]`);
+
+        // Validasi RBAC sebelum menghapus dari Firestore
+        this.assertWritePermission(colName, 'delete', null, null);
 
         if (!navigator.onLine) {
             const errMsg = 'Tidak ada koneksi internet. Data tidak dapat dihapus. Hubungkan ke internet dan coba lagi.';
@@ -3884,6 +4050,7 @@ const JNTFirebaseService = {
         let successCount = 0;
         let errorCount = 0;
         const errors = [];
+        const failedRows = [];
         const completedArchiveBundles = [];
 
         const existingIncMap = new Map((this.getLocalStore('incoming') || []).map(i => [i.kodeTugas || i.id, i]));
@@ -3896,6 +4063,7 @@ const JNTFirebaseService = {
             const chunkRows = rows.slice(start, start + TRIPS_PER_BATCH);
             const batchOps = [];
             const chunkArchiveBundles = [];
+            const chunkValidRows = [];
             let validTripsInChunk = 0;
 
             for (let idx = 0; idx < chunkRows.length; idx++) {
@@ -4094,6 +4262,7 @@ const JNTFirebaseService = {
                         { type: 'set', colName: 'sla_outbound', docId: kode, data: slaDoc, merge: true },
                         { type: 'set', colName: 'monitoring_4h', docId: kode, data: monDoc, merge: true }
                     );
+                    chunkValidRows.push(row);
                     validTripsInChunk++;
 
                     if (hasArrival) {
@@ -4107,6 +4276,7 @@ const JNTFirebaseService = {
                 } catch (rowErr) {
                     errorCount++;
                     errors.push(rowErr.message || String(rowErr));
+                    failedRows.push(row);
                 }
             }
 
@@ -4120,6 +4290,7 @@ const JNTFirebaseService = {
                 } catch (batchErr) {
                     errorCount += validTripsInChunk;
                     errors.push(`Gagal menulis Batch ${Math.floor(start / TRIPS_PER_BATCH) + 1} ke Firestore: ${batchErr.message}`);
+                    failedRows.push(...chunkValidRows);
                 }
             }
 
@@ -4137,7 +4308,7 @@ const JNTFirebaseService = {
             this.saveTripsBatchToHostingArchive(completedArchiveBundles, false).catch(() => { });
         }
 
-        return { successCount, errorCount, errors };
+        return { successCount, errorCount, errors, failedRows };
     },
 
     // ----------------------------------------------------
@@ -5076,6 +5247,37 @@ const JNTFirebaseService = {
 
         existing.slots[slotKey] = newSlotData;
 
+        // ⚡ CONCURRENCY CONTROL (ATOMIC SLOT MERGE):
+        // Ambil kembali snapshot dokumen terbaru tepat sebelum menyimpan dan gabungkan HANYA slot yang terisi (non-null)
+        // agar dua operator yang meng-update slot berbeda (mis. Slot 08:00 & Slot 12:00) pada saat bersamaan
+        // tidak saling menimpa slot operator lain dengan nilai null!
+        if (window.db) {
+            try {
+                const latestSnap = await window.db.collection('monitoring_4h').doc(kodeTugas).get();
+                if (latestSnap.exists) {
+                    const latestData = latestSnap.data() || {};
+                    const latestSlots = latestData.slots || {};
+                    const mergedNonNullSlots = { ...existing.slots };
+                    Object.keys(latestSlots).forEach(k => {
+                        if (k !== slotKey && latestSlots[k] && typeof latestSlots[k] === 'object' && latestSlots[k].lokasi) {
+                            mergedNonNullSlots[k] = latestSlots[k];
+                        }
+                    });
+                    mergedNonNullSlots[slotKey] = newSlotData;
+                    existing.slots = mergedNonNullSlots;
+                }
+            } catch (_) { }
+        }
+
+        // Bersihkan key bernilai null pada payload slots yang tidak disentuh agar merge Firestore tidak menimpa slot paralel
+        const cleanSlotsPayload = {};
+        Object.keys(existing.slots || {}).forEach(k => {
+            if (existing.slots[k] && typeof existing.slots[k] === 'object') {
+                cleanSlotsPayload[k] = existing.slots[k];
+            }
+        });
+        cleanSlotsPayload[slotKey] = newSlotData;
+
         const updateObj = {
             ...existing,
             kodeTugas: kodeTugas,
@@ -5087,15 +5289,20 @@ const JNTFirebaseService = {
             namaVendor: existing.namaVendor || incData.namaVendor || incData.vendor || "",
             tlc: existing.tlc || incData.tlc || "",
             jamBerangkat: existing.jamBerangkat || incData.jamBerangkat || "",
-            slots: existing.slots,
+            slots: cleanSlotsPayload,
             lastUpdateSlot: slotKey,
             lastUpdateLokasi: lokasi,
             lastUpdateTime: newSlotData.jamUpdateAktual,
-            lastUpdateBy: inputBy,
+            lastUpdateBy: actualInputBy,
             statusPerjalanan: statusPerjalanan
         };
 
         const result = await this.saveDoc('monitoring_4h', kodeTugas, updateObj, true);
+
+        // Jika diupdate oleh VENDOR, vendor hanya memiliki akses update ke monitoring_4h (tidak boleh menulis ke incoming/sla_outbound)
+        if (this.getVerifiedRole() === 'VENDOR') {
+            return result;
+        }
 
         // Auto-sync status to Incoming, SLA Outbound, and SLA Return
         if (statusPerjalanan === 'COMPLETED' || statusPerjalanan === 'SUDAH SELESAI') {
@@ -5380,9 +5587,14 @@ const JNTFirebaseService = {
         const resolvedTlc = incidentData.tlc || incMaster.tlc || incMaster.trip || incidentData.rute || "-";
         const resolvedRute = incidentData.rute || incMaster.namaRute || incMaster.rute || incMaster.trip || "-";
 
+        const deterministicId = incidentData.incidentId
+            || (incidentData.kodeTugas && incidentData.kodeTugas !== '-'
+                ? `INC-${String(incidentData.kodeTugas).trim()}-${String(incidentData.kategoriTrouble || 'TROUBLE').toUpperCase().replace(/[^A-Z0-9]+/g, '_')}`
+                : `INC-${Date.now()}`);
+
         const fullIncident = {
-            incidentId: incidentData.incidentId || `INC-${Date.now()}`,
-            id: incidentData.incidentId || `INC-${Date.now()}`,
+            incidentId: deterministicId,
+            id: deterministicId,
             kodeTugas: incidentData.kodeTugas || "-",
             jenis: incidentData.jenis || "Trouble Armada",
             kategoriTrouble: incidentData.kategoriTrouble || "Kendala Operasional",
@@ -5416,8 +5628,8 @@ const JNTFirebaseService = {
 
         await this.saveDoc('troubles', fullIncident.incidentId, fullIncident, true);
 
-        // Update status armada di Incoming, Monitoring 4H & SLA Outbound menjadi KENDALA jika insiden aktif
-        if (incidentData.kodeTugas && fullIncident.status !== 'SUDAH SELESAI') {
+        // Update status armada di Incoming, Monitoring 4H & SLA Outbound menjadi KENDALA jika insiden aktif (Hanya untuk internal staff; VENDOR tidak menulis ke incoming/sla_outbound)
+        if (incidentData.kodeTugas && fullIncident.status !== 'SUDAH SELESAI' && this.getVerifiedRole() !== 'VENDOR') {
             await this.updateTripStatus(incidentData.kodeTugas, 'KENDALA', { inputBy: fullIncident.dilaporkanOleh });
         }
 
@@ -6341,6 +6553,20 @@ const JNTFirebaseService = {
 
             profile.role = this.normalizeRole(profile.role);
 
+            // Pastikan profil selalu tersinkron ke /users/{user.uid} agar Firestore Security Rules dapat membaca /users/$(request.auth.uid)
+            if (window.db && user && user.uid) {
+                const uidProfile = {
+                    ...profile,
+                    uid: user.uid,
+                    id: user.uid
+                };
+                try {
+                    await window.db.collection('users').doc(user.uid).set(uidProfile, { merge: true });
+                } catch (_) { }
+            }
+
+            this.setVerifiedAuthProfile({ ...profile, uid: user.uid });
+
             await this.logAuditEvent({
                 waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
                 operator: profile.fullname || profile.username,
@@ -6531,18 +6757,27 @@ const JNTFirebaseService = {
     async saveUserProfile(username, profileData) {
         if (!username) throw new Error("Username wajib diisi!");
         const shiftId = this.getActiveShiftId();
-        const docId = profileData.uid || username.toLowerCase().trim();
-        const existing = await this.getDoc('users', docId) || await this.getUserProfileByUsername(username) || {};
-        const updated = await this.saveDoc('users', docId, {
+        const cleanUname = String(profileData.username || username).toLowerCase().trim();
+        const docId = profileData.uid || cleanUname;
+        const existing = await this.getDoc('users', docId) || await this.getUserProfileByUsername(cleanUname) || {};
+        const mergedProfile = {
             ...existing,
             ...profileData,
             id: docId,
-            username: profileData.username || existing.username || username,
+            uid: profileData.uid || existing.uid || docId,
+            username: cleanUname,
             role: this.normalizeRole(profileData.role || existing.role),
             updatedAt: new Date().toISOString()
-        }, true);
+        };
+        const updated = await this.saveDoc('users', docId, mergedProfile, true);
+        // Sinkronkan juga antara docId = username dan docId = uid agar Firestore Rules (/users/$(request.auth.uid)) selalu konsisten
+        if (mergedProfile.uid && mergedProfile.uid !== cleanUname) {
+            try { await this.saveDoc('users', cleanUname, { ...mergedProfile, id: cleanUname }, true); } catch (_) { }
+            if (docId !== mergedProfile.uid) {
+                try { await this.saveDoc('users', mergedProfile.uid, { ...mergedProfile, id: mergedProfile.uid }, true); } catch (_) { }
+            }
+        }
 
-        const cleanUname = String(updated.username || username).toLowerCase().trim();
         const emailVal = String(updated.email || updated.emailPerusahaan || '').toLowerCase().trim();
         if (window.db && cleanUname && emailVal && emailVal.includes('@')) {
             try {
@@ -6716,8 +6951,7 @@ const JNTFirebaseService = {
     },
 
     async restoreDatabaseFromJSON(jsonObj) {
-        const activeRole = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('jnt_user_role') : '') || '';
-        const normRole = this.normalizeRole(activeRole);
+        const normRole = this.getVerifiedRole();
         if (!['DEVELOPER', 'OWNER', 'ADMIN'].includes(normRole)) {
             throw new Error("Akses Ditolak: Hanya Developer, Owner, atau Administrator resmi yang dapat melakukan restore database!");
         }
@@ -6732,6 +6966,7 @@ const JNTFirebaseService = {
         }
 
         const validCollections = ['incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h', 'troubles', 'shifts', 'master_trips', 'master_fleets', 'master_vendors', 'master_drivers', 'master_reasons', 'users', 'audit_logs'];
+        const tripCols = new Set(['incoming', 'sla_outbound', 'sla_return', 'sla_roundtrip', 'monitoring_4h']);
         const sanitizePlainObj = (obj) => {
             const out = {};
             for (const k of Object.keys(obj || {})) {
@@ -6742,12 +6977,12 @@ const JNTFirebaseService = {
         };
 
         let restoredCount = 0;
+        const batchOps = [];
         for (const colName of Object.keys(jsonObj.collections)) {
             if (!validCollections.includes(colName)) continue;
             const docsList = jsonObj.collections[colName];
             if (!Array.isArray(docsList)) continue;
 
-            const localItems = [];
             for (const item of docsList) {
                 if (!item || typeof item !== 'object') continue;
                 const rawId = item._docId || item.id || item.kodeTugas || item.shiftId || item.incidentId;
@@ -6755,18 +6990,23 @@ const JNTFirebaseService = {
                 const cleanItem = sanitizePlainObj(item);
                 if (docId) {
                     cleanItem.id = docId;
-                    localItems.push(cleanItem);
-                    if (window.db) {
-                        try {
-                            await window.db.collection(colName).doc(docId).set(cleanItem, { merge: true });
-                        } catch (e) {
-                            console.warn(`Restore Firestore warning for ${colName}/${docId}:`, e.message);
-                        }
+                    if (tripCols.has(colName)) {
+                        this._unmarkTripAsDeleted(docId);
                     }
+                    batchOps.push({
+                        type: 'set',
+                        colName,
+                        docId,
+                        data: cleanItem,
+                        merge: true
+                    });
                     restoredCount++;
                 }
             }
-            this.saveLocalStore(colName, localItems);
+        }
+
+        if (batchOps.length > 0) {
+            await this.commitAtomicBatch(batchOps, 30000);
         }
 
         this.notifyDataMutated({ action: 'restore', colName: 'all' });

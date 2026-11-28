@@ -1763,6 +1763,11 @@
                     successCount = batchResult.successCount;
                     errorCount = batchResult.errorCount;
                     errorDetails = batchResult.errors || [];
+                    if (Array.isArray(batchResult.failedRows) && batchResult.failedRows.length > 0) {
+                        // Simpan hanya baris/batch yang gagal di _parsedExcelRows agar jika tombol diklik ulang (Retry),
+                        // sistem HANYA mengirim ulang batch yang gagal tanpa menduplikasi batch yang sudah berhasil!
+                        _parsedExcelRows = batchResult.failedRows;
+                    }
                 } else {
                     for (let i = 0; i < total; i++) {
                         const row = _parsedExcelRows[i];

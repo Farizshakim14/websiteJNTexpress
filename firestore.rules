@@ -1,144 +1,344 @@
 rules_version = '2';
+
+// =========================================================================
+// J&T EXPRESS — TRANSPORTATION MONITORING SYSTEM (TMS) v5
+// ENTERPRISE FIRESTORE SECURITY RULES (9-ROLE RBAC & VENDOR OWNERSHIP)
+// =========================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ── 1. HELPER FUNCTIONS: AUTHENTICATION & VERIFIED PROFILE ──────────
     function isSignedIn() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 
-    function userDocPath() {
-      return /databases/$(database)/documents/users/$(request.auth.uid);
+    function hasUidProfile() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
-    // ⚡ KUOTA OPTIMIZATION: Tidak memanggil exists() + get() berlapis pada setiap pembacaan dokumen
-    // karena setiap panggilan exists()/get() di Firestore Rules ditagih sebagai 1 Document Read tambahan!
-    function isOfficialUser() {
-      return isSignedIn();
+    function userProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isAdminOrSupervisor() {
-      return isOfficialUser()
-        && get(userDocPath()).data.role in [
-          'DEVELOPER', 'Developer', 'developer', 'DEV',
-          'OWNER', 'Owner', 'owner',
-          'ADMIN', 'Admin', 'admin', 'Administrator',
-          'MANAGER', 'Manager', 'manager',
-          'ASISTEN_MANAGER', 'Asisten Manager', 'asisten_manager', 'ASMEN',
-          'SUPERVISOR', 'Supervisor', 'supervisor', 'SPV'
-        ];
+    function isAccountActive() {
+      return hasUidProfile()
+        && (!('status' in userProfile())
+            || (userProfile().status != 'Nonaktif'
+                && userProfile().status != 'NONAKTIF'
+                && userProfile().status != 'nonaktif'
+                && userProfile().status != 'Inactive'
+                && userProfile().status != 'INACTIVE'));
     }
 
-    function isAdminOnly() {
-      return isOfficialUser()
-        && get(userDocPath()).data.role in [
-          'DEVELOPER', 'Developer', 'developer', 'DEV',
-          'OWNER', 'Owner', 'owner',
-          'ADMIN', 'Admin', 'admin', 'Administrator',
-          'MANAGER', 'Manager', 'manager'
-        ];
+    function userRole() {
+      return isAccountActive() && ('role' in userProfile())
+        ? userProfile().role
+        : 'NONE';
     }
 
-    // -------------------------------------------------------------------------
-    // 1. USER MANAGEMENT (/users/{userId}) & PRE-LOGIN ALIAS (/user_lookup/{uname})
-    // -------------------------------------------------------------------------
+    // ── 2. OFFICIAL 9 ROLES DEFINITIONS (J&T TMS RBAC MATRIX) ───────────
+    // 1. DEVELOPER
+    // 2. OWNER
+    // 3. ADMIN
+    // 4. MANAGER
+    // 5. ASISTEN_MANAGER
+    // 6. SUPERVISOR
+    // 7. STAFF_VEHICLE_DISPATCH
+    // 8. FINANCE
+    // 9. VENDOR
+
+    function isDeveloper() {
+      return userRole() == 'DEVELOPER';
+    }
+
+    function isOwner() {
+      return userRole() == 'OWNER';
+    }
+
+    function isAdmin() {
+      return userRole() == 'ADMIN';
+    }
+
+    function isManager() {
+      return userRole() == 'MANAGER';
+    }
+
+    function isAsistenManager() {
+      return userRole() == 'ASISTEN_MANAGER';
+    }
+
+    function isSupervisor() {
+      return userRole() == 'SUPERVISOR';
+    }
+
+    function isStaffDispatch() {
+      return userRole() == 'STAFF_VEHICLE_DISPATCH'
+        || userRole() == 'OPERATOR_SLA'
+        || userRole() == 'OPERATOR_MONITORING';
+    }
+
+    function isFinance() {
+      return userRole() == 'FINANCE';
+    }
+
+    function isVendor() {
+      return userRole() == 'VENDOR';
+    }
+
+    // ── 3. ROLE TIER GROUPINGS PER OFFICIAL ACCESS MATRIX ───────────────
+    // Top Executive / Super-Admin Tier (Full Control + Backup/Restore + Top-Tier User Management)
+    function isTopTierAdmin() {
+      return isDeveloper() || isOwner() || isAdmin();
+    }
+
+    // Management & Supervision Tier (Master Data + Operational Full + Lower-Level User Management)
+    function isManagementOrSpv() {
+      return isTopTierAdmin() || isManager() || isAsistenManager() || isSupervisor();
+    }
+
+    // Internal J&T Staff (Can read all internal operational & master data)
+    function isInternalReader() {
+      return isManagementOrSpv() || isStaffDispatch() || isFinance();
+    }
+
+    // Internal Operational Writer (Can create & update operational trips/monitoring/troubles/shifts)
+    function isInternalOperationalWriter() {
+      return isManagementOrSpv() || isStaffDispatch();
+    }
+
+    // Operational Deleter (DEVELOPER, OWNER, ADMIN, MANAGER, ASISTEN_MANAGER, SUPERVISOR)
+    // STAFF_VEHICLE_DISPATCH, FINANCE, and VENDOR are strictly forbidden from deleting operational data
+    function canDeleteOperational() {
+      return isManagementOrSpv();
+    }
+
+    // Master Data Writer (DEVELOPER, OWNER, ADMIN, MANAGER, ASISTEN_MANAGER, SUPERVISOR)
+    function canWriteMasterData() {
+      return isManagementOrSpv();
+    }
+
+    // ── 4. VENDOR OWNERSHIP VALIDATION (SERVER-SIDE ENFORCED) ───────────
+    // Validates document vendor against verified userProfile() in /users/$(request.auth.uid)
+    // Never trusts vendorId sent freely from browser console
+    function userVendorName() {
+      return ('vendorName' in userProfile() && userProfile().vendorName != null)
+        ? userProfile().vendorName
+        : (('vendor' in userProfile() && userProfile().vendor != null) ? userProfile().vendor : '');
+    }
+
+    function userVendorShort() {
+      return ('vendorShort' in userProfile() && userProfile().vendorShort != null)
+        ? userProfile().vendorShort
+        : '';
+    }
+
+    function isOwnVendorDoc(docData) {
+      return isVendor()
+        && docData != null
+        && (
+          (('vendor' in docData) && docData.vendor != null && (
+            (userVendorName() != '' && docData.vendor == userVendorName())
+            || (userVendorShort() != '' && docData.vendor == userVendorShort())
+            || (userVendorShort() != '' && docData.vendor.matches('.*\\(' + userVendorShort() + '\\).*'))
+            || (userVendorShort() != '' && docData.vendor.matches('.*' + userVendorShort() + '.*'))
+          ))
+          || (('namaVendor' in docData) && docData.namaVendor != null && (
+            (userVendorName() != '' && docData.namaVendor == userVendorName())
+            || (userVendorShort() != '' && docData.namaVendor == userVendorShort())
+            || (userVendorShort() != '' && docData.namaVendor.matches('.*' + userVendorShort() + '.*'))
+          ))
+        );
+    }
+
+    // Vendor is only allowed to update fleet position / check-in fields on monitoring_4h
+    // Cannot alter SLA target, jamBerangkat, kodeTugas, or transfer trip to another vendor
+    function isValidVendorMonitoringUpdate() {
+      return isOwnVendorDoc(resource.data)
+        && isOwnVendorDoc(request.resource.data)
+        && request.resource.data.kodeTugas == resource.data.kodeTugas
+        && request.resource.data.vendor == resource.data.vendor
+        && request.resource.data.jamBerangkat == resource.data.jamBerangkat
+        && (!('targetSLAHours' in resource.data) || request.resource.data.targetSLAHours == resource.data.targetSLAHours)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'slots',
+          'lastUpdateSlot',
+          'lastUpdateLokasi',
+          'lastUpdateTime',
+          'lastUpdateBy',
+          'statusPerjalanan',
+          'jamSampaiAktual',
+          'jamSampaiJKT999',
+          'lokasiSampai',
+          'catatanSampai',
+          'catatan',
+          'fotoSampai',
+          'hasFotoSampai',
+          'shiftId',
+          'updatedAt'
+        ]);
+    }
+
+    // Hierarchy check for User Management:
+    // - DEVELOPER, OWNER, ADMIN: Can manage all roles (except ADMIN/OWNER cannot delete DEVELOPER)
+    // - MANAGER, ASISTEN_MANAGER: Can manage SUPERVISOR, STAFF_VEHICLE_DISPATCH, FINANCE, VENDOR
+    // - SUPERVISOR: Can manage STAFF_VEHICLE_DISPATCH, VENDOR
+    function isTargetRoleManageable(targetRole) {
+      return isDeveloper()
+        || ((isOwner() || isAdmin()) && targetRole != 'DEVELOPER')
+        || ((isManager() || isAsistenManager()) && targetRole in ['SUPERVISOR', 'STAFF_VEHICLE_DISPATCH', 'FINANCE', 'VENDOR'])
+        || (isSupervisor() && targetRole in ['STAFF_VEHICLE_DISPATCH', 'VENDOR']);
+    }
+
+    // ── 5. OPERATIONAL COLLECTIONS ──────────────────────────────────────
+
+    // 5A. Incoming Trips SSOT
+    match /incoming/{kodeTugas} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create, update: if isInternalOperationalWriter();
+      allow delete: if canDeleteOperational();
+    }
+
+    // 5B. SLA Outbound
+    match /sla_outbound/{kodeTugas} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create, update: if isInternalOperationalWriter();
+      allow delete: if canDeleteOperational();
+    }
+
+    // 5C. SLA Return (Balikan)
+    match /sla_return/{kodeTugas} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create, update: if isInternalOperationalWriter();
+      allow delete: if canDeleteOperational();
+    }
+
+    // 5D. SLA Roundtrip (PP)
+    match /sla_roundtrip/{kodeTugas} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create, update: if isInternalOperationalWriter();
+      allow delete: if canDeleteOperational();
+    }
+
+    // 5E. Monitoring 4 Jam (Check-in Posisi Armada)
+    // VENDOR allowed to read own vendor trips & update ONLY position check-in fields on own vendor trips
+    match /monitoring_4h/{kodeTugas} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create: if isInternalOperationalWriter();
+      allow update: if isInternalOperationalWriter() || isValidVendorMonitoringUpdate();
+      allow delete: if canDeleteOperational();
+    }
+
+    // 5F. Trouble & Laka Incidents
+    // VENDOR allowed to read own vendor troubles and create trouble reports for own vendor armada
+    match /troubles/{incidentId} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create: if isInternalOperationalWriter() || isOwnVendorDoc(request.resource.data);
+      allow update: if isInternalOperationalWriter();
+      allow delete: if canDeleteOperational();
+    }
+
+    // 5G. Shift Management & Handover
+    match /shifts/{shiftId} {
+      allow read: if isInternalReader();
+      allow create, update: if isInternalOperationalWriter();
+      allow delete: if canDeleteOperational();
+    }
+
+    // ── 6. MASTER DATA COLLECTIONS ──────────────────────────────────────
+    match /master_trips/{tripCode} {
+      allow read: if isInternalReader() || isVendor();
+      allow create, update, delete: if canWriteMasterData();
+    }
+
+    match /master_fleets/{platNomor} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create, update, delete: if canWriteMasterData();
+    }
+
+    match /master_vendors/{vendorId} {
+      allow read: if isInternalReader() || isVendor();
+      allow create, update, delete: if canWriteMasterData();
+    }
+
+    match /master_drivers/{driverId} {
+      allow read: if isInternalReader() || isOwnVendorDoc(resource.data);
+      allow create, update, delete: if canWriteMasterData();
+    }
+
+    match /master_reasons/{reasonId} {
+      allow read: if isInternalReader() || isVendor();
+      allow create, update, delete: if canWriteMasterData();
+    }
+
+    // ── 7. USER MANAGEMENT & AUTHENTICATION COLLECTIONS ─────────────────
+
+    // 7A. Users Collection (/users/{userId})
+    // Supports self-read, safe self-profile update (cannot change own role/status/vendor!),
+    // safe initial UID migration (when user mirrors their existing legacy username doc to their own UID with identical role),
+    // and hierarchical User Management by authorized managers/admins.
     match /users/{userId} {
-      allow read: if isOfficialUser();
-      allow create: if isAdminOnly();
-      allow update: if isAdminOnly() || (
-        isOfficialUser()
-        && (request.auth.uid == userId || resource.data.uid == request.auth.uid)
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.status == resource.data.status
-        && request.resource.data.uid == resource.data.uid
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId
+        || isManagementOrSpv()
+        || (resource != null && ('uid' in resource.data) && resource.data.uid == request.auth.uid)
+        || (resource != null && ('email' in resource.data) && request.auth.token.email != null && resource.data.email == request.auth.token.email)
       );
-      allow delete: if isAdminOnly();
+
+      allow create: if isSignedIn() && (
+        // 1. Hierarchical User Creation by Admin/Management/SPV
+        (isManagementOrSpv() && isTargetRoleManageable(request.resource.data.role))
+        // 2. Safe Legacy UID Migration: authenticated user mirroring their own existing /users/{username} doc to /users/{uid}
+        // Must match existing legacy doc's role & vendor (zero privilege escalation)
+        || (
+          request.auth.uid == userId
+          && ('username' in request.resource.data)
+          && exists(/databases/$(database)/documents/users/$(request.resource.data.username))
+          && get(/databases/$(database)/documents/users/$(request.resource.data.username)).data.role == request.resource.data.role
+        )
+      );
+
+      allow update: if isSignedIn() && (
+        // 1. Hierarchical User Update by Admin/Management/SPV
+        (isManagementOrSpv()
+          && isTargetRoleManageable(resource.data.role)
+          && isTargetRoleManageable(request.resource.data.role))
+        // 2. Self Profile Update (Name/Phone/Photo/Bio) — STRICTLY FORBIDDEN from changing role, status, vendorName, or vendorShort!
+        || (
+          request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+          && (!('status' in resource.data) || request.resource.data.status == resource.data.status)
+          && (!('vendorName' in resource.data) || request.resource.data.vendorName == resource.data.vendorName)
+          && (!('vendorShort' in resource.data) || request.resource.data.vendorShort == resource.data.vendorShort)
+        )
+      );
+
+      allow delete: if isManagementOrSpv()
+        && isTargetRoleManageable(resource.data.role)
+        && request.auth.uid != userId;
     }
 
-    // Koleksi minimal { email } untuk resolusi username -> email saat login tanpa membuka data /users ke publik
-    match /user_lookup/{uname} {
+    // 7B. Minimal Username -> Email Lookup (Single doc get only, no list/enumeration)
+    match /user_lookup/{username} {
       allow get: if true;
       allow list: if false;
-      allow create, update: if isOfficialUser() && (
-        isAdminOnly() || request.resource.data.email == request.auth.token.email
-      );
-      allow delete: if isAdminOnly();
+      allow create, update: if isSignedIn()
+        && request.resource.data.keys().hasOnly(['email'])
+        && request.resource.data.email is string;
+      allow delete: if isManagementOrSpv();
     }
 
-    // -------------------------------------------------------------------------
-    // 2. OPERATIONAL: INCOMING & DISPATCH (/incoming/{kodeTugas})
-    // -------------------------------------------------------------------------
-    match /incoming/{kodeTugas} {
-      allow read, write: if isOfficialUser();
+    // 7C. Active Sessions (Single-Device Session Lock)
+    match /active_sessions/{username} {
+      allow read, create, update, delete: if isSignedIn();
     }
 
-    // -------------------------------------------------------------------------
-    // 3. OPERATIONAL: SLA MANAGEMENT
-    // -------------------------------------------------------------------------
-    match /sla_outbound/{kodeTugas} {
-      allow read, write: if isOfficialUser();
-    }
-
-    match /sla_return/{kodeTugas} {
-      allow read, write: if isOfficialUser();
-    }
-
-    match /sla_roundtrip/{kodeTugas} {
-      allow read, write: if isOfficialUser();
-    }
-
-    // -------------------------------------------------------------------------
-    // 4. MONITORING 4 JAM (/monitoring_4h/{kodeTugas})
-    // -------------------------------------------------------------------------
-    match /monitoring_4h/{kodeTugas} {
-      allow read, write: if isOfficialUser();
-    }
-
-    // -------------------------------------------------------------------------
-    // 5. TROUBLE & LAKA (/troubles/{incidentId})
-    // -------------------------------------------------------------------------
-    match /troubles/{incidentId} {
-      allow read, write: if isOfficialUser();
-    }
-
-    // -------------------------------------------------------------------------
-    // 6. SHIFT MANAGEMENT (/shifts/{shiftId})
-    // -------------------------------------------------------------------------
-    match /shifts/{shiftId} {
-      allow read, write: if isOfficialUser();
-    }
-
-    // -------------------------------------------------------------------------
-    // 7. MASTER DATA (Routes, Fleets, Vendors, Drivers, Reasons, SLA)
-    // -------------------------------------------------------------------------
-    match /master_trips/{docId}   { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-    match /master_fleets/{docId}  { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-    match /master_vendors/{docId} { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-    match /master_drivers/{docId} { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-    match /master_reasons/{docId} { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-    match /master_routes/{docId}  { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-    match /master_sla/{docId}     { allow read: if isOfficialUser(); allow write: if isAdminOrSupervisor(); }
-
-    // -------------------------------------------------------------------------
-    // 8. AUDIT LOGS
-    // -------------------------------------------------------------------------
+    // 7D. Immutable Audit Trail Logs
     match /audit_logs/{logId} {
-      allow read, create: if isOfficialUser();
-      allow update, delete: if isAdminOnly();
-    }
-
-    // -------------------------------------------------------------------------
-    // 9. ACTIVE SESSIONS
-    // -------------------------------------------------------------------------
-    match /active_sessions/{sessionKey} {
-      allow read, write, delete: if isOfficialUser();
-    }
-
-    // -------------------------------------------------------------------------
-    // 10. DEFAULT DENY
-    // -------------------------------------------------------------------------
-    match /{document=**} {
-      allow read, write: if false;
+      allow read: if isInternalReader();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
   }
 }
