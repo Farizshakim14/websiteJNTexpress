@@ -5128,61 +5128,107 @@ document.addEventListener('DOMContentLoaded', () => {
             formExportExcel.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const targetModul = document.getElementById('exp-modul-select')?.value || 'ALL';
-                const dateFrom = document.getElementById('exp-date-from')?.value || new Date().toISOString().split('T')[0];
-                const dateTo = document.getElementById('exp-date-to')?.value || new Date().toISOString().split('T')[0];
+                const dateFrom = document.getElementById('exp-date-from')?.value || '';
+                const dateTo = document.getElementById('exp-date-to')?.value || '';
+
+                // Helper: Parse tanggal fleksibel (DD/MM/YYYY atau YYYY-MM-DD) menjadi YYYY-MM-DD untuk filter rentang
+                const extractIsoDate = (rawStr) => {
+                    if (!rawStr) return '';
+                    const s = String(rawStr).trim();
+                    const dmy = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (dmy) {
+                        return `${dmy[3]}-${String(dmy[2]).padStart(2, '0')}-${String(dmy[1]).padStart(2, '0')}`;
+                    }
+                    const ymd = s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+                    if (ymd) {
+                        return `${ymd[1]}-${String(ymd[2]).padStart(2, '0')}-${String(ymd[3]).padStart(2, '0')}`;
+                    }
+                    return '';
+                };
+
+                const filterByDateRange = (list, dateExtractor) => {
+                    if (!Array.isArray(list) || list.length === 0) return [];
+                    if (!dateFrom && !dateTo) return list;
+                    const matched = list.filter(item => {
+                        const iso = extractIsoDate(dateExtractor(item));
+                        if (!iso) return true;
+                        if (dateFrom && iso < dateFrom) return false;
+                        if (dateTo && iso > dateTo) return false;
+                        return true;
+                    });
+                    // Jika rentang tanggal default hari ini tidak memiliki data karena data historis berasal dari tanggal lain, ekspor seluruh data aktif agar file tidak kosong
+                    return matched.length > 0 ? matched : list;
+                };
+
+                const labelFrom = dateFrom || new Date().toISOString().split('T')[0];
+                const labelTo = dateTo || labelFrom;
 
                 // Cek apakah library SheetJS (XLSX) tersedia untuk multi-sheet .xlsx
                 if (typeof XLSX !== 'undefined') {
                     const wb = XLSX.utils.book_new();
 
                     if (targetModul === 'SLA' || targetModul === 'ALL') {
-                        const slaData = JNTFirebaseService.getLocalStore('sla_outbound') || [];
-                        const rows = slaData.map((item, idx) => ({
-                            'No': idx + 1,
-                            'Kode Tugas': item.kodeTugas || '',
-                            'Plat Nomor': item.platNomor || '',
-                            'Trip / Rute': item.trip || '',
-                            'Vendor': item.vendor || '',
-                            'Driver': item.driver1 || '',
-                            'Jam Berangkat': item.jamBerangkat || '',
-                            'Target SLA': (item.targetSLAHours || item.targetSLA || 16) + ' Jam',
-                            'Jam Sampai Aktual': item.jamSampaiAktual || '',
-                            'Status SLA': item.statusSla || item.status || 'BERJALAN'
-                        }));
+                        const slaRaw = JNTFirebaseService.getLocalStore('sla_outbound') || [];
+                        const slaData = filterByDateRange(slaRaw, i => i.jamBerangkat || i.updatedAt || i.createdAt);
+                        const rows = slaData.map((item, idx) => {
+                            const targetH = JNTFirebaseService.resolveEffectiveTargetSLAHours
+                                ? JNTFirebaseService.resolveEffectiveTargetSLAHours(item)
+                                : (item.targetSLAHours || item.targetSLA || 16);
+                            return {
+                                'No': idx + 1,
+                                'Kode Tugas': item.kodeTugas || '',
+                                'Plat Nomor': item.platNomor || '',
+                                'Trip / Rute': item.trip || item.namaRute || '',
+                                'TLC': item.tlc || '',
+                                'Vendor': item.vendor || '',
+                                'Driver Utama': item.driver1 || '',
+                                'No HP Driver': item.driverPhone || '',
+                                'Jam Berangkat': item.jamBerangkat || '',
+                                'Target SLA': targetH + ' Jam',
+                                'Jam Sampai Aktual': item.jamSampaiAktual || '',
+                                'Total AWB': item.totalAwb || '',
+                                'Status SLA': item.statusSla || item.status || 'BERJALAN'
+                            };
+                        });
                         const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data SLA' }]);
                         XLSX.utils.book_append_sheet(wb, ws, 'SLA_Outbound');
                     }
 
                     if (targetModul === 'MONITORING' || targetModul === 'ALL') {
-                        const monData = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                        const monRaw = JNTFirebaseService.getLocalStore('monitoring_4h') || [];
+                        const monData = filterByDateRange(monRaw, i => i.jamBerangkat || i.lastUpdateTime || i.updatedAt);
                         const rows = monData.map((item, idx) => ({
                             'No': idx + 1,
                             'Kode Tugas': item.kodeTugas || '',
                             'Plat Nomor': item.platNomor || '',
                             'Trip / Rute': item.trip || item.namaRute || '',
                             'Vendor': item.vendor || '',
+                            'Driver Utama': item.driver1 || '',
                             'Jam Berangkat': item.jamBerangkat || '',
                             'Status Perjalanan': item.statusPerjalanan || '',
-                            'Update Terakhir': item.lastUpdateTime || '',
-                            'Posisi Terakhir': item.lastUpdateLokasi || '',
-                            'Input By': item.lastUpdateBy || ''
+                            'Update Terakhir': item.lastUpdateTime || item.jamSampaiAktual || '',
+                            'Posisi Terakhir': item.lastUpdateLokasi || item.lokasiSampai || '',
+                            'Input By': item.lastUpdateBy || item.inputBy || ''
                         }));
                         const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Monitoring' }]);
                         XLSX.utils.book_append_sheet(wb, ws, 'Monitoring_4H');
                     }
 
                     if (targetModul === 'TROUBLE' || targetModul === 'ALL') {
-                        const trData = JNTFirebaseService.getLocalStore('troubles') || [];
+                        const trRaw = JNTFirebaseService.getLocalStore('troubles') || [];
+                        const trData = filterByDateRange(trRaw, i => i.waktuKejadian || i.createdAt);
                         const rows = trData.map((item, idx) => ({
                             'No': idx + 1,
                             'Incident ID': item.incidentId || item.id || '',
                             'Kode Tugas': item.kodeTugas || '',
+                            'Plat Nomor': item.platNomor || '',
+                            'Vendor': item.vendor || '',
                             'Jenis': item.jenis || '',
                             'Kategori': item.kategoriTrouble || '',
                             'Tingkat Keparahan': item.severity || '',
                             'Lokasi Kejadian': item.lokasiKejadian || '',
                             'Waktu Kejadian': item.waktuKejadian || '',
-                            'Keterangan': item.keterangan || '',
+                            'Keterangan': item.deskripsi || item.keterangan || '',
                             'Status': item.status || ''
                         }));
                         const ws = XLSX.utils.json_to_sheet(rows.length > 0 ? rows : [{ 'Info': 'Tidak ada data Trouble' }]);
@@ -5190,7 +5236,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (targetModul === 'SHIFT' || targetModul === 'ALL') {
-                        const shData = JNTFirebaseService.getLocalStore('shifts') || [];
+                        const shRaw = JNTFirebaseService.getLocalStore('shifts') || [];
+                        const shData = filterByDateRange(shRaw, i => i.tanggal || i.createdAt);
                         const rows = shData.map((item, idx) => ({
                             'No': idx + 1,
                             'Shift ID': item.shiftId || item.id || '',
@@ -5205,7 +5252,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (targetModul === 'AUDIT' || targetModul === 'ALL') {
-                        const auData = JNTFirebaseService.getLocalStore('audit_logs') || [];
+                        const auRaw = JNTFirebaseService.getSynthesizedAuditLogs
+                            ? JNTFirebaseService.getSynthesizedAuditLogs()
+                            : (JNTFirebaseService.getLocalStore('audit_logs') || []);
+                        const auData = filterByDateRange(auRaw, i => i.waktu || i.createdAt);
                         const rows = auData.map((item, idx) => ({
                             'No': idx + 1,
                             'Waktu': item.waktu || '',
@@ -5219,7 +5269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         XLSX.utils.book_append_sheet(wb, ws, 'Audit_Trail');
                     }
 
-                    const fileNameXlsx = `JNT_TMS_Report_${targetModul}_${dateFrom}_to_${dateTo}.xlsx`;
+                    const fileNameXlsx = `JNT_TMS_Report_${targetModul}_${labelFrom}_to_${labelTo}.xlsx`;
                     XLSX.writeFile(wb, fileNameXlsx);
                     window.showToastNotification("📥 EXPORT SUKSES", `Laporan Excel ${targetModul} berhasil diunduh (${fileNameXlsx})!`, "success");
                     closeModal('modal-export-filter');
