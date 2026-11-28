@@ -5878,7 +5878,7 @@ const JNTFirebaseService = {
     },
 
     async updateIncidentStatus(incidentId, newStatus, note = "", user = "", restoreTripStatus = true, fotoSelesai = null, extraFotoKejadian = null) {
-        const actualUser = user || sessionStorage.getItem('jnt_active_username') || "Farizs Hakim";
+        const actualUser = sessionStorage.getItem('jnt_active_username') || user || "Operator";
         const data = await this.getDoc('troubles', incidentId);
         if (!data) {
             console.warn(`[TROUBLE] Incident with ID ${incidentId} not found.`);
@@ -5891,7 +5891,7 @@ const JNTFirebaseService = {
             time: nowStr,
             note: note || `Status diperbarui menjadi ${newStatus}`,
             status: newStatus,
-            user: user
+            user: actualUser
         });
 
         const existingKejadian = Array.isArray(data.fotoKejadian) ? data.fotoKejadian : [];
@@ -5932,7 +5932,7 @@ const JNTFirebaseService = {
 
         await this.logAuditEvent({
             waktu: nowStr,
-            operator: user,
+            operator: actualUser,
             shiftId: this.getActiveShiftId(),
             modul: "Trouble & Laka",
             kodeTugas: data.kodeTugas || "-",

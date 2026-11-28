@@ -4347,7 +4347,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const id = document.getElementById('upd-incident-id')?.value;
                     const newStatus = document.getElementById('upd-incident-status')?.value;
-                    const petugas = document.getElementById('upd-incident-petugas')?.value || activeUsername;
+                    // Anti-manipulasi: Petugas selalu dikunci ke akun yang sedang login (sessionStorage / activeUsername)
+                    const petugas = sessionStorage.getItem('jnt_active_username') || activeUsername;
                     const catatan = document.getElementById('upd-incident-catatan')?.value;
 
                     if (newStatus === 'SUDAH SELESAI' && pendingSelesaiPhotos.length === 0) {
