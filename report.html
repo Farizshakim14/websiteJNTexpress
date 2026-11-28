@@ -1723,7 +1723,7 @@
             }
         }
 
-        // Commit Data ke Firestore & LocalStorage (Auto-Fill Keberangkatan)
+        // Commit Data ke Cloud Firestore secara Atomik (WriteBatch + Server ACK Confirmation)
         document.getElementById('btn-commit-excel-data')?.addEventListener('click', async () => {
             if (!_parsedExcelRows || _parsedExcelRows.length === 0) {
                 alert('Tidak ada data Excel yang siap disinkronkan.');
@@ -1738,58 +1738,109 @@
             const upsertMode = document.getElementById('chk-upsert-mode')?.checked ?? true;
 
             btn.disabled = true;
-            btn.textContent = '⏳ Menyinkronkan Data...';
+            btn.textContent = '⏳ Mengirim Batch ke Cloud Firestore...';
             if (progressWrap) progressWrap.classList.remove('hidden');
 
             let successCount = 0;
             let errorCount = 0;
+            let errorDetails = [];
             const total = _parsedExcelRows.length;
 
-            for (let i = 0; i < total; i++) {
-                const row = _parsedExcelRows[i];
-                try {
-                    await JNTFirebaseService.importTripFromExcel(row, { upsert: upsertMode });
-                    successCount++;
-                } catch (err) {
-                    console.warn(`[IMPORT ERROR] Baris ${i + 1} (${row.kodeTugas}):`, err);
-                    errorCount++;
+            try {
+                if (typeof JNTFirebaseService.importTripsBatchFromExcel === 'function') {
+                    const batchResult = await JNTFirebaseService.importTripsBatchFromExcel(
+                        _parsedExcelRows,
+                        { upsert: upsertMode },
+                        ({ processed, total: tot, successCount: ok, errorCount: err }) => {
+                            const pct = Math.round((processed / tot) * 100);
+                            if (progressBar) progressBar.style.width = `${pct}%`;
+                            if (progressPct) progressPct.textContent = `${pct}%`;
+                            if (progressText) {
+                                progressText.textContent = `Terkonfirmasi Server Firestore: ${ok} sukses${err > 0 ? ', ' + err + ' gagal' : ''} (${processed}/${tot})...`;
+                            }
+                        }
+                    );
+                    successCount = batchResult.successCount;
+                    errorCount = batchResult.errorCount;
+                    errorDetails = batchResult.errors || [];
+                } else {
+                    for (let i = 0; i < total; i++) {
+                        const row = _parsedExcelRows[i];
+                        try {
+                            await JNTFirebaseService.importTripFromExcel(row, { upsert: upsertMode });
+                            successCount++;
+                        } catch (err) {
+                            console.warn(`[IMPORT ERROR] Baris ${i + 1} (${row.kodeTugas}):`, err);
+                            errorCount++;
+                            errorDetails.push(err.message || String(err));
+                        }
+                        const pct = Math.round(((i + 1) / total) * 100);
+                        if (progressBar) progressBar.style.width = `${pct}%`;
+                        if (progressPct) progressPct.textContent = `${pct}%`;
+                        if (progressText) progressText.textContent = `Menyimpan ${i + 1} dari ${total} data perjalanan...`;
+                    }
                 }
-
-                const pct = Math.round(((i + 1) / total) * 100);
-                if (progressBar) progressBar.style.width = `${pct}%`;
-                if (progressPct) progressPct.textContent = `${pct}%`;
-                if (progressText) progressText.textContent = `Menyimpan ${i + 1} dari ${total} data perjalanan...`;
+            } catch (fatalErr) {
+                errorCount = total - successCount;
+                errorDetails.push(fatalErr.message || String(fatalErr));
             }
 
             // Log Audit Event
             const activeUser = sessionStorage.getItem('jnt_active_username') || 'Operator';
-            await JNTFirebaseService.logAuditEvent({
-                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
-                operator: activeUser,
-                shiftId: JNTFirebaseService.getActiveShiftId(),
-                modul: "Report & Excel",
-                kodeTugas: "-",
-                aktivitas: `Upload Excel SLA/4H: ${successCount} data perjalanan berhasil disinkronkan (Keberangkatan auto-fill aktif)`
-            });
-
-            if (window.showToastNotification) {
-                window.showToastNotification(
-                    "🚀 SINKRONISASI SUKSES",
-                    `${successCount} data berhasil dimasukkan ke SLA Vendor & Monitoring 4 Jam dengan jam keberangkatan dari Excel!`,
-                    "success"
-                );
-            } else {
-                alert(`✅ Sinkronisasi Berhasil!\n${successCount} data perjalanan berhasil disimpan ke SLA Vendor & Monitoring 4 Jam.`);
+            if (successCount > 0) {
+                await JNTFirebaseService.logAuditEvent({
+                    waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                    operator: activeUser,
+                    shiftId: JNTFirebaseService.getActiveShiftId(),
+                    modul: "Report & Excel",
+                    kodeTugas: "-",
+                    aktivitas: `Upload Excel SLA/4H (Firestore WriteBatch): ${successCount} berhasil, ${errorCount} gagal`
+                });
             }
 
             btn.disabled = false;
             btn.textContent = '🚀 Sinkronkan Ke SLA & Monitoring';
-            if (progressText) progressText.textContent = `Selesai: ${successCount} sukses, ${errorCount} gagal/dilewati.`;
+            if (progressText) {
+                progressText.textContent = `Selesai: ${successCount} terkonfirmasi di Cloud Firestore, ${errorCount} gagal/dilewati.`;
+            }
 
-            setTimeout(() => {
-                resetExcelUpload();
-                switchReportTab('sla');
-            }, 1200);
+            if (successCount > 0 && errorCount === 0) {
+                if (window.showToastNotification) {
+                    window.showToastNotification(
+                        "🚀 SINKRONISASI FIRESTORE SUKSES",
+                        `Seluruh ${successCount} data perjalanan telah terkonfirmasi tersimpan di Cloud Firestore!`,
+                        "success"
+                    );
+                } else {
+                    alert(`✅ Sinkronisasi Berhasil!\n${successCount} data perjalanan telah terkonfirmasi tersimpan di Cloud Firestore.`);
+                }
+                setTimeout(() => {
+                    resetExcelUpload();
+                    switchReportTab('sla');
+                }, 1200);
+            } else if (successCount > 0 && errorCount > 0) {
+                const sampleErr = errorDetails[0] ? `\nContoh penyebab: ${errorDetails[0]}` : '';
+                if (window.showToastNotification) {
+                    window.showToastNotification(
+                        "⚠️ SINKRONISASI SEBAGIAN",
+                        `${successCount} data tersimpan ke Firestore, namun ${errorCount} data gagal.${sampleErr}`,
+                        "warning",
+                        7000
+                    );
+                }
+                alert(`⚠️ Sinkronisasi Sebagian:\n• Berhasil tersimpan di Cloud Firestore: ${successCount} trip\n• Gagal / Dilewati: ${errorCount} trip${sampleErr}`);
+            } else {
+                const sampleErr = errorDetails[0] || 'Koneksi ke Cloud Firestore terputus atau kuota penuh.';
+                if (window.showToastNotification) {
+                    window.showToastNotification(
+                        "❌ SINKRONISASI GAGAL",
+                        `Tidak ada data yang tersimpan ke Cloud Firestore: ${sampleErr}`,
+                        "error",
+                        7000
+                    );
+                }
+                alert(`❌ Gagal Menyimpan ke Cloud Firestore!\nPenyebab: ${sampleErr}`);
+            }
         });
 
         // ═══════════════════════════════════════════════════════════════════════════
