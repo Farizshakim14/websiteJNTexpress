@@ -22,6 +22,27 @@
         if (_fs) document.documentElement.classList.add('font-size-' + _fs);
         const _den = localStorage.getItem('jnt_setting-density');
         if (_den) document.documentElement.classList.add('density-' + _den);
+        document.addEventListener('DOMContentLoaded', function () {
+            var uName = sessionStorage.getItem('jnt_active_username') || '';
+            var uRole = sessionStorage.getItem('jnt_user_role') || '';
+            var uPhoto = sessionStorage.getItem('jnt_user_photo') || '';
+            if (!uName && !uRole) return;
+            var up = String(uRole || '').toUpperCase().trim().replace(/[\s\-]+/g, '_');
+            var roleLbl = up.includes('DEVELOPER') ? 'Developer' : up.includes('OWNER') ? 'Owner' : up.includes('ADMIN') ? 'Admin' : up.includes('ASISTEN') ? 'Asisten Manager' : up.includes('MANAGER') ? 'Manager' : up.includes('SUPERVISOR') ? 'Supervisor (SPV)' : up.includes('FINANCE') ? 'Finance' : up.includes('VENDOR') ? 'Vendor' : 'Staff Vehicle Dispatch';
+            var avUrl = (uPhoto && (/^https?:\/\//i.test(uPhoto) || /^uploads\//i.test(uPhoto) || /^assets\//i.test(uPhoto) || /^data:image\//i.test(uPhoto))) ? uPhoto : ('https://ui-avatars.com/api/?name=' + encodeURIComponent(uName || 'User') + '&background=E30613&color=fff&bold=true&size=150');
+            document.querySelectorAll('#sidebar-user-name').forEach(function (el) { el.textContent = uName; el.title = uName; });
+            document.querySelectorAll('.profile-role').forEach(function (el) { el.textContent = roleLbl; });
+            document.querySelectorAll('.user-avatar-img, .inc-avatar-img').forEach(function (img) { img.src = avUrl; img.alt = uName + ' Avatar'; });
+            document.querySelectorAll('#topbar-user-name, #dash-user-name, .inc-user-name').forEach(function (el) {
+                el.textContent = uName + ' ';
+                var ch = document.createElement('span');
+                ch.className = 'inc-user-chevron';
+                ch.textContent = '▾';
+                el.appendChild(ch);
+                el.title = uName;
+            });
+            document.querySelectorAll('.inc-user-role').forEach(function (el) { el.textContent = roleLbl; });
+        });
     </script>
     <!-- CSS Style -->
     <link rel="stylesheet" href="styles.css">
@@ -41,19 +62,19 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150"
+                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                             alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
+                            <span class="profile-name" id="sidebar-user-name"> </span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </div>
-                        <span class="profile-role">ADMIN</span>
+                        <span class="profile-role"> </span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -206,11 +227,11 @@
                             <span>22 Juli 2026</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn">
-                            <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100"
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                                 alt="User Avatar" class="inc-avatar-img">
                             <div class="inc-user-meta">
-                                <span class="inc-user-name">Farizs Hakim <span class="inc-user-chevron">▾</span></span>
-                                <span class="inc-user-role">Admin</span>
+                                <span class="inc-user-name"> <span class="inc-user-chevron">▾</span></span>
+                                <span class="inc-user-role"> </span>
                             </div>
                         </div>
                     </div>

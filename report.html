@@ -22,6 +22,27 @@
         if (_fs) document.documentElement.classList.add('font-size-' + _fs);
         const _den = localStorage.getItem('jnt_setting-density');
         if (_den) document.documentElement.classList.add('density-' + _den);
+        document.addEventListener('DOMContentLoaded', function () {
+            var uName = sessionStorage.getItem('jnt_active_username') || '';
+            var uRole = sessionStorage.getItem('jnt_user_role') || '';
+            var uPhoto = sessionStorage.getItem('jnt_user_photo') || '';
+            if (!uName && !uRole) return;
+            var up = String(uRole || '').toUpperCase().trim().replace(/[\s\-]+/g, '_');
+            var roleLbl = up.includes('DEVELOPER') ? 'Developer' : up.includes('OWNER') ? 'Owner' : up.includes('ADMIN') ? 'Admin' : up.includes('ASISTEN') ? 'Asisten Manager' : up.includes('MANAGER') ? 'Manager' : up.includes('SUPERVISOR') ? 'Supervisor (SPV)' : up.includes('FINANCE') ? 'Finance' : up.includes('VENDOR') ? 'Vendor' : 'Staff Vehicle Dispatch';
+            var avUrl = (uPhoto && (/^https?:\/\//i.test(uPhoto) || /^uploads\//i.test(uPhoto) || /^assets\//i.test(uPhoto) || /^data:image\//i.test(uPhoto))) ? uPhoto : ('https://ui-avatars.com/api/?name=' + encodeURIComponent(uName || 'User') + '&background=E30613&color=fff&bold=true&size=150');
+            document.querySelectorAll('#sidebar-user-name').forEach(function (el) { el.textContent = uName; el.title = uName; });
+            document.querySelectorAll('.profile-role').forEach(function (el) { el.textContent = roleLbl; });
+            document.querySelectorAll('.user-avatar-img, .inc-avatar-img').forEach(function (img) { img.src = avUrl; img.alt = uName + ' Avatar'; });
+            document.querySelectorAll('#topbar-user-name, #dash-user-name, .inc-user-name').forEach(function (el) {
+                el.textContent = uName + ' ';
+                var ch = document.createElement('span');
+                ch.className = 'inc-user-chevron';
+                ch.textContent = '▾';
+                el.appendChild(ch);
+                el.title = uName;
+            });
+            document.querySelectorAll('.inc-user-role').forEach(function (el) { el.textContent = roleLbl; });
+        });
     </script>
     <!-- SheetJS Excel Library -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -44,19 +65,19 @@
 
                 <div class="sidebar-user-card" id="sidebar-user-card-btn">
                     <div class="avatar-wrapper">
-                        <img src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=150"
+                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                             alt="User Avatar" class="user-avatar-img">
                         <span class="online-indicator-dot"></span>
                     </div>
                     <div class="user-profile-meta">
                         <div class="user-name-row">
-                            <span class="profile-name" id="sidebar-user-name">Farizs Hakim</span>
+                            <span class="profile-name" id="sidebar-user-name"> </span>
                             <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </div>
-                        <span class="profile-role">ADMIN</span>
+                        <span class="profile-role"> </span>
                         <span class="profile-status">
                             <span class="green-arrow">↑</span> Online
                         </span>
@@ -289,7 +310,7 @@
                         <div class="inc-table-header"
                             style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
                             <div>
-                                <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">Rekap Kinerja SLA
+                                <h3 class="inc-table-title">Rekap Kinerja SLA
                                     Vendor per Rute &amp; TLC</h3>
                                 <p style="font-size: 12px; color: #64748B; margin-top: 2px;">Analisis ketepatan waktu
                                     armada keluar (outbound) dan target durasi perjalanan.</p>
@@ -364,7 +385,7 @@
 
                     <div class="inc-table-card" style="margin-top: 20px; border-radius: 12px;">
                         <div class="inc-table-header" style="padding: 16px 20px;">
-                            <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">Rekap Check-in Posisi
+                            <h3 class="inc-table-title">Rekap Check-in Posisi
                                 Armada (Monitoring 4 Jam)</h3>
                             <p style="font-size: 12px; color: #64748B; margin-top: 2px;">Data checkpoint berkala 4 jam
                                 (H1 hingga H7) terhubung langsung dengan sistem SSOT.</p>
@@ -433,7 +454,7 @@
 
                     <div class="inc-table-card" style="margin-top: 20px; border-radius: 12px;">
                         <div class="inc-table-header" style="padding: 16px 20px;">
-                            <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">Log Incident Kendala
+                            <h3 class="inc-table-title">Log Incident Kendala
                                 &amp; Laka</h3>
                             <p style="font-size: 12px; color: #64748B; margin-top: 2px;">Daftar rekaman kejadian trouble
                                 operasional, dampak keterlambatan, dan status tindak lanjut.</p>
@@ -471,12 +492,11 @@
                         <div class="inc-table-card" style="flex: 1; min-width: 320px; border-radius: 12px;">
                             <div class="inc-table-header perf-card-header" style="padding: 16px 20px;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <img id="perf-op1-avatar" src="https://ui-avatars.com/api/?name=Farizs+Hakim&background=E30613&color=fff&bold=true&size=100"
+                                    <img id="perf-op1-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                                         style="width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid #E30613; object-fit: cover;"
                                         alt="Operator 1">
                                     <div>
-                                        <h3 id="perf-op1-name" class="inc-table-title perf-op-name"
-                                            style="font-size: 16px; font-weight: 800;">Farizs Hakim</h3>
+                                        <h3 id="perf-op1-name" class="inc-table-title perf-op-name">Farizs Hakim</h3>
                                         <span id="perf-op1-role" style="font-size: 12px; color: #64748B;">Role: Operator Utama • Control
                                             Tower &amp; Monitoring</span>
                                     </div>
@@ -518,8 +538,7 @@
                                         style="width: 48px; height: 48px; border-radius: 50%; border: 2.5px solid #3B82F6; object-fit: cover;"
                                         alt="Operator 2">
                                     <div>
-                                        <h3 id="perf-op2-name" class="inc-table-title perf-op-name"
-                                            style="font-size: 16px; font-weight: 800;">Operator Shift 2</h3>
+                                        <h3 id="perf-op2-name" class="inc-table-title perf-op-name">Operator Shift 2</h3>
                                         <span id="perf-op2-role" style="font-size: 12px; color: #64748B;">Role: Operator Pendamping • SLA
                                             Vendor &amp; Rekap</span>
                                     </div>
@@ -651,7 +670,7 @@
                         style="border-radius: 12px; margin-top: 20px;">
                         <div class="inc-table-header excel-preview-table-header">
                             <div>
-                                <h3 class="inc-table-title" style="font-size: 16px; font-weight: 800;">
+                                <h3 class="inc-table-title">
                                     🔍 Preview Data Excel (<span id="preview-row-count">0</span> Baris Terdeteksi)
                                 </h3>
                                 <p class="excel-preview-sub">
