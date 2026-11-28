@@ -1400,19 +1400,16 @@ document.addEventListener('DOMContentLoaded', () => {
             hour12: false
         }).replace(/\./g, ':');
 
-        const dateChips = document.querySelectorAll('.inc-date-chip');
+        const dateChips = document.querySelectorAll('.inc-date-chip, #rep-clock-badge');
         dateChips.forEach(chip => {
-            const spans = chip.querySelectorAll('span');
-            if (chip.id === 'sh-top-date-chip') {
-                const dateEl = document.getElementById('sh-top-date-text') || chip.querySelector('span:first-child');
-                const clockEl = document.getElementById('sh-top-clock-text');
-                if (dateEl) dateEl.textContent = `📅 ${dayStr}, ${dateStr}`;
-                if (clockEl) clockEl.textContent = `${timeStr} WIB`;
-            } else if (spans.length >= 2) {
-                spans[0].textContent = `${dateStr}`;
-                spans[1].textContent = `${dayStr}, ${timeStr} WIB`;
-            } else if (spans.length === 1) {
-                spans[0].textContent = `📅 ${dayStr}, ${dateStr} • ${timeStr} WIB`;
+            chip.classList.add('inc-date-chip');
+            let dateEl = chip.querySelector('.jnt-chip-date');
+            let clockEl = chip.querySelector('.jnt-chip-clock');
+            if (!dateEl || !clockEl) {
+                chip.innerHTML = `<span class="jnt-chip-date" id="sh-top-date-text">📅 ${dayStr}, ${dateStr}</span><span class="jnt-chip-clock" id="sh-top-clock-text">${timeStr} WIB</span>`;
+            } else {
+                dateEl.textContent = `📅 ${dayStr}, ${dateStr}`;
+                clockEl.textContent = `${timeStr} WIB`;
             }
         });
 

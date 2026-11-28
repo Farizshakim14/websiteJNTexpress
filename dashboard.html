@@ -43,6 +43,12 @@
                 el.title = uName;
             });
             document.querySelectorAll('.inc-user-role').forEach(function (el) { el.textContent = roleLbl; });
+            var now = new Date();
+            var dStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
+            var wStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long' });
+            var tStr = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
+            document.querySelectorAll('.jnt-chip-date').forEach(function (el) { el.textContent = '📅 ' + wStr + ', ' + dStr; });
+            document.querySelectorAll('.jnt-chip-clock').forEach(function (el) { el.textContent = tStr + ' WIB'; });
         });
     </script>
     <!-- CSS Style -->
@@ -228,9 +234,8 @@
 
                     <div class="inc-top-right">
                         <div class="inc-date-chip" id="sh-top-date-chip">
-                            <span>22 Juli 2026</span>
-                            <span id="sh-top-clock-text"
-                                style="color:#E30613; font-weight:800; margin-left:6px;">--:--:-- WIB</span>
+                            <span class="jnt-chip-date" id="sh-top-date-text">📅 —</span>
+                            <span class="jnt-chip-clock" id="sh-top-clock-text">--:--:-- WIB</span>
                         </div>
                         <div class="inc-notif-bell">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1223,26 +1228,7 @@
                 }
             }
 
-            // Update Jam real-time
-            const clockEl = document.getElementById('sh-top-clock-text');
-            if (clockEl) {
-                function updateClock() {
-                    const now = new Date();
-                    const pad = n => String(n).padStart(2, '0');
-                    clockEl.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} WIB`;
-                }
-                updateClock();
-                setInterval(updateClock, 1000);
-            }
-
-            // Update chip tanggal hari ini
-            const dateChip = document.getElementById('sh-top-date-chip');
-            if (dateChip) {
-                const today = new Date();
-                const dStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-                const dateText = dateChip.querySelector('span:first-child');
-                if (dateText) dateText.textContent = dStr;
-            }
+            // Tanggal & Jam Topbar dikelola terpusat oleh app.js
         } // end initDashboardPage
 
         if (document.readyState === 'loading') {

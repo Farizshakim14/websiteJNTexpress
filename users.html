@@ -39,6 +39,12 @@
                 el.title = uName;
             });
             document.querySelectorAll('.inc-user-role').forEach(function (el) { el.textContent = roleLbl; });
+            var now = new Date();
+            var dStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
+            var wStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long' });
+            var tStr = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
+            document.querySelectorAll('.jnt-chip-date').forEach(function (el) { el.textContent = '📅 ' + wStr + ', ' + dStr; });
+            document.querySelectorAll('.jnt-chip-clock').forEach(function (el) { el.textContent = tStr + ' WIB'; });
         });
     </script>
     <!-- CSS Style -->
@@ -165,9 +171,9 @@
                     </div>
 
                     <div class="inc-top-right">
-                        <div class="inc-date-chip">
-                            <span>22 Juli 2026</span>
-                            <span style="font-size: 11.5px; color: #64748B;">Selasa, 10:30 WIB</span>
+                        <div class="inc-date-chip" id="sh-top-date-chip">
+                            <span class="jnt-chip-date" id="sh-top-date-text">📅 —</span>
+                            <span class="jnt-chip-clock" id="sh-top-clock-text">--:--:-- WIB</span>
                         </div>
                         <div class="inc-notif-bell">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>

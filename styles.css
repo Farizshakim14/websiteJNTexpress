@@ -9381,6 +9381,34 @@ button:active:not(:disabled),
     line-height: 1.2;
 }
 
+/* Standarisasi Chip Tanggal & Jam Real-Time Topbar di Seluruh 10 Menu */
+.inc-date-chip,
+.rep-clock-badge {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: var(--fs-body-table) !important;
+    font-weight: 700 !important;
+    color: #334155;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.inc-date-chip .jnt-chip-date {
+    color: inherit;
+    font-weight: 700;
+}
+
+.inc-date-chip .jnt-chip-clock {
+    color: var(--primary-red) !important;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Standarisasi Tipografi Header Halaman & Breadcrumb */
 .inc-main-title,
 .header-main-title {

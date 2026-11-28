@@ -41,6 +41,12 @@
                 el.title = uName;
             });
             document.querySelectorAll('.inc-user-role').forEach(function (el) { el.textContent = roleLbl; });
+            var now = new Date();
+            var dStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
+            var wStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long' });
+            var tStr = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
+            document.querySelectorAll('.jnt-chip-date').forEach(function (el) { el.textContent = '📅 ' + wStr + ', ' + dStr; });
+            document.querySelectorAll('.jnt-chip-clock').forEach(function (el) { el.textContent = tStr + ' WIB'; });
         });
     </script>
     <!-- CSS Style -->
@@ -231,15 +237,9 @@
                     </div>
 
                     <div class="inc-top-right">
-                        <div class="inc-date-chip">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                style="width: 14px; height: 14px; margin-right: 6px;">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                            <span id="sla-header-date">15 Oktober 2026</span>
+                        <div class="inc-date-chip" id="sh-top-date-chip">
+                            <span class="jnt-chip-date" id="sh-top-date-text">📅 —</span>
+                            <span class="jnt-chip-clock" id="sh-top-clock-text">--:--:-- WIB</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn">
                             <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"

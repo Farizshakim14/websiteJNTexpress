@@ -42,6 +42,12 @@
                 el.title = uName;
             });
             document.querySelectorAll('.inc-user-role').forEach(function (el) { el.textContent = roleLbl; });
+            var now = new Date();
+            var dStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' });
+            var wStr = now.toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long' });
+            var tStr = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
+            document.querySelectorAll('.jnt-chip-date').forEach(function (el) { el.textContent = '📅 ' + wStr + ', ' + dStr; });
+            document.querySelectorAll('.jnt-chip-clock').forEach(function (el) { el.textContent = tStr + ' WIB'; });
         });
     </script>
     <!-- CSS Style -->
@@ -223,8 +229,9 @@
                     </div>
 
                     <div class="inc-top-right">
-                        <div class="inc-date-chip">
-                            <span>22 Juli 2026</span>
+                        <div class="inc-date-chip" id="sh-top-date-chip">
+                            <span class="jnt-chip-date" id="sh-top-date-text">📅 —</span>
+                            <span class="jnt-chip-clock" id="sh-top-clock-text">--:--:-- WIB</span>
                         </div>
                         <div class="inc-user-chip" id="topbar-user-chip-btn">
                             <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
