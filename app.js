@@ -289,6 +289,39 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (typeof JNTFirebaseService !== 'undefined' && typeof JNTFirebaseService.setVerifiedAuthProfile === 'function') {
                             JNTFirebaseService.setVerifiedAuthProfile({ ...prof, uid: firebaseUser.uid });
                         }
+                        // Sinkronkan status Online & waktu login aktif ke Firestore secara real-time saat sesi terverifikasi
+                        try {
+                            const activeUname = String(prof.username || sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
+                            const nowMs = Date.now();
+                            const nowFmt = (typeof window.jntFormatDateTime === 'function')
+                                ? window.jntFormatDateTime(new Date(nowMs))
+                                : new Date(nowMs).toLocaleString('id-ID');
+                            const currentLoginTime = sessionStorage.getItem('jnt_last_login_time') || prof.lastLogin || nowFmt;
+                            if (!sessionStorage.getItem('jnt_last_login_time')) {
+                                sessionStorage.setItem('jnt_last_login_time', currentLoginTime);
+                            }
+                            if (window.db) {
+                                window.db.collection('users').doc(firebaseUser.uid).set({
+                                    lastLogin: currentLoginTime,
+                                    lastSeen: nowMs
+                                }, { merge: true }).catch(() => { });
+                                if (activeUname) {
+                                    const sRef = jntSessionRef(activeUname);
+                                    if (sRef) {
+                                        sRef.set({
+                                            username: activeUname,
+                                            uid: firebaseUser.uid,
+                                            fullname: prof.fullname || activeUname,
+                                            role: prof.role || '',
+                                            isOnline: true,
+                                            lastLogin: currentLoginTime,
+                                            lastSeen: nowMs,
+                                            userAgent: navigator.userAgent
+                                        }, { merge: true }).catch(() => { });
+                                    }
+                                }
+                            }
+                        } catch (_) { }
                     }
                 } catch (_) { }
             } else if (!window.__jntLoginInProgress
@@ -302,14 +335,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // SINGLE-SESSION LOCK — 1 akun hanya boleh dipakai 1 pengguna/perangkat.
-    // Prioritas 1: Disimpan di Hosting cPanel via session_lock.php (0 Read & 0 Write Firestore!)
-    // Prioritas 2 (Fallback): Firestore active_sessions/{username} jika dijalankan di localhost tanpa PHP.
+    // SINGLE-SESSION LOCK & REAL-TIME PRESENCE
+    // Menyinkronkan status Online & Terakhir Login secara real-time ke Firestore active_sessions/{username}
+    // sekaligus mendukung session_lock.php di Hosting cPanel.
     // ----------------------------------------------------
-    const SESSION_HEARTBEAT_MS = 180000; // 3 menit via session_lock.php di hosting
+    const SESSION_HEARTBEAT_MS = 60000;  // 1 menit agar indikator Online selalu real-time
     const SESSION_STALE_MS = 600000;     // 10 menit
     let _sessionPhpAvailable = null;
-    function jntSessionKey(u) { return String(u || '').toLowerCase().replace(/[\/.#$\[\]]/g, '_'); }
+    function jntSessionKey(u) { return String(u || '').toLowerCase().trim().replace(/[\/.#$\[\]]/g, '_'); }
     function jntSessionRef(u) {
         return (window.db && u) ? window.db.collection('active_sessions').doc(jntSessionKey(u)) : null;
     }
@@ -343,60 +376,100 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.ensureFirebaseAuth === 'function') {
             try { await window.ensureFirebaseAuth(); } catch (_) { }
         }
+        const cleanUname = String(username || '').toLowerCase().trim();
         const sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        const nowMs = Date.now();
+        const nowFmt = (typeof window.jntFormatDateTime === 'function')
+            ? window.jntFormatDateTime(new Date(nowMs))
+            : new Date(nowMs).toLocaleString('id-ID');
+        sessionStorage.setItem('jnt_last_login_time', nowFmt);
 
-        // Tier 1: Gunakan session_lock.php di Hosting cPanel (0 Read/Write Firestore)
+        let finalSid = sessionId;
+
+        // Tier 1: Gunakan session_lock.php di Hosting cPanel jika tersedia
         const phpRes = await jntCallSessionPhp({
             action: 'acquire',
-            username,
+            username: cleanUname,
             sessionId,
             userAgent: navigator.userAgent
         });
         if (phpRes) {
             if (!phpRes.ok) return { ok: false };
-            sessionStorage.setItem('jnt_session_id', phpRes.sessionId || sessionId);
-            return { ok: true };
+            finalSid = phpRes.sessionId || sessionId;
+            sessionStorage.setItem('jnt_session_id', finalSid);
         }
 
-        // Tier 2 (Fallback): Firestore jika PHP tidak tersedia
-        const ref = jntSessionRef(username);
-        if (!ref) return { ok: true };
+        // Tier 2 & Real-Time Presence: Selalu sinkronkan ke Firestore active_sessions/{username} agar halaman User Management real-time
+        const ref = jntSessionRef(cleanUname);
+        if (!ref) {
+            sessionStorage.setItem('jnt_session_id', finalSid);
+            return { ok: true };
+        }
         try {
             const ok = await window.db.runTransaction(async (tx) => {
                 const snap = await tx.get(ref);
                 const d = snap.exists ? snap.data() : null;
                 const isSameBrowser = d && d.userAgent === navigator.userAgent;
-                if (d && d.sessionId && !isSameBrowser && (Date.now() - (d.lastSeen || 0)) < SESSION_STALE_MS) return false;
-                tx.set(ref, { sessionId, lastSeen: Date.now(), username, userAgent: navigator.userAgent });
+                if (!phpRes && d && d.sessionId && d.isOnline !== false && !isSameBrowser && (Date.now() - (d.lastSeen || 0)) < SESSION_STALE_MS) {
+                    return false;
+                }
+                tx.set(ref, {
+                    sessionId: finalSid,
+                    isOnline: true,
+                    lastSeen: nowMs,
+                    lastLogin: nowFmt,
+                    username: cleanUname,
+                    uid: (window.auth && window.auth.currentUser) ? window.auth.currentUser.uid : '',
+                    userAgent: navigator.userAgent
+                }, { merge: true });
                 return true;
             });
             if (!ok) return { ok: false };
-            sessionStorage.setItem('jnt_session_id', sessionId);
+            sessionStorage.setItem('jnt_session_id', finalSid);
             return { ok: true };
         } catch (e) {
-            console.warn('[SESSION LOCK] Firestore tidak dapat diakses, session lock dinonaktifkan:', e.code || e.message);
+            console.warn('[SESSION LOCK] Firestore tidak dapat diakses, fallback non-transactional:', e.code || e.message);
+            try {
+                await ref.set({
+                    sessionId: finalSid,
+                    isOnline: true,
+                    lastSeen: nowMs,
+                    lastLogin: nowFmt,
+                    username: cleanUname,
+                    userAgent: navigator.userAgent
+                }, { merge: true });
+            } catch (_) { }
+            sessionStorage.setItem('jnt_session_id', finalSid);
             return { ok: true };
         }
     }
     async function jntReleaseSessionLock() {
-        const loginUser = sessionStorage.getItem('jnt_username_login');
+        const loginUser = String(sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
         const sid = sessionStorage.getItem('jnt_session_id');
-        if (!loginUser || !sid) return;
+        if (!loginUser) return;
 
         // Tier 1: Release di session_lock.php Hosting
-        const phpRes = await jntCallSessionPhp({
-            action: 'release',
-            username: loginUser,
-            sessionId: sid
-        });
-        if (phpRes) return;
+        if (sid) {
+            try {
+                await jntCallSessionPhp({
+                    action: 'release',
+                    username: loginUser,
+                    sessionId: sid
+                });
+            } catch (_) { }
+        }
 
-        // Tier 2 (Fallback): Release di Firestore
+        // Tier 2 & Real-Time Presence: Tandai Offline di Firestore namun tetap simpan riwayat Terakhir Login (lastLogin & lastSeen)
         const ref = jntSessionRef(loginUser);
         if (!ref) return;
         try {
-            const snap = await ref.get();
-            if (snap.exists && snap.data().sessionId === sid) await ref.delete();
+            const nowMs = Date.now();
+            await ref.set({
+                sessionId: '',
+                isOnline: false,
+                lastSeen: nowMs,
+                lastLogoutAt: nowMs
+            }, { merge: true });
         } catch (e) { console.warn('[SESSION LOCK] release gagal:', e.message); }
     }
     window.jntReleaseSessionLock = jntReleaseSessionLock;
@@ -404,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Heartbeat di halaman terproteksi
     if (isLoggedIn && !publicPages.includes(pageName)) {
         const beat = async () => {
-            const loginUser = sessionStorage.getItem('jnt_username_login');
+            const loginUser = String(sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
             let sid = sessionStorage.getItem('jnt_session_id');
             if (!loginUser) return;
 
@@ -418,34 +491,60 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (!sid) return;
 
-            // Tier 1: Heartbeat ke session_lock.php di Hosting cPanel (0 Read/Write Firestore)
+            const nowMs = Date.now();
+            const nowFmt = (typeof window.jntFormatDateTime === 'function')
+                ? window.jntFormatDateTime(new Date(nowMs))
+                : new Date(nowMs).toLocaleString('id-ID');
+            const loginTimeStr = sessionStorage.getItem('jnt_last_login_time') || nowFmt;
+            if (!sessionStorage.getItem('jnt_last_login_time')) {
+                sessionStorage.setItem('jnt_last_login_time', loginTimeStr);
+            }
+
+            // Tier 1: Heartbeat ke session_lock.php di Hosting cPanel jika tersedia
             const phpBeat = await jntCallSessionPhp({
                 action: 'heartbeat',
                 username: loginUser,
                 sessionId: sid,
                 userAgent: navigator.userAgent
             });
-            if (phpBeat) {
-                if (phpBeat.evicted) {
-                    jntShowEvictedModal();
-                }
+            if (phpBeat && phpBeat.evicted) {
+                jntShowEvictedModal();
                 return;
             }
 
-            // Tier 2 (Fallback): Firestore jika PHP tidak tersedia
+            // Tier 2 & Real-Time Presence: Sinkronkan heartbeat ke Firestore active_sessions/{username} & users/{uid}
             const ref = jntSessionRef(loginUser);
             if (!ref) return;
             try {
                 const snap = await ref.get();
-                if (snap.exists && snap.data().sessionId && snap.data().sessionId !== sid) {
-                    jntShowEvictedModal();
-                    return;
+                if (!phpBeat && snap.exists && snap.data().sessionId && snap.data().isOnline !== false && snap.data().sessionId !== sid) {
+                    const existingUa = snap.data().userAgent || '';
+                    if (existingUa && existingUa !== navigator.userAgent && (nowMs - (snap.data().lastSeen || 0)) < SESSION_STALE_MS) {
+                        jntShowEvictedModal();
+                        return;
+                    }
                 }
-                await ref.set({ sessionId: sid, lastSeen: Date.now() }, { merge: true });
+                await ref.set({
+                    sessionId: sid,
+                    username: loginUser,
+                    isOnline: true,
+                    lastSeen: nowMs,
+                    lastLogin: (snap.exists && snap.data().lastLogin) ? snap.data().lastLogin : loginTimeStr,
+                    userAgent: navigator.userAgent
+                }, { merge: true });
+                if (window.db && window.auth && window.auth.currentUser && !window.auth.currentUser.isAnonymous) {
+                    window.db.collection('users').doc(window.auth.currentUser.uid).set({
+                        lastSeen: nowMs,
+                        lastLogin: loginTimeStr
+                    }, { merge: true }).catch(() => { });
+                }
             } catch (e) { /* offline / rules: abaikan */ }
         };
-        setTimeout(beat, 2000);
+        setTimeout(beat, 400);
         setInterval(beat, SESSION_HEARTBEAT_MS);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') beat();
+        });
     }
 
     // Modal pemberitahuan sesi digantikan (tidak bisa di-dismiss)
@@ -4420,8 +4519,182 @@ document.addEventListener('DOMContentLoaded', () => {
         const usersPerPage = 10;
         let onlineUsersMap = new Map();
         let onlineSessionDetailsMap = new Map();
+        let firestoreSessionsMap = new Map();
+        let phpSessionsMap = new Map();
 
-        // Ambil status sesi online dari session_lock.php di Hosting cPanel (0 Read Firestore), fallback ke Firestore jika PHP tidak tersedia
+        const ONLINE_THRESHOLD_MS = 600000; // 10 menit sejak heartbeat terakhir
+
+        // Gabungkan sumber real-time: Firestore active_sessions, session_lock.php, dan sesi pengguna yang sedang login
+        const recomputeOnlineState = () => {
+            onlineUsersMap.clear();
+            onlineSessionDetailsMap.clear();
+            const nowMs = Date.now();
+
+            // 1. Data dari session_lock.php (jika ada)
+            phpSessionsMap.forEach((s, uname) => {
+                if (!s || !uname) return;
+                onlineSessionDetailsMap.set(uname, { ...s });
+                const lastSeen = Number(s.lastSeen || 0);
+                if (s.isOnline !== false && lastSeen > 0 && (nowMs - lastSeen) < ONLINE_THRESHOLD_MS) {
+                    onlineUsersMap.set(uname, true);
+                }
+            });
+
+            // 2. Data real-time dari Firestore active_sessions (prioritas utama)
+            firestoreSessionsMap.forEach((s, uname) => {
+                if (!s || !uname) return;
+                const prev = onlineSessionDetailsMap.get(uname) || {};
+                const merged = {
+                    ...prev,
+                    ...s,
+                    lastSeen: Math.max(Number(prev.lastSeen || 0), Number(s.lastSeen || 0)),
+                    lastLogin: s.lastLogin || prev.lastLogin || ''
+                };
+                onlineSessionDetailsMap.set(uname, merged);
+                const lastSeen = Number(s.lastSeen || 0);
+                const hasActiveSession = Boolean(s.sessionId) || s.isOnline === true;
+                if (s.isOnline === false) {
+                    onlineUsersMap.delete(uname);
+                } else if (hasActiveSession && lastSeen > 0 && (nowMs - lastSeen) < ONLINE_THRESHOLD_MS) {
+                    onlineUsersMap.set(uname, true);
+                }
+            });
+
+            // 3. Cek juga field lastSeen dari koleksi users jika baru saja aktif
+            allUsersCache.forEach(u => {
+                if (!u || !u.username) return;
+                const uname = String(u.username).toLowerCase().trim();
+                const uLastSeen = Number(u.lastSeen || 0);
+                if (uLastSeen > 0) {
+                    const prev = onlineSessionDetailsMap.get(uname) || {};
+                    if (!prev.lastSeen || uLastSeen > Number(prev.lastSeen || 0)) {
+                        onlineSessionDetailsMap.set(uname, {
+                            ...prev,
+                            username: uname,
+                            lastSeen: uLastSeen,
+                            lastLogin: u.lastLogin || prev.lastLogin || ''
+                        });
+                    }
+                    // Jika belum ada flag eksplisit isOnline === false di firestoreSessionsMap dan baru aktif < 10 menit
+                    const fsDoc = firestoreSessionsMap.get(uname);
+                    if ((!fsDoc || fsDoc.isOnline !== false) && (nowMs - uLastSeen) < ONLINE_THRESHOLD_MS) {
+                        onlineUsersMap.set(uname, true);
+                    }
+                }
+            });
+
+            // 4. Pengguna yang sedang membuka halaman ini PASTI berstatus Online real-time
+            const currentLoginUname = String(sessionStorage.getItem('jnt_username_login') || '').toLowerCase().trim();
+            const currentActiveFullname = String(sessionStorage.getItem('jnt_active_username') || '').toLowerCase().trim();
+            const nowFmt = (typeof window.jntFormatDateTime === 'function')
+                ? window.jntFormatDateTime(new Date(nowMs))
+                : new Date(nowMs).toLocaleString('id-ID');
+            const myLoginTime = sessionStorage.getItem('jnt_last_login_time') || nowFmt;
+
+            if (currentLoginUname) {
+                onlineUsersMap.set(currentLoginUname, true);
+                const prev = onlineSessionDetailsMap.get(currentLoginUname) || {};
+                onlineSessionDetailsMap.set(currentLoginUname, {
+                    ...prev,
+                    username: currentLoginUname,
+                    isOnline: true,
+                    lastSeen: nowMs,
+                    lastLogin: prev.lastLogin || myLoginTime,
+                    userAgent: navigator.userAgent
+                });
+            }
+            if (currentActiveFullname && allUsersCache.length > 0) {
+                const matchedMe = allUsersCache.find(u =>
+                    String(u.username || '').toLowerCase().trim() === currentLoginUname ||
+                    String(u.fullname || '').toLowerCase().trim() === currentActiveFullname
+                );
+                if (matchedMe && matchedMe.username) {
+                    const matchedUname = String(matchedMe.username).toLowerCase().trim();
+                    onlineUsersMap.set(matchedUname, true);
+                    const prev = onlineSessionDetailsMap.get(matchedUname) || {};
+                    onlineSessionDetailsMap.set(matchedUname, {
+                        ...prev,
+                        username: matchedUname,
+                        isOnline: true,
+                        lastSeen: nowMs,
+                        lastLogin: prev.lastLogin || matchedMe.lastLogin || myLoginTime,
+                        userAgent: navigator.userAgent
+                    });
+                }
+            }
+        };
+
+        // Helper: Resolusi waktu Terakhir Login secara akurat (dari Sesi Aktif -> Profil User -> Riwayat Audit Log)
+        const resolveUserLastLogin = (u, unameLower, isOnlineNow) => {
+            const sessInfo = onlineSessionDetailsMap.get(unameLower);
+            let candidate = '';
+            if (sessInfo && sessInfo.lastSeen) {
+                candidate = window.jntFormatDateTime ? window.jntFormatDateTime(sessInfo.lastSeen) : new Date(sessInfo.lastSeen).toLocaleString('id-ID');
+            } else if (sessInfo && sessInfo.lastLogin) {
+                candidate = window.jntFormatDateTime ? window.jntFormatDateTime(sessInfo.lastLogin) : sessInfo.lastLogin;
+            } else if (u && u.lastLogin) {
+                candidate = window.jntFormatDateTime ? window.jntFormatDateTime(u.lastLogin) : u.lastLogin;
+            } else if (u && u.lastSeen) {
+                candidate = window.jntFormatDateTime ? window.jntFormatDateTime(u.lastSeen) : new Date(u.lastSeen).toLocaleString('id-ID');
+            } else if (u) {
+                // Fallback cerdas: cari aktivitas/login terakhir dari Audit Logs
+                const allLogs = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.getSynthesizedAuditLogs)
+                    ? JNTFirebaseService.getSynthesizedAuditLogs()
+                    : (JNTFirebaseService.getLocalStore('audit_logs') || []);
+                const fullNameLower = String(u.fullname || '').toLowerCase().trim();
+                const latestLog = allLogs.find(l => {
+                    if (!l || !l.waktu) return false;
+                    const op = String(l.operator || '').toLowerCase().trim();
+                    const act = String(l.aktivitas || '').toLowerCase();
+                    return (op && (op === unameLower || op === fullNameLower || (fullNameLower && op.includes(fullNameLower))))
+                        || act.includes(`(${unameLower}`);
+                });
+                if (latestLog && latestLog.waktu) {
+                    candidate = window.jntFormatDateTime ? window.jntFormatDateTime(latestLog.waktu) : latestLog.waktu;
+                }
+            }
+            if (!candidate && isOnlineNow) {
+                candidate = window.jntFormatDateTime ? window.jntFormatDateTime(new Date()) : 'Sedang Online';
+            }
+            return candidate || '-';
+        };
+
+        // Real-time Listener Firestore active_sessions (onSnapshot)
+        let _unsubActiveSessions = null;
+        const subscribeFirestoreActiveSessions = () => {
+            if (!window.db || _unsubActiveSessions) return;
+            try {
+                _unsubActiveSessions = window.db.collection('active_sessions').onSnapshot((snapshot) => {
+                    firestoreSessionsMap.clear();
+                    snapshot.forEach(doc => {
+                        const d = doc.data() || {};
+                        const uname = String(d.username || doc.id || '').toLowerCase().trim();
+                        if (uname) {
+                            firestoreSessionsMap.set(uname, d);
+                        }
+                    });
+                    recomputeOnlineState();
+                    renderUsersTable();
+                    if (selectedUser) populateUserDetail(selectedUser);
+                }, (err) => {
+                    console.warn('[ACTIVE SESSIONS] Snapshot listener notice:', err.code || err.message);
+                });
+            } catch (e) {
+                console.warn('[ACTIVE SESSIONS] Gagal subscribe active_sessions:', e.message);
+            }
+        };
+
+        subscribeFirestoreActiveSessions();
+        if (window.auth) {
+            window.auth.onAuthStateChanged((u) => {
+                if (u && !u.isAnonymous) {
+                    if (!_unsubActiveSessions) subscribeFirestoreActiveSessions();
+                    pollActiveSessions();
+                }
+            });
+        }
+
+        // Ambil juga status sesi online dari session_lock.php di Hosting cPanel jika tersedia
         const pollActiveSessions = async () => {
             try {
                 const headers = {};
@@ -4434,20 +4707,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res && res.ok && (res.headers.get('content-type') || '').includes('application/json')) {
                         const data = await res.json();
                         if (data && data.success && Array.isArray(data.sessions)) {
-                            onlineUsersMap.clear();
-                            onlineSessionDetailsMap.clear();
+                            phpSessionsMap.clear();
                             const now = data.serverTimeMs || Date.now();
                             data.sessions.forEach(s => {
                                 if (!s) return;
-                                const uname = String(s.username || '').toLowerCase();
+                                const uname = String(s.username || '').toLowerCase().trim();
                                 const lastSeen = Number(s.lastSeen || 0);
                                 if (uname) {
-                                    onlineSessionDetailsMap.set(uname, s);
-                                    if ((now - lastSeen) < 600000) {
-                                        onlineUsersMap.set(uname, true);
-                                    }
+                                    phpSessionsMap.set(uname, {
+                                        ...s,
+                                        isOnline: (now - lastSeen) < ONLINE_THRESHOLD_MS
+                                    });
                                 }
                             });
+                            recomputeOnlineState();
                             renderUsersTable();
                             if (selectedUser) populateUserDetail(selectedUser);
                             return;
@@ -4455,9 +4728,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (_) { }
+            recomputeOnlineState();
+            renderUsersTable();
+            if (selectedUser) populateUserDetail(selectedUser);
         };
         pollActiveSessions();
-        setInterval(pollActiveSessions, 30000);
+        setInterval(pollActiveSessions, 20000);
 
         const getRoleBadgeClass = (roleVal) => {
             const r = (typeof JNTFirebaseService !== 'undefined' && JNTFirebaseService.normalizeRole)
@@ -4526,12 +4802,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const unameLower = (u.username || '').toLowerCase().trim();
             const sessInfo = onlineSessionDetailsMap.get(unameLower);
             const isOnlineNow = onlineUsersMap.has(unameLower);
-            const rawLastLoginVal = u.lastLogin
-                || (sessInfo && sessInfo.lastSeen ? (window.jntFormatDateTime ? window.jntFormatDateTime(sessInfo.lastSeen) : new Date(sessInfo.lastSeen).toLocaleString('id-ID')) : '');
-            const resolvedLastLogin = (rawLastLoginVal ? (window.jntFormatDateTime ? window.jntFormatDateTime(rawLastLoginVal) : rawLastLoginVal) : '')
-                || (isOnlineNow ? 'Sedang Online' : '-');
+            const resolvedLastLogin = resolveUserLastLogin(u, unameLower, isOnlineNow);
             const resolvedCreated = u.createdAt
-                ? (isNaN(new Date(u.createdAt).getTime()) ? String(u.createdAt) : new Date(u.createdAt).toLocaleDateString('id-ID'))
+                ? (window.jntFormatDateTime ? window.jntFormatDateTime(u.createdAt) : (isNaN(new Date(u.createdAt).getTime()) ? String(u.createdAt) : new Date(u.createdAt).toLocaleDateString('id-ID')))
                 : '-';
 
             if (dtAvatar) dtAvatar.src = jntSafeUrl(u.photoURL, jntMakeAvatarUrl(u.fullname || u.username, 150));
@@ -4663,7 +4936,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isSelected = selectedUser && selectedUser.username === u.username;
                     const accountStatus = (u.status || 'Aktif').toLowerCase();
                     const isAccountActive = accountStatus === 'aktif';
-                    const unameLower = (u.username || '').toLowerCase();
+                    const unameLower = (u.username || '').toLowerCase().trim();
                     const isOnline = isAccountActive && onlineUsersMap.has(unameLower);
 
                     let statusHtml = '';
@@ -4686,10 +4959,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ? `🏢 ${u.vendorShort || JNTFirebaseService.formatVendorShort(u.vendorName)} • ${u.tlc || 'JKT999'}`
                             : (u.tlc || 'Head Office')
                     );
-                    const sessData = onlineSessionDetailsMap.get(unameLower);
-                    const rawLastLogin = (u.lastLogin ? (window.jntFormatDateTime ? window.jntFormatDateTime(u.lastLogin) : u.lastLogin) : '')
-                        || (sessData && sessData.lastSeen ? (window.jntFormatDateTime ? window.jntFormatDateTime(sessData.lastSeen) : new Date(sessData.lastSeen).toLocaleString('id-ID')) : '')
-                        || (isOnline ? 'Sedang Online' : '-');
+                    const rawLastLogin = resolveUserLastLogin(u, unameLower, isOnline);
                     const safeLastLogin = jntEscapeHtml(rawLastLogin);
                     const safeRole = jntEscapeHtml(displayRole);
 
@@ -5213,7 +5483,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let csv = '\uFEFFNo,Nama Lengkap,Username,Email,No Telepon,Role,Cabang/TLC,Status,Terakhir Login\n';
                 allUsersCache.forEach((u, i) => {
-                    csv += `"${i + 1}","${u.fullname || u.username}","${u.username}","${u.email || ''}","${u.phone || ''}","${u.role || 'Operator'}","${u.tlc || 'Head Office'}","${u.status || 'Aktif'}","${u.lastLogin || ''}"\n`;
+                    const unameLower = String(u.username || '').toLowerCase().trim();
+                    const isAct = (u.status || 'Aktif').toLowerCase() === 'aktif';
+                    const isOnl = isAct && onlineUsersMap.has(unameLower);
+                    const stLabel = !isAct ? 'Nonaktif' : (isOnl ? 'Online' : 'Offline');
+                    const lastLogVal = resolveUserLastLogin(u, unameLower, isOnl);
+                    csv += `"${i + 1}","${u.fullname || u.username}","${u.username}","${u.email || ''}","${u.phone || ''}","${u.role || 'Operator'}","${u.tlc || 'Head Office'}","${stLabel}","${lastLogVal}"\n`;
                 });
 
                 const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -5230,15 +5505,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Subscribe to Users Data
         JNTFirebaseService.subscribeUsers((list) => {
             allUsersCache = list;
+            recomputeOnlineState();
             renderUserKPIs(list);
             renderUsersTable();
+            if (selectedUser) {
+                const updatedSel = list.find(u => String(u.username || '').toLowerCase().trim() === String(selectedUser.username || '').toLowerCase().trim());
+                if (updatedSel) populateUserDetail(updatedSel);
+            }
         });
 
         window.addEventListener('jnt_data_updated', () => {
             const list = JNTFirebaseService.getLocalStore('users');
             allUsersCache = list;
+            recomputeOnlineState();
             renderUserKPIs(list);
             renderUsersTable();
+            if (selectedUser) {
+                const updatedSel = list.find(u => String(u.username || '').toLowerCase().trim() === String(selectedUser.username || '').toLowerCase().trim());
+                if (updatedSel) populateUserDetail(updatedSel);
+            }
         });
     }
 

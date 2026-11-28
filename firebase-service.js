@@ -6552,12 +6552,18 @@ const JNTFirebaseService = {
                 // Skip pure UID duplicate docs that have no username field if we already have the username doc
                 const key = String(u.username || '').toLowerCase().trim() || uname;
                 const prev = byUname.get(key) || {};
+                const prevLastSeen = Number(prev.lastSeen || 0);
+                const curLastSeen = Number(u.lastSeen || 0);
+                const mergedLastSeen = Math.max(prevLastSeen, curLastSeen) || undefined;
+                const mergedLastLogin = (curLastSeen >= prevLastSeen ? (u.lastLogin || prev.lastLogin) : (prev.lastLogin || u.lastLogin)) || '';
                 byUname.set(key, {
                     ...prev,
                     ...u,
                     username: key,
                     uid: u.uid || prev.uid || (u.id !== key ? u.id : prev.id) || key,
-                    role: this.normalizeRole(u.role || prev.role)
+                    role: this.normalizeRole(u.role || prev.role),
+                    ...(mergedLastSeen ? { lastSeen: mergedLastSeen } : {}),
+                    ...(mergedLastLogin ? { lastLogin: mergedLastLogin } : {})
                 });
             });
 
@@ -6784,23 +6790,53 @@ const JNTFirebaseService = {
             }
 
             profile.role = this.normalizeRole(profile.role);
+            const nowFormatted = this.formatStandardDateTime(new Date());
+            const nowMs = Date.now();
+            profile.lastLogin = nowFormatted;
+            profile.lastSeen = nowMs;
 
-            // Pastikan profil selalu tersinkron ke /users/{user.uid} agar Firestore Security Rules dapat membaca /users/$(request.auth.uid)
+            // Pastikan profil selalu tersinkron ke /users/{user.uid} & /active_sessions/{username} agar status Online & Terakhir Login tampil real-time
             if (window.db && user && user.uid) {
+                const cleanUname = String(profile.username || identifier.split('@')[0] || '').toLowerCase().trim();
                 const uidProfile = {
                     ...profile,
                     uid: user.uid,
-                    id: user.uid
+                    id: user.uid,
+                    lastLogin: nowFormatted,
+                    lastSeen: nowMs
                 };
                 try {
                     await window.db.collection('users').doc(user.uid).set(uidProfile, { merge: true });
                 } catch (_) { }
+                if (cleanUname && cleanUname !== user.uid) {
+                    try {
+                        await window.db.collection('users').doc(cleanUname).set({
+                            lastLogin: nowFormatted,
+                            lastSeen: nowMs
+                        }, { merge: true });
+                    } catch (_) { }
+                }
+                if (cleanUname) {
+                    try {
+                        const sessKey = cleanUname.replace(/[\/.#$\[\]]/g, '_');
+                        await window.db.collection('active_sessions').doc(sessKey).set({
+                            username: cleanUname,
+                            uid: user.uid,
+                            fullname: profile.fullname || cleanUname,
+                            role: profile.role,
+                            isOnline: true,
+                            lastLogin: nowFormatted,
+                            lastSeen: nowMs,
+                            userAgent: (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : ''
+                        }, { merge: true });
+                    } catch (_) { }
+                }
             }
 
             this.setVerifiedAuthProfile({ ...profile, uid: user.uid });
 
             await this.logAuditEvent({
-                waktu: new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }),
+                waktu: nowFormatted,
                 operator: profile.fullname || profile.username,
                 shiftId: this.getActiveShiftId(),
                 modul: "Autentikasi",
