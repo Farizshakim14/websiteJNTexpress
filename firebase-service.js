@@ -1022,8 +1022,9 @@ const JNTFirebaseService = {
 
     /**
      * Parser tanggal operasional standar yang mendukung:
-     *  - "MM/DD/YYYY HH:mm" (format standar baru, misal: "10/29/2026 17:20")
-     *  - "DD/MM/YYYY HH:mm" (format legacy, misal: "29/10/2026 17:20 WIB")
+     *  - "MM-DD-YYYY HH:mm" (format standar utama, misal: "10-29-2026 17:20")
+     *  - "MM/DD/YYYY HH:mm" (misal: "10/29/2026 17:20")
+     *  - "DD/MM/YYYY HH:mm" / "DD-MM-YYYY HH:mm" (format legacy, misal: "29/10/2026 17:20 WIB")
      *  - "DD/MM/YY, HH.mm"  (format toLocaleString id-ID)
      *  - ISO "YYYY-MM-DDTHH:mm" / "YYYY-MM-DD HH:mm"
      */
@@ -1037,12 +1038,12 @@ const JNTFirebaseService = {
         const s = String(value).trim();
         if (!s || /^(kosong|belum|nihil|onroad|on\s*road|-|—|null|undefined|n\/a)$/i.test(s)) return null;
 
-        if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        if (/^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(s)) {
             const d = new Date(s);
             return isNaN(d.getTime()) ? null : d;
         }
 
-        const m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:[,\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?/);
+        const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?(?:[,\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?/);
         if (m) {
             const p1 = parseInt(m[1], 10);
             const p2 = parseInt(m[2], 10);
@@ -1073,7 +1074,7 @@ const JNTFirebaseService = {
     },
 
     /**
-     * Format waktu standar operasional J&T TMS: "MM/DD/YYYY HH:mm" (contoh: "10/29/2026 17:20")
+     * Format waktu standar operasional J&T TMS: "MM-DD-YYYY HH:mm" (contoh: "10-29-2026 17:20")
      */
     formatStandardDateTime(input = new Date()) {
         if (input === null || input === undefined || input === '') return '';
@@ -1084,7 +1085,7 @@ const JNTFirebaseService = {
         const d = this.parseStandardDate(input);
         if (!d) return typeof input === 'string' ? input.replace(/\s*WIB$/i, '').trim() : '';
         const pad = (n) => String(n).padStart(2, '0');
-        return `${pad(d.getMonth() + 1)}/${pad(d.getDate())}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     },
 
     parseMonitoringDate(value) {
@@ -3167,7 +3168,7 @@ const JNTFirebaseService = {
                 fixedArr.setDate(fixedArr.getDate() + 1);
             }
             const pad = n => String(n).padStart(2, '0');
-            return `${pad(fixedArr.getMonth() + 1)}/${pad(fixedArr.getDate())}/${fixedArr.getFullYear()} ${pad(fixedArr.getHours())}:${pad(fixedArr.getMinutes())}`;
+            return `${pad(fixedArr.getMonth() + 1)}-${pad(fixedArr.getDate())}-${fixedArr.getFullYear()} ${pad(fixedArr.getHours())}:${pad(fixedArr.getMinutes())}`;
         }
 
         return this.formatStandardDateTime(cleanArr) || cleanArr;

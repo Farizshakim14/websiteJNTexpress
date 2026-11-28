@@ -37,8 +37,8 @@ const SLACountdownEngine = {
             if (!isNaN(d.getTime())) return d;
         }
 
-        // Handle "MM/DD/YYYY HH:mm" (standard) or "DD/MM/YYYY HH:mm" (legacy) or "MM/DD HH:mm"
-        const m = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?(?:[,\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?/);
+        // Handle "MM-DD-YYYY HH:mm" (standard) or "MM/DD/YYYY HH:mm" or "DD/MM/YYYY HH:mm" (legacy)
+        const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?(?:[,\s]+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?/);
         if (m) {
             const p1 = parseInt(m[1], 10);
             const p2 = parseInt(m[2], 10);
@@ -203,7 +203,7 @@ const SLACountdownEngine = {
         const mm = pad(date.getMonth() + 1);
         const dd = pad(date.getDate());
         const yyyy = date.getFullYear();
-        return `${mm}/${dd}/${yyyy} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${mm}-${dd}-${yyyy} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
     },
 
     _isScrolling: false,

@@ -1381,7 +1381,7 @@
             }
             const parts = String(str).trim().split(' ');
             if (parts.length < 2) return null;
-            const dParts = parts[0].split('/');
+            const dParts = parts[0].split(/[\/\-]/);
             const tParts = parts[1].split(':');
             const p0 = parseInt(dParts[0], 10);
             const p1 = parseInt(dParts[1], 10);
@@ -2515,7 +2515,7 @@
                 if (!tVal) return '';
                 var parts = tVal.split('-');
                 if (parts.length < 3) return '';
-                return parts[1] + '/' + parts[2] + '/' + parts[0] + ' ' + jVal + ':' + mVal;
+                return parts[1] + '-' + parts[2] + '-' + parts[0] + ' ' + jVal + ':' + mVal;
             }
 
             function formatToDatetimeLocal(d) {
@@ -2529,7 +2529,7 @@
                 if (parts.length < 2) return val;
                 var dateParts = parts[0].split('-');
                 if (dateParts.length < 3) return val;
-                return dateParts[1] + '/' + dateParts[2] + '/' + dateParts[0] + ' ' + parts[1];
+                return dateParts[1] + '-' + dateParts[2] + '-' + dateParts[0] + ' ' + parts[1];
             }
 
             // ── INPUT SANITIZERS & AUTO FORMATTERS ─────────────────────────────

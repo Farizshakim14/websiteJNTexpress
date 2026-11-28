@@ -1971,7 +1971,7 @@
                     : (() => {
                         const now = new Date();
                         const pad = n => String(n).padStart(2, '0');
-                        return `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                        return `${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     })();
                 const el = document.getElementById('mon-jam-update-aktual');
                 if (el) el.value = str;
@@ -2270,7 +2270,7 @@
                 if (!tVal) return '';
                 const parts = tVal.split('-');
                 if (parts.length < 3) return '';
-                return `${parts[1]}/${parts[2]}/${parts[0]} ${jVal}:${mVal}`;
+                return `${parts[1]}-${parts[2]}-${parts[0]} ${jVal}:${mVal}`;
             }
 
             window.openSelesaiModal = (kodeTugas) => {
