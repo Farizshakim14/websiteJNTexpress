@@ -4091,23 +4091,97 @@ document.addEventListener('DOMContentLoaded', () => {
         function renderPreviewContainer(containerId, photosArray, arrayName) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            container.innerHTML = photosArray.map((p, idx) => {
-                const safeP = jntSafeUrl(p, '');
-                if (!safeP) return '';
+
+            const isKejadian = containerId === 'tr-preview-container-kejadian';
+            const dropAreaId = isKejadian ? 'tr-upload-area-kejadian' : 'tr-upload-area-selesai';
+            const fileInputId = isKejadian ? 'tr-foto-kejadian-file' : 'tr-foto-selesai-file';
+            const counterBadgeId = isKejadian ? 'tr-photo-count-kejadian' : 'tr-photo-count-selesai';
+            const captionPrefix = isKejadian ? 'Foto Kejadian' : 'Foto Bukti Selesai';
+
+            const dropArea = document.getElementById(dropAreaId);
+            const counterBadge = document.getElementById(counterBadgeId);
+
+            const validPhotos = photosArray
+                .map((p, idx) => ({ safeP: jntSafeUrl(p, ''), idx }))
+                .filter(item => Boolean(item.safeP));
+
+            if (validPhotos.length === 0) {
+                container.innerHTML = '';
+                container.classList.add('hidden');
+                if (dropArea) dropArea.classList.remove('hidden');
+                if (counterBadge) counterBadge.classList.add('hidden');
+                return;
+            }
+
+            // Saat foto sudah ada: sembunyikan dropzone besar, tampilkan galeri kartu + tile "+ Tambah Foto" di sampingnya
+            if (dropArea) dropArea.classList.add('hidden');
+            container.classList.remove('hidden');
+            if (counterBadge) {
+                counterBadge.textContent = `✅ ${validPhotos.length} Foto Siap Diunggah`;
+                counterBadge.classList.remove('hidden');
+            }
+
+            const cardsHtml = validPhotos.map(({ safeP, idx }, displayIdx) => {
+                const cap = `${captionPrefix} #${displayIdx + 1}`;
                 return `
-                <div style="position: relative; display: inline-block;">
-                    <img src="${jntEscapeHtml(safeP)}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #CBD5E1;">
-                    <button type="button" class="btn-rm-pending-photo" data-arr="${jntEscapeHtml(arrayName)}" data-idx="${idx}" style="position: absolute; top: -5px; right: -5px; background: #DC2626; color: #FFF; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+                <div class="photo-upload-thumb-card" data-photo-src="${jntEscapeHtml(safeP)}" data-photo-cap="${jntEscapeHtml(cap)}" title="Klik untuk memperbesar ${jntEscapeHtml(cap)}">
+                    <img src="${jntEscapeHtml(safeP)}" alt="${jntEscapeHtml(cap)}" class="photo-upload-thumb-img">
+                    <div class="photo-upload-thumb-overlay">
+                        <span class="photo-upload-zoom-hint">🔍 Lihat</span>
+                    </div>
+                    <span class="photo-upload-index-tag">#${displayIdx + 1}</span>
+                    <button type="button" class="btn-rm-pending-photo photo-upload-remove-btn" data-arr="${jntEscapeHtml(arrayName)}" data-idx="${idx}" title="Hapus foto ini" aria-label="Hapus foto">&times;</button>
                 </div>
             `;
             }).join('');
+
+            const addMoreTileHtml = `
+                <button type="button" class="photo-upload-add-tile" data-trigger-input="${fileInputId}" title="Tambah foto lainnya">
+                    <span class="photo-upload-add-plus">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </span>
+                    <span class="photo-upload-add-label">Tambah Foto</span>
+                </button>
+            `;
+
+            container.innerHTML = cardsHtml + addMoreTileHtml;
+
+            // Bind tombol hapus (X)
             container.querySelectorAll('.btn-rm-pending-photo').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const arr = btn.getAttribute('data-arr');
                     const i = parseInt(btn.getAttribute('data-idx'), 10);
                     if (arr && !isNaN(i)) window.removePendingPhoto(arr, i);
                 });
             });
+
+            // Bind klik kartu foto untuk preview zoom layar penuh
+            container.querySelectorAll('.photo-upload-thumb-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.btn-rm-pending-photo')) return;
+                    const src = card.getAttribute('data-photo-src');
+                    const cap = card.getAttribute('data-photo-cap') || 'Preview Foto';
+                    if (src && typeof window.openPhotoPreviewModal === 'function') {
+                        window.openPhotoPreviewModal(src, cap);
+                    }
+                });
+            });
+
+            // Bind tile "+ Tambah Foto" di samping foto yang sudah diupload
+            const addTile = container.querySelector('.photo-upload-add-tile');
+            if (addTile) {
+                addTile.addEventListener('click', () => {
+                    const targetInp = document.getElementById(fileInputId);
+                    if (targetInp) {
+                        targetInp.value = '';
+                        targetInp.click();
+                    }
+                });
+            }
         }
 
         window.removePendingPhoto = (arrayName, idx) => {

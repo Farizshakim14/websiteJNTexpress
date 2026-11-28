@@ -9528,6 +9528,235 @@ button:active:not(:disabled),
     display: block;
 }
 
+/* 1.5. Interactive Photo Upload Gallery Strip & Add (+) Tile */
+.photo-upload-counter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.14);
+    color: #38BDF8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.photo-upload-counter-badge.success {
+    background: rgba(22, 163, 74, 0.14);
+    color: #4ADE80;
+    border-color: rgba(74, 222, 128, 0.35);
+}
+
+.photo-upload-gallery-strip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px;
+    border-radius: 12px;
+    background: #F8FAFC;
+    border: 1.5px dashed #CBD5E1;
+    transition: all 0.2s ease;
+}
+
+.photo-upload-gallery-strip.success-strip {
+    background: #F0FDF4;
+    border-color: #86EFAC;
+}
+
+:is(html, body).dark-body-theme .photo-upload-gallery-strip {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: #334155;
+}
+
+:is(html, body).dark-body-theme .photo-upload-gallery-strip.success-strip {
+    background: rgba(6, 78, 59, 0.22);
+    border-color: rgba(52, 211, 153, 0.4);
+}
+
+.photo-upload-thumb-card {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 12px;
+    overflow: visible;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.photo-upload-thumb-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
+}
+
+.photo-upload-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid #38BDF8;
+    display: block;
+}
+
+.photo-upload-gallery-strip.success-strip .photo-upload-thumb-img {
+    border-color: #22C55E;
+}
+
+.photo-upload-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+}
+
+.photo-upload-thumb-card:hover .photo-upload-thumb-overlay {
+    opacity: 1;
+}
+
+.photo-upload-zoom-hint {
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+
+.photo-upload-index-tag {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    background: rgba(15, 23, 42, 0.78);
+    color: #F8FAFC;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 6px;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+}
+
+.photo-upload-remove-btn {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    color: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.45);
+    transition: transform 0.15s ease, background 0.15s ease;
+    z-index: 3;
+}
+
+:is(html, body).dark-body-theme .photo-upload-remove-btn {
+    border-color: #0F172A;
+}
+
+.photo-upload-remove-btn:hover {
+    transform: scale(1.12);
+    background: #B91C1C;
+}
+
+.photo-upload-add-tile {
+    width: 88px;
+    height: 88px;
+    border-radius: 12px;
+    border: 2px dashed #94A3B8;
+    background: rgba(59, 130, 246, 0.06);
+    color: #3B82F6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    padding: 6px;
+}
+
+.photo-upload-add-tile:hover {
+    border-color: #3B82F6;
+    background: rgba(59, 130, 246, 0.14);
+    transform: translateY(-2px);
+}
+
+:is(html, body).dark-body-theme .photo-upload-add-tile {
+    border-color: #475569;
+    background: rgba(56, 189, 248, 0.08);
+    color: #38BDF8;
+}
+
+:is(html, body).dark-body-theme .photo-upload-add-tile:hover {
+    border-color: #38BDF8;
+    background: rgba(56, 189, 248, 0.18);
+}
+
+.photo-upload-gallery-strip.success-strip .photo-upload-add-tile {
+    background: rgba(22, 163, 74, 0.08);
+    color: #16A34A;
+}
+
+.photo-upload-gallery-strip.success-strip .photo-upload-add-tile:hover {
+    border-color: #16A34A;
+    background: rgba(22, 163, 74, 0.16);
+}
+
+:is(html, body).dark-body-theme .photo-upload-gallery-strip.success-strip .photo-upload-add-tile {
+    color: #4ADE80;
+    background: rgba(74, 222, 128, 0.08);
+}
+
+.photo-upload-add-plus {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(59, 130, 246, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.photo-upload-gallery-strip.success-strip .photo-upload-add-plus {
+    background: rgba(22, 163, 74, 0.18);
+}
+
+.photo-upload-add-tile:hover .photo-upload-add-plus {
+    transform: scale(1.1);
+}
+
+.photo-upload-add-plus svg {
+    width: 17px;
+    height: 17px;
+}
+
+.photo-upload-add-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+}
+
 /* 2. Standarisasi Collapsible Filter Card & KPI Cards (Monitoring, SLA, Shift, Report) */
 .inc-filter-card.collapsible-section-wrapper {
     background-color: #FFFFFF;

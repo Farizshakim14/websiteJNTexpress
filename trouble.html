@@ -749,14 +749,17 @@
 
                 <!-- Foto Kejadian Upload Field -->
                 <div class="form-field">
-                    <label class="font-bold">Upload Foto Kejadian (Awal)</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="font-bold" style="margin-bottom: 0;">Upload Foto Kejadian (Awal)</label>
+                        <span id="tr-photo-count-kejadian" class="photo-upload-counter-badge hidden">0 Foto Terpilih</span>
+                    </div>
                     <input type="file" id="tr-foto-kejadian-file" accept="image/*" multiple style="display:none;">
                     <div id="tr-upload-area-kejadian" class="drop-upload-box" onclick="document.getElementById('tr-foto-kejadian-file').click()">
                         <span style="font-size: 22px;">📷</span>
                         <div class="drop-upload-title">Klik untuk Unggah Foto Kejadian</div>
                         <span class="drop-upload-sub">Format JPEG/PNG (Max 5MB per foto)</span>
                     </div>
-                    <div id="tr-preview-container-kejadian" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
+                    <div id="tr-preview-container-kejadian" class="photo-upload-gallery-strip hidden"></div>
                 </div>
 
                 <div class="modal-footer" style="margin-top: 10px;">
@@ -798,14 +801,17 @@
 
                 <!-- Foto Bukti Selesai Penanganan Upload Field -->
                 <div class="form-field" id="wrap-upd-foto-selesai">
-                    <label class="font-bold">Foto Bukti Selesai Penanganan <span style="color: #EF4444;">* (Wajib jika status SUDAH SELESAI)</span></label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="font-bold" style="margin-bottom: 0;">Foto Bukti Selesai Penanganan <span style="color: #EF4444;">* (Wajib jika status SUDAH SELESAI)</span></label>
+                        <span id="tr-photo-count-selesai" class="photo-upload-counter-badge success hidden">0 Foto Terpilih</span>
+                    </div>
                     <input type="file" id="tr-foto-selesai-file" accept="image/*" multiple style="display:none;">
                     <div id="tr-upload-area-selesai" class="drop-upload-box drop-upload-box-success" onclick="document.getElementById('tr-foto-selesai-file').click()">
                         <span style="font-size: 22px;">✅ 📸</span>
                         <div class="drop-upload-title" style="color: #16A34A;">Klik untuk Unggah Foto Bukti Selesai Penanganan</div>
                         <span class="drop-upload-sub">Wajib diunggah saat menutup status kejadian</span>
                     </div>
-                    <div id="tr-preview-container-selesai" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;"></div>
+                    <div id="tr-preview-container-selesai" class="photo-upload-gallery-strip success-strip hidden"></div>
                 </div>
 
                 <div class="modal-footer" style="margin-top: 10px;">
